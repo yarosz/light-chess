@@ -31,3 +31,7 @@ DrawRefusal
 InvalidGameEventException
 WinReason
 DrawReason
+
+# Pack loader (v1 PR 2): the Pack's manifest file, and the error for a Pack line that is not a Puzzle
+PackManifest
+PackFormatException

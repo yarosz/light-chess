@@ -1,0 +1,2 @@
+2XYwz;3r1rk1/1b2qpp1/4p2p/3pP3/1pp2QR1/4P1P1/1P2P1BP/5RK1 b - - 3 23;d8c8 f4h6 f7f5 e5f6;1860;74;crushing enPassant middlegame pin short
+lgTUE;1r1q1b1r/ppp1k1p1/2np3p/3P4/5PP1/1Q6/PP6/R1B2RK1 b - - 0 19;c6a5 b3e3 e7f7 e3e6;1880;75;dovetailMate mate mateIn2 middlegame short

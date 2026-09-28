@@ -30,6 +30,7 @@ import com.thelightphone.sdk.ui.LightTextVariant
 import com.thelightphone.sdk.ui.LightTheme
 import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
+import com.yarosz.chess.puzzles.Pack
 import com.yarosz.chess.rules.Position
 import com.yarosz.chess.rules.Side
 import com.yarosz.chess.rules.Square
@@ -49,6 +50,9 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
         get() = ChessViewModel::class.java
 
     override fun createViewModel() = ChessViewModel()
+
+    /** The Puzzles in the Tool's assets, read a Band at a time. The puzzle flow uses it (v1 PR 4). */
+    val pack: Pack by lazy { Pack(lightContext::readAsset) }
 
     @Composable
     override fun Content() {
