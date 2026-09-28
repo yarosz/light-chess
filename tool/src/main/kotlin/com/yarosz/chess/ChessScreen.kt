@@ -1,48 +1,89 @@
 package com.yarosz.chess
 
-import androidx.compose.foundation.Canvas
+import android.view.KeyEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.thelightphone.sdk.InitialScreen
 import com.thelightphone.sdk.LightScreen
 import com.thelightphone.sdk.LightViewModel
 import com.thelightphone.sdk.SealedLightActivity
-import com.thelightphone.sdk.ui.LightText
-import com.thelightphone.sdk.ui.LightTextVariant
 import com.thelightphone.sdk.ui.LightTheme
 import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
+import com.yarosz.chess.board.MoveInput
+import com.yarosz.chess.board.POSITION_VIEW_SIZE
+import com.yarosz.chess.board.PositionView
+import com.yarosz.chess.board.Review
+import com.yarosz.chess.board.Strip
+import com.yarosz.chess.board.StripButton
+import com.yarosz.chess.board.Touch
+import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.puzzles.Pack
+import com.yarosz.chess.rules.Game
 import com.yarosz.chess.rules.Position
 import com.yarosz.chess.rules.Side
-import com.yarosz.chess.rules.Square
-
-class ChessViewModel : LightViewModel<Unit>() {
-    val position: Position = Position.START
-}
 
 /**
- * Placeholder: proves the Tool installs, opens and runs the rules core. Pieces are FEN letters
- * (uppercase for White). The real board, cburnett pieces and input arrive in v1 PR 3.
+ * Free play for v1 PR 3: one Game from the start Position, both Sides moved by the user, so every
+ * input path (tap-tap, drag, castling, captures, promotion, Review) can be tried on a device. The
+ * puzzle flow replaces it in v1 PR 4.
  */
+class ChessViewModel : LightViewModel<Unit>() {
+    var game by mutableStateOf(Game.of())
+        private set
+    var input by mutableStateOf(MoveInput(Position.START))
+        private set
+    var review by mutableStateOf(Review())
+        private set
+
+    fun touch(touch: Touch) {
+        if (review.active) {
+            // A tap on the board leaves Review for the latest Position (R1.9).
+            if (touch is Touch.Tap) review = Review()
+            return
+        }
+        if (game.isOver) return
+        val step = input.touch(touch)
+        val move = step.move
+        if (move == null) {
+            input = step.input
+        } else {
+            game += move
+            input = step.input.after(game.position)
+        }
+    }
+
+    fun restart() {
+        game = Game.of()
+        input = MoveInput(game.position)
+        review = Review()
+    }
+
+    fun leaveReview() {
+        review = Review()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        val key = Wheel.of(keyCode) ?: return false
+        val next = review.wheel(key, game.ply) ?: return false
+        review = next
+        input = input.after(game.position)
+        return true
+    }
+}
+
 @InitialScreen
 class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, ChessViewModel>(sealedActivity) {
 
@@ -57,47 +98,37 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
-        val position = viewModel.position
+        val vm = viewModel
+        val game = vm.game
+        val reviewPly = vm.review.ply
+        val shownPly = reviewPly ?: game.ply
+        val status = when {
+            reviewPly != null -> UiCopy.review(reviewPly, game.ply)
+            else -> game.result?.let(UiCopy::result) ?: UiCopy.toMove(game.position.sideToMove)
+        }
+        val buttons = listOfNotNull(
+            if (reviewPly != null) StripButton(UiCopy.LATEST, UiCopy.LATEST_DESCRIPTION, vm::leaveReview) else null,
+            StripButton(UiCopy.RESTART, UiCopy.RESTART_DESCRIPTION, vm::restart),
+        )
         LightTheme(colors = themeColors) {
             Column(
                 Modifier
                     .fillMaxSize()
                     .background(LightThemeTokens.colors.background)
-                    .padding(top = 8.dp),
+                    .padding(top = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.Top,
             ) {
-                Board(position)
-                val toMove = if (position.sideToMove == Side.WHITE) "White" else "Black"
-                LightText(text = "Chess · $toMove to move · ${position.legalMoves.size} moves", variant = LightTextVariant.Copy)
+                PositionView(
+                    position = game.positions[shownPly],
+                    lastMove = game.moves.getOrNull(shownPly - 1),
+                    input = if (reviewPly == null && !game.isOver) vm.input else null,
+                    bottom = Side.WHITE,
+                    onTouch = vm::touch,
+                    description = UiCopy.BOARD_DESCRIPTION,
+                )
+                Strip(status, buttons, Modifier.width(POSITION_VIEW_SIZE))
             }
-        }
-    }
-}
-
-private val LIGHT_SQUARE = Color(0xFFD8D8D8)
-private val DARK_SQUARE = Color(0xFF8C8C8C)
-private val BOARD_SIZE = 312.dp
-
-@Composable
-private fun Board(position: Position) {
-    val measurer = rememberTextMeasurer()
-    val style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-    Canvas(Modifier.size(BOARD_SIZE)) {
-        val square = size.width / 8
-        for (rank in 0 until 8) for (file in 0 until 8) {
-            val topLeft = Offset(file * square, (7 - rank) * square)
-            drawRect(
-                color = if (Square.of(file, rank).isLight) LIGHT_SQUARE else DARK_SQUARE,
-                topLeft = topLeft,
-                size = Size(square, square),
-            )
-            val piece = position.pieceAt(Square.of(file, rank)) ?: continue
-            val text = measurer.measure(piece.fenChar.toString(), style)
-            drawText(
-                text,
-                topLeft = topLeft + Offset((square - text.size.width) / 2, (square - text.size.height) / 2),
-            )
         }
     }
 }

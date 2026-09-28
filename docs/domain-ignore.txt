@@ -6,11 +6,6 @@
 ChessScreen
 ChessViewModel
 
-# Placeholder screen copy (v1 PR 1). The board, its strip and their copy arrive in v1 PR 3.
-Chess · $toMove to move · ${position.legalMoves.size} moves
-White
-Black
-
 # Rules core: standard chess vocabulary that names parts of a Position, not new domain concepts
 Square
 Piece
@@ -35,3 +30,16 @@ DrawReason
 # Pack loader (v1 PR 2): the Pack's manifest file, and the error for a Pack line that is not a Puzzle
 PackManifest
 PackFormatException
+
+# Board view and input (v1 PR 3): UI vocabulary, not domain terms (DESIGN.md)
+CburnettPieces
+Shades
+Marks
+MoveInput
+Touch
+StripButton
+Wheel
+UiCopy
+${square.rank + 1}
+# The board view's accessibility label names the object on screen, not a Position (DESIGN.md "Copy")
+Chess board
