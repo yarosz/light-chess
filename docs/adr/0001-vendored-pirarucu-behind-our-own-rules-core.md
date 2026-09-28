@@ -29,8 +29,9 @@ evaluation stays unmodified, so fixed-depth node counts must match upstream exac
 
 ## Consequences
 
-- The repo is MIT until v2. Vendoring Pirarucu makes the Tool as distributed GPLv3, while our own
-  files stay MIT inside it. So v1 doesn't wait for Light's answer on GPL.
+- The repo is GPL-3.0-or-later from the start, and the maintainer holds the copyright of everything
+  outside `vendor/` so it can be relicensed later. A build that vendors Pirarucu stays GPLv3 as a
+  whole; choosing Karballo would let the Tool go MIT.
 
 - Pirarucu's upstream has been inactive since 2020, so we own the fork.
 - Always pass explicit hash sizes: the defaults allocate 256 MB and 32 MB.

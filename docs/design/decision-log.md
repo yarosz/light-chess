@@ -271,3 +271,8 @@ default Think time).
   Pirarucu, Light's answer on a GPLv3 Tool. Karballo is no longer just the fallback.
 - Light questions (production push, an alert/badge method, a privacy statement for a Tool that
   talks to its own server, listing requirements): unknown, and none of them blocks development.
+- LICENCE, corrected by the owner the same day (SUPERSEDES the "MIT for now" entry above): GPL-3.0-
+  or-later now, relicensable later (for example to MIT). This is E1's original ruling. It requires the
+  maintainer to hold the copyright of everything outside vendor/, so no outside code without a
+  copyright assignment (CONTRIBUTING.md). A relicense applies only to future releases, and a build
+  that vendors Pirarucu stays GPLv3 as a whole.
