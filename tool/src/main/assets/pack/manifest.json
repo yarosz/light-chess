@@ -1,0 +1,328 @@
+{
+ "bands": [
+  {
+   "available": 608,
+   "band": 400,
+   "bytes": 76295,
+   "file": "0400.txt",
+   "fromFill": 608,
+   "maxRating": 499,
+   "minRating": 399,
+   "puzzles": 608,
+   "sha256": "4c6ba2d596ef975bca850306f30de4e4c21a12488c6e0d460ead8cec760ee7f9"
+  },
+  {
+   "available": 2029,
+   "band": 500,
+   "bytes": 252014,
+   "file": "0500.txt",
+   "fromFill": 1993,
+   "maxRating": 599,
+   "minRating": 500,
+   "puzzles": 2000,
+   "sha256": "1030948bd3aaec39e19a7be917463c0bbf3d419cbda6259b6dd1b8890e375d0a"
+  },
+  {
+   "available": 6267,
+   "band": 600,
+   "bytes": 252785,
+   "file": "0600.txt",
+   "fromFill": 1859,
+   "maxRating": 699,
+   "minRating": 600,
+   "puzzles": 2000,
+   "sha256": "eba638979373dd04d468059805f50d429b4653af8f750289564f1c3e7167064c"
+  },
+  {
+   "available": 17493,
+   "band": 700,
+   "bytes": 244336,
+   "file": "0700.txt",
+   "fromFill": 164,
+   "maxRating": 799,
+   "minRating": 700,
+   "puzzles": 2000,
+   "sha256": "ce6c9d94c51c34ba664c5ca17251030f482bfb4f1a79255c9fde91dc7065ca40"
+  },
+  {
+   "available": 37584,
+   "band": 800,
+   "bytes": 256316,
+   "file": "0800.txt",
+   "fromFill": 0,
+   "maxRating": 899,
+   "minRating": 800,
+   "puzzles": 2000,
+   "sha256": "9c7c12ed1dc907b1d431cdf378d6915b1be775e46c44c050ae9a8587dbe5ee60"
+  },
+  {
+   "available": 106588,
+   "band": 900,
+   "bytes": 258824,
+   "file": "0900.txt",
+   "fromFill": 0,
+   "maxRating": 999,
+   "minRating": 900,
+   "puzzles": 2000,
+   "sha256": "5547a10e480735ae8799879d7a24f310c81bbcc5f0ee2892a4991120f095e625"
+  },
+  {
+   "available": 111257,
+   "band": 1000,
+   "bytes": 264243,
+   "file": "1000.txt",
+   "fromFill": 0,
+   "maxRating": 1099,
+   "minRating": 1000,
+   "puzzles": 2000,
+   "sha256": "a39d86341997538b654933b8247a5e899d7514cb90028045495cd4b73080f90f"
+  },
+  {
+   "available": 227226,
+   "band": 1100,
+   "bytes": 265678,
+   "file": "1100.txt",
+   "fromFill": 0,
+   "maxRating": 1199,
+   "minRating": 1100,
+   "puzzles": 2000,
+   "sha256": "c819439ebf7b654a3f26127f03cceb7c10ee758b2d187f0730ef1d9d83bfe161"
+  },
+  {
+   "available": 166128,
+   "band": 1200,
+   "bytes": 269347,
+   "file": "1200.txt",
+   "fromFill": 0,
+   "maxRating": 1299,
+   "minRating": 1200,
+   "puzzles": 2000,
+   "sha256": "572824a28942b9d2c46786329c896a7dcedf7a1d7ead9c7ed6f301624bde66d3"
+  },
+  {
+   "available": 205346,
+   "band": 1300,
+   "bytes": 271041,
+   "file": "1300.txt",
+   "fromFill": 0,
+   "maxRating": 1399,
+   "minRating": 1300,
+   "puzzles": 2000,
+   "sha256": "b4c1804a577c5c94297d3700289b873a78f4944ba8476099e143660b954ddaae"
+  },
+  {
+   "available": 208855,
+   "band": 1400,
+   "bytes": 273081,
+   "file": "1400.txt",
+   "fromFill": 0,
+   "maxRating": 1499,
+   "minRating": 1400,
+   "puzzles": 2000,
+   "sha256": "e4ae1eab2a39db9f3b73a6e14949a66cb74116ccadfbb196168cf22dd7d6dd00"
+  },
+  {
+   "available": 206851,
+   "band": 1500,
+   "bytes": 275877,
+   "file": "1500.txt",
+   "fromFill": 0,
+   "maxRating": 1599,
+   "minRating": 1500,
+   "puzzles": 2000,
+   "sha256": "cc8b119fdc1e39fd32614b372f2c94599fce1ffad9d8b9006a94a38b815e10c2"
+  },
+  {
+   "available": 199581,
+   "band": 1600,
+   "bytes": 280632,
+   "file": "1600.txt",
+   "fromFill": 0,
+   "maxRating": 1699,
+   "minRating": 1600,
+   "puzzles": 2000,
+   "sha256": "c722327c4c7e760b59c11405333d7833abf6ee2254f3911a865623c23bdf1101"
+  },
+  {
+   "available": 157520,
+   "band": 1700,
+   "bytes": 282329,
+   "file": "1700.txt",
+   "fromFill": 0,
+   "maxRating": 1799,
+   "minRating": 1700,
+   "puzzles": 2000,
+   "sha256": "d671c0899bf4d8ac2c7cdc344477cde11faf3dc64dc8adcdf373534fb60557d8"
+  },
+  {
+   "available": 138205,
+   "band": 1800,
+   "bytes": 284064,
+   "file": "1800.txt",
+   "fromFill": 0,
+   "maxRating": 1899,
+   "minRating": 1800,
+   "puzzles": 2000,
+   "sha256": "b99693b9abf5a01da74e2d66cfaf4b7aaaf2ffbf81bacad283c8dd0fb4c50132"
+  },
+  {
+   "available": 146290,
+   "band": 1900,
+   "bytes": 286894,
+   "file": "1900.txt",
+   "fromFill": 0,
+   "maxRating": 1999,
+   "minRating": 1900,
+   "puzzles": 2000,
+   "sha256": "b45e9dd40862d4d6cd83bfecb6efe0ca300158b2ede149e3fbf77cfe83aabc08"
+  },
+  {
+   "available": 119958,
+   "band": 2000,
+   "bytes": 289980,
+   "file": "2000.txt",
+   "fromFill": 0,
+   "maxRating": 2099,
+   "minRating": 2000,
+   "puzzles": 2000,
+   "sha256": "afdd38c1f77f575051d3474791128aed7db3dab05eed21e9d2c54cb75e8757ae"
+  },
+  {
+   "available": 91171,
+   "band": 2100,
+   "bytes": 293178,
+   "file": "2100.txt",
+   "fromFill": 0,
+   "maxRating": 2199,
+   "minRating": 2100,
+   "puzzles": 2000,
+   "sha256": "908434f501dfe684fbf8b658e6ef80b1b938fb4872b401468f6c260126c5a819"
+  },
+  {
+   "available": 64068,
+   "band": 2200,
+   "bytes": 297251,
+   "file": "2200.txt",
+   "fromFill": 0,
+   "maxRating": 2299,
+   "minRating": 2200,
+   "puzzles": 2000,
+   "sha256": "34a0185919ff207d7920e63ec99eb782a1e6c2db7e32c7b1f247bf3695cb5a7d"
+  },
+  {
+   "available": 41764,
+   "band": 2300,
+   "bytes": 294549,
+   "file": "2300.txt",
+   "fromFill": 741,
+   "maxRating": 2399,
+   "minRating": 2300,
+   "puzzles": 2000,
+   "sha256": "851297a54ec0b477e699902c97790ec665482a2e63e49779d3b97b2fc07f01c9"
+  },
+  {
+   "available": 22929,
+   "band": 2400,
+   "bytes": 298297,
+   "file": "2400.txt",
+   "fromFill": 1611,
+   "maxRating": 2499,
+   "minRating": 2400,
+   "puzzles": 2000,
+   "sha256": "bdbef101c14f8668959f30b43843d7f3f4a14f4e3d8b38740389c560fe191c1b"
+  },
+  {
+   "available": 13331,
+   "band": 2500,
+   "bytes": 303313,
+   "file": "2500.txt",
+   "fromFill": 1929,
+   "maxRating": 2599,
+   "minRating": 2500,
+   "puzzles": 2000,
+   "sha256": "028fbeb58f77c1061adbb08385984f100b3b7604c8bc4f2bf6cb1cf32c045fe1"
+  },
+  {
+   "available": 7746,
+   "band": 2600,
+   "bytes": 304657,
+   "file": "2600.txt",
+   "fromFill": 1996,
+   "maxRating": 2699,
+   "minRating": 2600,
+   "puzzles": 2000,
+   "sha256": "f0aeb38e76ecade12ae3a169b647fe566ee802fc6f0345f0acf11684f5ade2e8"
+  },
+  {
+   "available": 3338,
+   "band": 2700,
+   "bytes": 304196,
+   "file": "2700.txt",
+   "fromFill": 2000,
+   "maxRating": 2799,
+   "minRating": 2700,
+   "puzzles": 2000,
+   "sha256": "b2e0caa5c29c80120080b71f95458e796329de7ac7372e3c4ca460f3088f0aa0"
+  },
+  {
+   "available": 363,
+   "band": 2800,
+   "bytes": 54796,
+   "file": "2800.txt",
+   "fromFill": 363,
+   "maxRating": 2983,
+   "minRating": 2800,
+   "puzzles": 363,
+   "sha256": "bddd1f93f81a89f1d2188d44b1fe59785f84ac89848090d4979a03103ce83244"
+  }
+ ],
+ "counts": {
+  "onePerGame": 2302496,
+  "passedTier1": 573574,
+  "passedTier2": 1728922,
+  "rows": 6100952
+ },
+ "filter": {
+  "fill": {
+   "maxRatingDeviation": 90,
+   "minPlays": 500,
+   "minPopularity": 85
+  },
+  "genericThemes": [
+   "advantage",
+   "crushing",
+   "endgame",
+   "equality",
+   "long",
+   "master",
+   "masterVsMaster",
+   "mate",
+   "middlegame",
+   "oneMove",
+   "opening",
+   "player",
+   "short",
+   "superGM",
+   "veryLong"
+  ],
+  "lowestBand": 400,
+  "onePerGame": true,
+  "perBand": 2000,
+  "strict": {
+   "maxRatingDeviation": 80,
+   "minPlays": 1000,
+   "minPopularity": 95
+  },
+  "topBand": 2800
+ },
+ "packSha256": "b3fdc8a3850b83bdb6d61b53ee2bb25bd39e3769fcd0020fd42441033a326778",
+ "puzzles": 46971,
+ "schemaVersion": 1,
+ "seed": 20260909,
+ "source": {
+  "date": "2026-09-09",
+  "licence": "CC0-1.0 (lichess.org)",
+  "sha256": "95fd454bec9efe8f940d5863d5db4c57474f281a865834997bd8cb5d6a149bb9",
+  "url": "https://database.lichess.org/lichess_db_puzzle.csv.zst"
+ }
+}
