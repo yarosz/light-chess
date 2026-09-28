@@ -2,7 +2,7 @@
 
 Tunable values and the rules behind them. Rulings live in `docs/design/decision-log.md` (cited by id);
 this file holds the constants we expect to adjust from measurements on the Light Phone III, and the
-small decisions v1 PR 3 made that the log doesn't cover.
+small decisions v1 PRs 3 and 4 made that the log doesn't cover.
 
 ## Layout (R1.8)
 
@@ -12,8 +12,7 @@ side. The strip is 48 dp tall and exactly as wide as the board, directly under i
 free at the bottom.
 
 The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). v1 has no
-board flip (D10); the puzzle flow puts the side to move after the setup Move at the bottom (A5), and
-free play keeps White there.
+board flip (D10); the puzzle flow puts the side to move after the setup Move at the bottom (A5).
 
 ## Palette (D10)
 
@@ -55,6 +54,8 @@ Sizes are fractions of a square (39 dp), in `Marks` next to the shades.
 - Check: a ring on the king, radius 0.40, stroke 0.11 (4.3 dp): heavier and smaller than a capture
   ring. The two never share a square, since a king in check can't be captured.
 - Selection: a heavy square border, 0.11 (4.3 dp).
+- Puzzle Hint (A6): a heavy ring hugging the piece to move, radius 0.45, stroke 0.11 (4.3 dp): as heavy
+  as the check ring and as wide as a capture ring, drawn over the piece until the next Move.
 - Last Move: the last-move shade plus four L-shaped corner marks (0.28 long, 0.08 thick), chosen over
   an outline so it can't be mistaken for the selection border.
 - Drag: the square under the finger gets a thin outline (0.06, 2.3 dp).
@@ -95,12 +96,71 @@ maps touches to squares. Every legality question goes to the rules core.
 A status line on the left and up to three text buttons on the right, as in Reader's footer: LightOS
 `Copy` text, the status in the secondary content colour, buttons in the content colour with LightOS's
 press without a ripple, 8 dp padding around each button. Every button carries a semantics label and
-the Button role (F11). PR 4 chooses the buttons by context.
+the Button role (F11). The buttons sit edge to edge, 4 dp after the status: with 4 dp between them,
+"White to move" was cut short next to Hint, Solution and Menu on the emulator. Check it on the LP3.
+
+Buttons by context:
+
+| When | Buttons |
+|---|---|
+| The user's Move, the Solution's reply pending | Hint, Solution, Menu |
+| The very first Puzzle, before its first Move (F6) | Menu |
+| The Solution playing | Menu |
+| The result (D1) | Next, Menu |
+| Review | Latest, then Next at the result, then Menu |
+
+## The puzzle flow (A3-A8, D1-D4, F1-F6)
+
+The rules are pure Kotlin: `Attempt` (one try at one Puzzle) and `PuzzleFlow` (scoring, selection,
+Missed, Reset rating, the save file and the Pack carry-over), each with unit tests. `PuzzleOwner` is
+the process-wide owner (PLATFORM.md: a relaunch keeps the old view model alive) that runs the clock
+and writes the file; the two screens' view models are views onto it.
+
+- Timing (A5): hold the Position 500 ms, slide the setup Move in 250 ms, reply 300 ms after the user's
+  Move lands. The Solution plays one Move every 600 ms (our choice). Every Move that plays itself
+  (setup, reply, Solution) slides in over 250 ms; the user's own Moves are instant (F11).
+- A wrong Move is never drawn: it is taken back at once and the status reads "Try again" until the
+  next correct Move.
+- Scoring: a Failed Attempt is scored at the wrong Move or at Solution, once; a Solved one when its
+  last Move lands; a Hinted one ends unrated. Each scored Attempt adds a history row, marks the Puzzle
+  finished, and (Failed or Hinted) puts it at the top of Missed. The next Puzzle is chosen and parsed
+  in the background at that moment (D1).
+- Glicko-2 uses τ = 0.75, Lichess's value for puzzles; the log doesn't fix τ. A measured consequence
+  of RD 500 and volatility 0.09 with one Puzzle per rating period: the deviation settles near 73-74
+  after about 48 Puzzles, just under the 75 of "1500?", and the 45 floor is never reached in practice.
+- Selection picks at random among the candidates `Pack.candidates` returns.
+- A Missed replay sits on top of the rated Puzzle: Next after it returns to the rated one. The save
+  file doesn't keep a replay; a relaunch returns to the rated Puzzle.
+- Reset rating drops a rated Attempt that is still Open or already at its result, so the next Puzzle
+  suits the new seed; one scored and still in Try Mode stays.
+- Keep the screen on (D3) while the Attempt on screen is under way (Open, or Failed/Hinted in Try Mode,
+  up to its result) and the last touch or wheel event was under 5 minutes ago.
+- The save file, `puzzles.json` in filesDir, is written on a background thread after every change to
+  what it keeps (results, seed, Next, reset, Missed), and on the main thread in onAppPause, which also
+  saves the Moves played so far. It writes this build's schemaVersion; unknown fields are dropped.
+- Cold start: `ChessPerf` logs "session loaded ms=" and, once per process, "first puzzle drawn ms=...
+  since process start". LightActivity keeps its splash screen up for at least 1 s after onCreate
+  (light-sdk `LightActivity.kt`), so what the user sees first can't come sooner than that.
 
 ## Copy (F11: English, one strings object)
 
 All copy lives in `UiCopy`. The board's accessibility label is "Chess board"; "board" is fine in UI
-copy for the object on screen, while code names the chess state a Position. The status line reads
-"White to move" or "Black to move" (A5), "White wins", "Black wins" or "Draw" once the Game is over,
-and "Review · $ply of $latest" in Review. Free play's buttons are "Restart" (label "Restart from the
-start position") and, in Review, "Latest" (label "Back to the latest position").
+copy for the object on screen, while code names the chess state a Position.
+
+- The strip: "White to move" or "Black to move" (A5); "Tap a piece, then a square" on the very first
+  Puzzle until its first Move (F6); "Try again" after a wrong Move; "Correct" while the reply is
+  pending; "Solution" while it plays; "Review · $ply of $latest" in Review.
+- Results (D1): "Solved +12", "Failed −9" (a real minus sign), "Solved, unrated" for a Hinted Attempt,
+  "Hinted, unrated" for a Hinted one whose Solution was shown, and for a Missed replay "Solved,
+  unrated" or "Failed, unrated". "Every Puzzle is finished" when the Pack runs out.
+- Buttons and their labels: "Hint" ("Puzzle Hint: mark the piece to move"), "Solution" ("Play the
+  Solution"), "Next" ("Next Puzzle"), "Menu" ("Open the Menu"), "Latest" ("Back to the latest
+  position").
+- The seed screen (D4): "How well do you play chess?", then "I'm new to chess" (800), "I play now and
+  then" (1200), "I play often and study the game" (1600), "I play in a club or in tournaments" (2000),
+  and "Skip" (1500).
+- The Menu: "Menu", "Player Rating · 1500?", "Missed · 3", "About". The rating page: "Player Rating",
+  the rating, "Reset rating" then "Tap again to reset" (F5), and rows "1523 · Solved +12"; "No rated
+  Puzzles yet" when empty. Missed: rows "1541 · Failed" or "1541 · Hinted"; "Nothing missed yet".
+  About (a placeholder until v1 PR 5): "Puzzles from the Lichess puzzle database (lichess.org), CC0.",
+  "Pieces: cburnett, BSD-3-Clause.", "Licences and sources come in a later version."

@@ -43,3 +43,32 @@ UiCopy
 ${square.rank + 1}
 # The board view's accessibility label names the object on screen, not a Position (DESIGN.md "Copy")
 Chess board
+
+# Puzzle flow (v1 PR 4): implementation types around the glossary's Attempt, Missed and Player Rating
+AttemptState
+Stage
+Glicko
+Glicko2
+PuzzleFlow
+PuzzleState
+PuzzleData
+PuzzleStore
+PuzzleOwner
+InProgress
+MissedEntry
+HistoryEntry
+Motion
+MenuScreen
+MenuViewModel
+MenuPage
+# Copy templates: DESIGN.md "Copy" quotes what they print
+$MISSED · $count
+$PLAYER_RATING · $text
+Failed ${delta(delta ?: 0)}
+Solved ${delta(delta ?: 0)}
+# F5's own wording for the button; the page it sits on is titled "Player Rating"
+Reset rating
+# Try Mode's prompt after a wrong Move (CONTEXT.md "Try Mode")
+Try again
+# The source's own name, as CONTEXT.md's Puzzle entry uses it
+Puzzles from the Lichess puzzle database (lichess.org), CC0.

@@ -1,10 +1,14 @@
 package com.yarosz.chess.board
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,10 +46,21 @@ val POSITION_VIEW_SIZE: Dp = 312.dp
 private fun gray(level: Int, alpha: Float = 1f) = Color(Shades.argb(level, alpha))
 
 /**
+ * An opponent's Move to animate as it lands ([Motion.MS], A5): the piece on [move]'s destination
+ * slides in from its origin. A new [id] starts the slide again.
+ */
+data class Motion(val move: Move, val id: Int) {
+    companion object {
+        const val MS = 250
+    }
+}
+
+/**
  * Draws [position] with the cburnett pieces and reports touches as [Touch]es (R1.6, R1.7).
  * [bottom] is the Side whose first rank is at the bottom. [input] carries the selection, targets,
  * drag and promotion picker; null draws the Position alone (Review, or while input is locked), and
  * touches still arrive as [Touch.Tap]s. [lastMove] gets the last-move shade and corner marks (A5).
+ * [hint] gets the Puzzle Hint ring (A6); [motion] slides the piece that just moved.
  */
 @Composable
 fun PositionView(
@@ -56,7 +71,18 @@ fun PositionView(
     onTouch: (Touch) -> Unit,
     modifier: Modifier = Modifier,
     description: String,
+    hint: Square? = null,
+    motion: Motion? = null,
 ) {
+    val slide = remember { Animatable(1f) }
+    LaunchedEffect(motion) {
+        if (motion == null) {
+            slide.snapTo(1f)
+        } else {
+            slide.snapTo(0f)
+            slide.animateTo(1f, tween(Motion.MS, easing = LinearOutSlowInEasing))
+        }
+    }
     val painters = Piece.entries.map { rememberVectorPainter(CburnettPieces.vector(it)) }
     val measurer = rememberTextMeasurer()
     var finger by remember { mutableStateOf<Offset?>(null) }
@@ -123,9 +149,22 @@ fun PositionView(
             )
         }
         val lifted = input?.dragFrom
+        val sliding = motion?.move?.takeIf { slide.value < 1f }
         for ((square, piece) in position.pieces) {
             if (square == lifted) continue
-            drawPiece(painters[piece.ordinal], topLeftOf(square, bottom, cell), cell)
+            val at = topLeftOf(square, bottom, cell)
+            if (sliding != null && square == sliding.to) {
+                val from = topLeftOf(sliding.from, bottom, cell)
+                drawPiece(painters[piece.ordinal], from + (at - from) * slide.value, cell)
+            } else {
+                drawPiece(painters[piece.ordinal], at, cell)
+            }
+        }
+        hint?.let { square ->
+            drawCircle(
+                gray(Shades.MARKER), radius = cell * Marks.HINT_RING_RADIUS, center = centerOf(square, bottom, cell),
+                style = Stroke(cell * Marks.HINT_RING_STROKE),
+            )
         }
         if (input != null) {
             val captures = input.captures

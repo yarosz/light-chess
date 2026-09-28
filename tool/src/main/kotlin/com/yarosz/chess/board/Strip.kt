@@ -1,6 +1,5 @@
 package com.yarosz.chess.board
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,7 +34,6 @@ fun Strip(status: String, buttons: List<StripButton>, modifier: Modifier = Modif
     require(buttons.size <= 3) { "the strip holds at most 3 buttons" }
     Row(
         modifier.fillMaxWidth().height(STRIP_HEIGHT),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         LightText(
@@ -44,7 +42,7 @@ fun Strip(status: String, buttons: List<StripButton>, modifier: Modifier = Modif
             lighten = true,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).padding(end = 4.dp),
         )
         for (button in buttons) {
             LightText(

@@ -50,6 +50,10 @@ object Marks {
     const val CHECK_RING_RADIUS = 0.40f
     const val CHECK_RING_STROKE = 0.11f
     const val SELECTION_BORDER = 0.11f
+
+    /** The Puzzle Hint (A6): a heavy ring hugging the piece to move, heavier than a capture ring. */
+    const val HINT_RING_RADIUS = 0.45f
+    const val HINT_RING_STROKE = 0.11f
     const val CORNER_LENGTH = 0.28f
     const val CORNER_STROKE = 0.08f
     const val DRAG_OUTLINE = 0.06f
@@ -59,5 +63,5 @@ object Marks {
 
     const val MIN_STROKE = 2f / 39f
 
-    val STROKES = listOf(CAPTURE_RING_STROKE, CHECK_RING_STROKE, SELECTION_BORDER, CORNER_STROKE, DRAG_OUTLINE)
+    val STROKES = listOf(CAPTURE_RING_STROKE, CHECK_RING_STROKE, HINT_RING_STROKE, SELECTION_BORDER, CORNER_STROKE, DRAG_OUTLINE)
 }
