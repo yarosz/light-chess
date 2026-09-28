@@ -97,6 +97,25 @@ class Pack(private val readAsset: (String) -> ByteArray) {
         return null
     }
 
+    /**
+     * Every Lichess id in the Pack, read as text from every Band file without parsing a Puzzle. For
+     * the carry-over after a Pack update (F1), which asks about many ids at once.
+     */
+    val ids: Set<String> by lazy {
+        val out = HashSet<String>(manifest.puzzles * 2)
+        for (band in bands) {
+            val cached = synchronized(loaded) { loaded[band.band] }
+            if (cached != null) {
+                cached.mapTo(out) { it.id }
+                continue
+            }
+            readAsset("$DIR/${band.file}").decodeToString().lineSequence()
+                .filter { it.isNotEmpty() }
+                .mapTo(out) { it.substringBefore(';') }
+        }
+        out
+    }
+
     companion object {
         const val DIR = "pack"
         /** The Puzzle window's half-width, and how far it widens each time it is empty (A7). */
