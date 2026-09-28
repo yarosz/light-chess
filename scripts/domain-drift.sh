@@ -15,7 +15,7 @@
 #         imports Compose) is one capitalised word. Skipped: imports, comments (whole-line, and a
 #         trailing " //"), logging (including a string that opens the line after "Log.x(TAG,"),
 #         exceptions and throwing calls (error, check, require, checkNotNull, requireNotNull,
-#         corrupt), key=value strings, and tables (a third or more of the words are numbers)
+#         fail, invalid), key=value strings, and tables (a third or more of the words are numbers)
 #   bold  a **bolded** phrase of at most four words, starting with a letter, in docs/**/*.md,
 #         DESIGN.md or LEDGER.md
 #
@@ -62,7 +62,7 @@ copy() {  # $1 = 1 when the file imports Compose
   awk '{ after_log = log_open; log_open = ($0 ~ /Log\.[a-z]\(TAG,[[:space:]]*$/) }
        !(after_log && $0 ~ /^[[:space:]]*"/)' \
     | grep -vE '^[[:space:]]*(import|package|//|\*|/\*)' \
-    | grep -vE 'Log\.[a-z]\(|Exception\(|error\(|(check|require)(NotNull)?\(|corrupt\(|throw ' \
+    | grep -vE 'Log\.[a-z]\(|Exception\(|error\(|(check|require)(NotNull)?\(|(fail|invalid)\(|throw ' \
     | sed -E 's| //.*$||' \
     | grep -oE '"([^"\\]|\\.)*"' | sed -E 's/^"//; s/"$//' \
     | if [ "$1" = 1 ]; then grep -E '[A-Za-z] |^[A-Z][a-z]+$'; else grep -E '[A-Za-z] '; fi \

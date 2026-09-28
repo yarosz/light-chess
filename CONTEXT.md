@@ -12,6 +12,10 @@ _Avoid_: app
 
 ## Board
 
+**Side**:
+White or Black: the pieces one player moves. A Position says which Side is to move.
+_Avoid_: colour, color
+
 **Position**:
 Where every piece stands, whose move it is, and the castling, en passant and move-count facts that
 decide which moves are legal. Two Positions are the same when all of these match.

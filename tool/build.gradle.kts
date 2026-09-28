@@ -50,6 +50,8 @@ android {
         unitTests.all {
             // Perft runs millions of immutable Positions; give the test JVM room.
             it.maxHeapSize = "2g"
+            // -Dperft.deep=true adds the two slowest perft counts (PerftTest).
+            it.systemProperty("perft.deep", providers.systemProperty("perft.deep").getOrElse("false"))
         }
     }
 

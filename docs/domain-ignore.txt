@@ -5,3 +5,29 @@
 # Tool shell (LightScreen / LightViewModel)
 ChessScreen
 ChessViewModel
+
+# Placeholder screen copy (v1 PR 1). The board, its strip and their copy arrive in v1 PR 3.
+Chess · $toMove to move · ${position.legalMoves.size} moves
+White
+Black
+
+# Rules core: standard chess vocabulary that names parts of a Position, not new domain concepts
+Square
+Piece
+PieceType
+CastlingRights
+Geometry
+# FEN's side-to-move letters, written by the FEN writer
+w
+b
+# "FEN" is an _Avoid_ word for Position, but this error is about FEN text itself, as CONTEXT.md allows.
+FenException
+
+# Rules core: the kinds of Game Event (CONTEXT.md names them in the Game Event entry) and of Result
+Resignation
+DrawOffer
+DrawAcceptance
+DrawRefusal
+InvalidGameEventException
+WinReason
+DrawReason
