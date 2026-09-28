@@ -1,0 +1,5 @@
+elo=500 rand/1000=900 book%=0 avgDepth=11 sameAsJudge=7/40 captures=5 avgCpLoss=166 blunders>=200cp=8
+elo=1000 rand/1000=619 book%=31 avgDepth=10 sameAsJudge=9/40 captures=8 avgCpLoss=49 blunders>=200cp=2
+elo=1500 rand/1000=338 book%=62 avgDepth=10 sameAsJudge=20/40 captures=8 avgCpLoss=24 blunders>=200cp=1
+elo=1800 rand/1000=169 book%=81 avgDepth=11 sameAsJudge=23/40 captures=8 avgCpLoss=9 blunders>=200cp=0
+elo=2100 rand/1000=0 book%=100 avgDepth=12 sameAsJudge=33/40 captures=6 avgCpLoss=8 blunders>=200cp=0

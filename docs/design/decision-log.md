@@ -276,3 +276,14 @@ default Think time).
   maintainer to hold the copyright of everything outside vendor/, so no outside code without a
   copyright assignment (CONTRIBUTING.md). A relicense applies only to future releases, and a build
   that vendors Pirarucu stays GPLv3 as a whole.
+
+## Karballo spike (facts, 2026-09-27; spikes/karballo)
+- Viable with work: no expect/actual; 0 plugin-scan violations (the scanner misses a bare
+  `javaClass`, a light-sdk gap to report, which must come from the maintainer personally); 15
+  lowercase fixes; perft exact.
+- Much weaker than Pirarucu: 1.5/20 at 250 ms (~400 Elo); 7-20x slower to reach depth 12; ~1.6M nps
+  vs 1.85M.
+- Its limiter randomly rejects improvements at every node; it is not human-like and costs full CPU at
+  every Elo. The bundled Fruit book has an unclear licence, so it is not used.
+- Result: Pirarucu stays the v2 engine (ADR 0001 stays proposed until the LP3 benchmark); Karballo
+  remains the fallback for a fully MIT Tool.
