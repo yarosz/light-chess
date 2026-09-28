@@ -287,3 +287,16 @@ default Think time).
   every Elo. The bundled Fruit book has an unclear licence, so it is not used.
 - Result: Pirarucu stays the v2 engine (ADR 0001 stays proposed until the LP3 benchmark); Karballo
   remains the fallback for a fully MIT Tool.
+
+## Pack fill (expert ruling, 2026-09-28)
+- Measured: A1's strict filter yields 33,707 puzzles (Band 400 and 2700+ empty; only 800-2200 reach
+  2,000). RULING: keep a tiered fill (A1 strict first, then R1.4's looser filter only where a Band is
+  short); no uniform filter, no third tier. Band 400 = 608 and top Band 2800 = 363 are accepted (the
+  ±100 window draws from the neighbouring Band).
+- In short Bands: all strict puzzles, then loose ones ordered by Popularity, then NbPlays, still
+  theme-mixed; one puzzle per game across both tiers.
+- The Glicko-2 update uses each puzzle's own RD (from the Pack line) rather than treating its rating
+  as exact; the Puzzle Rating stays fixed (A7). Applies in PR 4.
+- The build prints and pins a per-Band report: count per tier and median RD.
+- Revisit only if Band 400's size is questioned: count Band 400/2800 with one strict condition
+  relaxed at a time (Popularity >= 90, NbPlays >= 500, RD <= 120).
