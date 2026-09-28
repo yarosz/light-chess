@@ -1,0 +1,90 @@
+# Chess
+
+A LightOS Tool for the Light Phone III: chess Puzzles first (v1), then the computer (v2), then a friend
+by correspondence (v3), for any LP3 owner who wants a quiet, serious game.
+
+- **Architecture decisions:** `docs/adr/`. Read the relevant ADR before changing the engine boundary, the
+  Relay, the Pack or the network story.
+- **Settled rulings:** `docs/design/decision-log.md` holds every design ruling and the contradiction it
+  resolved. Read it before reopening a decision; cite its ids (R1.1, D9, contradiction 8) in PRs.
+- **State and next work:** `LEDGER.md`. Read it before starting; update it before ending a session.
+
+## Domain language
+
+`CONTEXT.md` is the glossary: use its terms (Position, Move, Ply, Game, Game Event, Result, Puzzle,
+Attempt, ...) in code, UI copy, and docs. Its _Avoid_ words (board, turn, half-move, outcome, ...) stay
+out of type names.
+
+- **In every PR:** a new domain concept enters `CONTEXT.md` in the same PR, or goes in
+  `docs/domain-ignore.txt` as implementation or UI vocabulary.
+- **Domain pass, at two points in every milestone:** before its first PR and after its last PR merges,
+  plus whenever `scripts/domain-drift.sh` lists more than a handful of candidates. A pass:
+  1. Run `scripts/domain-drift.sh` (`mise run domain-drift`).
+  2. Run the `grilling` and `domain-modeling` skills with an answering agent (Opus) grounded in
+     `CONTEXT.md`, the ADRs, the decision log and the code.
+  3. Resolve every candidate as a glossary term, a rename, UI vocabulary or an ignore entry. Offer an
+     ADR only when a decision is hard to reverse, surprising, and a real trade-off.
+  4. Done when `domain-drift.sh` reports 0 unresolved. Tag the merged commit `domain-pass/<milestone>`.
+
+## Layout
+
+- `light-sdk/`: Light's SDK as a pristine submodule, pinned to a release tag. Never edit it.
+- `tool/`: the Tool. Code in `tool/src/main/kotlin/com/yarosz/chess/`, tests in `tool/src/test/`.
+  - `rules/`: the rules core (R1.1). Pure Kotlin with no Android imports, unit-tested on the JVM:
+    immutable `Position`, `Move`, legal moves, FEN, SAN, UCI, draw rules, `Game` replay and the
+    canonical digest. Everything else (Puzzles, the engine, the Relay) asks it what is legal.
+- `scripts/`: `ci.sh`, `light-build.sh`, `emulator-build.sh`, `chess-emu.sh`, `domain-drift.sh`;
+  `scripts/emulator/` builds and checks the Chess AVD.
+- `spikes/`: throwaway engine experiments (Pirarucu, Karballo). Not part of the Tool build.
+- `mise.toml`, `.mise/tasks/ui`: toolchain and commands; run `mise tasks`.
+
+## Platform rules (enforced by Light's build plugin)
+
+- Write Kotlin, Compose UI, inside `LightScreen`/`LightViewModel`. Java source files fail the build.
+- Use only allowlisted dependencies and permissions: `light-sdk/plugin/src/main/kotlin/com/thelightphone/plugin/`
+  (`LightSdkPlugin.kt`, `LightToolMetadata.kt`). Reach files through the screen's `filesDir`.
+- Reflection is blocked, including `.javaClass`. Native code (NDK/JNI) is disallowed by Light policy.
+- The plugin generates the manifest from `tool/lighttool.toml`; cleartext HTTP is therefore off.
+- v1 declares no permissions at all, so no INTERNET (D5). `ToolMetadataTest` guards it.
+- `serverPackage` in `tool/lighttool.toml` stays `"com.lightos"` (LightOS on the phone): Light builds
+  releases from the committed file. Emulator builds swap it at build time via `scripts/emulator-build.sh`
+  (`mise run tool` and `mise run ci` already do). A unit test and `light-build.sh` enforce this.
+- Assets under `tool/src/main/assets/` must use Light's allowlisted extensions and stay under 5 MB per
+  file (the Pack is one `.txt` per Band for this reason, ADR 0003).
+
+## Devices
+
+- The Chess emulator is the AVD `LightPhone3-chess` on emulator-5556 (`scripts/emulator/RECIPE.md`).
+  Scripts find it by AVD name through `scripts/chess-emu.sh` (override with `CHESS_AVD`) and never fall
+  back to another emulator. emulator-5554 and the AVD `LightPhone3` belong to the Reader: never touch
+  them. Every raw adb call names its device with `-s`; never `adb kill-server`.
+- The Light Phone III is shared between sessions through the lease in the umbrella `PLATFORM.md`.
+
+## How changes land
+
+Every change arrives as a pull request. Required to merge: the GitHub Actions `build` check (unit tests
++ the Light-builder simulation on a clean Linux machine) and `signoff/emulator`. Only `mise run ci`
+posts `signoff/*` statuses (through the GitHub API, described as local CI); never post them by hand.
+
+Every PR also needs review before merge: a product review for changes to user-facing behaviour, copy,
+or docs, and a code review for code changes (a PR can need both). PRs touching the board or copy attach
+one or two `mise run ui shot` screenshots. Squash merges; the PR title is the commit subject. Commits
+are signed.
+
+Public evidence (PR comments, statuses) carries generic facts only: no serials, hostnames, or local
+paths. Nothing personal goes in the repo: it is public.
+
+## Verification loop
+
+A change is done when all of these are _green_:
+
+1. `./gradlew :tool:testDebugUnitTest`: the rules core has perft, FEN/SAN/UCI cases and property tests
+   over random Games (umbrella DECISIONS D8). Correctness first: perft numbers are exact or the core
+   is wrong.
+2. Emulator: `mise run emu` (boot), `mise run tool` (build+install+launch), then drive and read the
+   screen with `mise run ui` (`tap <label>`, `key <name>`, `shot`; `mise run ui help`). Check that
+   `dumpsys window` `mCurrentFocus` names `com.yarosz.chess` before any injected key or tap. Look at a
+   screenshot for anything visual: tests cannot see rendering bugs.
+3. `mise run light-build` on a committed HEAD (Light's builder, rehearsed offline).
+4. Light's plugin checks pass (they run in every build).
+5. `mise run domain-drift` has nothing new to resolve.

@@ -1,0 +1,7 @@
+# Names scripts/domain-drift.sh should not report: implementation and UI vocabulary, not domain terms.
+# One name per line, matched exactly. Domain terms go in CONTEXT.md instead. See AGENTS.md
+# "Domain language".
+
+# Tool shell (LightScreen / LightViewModel)
+ChessScreen
+ChessViewModel
