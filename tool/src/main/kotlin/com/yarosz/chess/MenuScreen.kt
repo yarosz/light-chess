@@ -41,7 +41,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
 /** The Menu's pages. The Menu is a visible button because back leaves the Tool (PLATFORM.md). */
-enum class MenuPage(val scrolls: Boolean) { MENU(false), RATING(true), MISSED(true), ABOUT(false) }
+enum class MenuPage(val scrolls: Boolean) { MENU(false), RATING(true), MISSED(true), ABOUT(true) }
 
 /** Which page shows, the reset's second tap, and the wheel's scroll steps (F3). */
 class MenuViewModel(private val owner: PuzzleOwner) : LightViewModel<Unit>() {
@@ -151,10 +151,8 @@ class MenuScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, MenuVi
                                 }
                             }
                         }
-                        MenuPage.ABOUT -> {
-                            Line(UiCopy.ABOUT_PUZZLES)
-                            Line(UiCopy.ABOUT_PIECES)
-                            Line(UiCopy.ABOUT_MORE, lighten = true)
+                        MenuPage.ABOUT -> for ((i, paragraph) in UiCopy.about(owner.packDate, owner.notices).withIndex()) {
+                            Line(paragraph, lighten = i > 0)
                         }
                     }
                 }

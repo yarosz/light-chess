@@ -49,10 +49,38 @@ object UiCopy {
     const val RESET_CONFIRM = "Tap again to reset"
     const val NO_HISTORY = "No rated Puzzles yet"
     const val NO_MISSED = "Nothing missed yet"
-    const val ABOUT_PUZZLES = "Puzzles from the Lichess puzzle database (lichess.org), CC0."
-    const val ABOUT_PIECES = "Pieces: cburnett, BSD-3-Clause."
-    const val ABOUT_MORE = "Licences and sources come in a later version."
     const val BACK_DESCRIPTION = "Back"
+
+    /** The Tool's version; `ToolMetadataTest` holds it equal to `versionName` in `tool/lighttool.toml`. */
+    const val VERSION = "0.1.0"
+    const val SOURCE = "github.com/yarosz/light-chess"
+
+    /**
+     * The one-line privacy statement (D9). Not "no network permission": the Tool declares none, but
+     * Light's SDK libraries merge INTERNET into every Tool's manifest (`scripts/release-check.sh apk`).
+     */
+    const val PRIVACY = "Chess never uses the network. Nothing leaves this phone."
+
+    const val ABOUT_COPYRIGHT = "Copyright 2026 Nicolas Yarosz."
+    const val ABOUT_LICENCE = "Free software under the GNU General Public License, version 3 or later, with no warranty."
+
+    /** The legal notices About shows after its own copy: verbatim licence text, kept out of code. */
+    const val NOTICES_ASSET = "about/notices.txt"
+
+    /**
+     * The About page (D7), one plain-text paragraph per entry. [packDate] is the Lichess dump the Pack
+     * was built from (`source.date` in the Pack manifest); [notices] is [NOTICES_ASSET]'s text, whose
+     * paragraphs (split at blank lines) follow: the cburnett licence and the release APK's libraries.
+     */
+    fun about(packDate: String?, notices: String): List<String> = listOf(
+        "Chess $VERSION",
+        ABOUT_COPYRIGHT,
+        ABOUT_LICENCE,
+        "Source: $SOURCE",
+        PRIVACY,
+        if (packDate == null) "Puzzles: the Lichess puzzle database (lichess.org), CC0."
+        else "Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate.",
+    ) + notices.split(Regex("\\n\\s*\\n")).map { it.trim().replace(Regex("\\s*\\n\\s*"), " ") }.filter { it.isNotEmpty() }
 
     fun toMove(side: Side) = if (side == Side.WHITE) WHITE_TO_MOVE else BLACK_TO_MOVE
 

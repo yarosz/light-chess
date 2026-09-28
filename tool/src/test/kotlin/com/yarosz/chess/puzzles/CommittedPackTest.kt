@@ -54,6 +54,12 @@ class CommittedPackTest {
     }
 
     @Test
+    fun `About credits the pinned Lichess dump (D7, docs-pack)`() {
+        assertEquals("2026-09-09", pack.manifest.source?.date)
+        assertTrue(com.yarosz.chess.UiCopy.about(pack.manifest.source?.date, "").any { "dump of 2026-09-09" in it })
+    }
+
+    @Test
     fun `every Puzzle is legal, sorted, in its Band, and mates when it says so`() {
         val manifest = pack.manifest
         val ids = HashSet<String>()

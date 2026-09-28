@@ -1,11 +1,12 @@
 # Ledger
 
-STATUS: v1 PR 4 built on branch feat/v1-puzzles, stacked on PR 3 (feat/v1-board), PR 2 and PR 1: the
-puzzle flow, Glicko-2 Player Rating, the seed screen, the Menu (Player Rating, Missed, About
-placeholder) and the save file. Emulator walkthrough done; it needs the LP3 checks (wheel in Review and
-in the Menu lists, the strip's width, cold start < 500 ms, keep-screen-on). PR 3's LP3 checks are still
-open too. Next is v1 PR 5.
-The engine choice is Pirarucu, pending the LP3 benchmark.
+STATUS: v1 feature-complete (0.1.0, versionCode 1), pending LP3 photos for the README and the
+maintainer's submission to Light. v1 PR 5 (branch feat/v1-release, stacked on PRs 1-4) adds the
+release docs (README, RELEASING, SECURITY, NOTICE, docs/release-notes/0.1.0.md), About's real content
+(D7), `scripts/release-check.sh` and a fix found on the LP3: the strip's status wraps to two lines
+instead of being cut short. Release checks on the emulator: the minified release solves a Puzzle and
+shows About; the PR 4 build's save survives an upgrade to it. The LP3 checks of PRs 3-5 are still open.
+Next is v2. The engine choice is Pirarucu, pending the LP3 benchmark.
 LAST SESSION: 2026-09-28
 
 ## Where things are
@@ -35,6 +36,10 @@ LAST SESSION: 2026-09-28
 - Engine spikes: `spikes/pirarucu` (viable, ~3050 CCRL, 1.85M nps on a Mac core) and `spikes/karballo`
   (viable, ~400 Elo weaker, 1.5/20 head-to-head). Pirarucu is the v2 engine; Karballo is the fallback
   for a fully MIT Tool.
+- Release: `RELEASING.md` (checklist), `scripts/release-check.sh` (`scan`, `apk`, `run`, `upgrade REF`)
+  driving the emulator through `scripts/release-drive.py`, `docs/release-notes/`. The scan takes
+  private patterns from a file outside the repo (`RELEASE_SCAN_PRIVATE`). About's copy is
+  `UiCopy.about`; NOTICE carries the same library list.
 - Licence: GPL-3.0-or-later, relicensable later. Outside code needs a copyright assignment
   (CONTRIBUTING.md).
 - Emulator: AVD `LightPhone3-chess` on emulator-5556 (`scripts/emulator/RECIPE.md`). Scripts find it by
@@ -47,14 +52,25 @@ LAST SESSION: 2026-09-28
    so only `ReviewTest` covers it), a photo of the shades through the grayscale filter (D10),
    `signoff/lp3` in `ci.sh`, the time to the first Puzzle (`ChessPerf` "first puzzle drawn", F10,
    target < 500 ms; LightActivity's splash stays up for at least 1 s), and whether "White to move"
-   fits next to Hint, Solution and Menu.
-2. v1 PR 5, per decision-log D9 (release docs; About's real content, A9/D7).
+   fits next to Hint, Solution and Menu. PR 5 answered the last one by measurement: it doesn't, and
+   now wraps to "White to / move" (DESIGN.md "The strip"). On the LP3, check a two-line status in
+   Akkurat (first Puzzle, a Puzzle in progress, Review at a result) and the wheel on About (F3).
+2. Release, by the maintainer: LP3 photos into `docs/screenshots/` and the README; then RELEASING.md's
+   checklist and the submission in Light's portal (discussion #204; the portal isn't live yet).
 3. For the next product review: with RD 500, volatility 0.09 and one Puzzle per rating period, the
    deviation settles near 73-74 (about 48 Puzzles to lose the "?"), so the 45 floor is never reached.
-4. v2 opens with Pirarucu vendoring plus the LP3 benchmark (the go/no-go gate, E11).
+   Also from PR 5: "White to move" wraps next to three buttons on the LP3; a shorter strip (fewer
+   buttons) is the alternative to a two-line status.
+4. v2 opens with Pirarucu vendoring plus the LP3 benchmark (the go/no-go gate, E11). About gains the
+   engine's credit (D7) then.
 
 ## Open outside questions (none blocks development)
 - Light: will they sign a GPLv3 Tool; is production push live for Tools; is an alert or badge method
   planned; is a privacy statement needed; what does a listing need?
 - light-sdk: the reflection scan misses a bare `javaClass` call (`LightSdkPlugin.kt:119`). Under
   Light's AI policy, the maintainer must report it personally.
+- light-sdk: every Tool's APK gets INTERNET, CAMERA and six more permissions merged in from the SDK's
+  libraries (OkHttp, Google datatransport, WorkManager, Media3, CameraX), whatever `lighttool.toml`
+  declares. So About says "Chess never uses the network" rather than "No network permission" (D5
+  holds for what the Tool declares). The SDK also bundles Google's proprietary ML Kit barcode binary
+  (`libbarhopper_v3.so`, about 20 MB of the 28 MB APK across four ABIs): part of Light's GPL question.

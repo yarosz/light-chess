@@ -33,8 +33,9 @@ out of type names.
   - `rules/`: the rules core (R1.1). Pure Kotlin with no Android imports, unit-tested on the JVM:
     immutable `Position`, `Move`, legal moves, FEN, SAN, UCI, draw rules, `Game` replay and the
     canonical digest. Everything else (Puzzles, the engine, the Relay) asks it what is legal.
-- `scripts/`: `ci.sh`, `light-build.sh`, `emulator-build.sh`, `chess-emu.sh`, `domain-drift.sh`;
-  `scripts/emulator/` builds and checks the Chess AVD.
+- `scripts/`: `ci.sh`, `light-build.sh`, `emulator-build.sh`, `chess-emu.sh`, `domain-drift.sh`,
+  `release-check.sh` with `release-drive.py` (RELEASING.md); `scripts/emulator/` builds and checks
+  the Chess AVD.
 - `spikes/`: throwaway engine experiments (Pirarucu, Karballo). Not part of the Tool build.
 - `mise.toml`, `.mise/tasks/ui`: toolchain and commands; run `mise tasks`.
 
@@ -45,7 +46,9 @@ out of type names.
   (`LightSdkPlugin.kt`, `LightToolMetadata.kt`). Reach files through the screen's `filesDir`.
 - Reflection is blocked, including `.javaClass`. Native code (NDK/JNI) is disallowed by Light policy.
 - The plugin generates the manifest from `tool/lighttool.toml`; cleartext HTTP is therefore off.
-- v1 declares no permissions at all, so no INTERNET (D5). `ToolMetadataTest` guards it.
+- v1 declares no permissions at all, so no INTERNET of its own (D5). `ToolMetadataTest` guards it.
+  Light's SDK libraries still merge INTERNET, CAMERA and others into the APK's manifest;
+  `scripts/release-check.sh apk` pins that set, and the Tool's code never opens a connection.
 - `serverPackage` in `tool/lighttool.toml` stays `"com.lightos"` (LightOS on the phone): Light builds
   releases from the committed file. Emulator builds swap it at build time via `scripts/emulator-build.sh`
   (`mise run tool` and `mise run ci` already do). A unit test and `light-build.sh` enforce this.

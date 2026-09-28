@@ -71,4 +71,9 @@ Reset rating
 # Try Mode's prompt after a wrong Move (CONTEXT.md "Try Mode")
 Try again
 # The source's own name, as CONTEXT.md's Puzzle entry uses it
-Puzzles from the Lichess puzzle database (lichess.org), CC0.
+Puzzles: the Lichess puzzle database (lichess.org), CC0.
+Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate.
+
+# Release (v1 PR 5): the Pack manifest's source field, and the strip's measures (DESIGN.md "The strip")
+PackSource
+StripLayout

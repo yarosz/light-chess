@@ -37,7 +37,7 @@ private const val TAG = "Chess"
  * writes everything at once on the calling thread.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class PuzzleOwner(filesDir: File, readAsset: (String) -> ByteArray) {
+class PuzzleOwner(filesDir: File, private val readAsset: (String) -> ByteArray) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val io = Dispatchers.IO.limitedParallelism(1)
     private val pack = Pack(readAsset)
@@ -116,6 +116,12 @@ class PuzzleOwner(filesDir: File, readAsset: (String) -> ByteArray) {
         val ms = SystemClock.uptimeMillis() - Process.getStartUptimeMillis()
         Log.i(PERF_TAG, "first puzzle drawn ms=$ms since process start, id=$id, afterSeedScreen=$seedShown")
     }
+
+    /** The Lichess dump the Pack comes from, for About (D7). The manifest is already read by the time the Menu opens. */
+    val packDate: String? get() = runCatching { pack.manifest.source?.date }.getOrNull()
+
+    /** About's legal notices (a 4 KB asset), read once. */
+    val notices: String by lazy { runCatching { readAsset(UiCopy.NOTICES_ASSET).decodeToString() }.getOrDefault("") }
 
     fun seedScreenShown() {
         seedShown = true

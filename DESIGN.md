@@ -8,8 +8,8 @@ small decisions v1 PRs 3 and 4 made that the log doesn't cover.
 
 The LP3's app area is 1080 × 1168 px at 480 dpi: 360 dp wide, about 389 dp tall. The board is 312 dp
 square (8 × 39 dp, 117 px squares), centred, 12 dp below the top of the app area, with 24 dp either
-side. The strip is 48 dp tall and exactly as wide as the board, directly under it. About 17 dp stay
-free at the bottom.
+side. The strip is exactly as wide as the board, directly under it, and two `Copy` lines tall (90
+design px, 58 dp on the LP3; never under 48 dp). About 7 dp stay free at the bottom.
 
 The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). v1 has no
 board flip (D10); the puzzle flow puts the side to move after the setup Move at the bottom (A5).
@@ -97,7 +97,20 @@ A status line on the left and up to three text buttons on the right, as in Reade
 `Copy` text, the status in the secondary content colour, buttons in the content colour with LightOS's
 press without a ripple, 8 dp padding around each button. Every button carries a semantics label and
 the Button role (F11). The buttons sit edge to edge, 4 dp after the status: with 4 dp between them,
-"White to move" was cut short next to Hint, Solution and Menu on the emulator. Check it on the LP3.
+"White to move" was cut short next to Hint, Solution and Menu on the emulator.
+
+The status wraps to a second line instead of being cut short. On the LP3, in LightOS's font
+(Akkurat), a one-line status lost its end: "Tap a piece, then a squ…" next to Menu. Measured the same
+way, "White to move" next to Hint, Solution and Menu and "Review · 12 of 14" next to Latest, Next
+and Menu don't fit on one line either, so they show as "White to / move" and "Review · / 12 of 14".
+The strip is always two lines tall, so the board never moves when a status wraps.
+
+`StripFitTest` checks every strip in the table below: each button on one line, each status in at
+most two lines in the room its buttons leave, with the widest numbers ("Failed −999",
+"Review · 99 of 99"). Akkurat can't ship with the repo, so the test measures with Helvetica's
+advance widths scaled by 1.15 at `Copy` size for a 389 dp tall screen (19.45 sp). Six words measured
+on LP3 screencaps are never wider than the stand-in; the widest, "Restart", ran 12% wider than plain
+Helvetica. A new strip string or state goes into the test.
 
 Buttons by context:
 
@@ -162,5 +175,18 @@ copy for the object on screen, while code names the chess state a Position.
 - The Menu: "Menu", "Player Rating · 1500?", "Missed · 3", "About". The rating page: "Player Rating",
   the rating, "Reset rating" then "Tap again to reset" (F5), and rows "1523 · Solved +12"; "No rated
   Puzzles yet" when empty. Missed: rows "1541 · Failed" or "1541 · Hinted"; "Nothing missed yet".
-  About (a placeholder until v1 PR 5): "Puzzles from the Lichess puzzle database (lichess.org), CC0.",
-  "Pieces: cburnett, BSD-3-Clause.", "Licences and sources come in a later version."
+- About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).
+  - "Chess $VERSION" (0.1.0, equal to `versionName`)
+  - "Copyright 2026 Nicolas Yarosz."
+  - "Free software under the GNU General Public License, version 3 or later, with no warranty."
+  - "Source: $SOURCE" (github.com/yarosz/light-chess, as text: the phone has no browser)
+  - "Chess never uses the network. Nothing leaves this phone." Not "No network permission": the
+    Tool declares none, but Light's SDK libraries merge INTERNET, CAMERA and six more into every
+    Tool's manifest, which `scripts/release-check.sh apk` pins.
+  - "Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate." with the
+    Pack manifest's `source.date` ("Puzzles: the Lichess puzzle database (lichess.org), CC0." if a
+    manifest has none).
+  - Then `tool/src/main/assets/about/notices.txt`, verbatim legal text kept out of code: the cburnett
+    licence in full (BSD-3 asks a binary to reproduce it), Light's SDK (MIT) and the libraries of the
+    release APK's runtime classpath by licence, with the Apache-2.0 notice. NOTICE names the same
+    libraries. The v2 engine's credit joins with v2.

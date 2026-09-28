@@ -24,7 +24,13 @@ data class PackManifest(
     val packSha256: String,
     val puzzles: Int,
     val bands: List<Band>,
+    /** The Lichess dump the Pack was built from; About shows its date (D7). */
+    val source: PackSource? = null,
 )
+
+/** The manifest's `source`: the dump's Last-Modified date, `2026-09-09`. */
+@Serializable
+data class PackSource(val date: String)
 
 /**
  * The Puzzles that ship inside the Tool, read from `pack/` in the Tool's assets: the manifest, then

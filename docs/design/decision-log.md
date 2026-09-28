@@ -300,3 +300,13 @@ default Think time).
 - The build prints and pins a per-Band report: count per tier and median RD.
 - Revisit only if Band 400's size is questioned: count Band 400/2800 with one strict condition
   relaxed at a time (Popularity >= 90, NbPlays >= 500, RD <= 120).
+
+## v1 PR 4 rulings (orchestrator, 2026-09-28)
+- Cold start: the SDK's LightActivity keeps its splash screen up for at least 1 s after onCreate
+  (setKeepOnScreenCondition < 1000), so F10b's "< 500 ms to the first puzzle" can't be met by the Tool.
+  RESTATED: the first Puzzle is drawn within 500 ms of the splash ending, i.e. <= 1.5 s from process
+  start on the LP3. The 1 s floor is Light's; whether to raise it is the maintainer's call (Light's AI
+  policy).
+- Player Rating settling: with RD 500, vol 0.09, tau 0.75 and one Puzzle per rating period, RD settles
+  at about 73-74, so the "?" goes after about 48 Puzzles and the 45 floor is never reached. ACCEPTED as
+  is: RD <= 75 is Lichess's own "established" threshold. No change.
