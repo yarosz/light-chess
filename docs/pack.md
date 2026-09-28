@@ -32,7 +32,9 @@ and the rest is the Solution, ending with the user's Move. Files are named by th
 zero-padded: `0400.txt` holds 400 to 499 (and anything lower), `2800.txt` holds 2800 and up.
 
 `manifest.json` records the dump's date and SHA-256, the filters, the seed, the counts at each step,
-and for each Band its file, Puzzle count, rating range, size and SHA-256. `packSha256` is the
+and for each Band its file, Puzzle count (`strict` and `fromFill` per tier), `medianRd` (the lower
+median of its Puzzles' rating deviations), rating range, size and SHA-256. The build also prints this
+per-Band report. `packSha256` is the
 SHA-256 of the manifest's other fields as canonical JSON (sorted keys, no spaces). The save file
 keeps it to notice a new Pack (A8, F1).
 
@@ -45,17 +47,34 @@ keeps it to notice a new Pack (A8, F1).
    the strict one if there is one, then the most played, then the lowest id.
 3. Put each Puzzle in its 100-point Band. Ratings below 400 go in the 400 Band, and every rating of
    2800 or more goes in one 2800 Band.
-4. In each Band, take 2,000 Puzzles: strict ones first, then fill ones to make up the count. The top
-   Band takes every Puzzle it has.
-5. Within a Band, group Puzzles by motif (their rarest tactical theme in that Band, ignoring themes
-   about length, phase, source or evaluation). Share the Band's places between motifs in
-   proportion to the square root of each motif's size, and draw at random within each motif. The
-   random seed is fixed, so the output is the same every time.
+4. In each Band, take 2,000 Puzzles. The top Band takes every Puzzle it has. A Band with 2,000 or
+   more strict Puzzles takes 2,000 of them. A Band short of 2,000 takes every strict Puzzle, then
+   fill Puzzles to make up the count (expert ruling, decision log "Pack fill").
+5. Theme mixing: group the Puzzles being drawn by motif (their rarest tactical theme in that Band,
+   ignoring themes about length, phase, source or evaluation). Share the places between motifs in
+   proportion to the square root of each motif's size. Within each motif, strict Puzzles are drawn
+   at random; fill Puzzles are drawn by Popularity, then NbPlays, highest first, with a random
+   order breaking ties. The random seed is fixed, so the output is the same every time.
 
 The strict filter alone leaves only 33,707 Puzzles: Bands 400 and 2700+ are empty and only 800 to
 2200 reach 2,000. The fill step brings the Pack to 46,971 Puzzles, of which 13,264 come from the
-looser filter, all in Bands 400 to 700 and 2300 and up. Each Band's `fromFill` count in the manifest
-says how many. The top Band has 363 Puzzles (2800 to 2983). Splitting off a 2900+ Band would leave
+looser filter, all in Bands 400 to 700 and 2300 and up:
+
+| Band | Strict | Fill | Total | Median RD |
+|---|---|---|---|---|
+| 400 | 0 | 608 | 608 | 88 |
+| 500 | 7 | 1,993 | 2,000 | 86 |
+| 600 | 141 | 1,859 | 2,000 | 82 |
+| 700 | 1,836 | 164 | 2,000 | 78 |
+| 800 to 2200 | 2,000 | 0 | 2,000 | 75 to 78 |
+| 2300 | 1,259 | 741 | 2,000 | 77 |
+| 2400 | 389 | 1,611 | 2,000 | 79 |
+| 2500 | 71 | 1,929 | 2,000 | 82 |
+| 2600 | 4 | 1,996 | 2,000 | 85 |
+| 2700 | 0 | 2,000 | 2,000 | 88 |
+| 2800 | 0 | 363 | 363 | 89 |
+
+The Pack is 6,535,382 bytes. The top Band has 363 Puzzles (2800 to 2983). Splitting off a 2900+ Band would leave
 it with a few dozen, too few for a window to draw from.
 
 ## Regenerating

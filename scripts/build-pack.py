@@ -23,6 +23,7 @@ import math
 import os
 import random
 import shutil
+import statistics
 import subprocess
 import sys
 import urllib.request
@@ -115,6 +116,7 @@ def read_candidates(dump: Path) -> tuple[list[dict], dict]:
             "rating": int(row["Rating"]),
             "rd": int(row["RatingDeviation"]),
             "plays": int(row["NbPlays"]),
+            "popularity": int(row["Popularity"]),
             "tier": tier,
             "themes": sorted(row["Themes"].split()),
         }
@@ -143,18 +145,20 @@ def motif(puzzle: dict, frequency: Counter) -> str:
 
 
 def sample_band(band: int, pool: list[dict]) -> list[dict]:
-    """PER_BAND Puzzles (all of them in the top Band): the strict tier first, then the fill tier."""
+    """PER_BAND Puzzles (all of them in the top Band). A Band short of PER_BAND strict Puzzles takes
+    every strict one, then fill Puzzles, the most popular first (then the most played)."""
     if band == TOP_BAND:
         return pool
     strict = [p for p in pool if p["tier"] == 1]
     if len(strict) >= PER_BAND:
         return mix(f"{band}-1", strict, PER_BAND)
     fill = [p for p in pool if p["tier"] == 2]
-    return strict + mix(f"{band}-2", fill, PER_BAND - len(strict))
+    return strict + mix(f"{band}-2", fill, PER_BAND - len(strict), by_popularity=True)
 
 
-def mix(label: str, pool: list[dict], count: int) -> list[dict]:
-    """Picks count Puzzles, spread over their motifs, at random within each motif."""
+def mix(label: str, pool: list[dict], count: int, by_popularity: bool = False) -> list[dict]:
+    """Picks count Puzzles, spread over their motifs. Within each motif the draw is at random, or
+    with by_popularity by Popularity, then NbPlays, highest first, the seeded shuffle breaking ties."""
     if len(pool) <= count:
         return pool
     frequency = Counter(t for p in pool for t in p["themes"])
@@ -165,6 +169,8 @@ def mix(label: str, pool: list[dict], count: int) -> list[dict]:
     names = sorted(groups)
     for name in names:
         rng.shuffle(groups[name])
+        if by_popularity:  # A stable sort: the shuffle's order stays among equals.
+            groups[name].sort(key=lambda p: (-p["popularity"], -p["plays"]))
     # Shares in proportion to the square root of each motif's size: common motifs stay common, rare
     # ones get more than their proportion. A motif too small for its share gives the rest away.
     quota = {name: 0 for name in names}
@@ -232,7 +238,10 @@ def main() -> None:
             "file": name,
             "puzzles": len(chosen),
             "available": len(pools[band]),
+            "strict": sum(1 for p in chosen if p["tier"] == 1),
             "fromFill": sum(1 for p in chosen if p["tier"] == 2),
+            # The lower median, so it stays an integer like each Puzzle's RD.
+            "medianRd": statistics.median_low(p["rd"] for p in chosen),
             "minRating": chosen[0]["rating"],
             "maxRating": chosen[-1]["rating"],
             "bytes": len(data),
@@ -261,6 +270,9 @@ def main() -> None:
     manifest["packSha256"] = hashlib.sha256(canonical_json(manifest)).hexdigest()
     (args.out / "manifest.json").write_text(json.dumps(manifest, indent=1, sort_keys=True) + "\n")
 
+    print(f"{'band':>5} {'strict':>6} {'fill':>5} {'total':>5} {'medianRd':>8}")
+    for b in bands:
+        print(f"{b['band']:>5} {b['strict']:>6} {b['fromFill']:>5} {b['puzzles']:>5} {b['medianRd']:>8}")
     total = sum(b["bytes"] for b in bands)
     largest = max(bands, key=lambda b: b["bytes"])
     print(f"build-pack: {manifest['puzzles']} puzzles in {len(bands)} bands, {total} bytes, "
