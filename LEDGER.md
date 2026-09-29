@@ -7,6 +7,12 @@ non-debuggable 558K nps P50, depth 18 in 3 s). feat/v2-play merges feat/v1-relea
 as v2's base, and also the Levels (PR 3), the game record (PR 5 core), the Book (PR 6) and the game
 screen (PR 4, with R4.16/R4.17), reviewed and checked on the LP3: the computer is playable at every
 Level. v3: the Relay is done on feat/v3-relay (protocol 1.0, not deployed); the client is on feat/v3.
+HANDOFF (0.2.0 release PR, release/0.2.0 from main, 2026-09-29): versionName 0.2.0, versionCode 2,
+`UiCopy.VERSION` with it; notes in `docs/release-notes/0.2.0.md` (the Pack is unchanged since v0.1.0,
+only the Book is new, so the notes say nothing of the Pack). `release-check.sh scan` now allows the
+emulator's fixed 10.0.2.2 and 10.0.2.3, as feat/v3 needs, and passes on the public repo. The release
+checks (scan, apk, run, upgrade v0.1.0, light-build) ran on this branch's HEAD. Next: merge, tag
+v0.2.0 with a notes-only GitHub Release; the Light submission of that hash is the maintainer's.
 HANDOFF (forward merge, 2026-09-29): main (v1 0.1.0 + #4-#6) is merged into feat/v2-play (a merge
 commit, no rewrite). main's v1 is a squash, so the merge's content was resolved against fix/v1-keyup
 (25530a1), the commit v1's squash starts from. Decision log "Forward merge" M1-M3: the Piece Set
