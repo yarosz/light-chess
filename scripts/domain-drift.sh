@@ -84,6 +84,7 @@ candidates() {  # $1 = "work" for the working tree, else a commit; prints kind<T
     fi 2>/dev/null; } | sort -u | while IFS= read -r f; do
     if [ "$1" = work ]; then text=$(cat "$f"); else text=$(git show "$1:$f"); fi
     case "$f" in
+      "$kotlin_root"/kotlin/vendor/*) ;;  # vendored code keeps its upstream's language
       *.kt)
         types <<<"$text" | sed "s|^|type	|; s|\$|	$f|"
         compose=0; grep -q '^import androidx\.compose' <<<"$text" && compose=1

@@ -1,5 +1,5 @@
 ---
-status: proposed (final once the Karballo spike and the LP3 benchmark are in)
+status: accepted (2026-09-28: Karballo spike 1.5/20 vs Pirarucu; LP3 non-debuggable build 558K nps P50, depth 18 in 3 s)
 ---
 
 # Vendored Pirarucu behind our own rules core

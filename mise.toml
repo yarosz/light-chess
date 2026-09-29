@@ -45,6 +45,26 @@ run = "scripts/domain-drift.sh"
 description = "Build the committed HEAD the way Light's release builder does (optional arg: SDK dir)"
 run = "scripts/light-build.sh"
 
+[tasks.book]
+description = "Rebuild the opening Book: stream the pinned Lichess dump (SHA-256 checked, never stored) through the book builder (docs/book.md; --from-filtered to recheck)"
+run = "scripts/build-book.sh"
+
+[tasks.bench]
+description = "Engine benchmark on a device: install the non-debuggable benchmark build, run the search suite, print P50/P90 (arg: adb serial; -n runs; -d debuggable)"
+usage = '''
+flag "-n --runs <runs>" help="measured runs (plus one warm-up)" default="5"
+flag "-d --debuggable" help="build the same APK debuggable, for comparison"
+arg "<serial>" help="adb serial of the device (required)"
+'''
+run = 'scripts/bench.sh -n "$usage_runs" $([ "${usage_debuggable:-false}" = true ] && echo -d) "$usage_serial"'
+
+[tasks.bench-jvm]
+description = "The engine benchmark's search suite on this machine's JVM, for comparison with the phone"
+run = [
+  "./gradlew --console=plain -q :tool:testBenchmarkUnitTest --tests com.yarosz.chess.bench.BenchSuiteJvmTest --rerun -Dbench.runs=5",
+  "python3 scripts/bench-report.py \"ChessBench on the JVM ($(uname -m))\" < tool/build/bench-jvm.txt",
+]
+
 [settings]
 # Only install what this repo pins; do not auto-install tools from parent directories
 task.run_auto_install = false

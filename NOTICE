@@ -14,6 +14,10 @@ Puzzles: the Lichess puzzle database (https://database.lichess.org/#puzzles), by
 released under CC0 1.0. The Pack in tool/src/main/assets/pack/ is built from the dump of
 2026-09-09 (docs/pack.md).
 
+Opening book: games from the Lichess standard rated games database
+(https://database.lichess.org/#standard_games), by lichess.org, released under CC0 1.0. The Book in
+tool/src/main/assets/book/ is built from the January 2018 dump (docs/book.md).
+
 Chess pieces: the cburnett set by Colin M.L. Burnett, used under the BSD 3-Clause licence
 (third_party/cburnett/LICENSE). Source: Wikimedia Commons, Category:SVG chess pieces.
 
@@ -34,3 +38,8 @@ release runtime classpath):
 Unless required by applicable law or agreed to in writing, software distributed under the Apache
 License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
 express or implied.
+
+The computer opponent includes Pirarucu (github.com/ratosh/pirarucu), by Raoni Campos (ratosh) and its
+contributors, licensed under the GNU General Public License version 3. It is vendored, with the changes
+listed in vendor/pirarucu/README.md, under tool/src/main/kotlin/vendor/pirarucu/; its licence is in
+vendor/pirarucu/LICENSE. A build that includes it is distributed under GPL-3.0 as a whole.

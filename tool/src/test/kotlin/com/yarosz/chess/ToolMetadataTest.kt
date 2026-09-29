@@ -57,6 +57,7 @@ class ToolMetadataTest {
         assertTrue("Source: github.com/yarosz/light-chess" in about)
         assertTrue(UiCopy.PRIVACY in about)
         assertTrue("(lichess.org), CC0, from the dump of 2026-09-09." in about)
+        assertTrue("Opening book: games from the Lichess database (lichess.org), CC0" in about)
         assertTrue("cburnett" in about && "Apache License, Version 2.0" in about)
     }
 

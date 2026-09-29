@@ -1,7 +1,10 @@
 package com.yarosz.chess
 
 import com.yarosz.chess.puzzles.AttemptState
+import com.yarosz.chess.rules.DrawReason
+import com.yarosz.chess.rules.Result
 import com.yarosz.chess.rules.Side
+import com.yarosz.chess.rules.WinReason
 
 /** Every piece of UI copy, in one place (F11: English only). DESIGN.md quotes each string. */
 object UiCopy {
@@ -51,6 +54,44 @@ object UiCopy {
     const val NO_MISSED = "Nothing missed yet"
     const val BACK_DESCRIPTION = "Back"
 
+    // The game screen's strip (contradictions 2 and 3, B5, G1).
+    const val YOUR_MOVE = "Your move"
+    const val THINKING = "Thinking"
+    const val FINDING_HINT = "Finding a Game Hint"
+    const val TAKEBACK = "Takeback"
+    const val GAME_HINT_DESCRIPTION = "Game Hint: show the computer's best Move"
+    const val MOVE_NOW = "Move now"
+    const val MOVE_NOW_DESCRIPTION = "Move now: the computer plays at once"
+    const val NEW_GAME_DESCRIPTION = "Start a new game"
+    const val BACK = "Back"
+    const val GAMES_BACK_DESCRIPTION = "Back to the Games"
+    const val DRAW_AGREED = "Draw agreed"
+    const val DRAW_DECLINED = "Draw declined"
+    const val UNFINISHED = "Unfinished"
+
+    // The Menu in the game mode (D6, B5, F11).
+    const val PLAY_COMPUTER = "Play the computer"
+    const val PUZZLES = "Puzzles"
+    const val NEW_GAME = "New game"
+    const val OFFER_DRAW = "Offer draw"
+    const val OFFER_DRAW_ON_YOUR_MOVE = "Offer draw on your move"
+    const val RESIGN = "Resign"
+    const val RESIGN_CONFIRM = "Tap again to resign"
+    const val FLIP_BOARD = "Flip board"
+    const val MOVES = "Moves"
+    const val NO_MOVES = "No Moves yet"
+    const val GAMES = "Games"
+    const val NO_GAMES = "No finished Games yet"
+    const val THINK_TIME = "Think Time"
+    const val LEVEL = "Level"
+    const val PLAY_AS = "Play as"
+    const val WHITE = "White"
+    const val BLACK = "Black"
+    const val RANDOM = "Random"
+    const val START = "Start"
+    const val REPLACE_CONFIRM = "Tap again to replace"
+    const val REPLACE_NOTE = "The Game in progress is saved as unfinished."
+
     /** The Tool's version; `ToolMetadataTest` holds it equal to `versionName` in `tool/lighttool.toml`. */
     const val VERSION = "0.1.0"
     const val SOURCE = "github.com/yarosz/light-chess"
@@ -63,6 +104,12 @@ object UiCopy {
 
     const val ABOUT_COPYRIGHT = "Copyright 2026 Nicolas Yarosz."
     const val ABOUT_LICENCE = "Free software under the GNU General Public License, version 3 or later, with no warranty."
+
+    /** The engine's credit (D7, R1.3). */
+    const val ABOUT_ENGINE = "Engine: Pirarucu by Raoni Campos (ratosh), GPL-3.0."
+
+    /** The opening Book's credit (book ruling 1, docs/book.md). */
+    const val ABOUT_BOOK = "Opening book: games from the Lichess database (lichess.org), CC0, January 2018."
 
     /** The legal notices About shows after its own copy: verbatim licence text, kept out of code. */
     const val NOTICES_ASSET = "about/notices.txt"
@@ -80,6 +127,8 @@ object UiCopy {
         PRIVACY,
         if (packDate == null) "Puzzles: the Lichess puzzle database (lichess.org), CC0."
         else "Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate.",
+        ABOUT_ENGINE,
+        ABOUT_BOOK,
     ) + notices.split(Regex("\\n\\s*\\n")).map { it.trim().replace(Regex("\\s*\\n\\s*"), " ") }.filter { it.isNotEmpty() }
 
     fun toMove(side: Side) = if (side == Side.WHITE) WHITE_TO_MOVE else BLACK_TO_MOVE
@@ -105,6 +154,44 @@ object UiCopy {
     /** A Missed row: the Puzzle Rating and how it was missed. */
     fun missedRow(puzzleRating: Int, state: AttemptState) =
         "$puzzleRating · " + if (state == AttemptState.HINTED) "Hinted" else "Failed"
+
+    /** The strip's Result in a Game against the computer, from the user's view (F8: the computer never resigns). */
+    fun gameResult(result: Result?, userSide: Side): String = when (result) {
+        null -> UNFINISHED
+        is Result.Win -> when {
+            result.by == WinReason.RESIGNATION -> if (result.winner == userSide) "You won by resignation" else "You resigned"
+            result.winner == userSide -> "You won by checkmate"
+            else -> "You lost by checkmate"
+        }
+        is Result.Draw -> when (result.by) {
+            DrawReason.AGREEMENT -> DRAW_AGREED
+            DrawReason.STALEMATE -> "Draw by stalemate"
+            DrawReason.REPETITION -> "Draw by repetition"
+            DrawReason.FIFTY_MOVE_RULE -> "Draw by the 50-move rule"
+            DrawReason.INSUFFICIENT_MATERIAL -> "Draw: insufficient material"
+        }
+    }
+
+    /** A Games row (F11): "2026.09.28 · Level 3 · Won". */
+    fun gamesRow(date: String, level: Int?, result: Result?, userSide: Side): String {
+        val outcome = when (result) {
+            null -> UNFINISHED
+            is Result.Draw -> "Draw"
+            is Result.Win -> if (result.winner == userSide) "Won" else "Lost"
+        }
+        return listOfNotNull(date, level?.let { "$LEVEL $it" }, outcome).joinToString(" · ")
+    }
+
+    /** Level 8's Think Time: "3 s". */
+    fun seconds(seconds: Int) = "$seconds s"
+
+    fun thinkTimeRow(seconds: Int) = "$THINK_TIME · ${seconds(seconds)}"
+
+    /** After an offer, the Move from which the next may come (G1). */
+    fun offerDrawFrom(move: Int) = "Offer draw again at move $move"
+
+    /** A Moves row's number: "12.". */
+    fun moveNumber(number: Int) = "$number."
 
     fun ratingRow(text: String) = "$PLAYER_RATING · $text"
 

@@ -25,11 +25,15 @@ class CommittedPackTest {
 
     @Test
     fun `every asset has an allowed extension and stays under 5 MB`() {
-        val files = assets.walkTopDown().filter { it.isFile }.toList()
+        for (file in assets.walkTopDown().filter { it.isFile }) {
+            // Light's builder allowlist (light-sdk/builder/lightbuilder/allowlist.py), less what we don't use.
+            assertTrue(file.extension in setOf("txt", "json", "bin"), "${file.name}: not an allowlisted asset")
+            assertTrue(file.length() < 5L * 1024 * 1024, "${file.name}: ${file.length()} bytes, over 5 MB")
+        }
+        val files = dir.walkTopDown().filter { it.isFile }.toList()
         assertTrue(files.isNotEmpty())
         for (file in files) {
             assertTrue(file.extension in setOf("txt", "json"), "${file.name}: only .txt and .json in the Pack")
-            assertTrue(file.length() < 5L * 1024 * 1024, "${file.name}: ${file.length()} bytes, over 5 MB")
         }
         val total = files.sumOf { it.length() }
         println("pack: ${files.size} files, $total bytes, largest ${files.maxOf { it.length() }} bytes")

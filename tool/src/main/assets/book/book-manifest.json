@@ -1,0 +1,31 @@
+{
+  "source": {
+    "url": "https://database.lichess.org/standard/lichess_db_standard_rated_2018-01.pgn.zst",
+    "sha256": "8ac6ff9d722a4bba1c1d72c700523408dff2e09cc52cbfe4e454289ca60e8d6b",
+    "licence": "CC0 1.0 (database.lichess.org)"
+  },
+  "filter": {
+    "minElo": 2200,
+    "minEstimatedSeconds": 180,
+    "estimate": "base + 40 x increment",
+    "termination": "Normal",
+    "maxPlies": 20,
+    "minCount": 10,
+    "minCountUsed": 10,
+    "minSharePercent": 5,
+    "dropMinGames": 30,
+    "dropBelowScorePercent": 40,
+    "maxEntries": 40000
+  },
+  "games": {
+    "read": 17945784,
+    "kept": 77509,
+    "unreadable": 0
+  },
+  "positionsCounted": 533436,
+  "positions": 4801,
+  "entries": 7082,
+  "keyCollisions": 0,
+  "bookBytes": 113312,
+  "bookSha256": "0e5b8eb75b6556cf66d8a9526c682abdc32bc340d7565c7137be7b404d8c311c"
+}

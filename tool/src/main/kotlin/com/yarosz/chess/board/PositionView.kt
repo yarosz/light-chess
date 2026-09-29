@@ -46,12 +46,14 @@ val POSITION_VIEW_SIZE: Dp = 312.dp
 private fun gray(level: Int, alpha: Float = 1f) = Color(Shades.argb(level, alpha))
 
 /**
- * An opponent's Move to animate as it lands ([Motion.MS], A5): the piece on [move]'s destination
- * slides in from its origin. A new [id] starts the slide again.
+ * An opponent's Move to animate as it lands, over [ms]: the piece on [move]'s destination slides in
+ * from its origin. A new [id] starts the slide again. Puzzles slide in [MS] (A5); the computer's Moves
+ * in a Game in [ENGINE_MS] (F11).
  */
-data class Motion(val move: Move, val id: Int) {
+data class Motion(val move: Move, val id: Int, val ms: Int = MS) {
     companion object {
         const val MS = 250
+        const val ENGINE_MS = 200
     }
 }
 
@@ -60,7 +62,8 @@ data class Motion(val move: Move, val id: Int) {
  * [bottom] is the Side whose first rank is at the bottom. [input] carries the selection, targets,
  * drag and promotion picker; null draws the Position alone (Review, or while input is locked), and
  * touches still arrive as [Touch.Tap]s. [lastMove] gets the last-move shade and corner marks (A5).
- * [hint] gets the Puzzle Hint ring (A6); [motion] slides the piece that just moved.
+ * [hint] gets the Puzzle Hint ring (A6), and [hintTarget] a target mark (the Game Hint's destination,
+ * B5); [motion] slides the piece that just moved.
  */
 @Composable
 fun PositionView(
@@ -72,6 +75,7 @@ fun PositionView(
     modifier: Modifier = Modifier,
     description: String,
     hint: Square? = null,
+    hintTarget: Square? = null,
     motion: Motion? = null,
 ) {
     val slide = remember { Animatable(1f) }
@@ -80,7 +84,7 @@ fun PositionView(
             slide.snapTo(1f)
         } else {
             slide.snapTo(0f)
-            slide.animateTo(1f, tween(Motion.MS, easing = LinearOutSlowInEasing))
+            slide.animateTo(1f, tween(motion.ms, easing = LinearOutSlowInEasing))
         }
     }
     val painters = Piece.entries.map { rememberVectorPainter(CburnettPieces.vector(it)) }
@@ -165,6 +169,17 @@ fun PositionView(
                 gray(Shades.MARKER), radius = cell * Marks.HINT_RING_RADIUS, center = centerOf(square, bottom, cell),
                 style = Stroke(cell * Marks.HINT_RING_STROKE),
             )
+        }
+        hintTarget?.let { target ->
+            val center = centerOf(target, bottom, cell)
+            if (position.pieceAt(target) != null) {
+                drawCircle(
+                    gray(Shades.MARKER), radius = cell * Marks.CAPTURE_RING_RADIUS, center = center,
+                    style = Stroke(cell * Marks.CAPTURE_RING_STROKE),
+                )
+            } else {
+                drawCircle(gray(Shades.MARKER), radius = cell * Marks.DOT_RADIUS, center = center)
+            }
         }
         if (input != null) {
             val captures = input.captures

@@ -2,21 +2,37 @@ package com.yarosz.chess
 
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
 import com.yarosz.chess.board.StripLayout
+import com.yarosz.chess.games.GameChoices
+import com.yarosz.chess.games.GameData
+import com.yarosz.chess.games.GameFlow
+import com.yarosz.chess.games.GameRecord
+import com.yarosz.chess.games.GameState
+import com.yarosz.chess.games.SideChoice
 import com.yarosz.chess.puzzles.AttemptState
+import com.yarosz.chess.rules.DrawAcceptance
+import com.yarosz.chess.rules.DrawOffer
+import com.yarosz.chess.rules.DrawReason
+import com.yarosz.chess.rules.Game
+import com.yarosz.chess.rules.Position
+import com.yarosz.chess.rules.Resignation
+import com.yarosz.chess.rules.Result
 import com.yarosz.chess.rules.Side
+import com.yarosz.chess.rules.WinReason
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * Every strip the puzzle screen can show fits the LP3: each button's label on one line, and the
- * status in at most [StripLayout.STATUS_MAX_LINES] lines in the room the buttons leave. The cases
- * follow DESIGN.md's "Buttons by context" table; a new strip state or string belongs here too.
+ * Every strip the puzzle and game screens can show fits the LP3: each button's label on one line, and
+ * the status in the room the buttons leave, in at most [StripLayout.STATUS_MAX_LINES] lines on the
+ * puzzle screen and in [GameStrip.statusLines] on the game screen (one line but for a Result, R4.16).
+ * The cases follow DESIGN.md's "Buttons by context" tables; a new strip state or string belongs here.
  *
  * The LightOS font (Akkurat) can't ship with the repo, so text is measured with [AkkuratProxy]:
- * Helvetica's advance widths, scaled up until no word is narrower than the ink of the same word on LP3
- * screencaps (see [proxyIsNeverNarrowerThanTheLp3]).
+ * Helvetica's advance widths with the narrow letters widened, scaled up until no string is narrower
+ * than the same string on LP3 screencaps ([proxyIsNeverNarrowerThanTheLp3]) and no room wider
+ * ([roomIsNeverWiderThanOnTheLp3]); it wraps where the LP3 wrapped ([proxyWrapsWhereTheLp3Did]).
  */
 class StripFitTest {
 
@@ -24,19 +40,91 @@ class StripFitTest {
     private val solving = listOf(UiCopy.HINT, UiCopy.SOLUTION, menu)
     private val result = listOf(UiCopy.NEXT, menu)
 
-    /** (status, buttons) for every state in DESIGN.md "Buttons by context", with the widest numbers. */
-    private val strips: List<Pair<String, List<String>>> = buildList {
-        for (side in Side.entries) add(UiCopy.toMove(side) to solving)
-        add(UiCopy.TRY_AGAIN to solving)
-        add(UiCopy.CORRECT to solving)
-        add(UiCopy.FIRST_PUZZLE to listOf(menu))
-        add(UiCopy.SOLUTION_PLAYING to listOf(menu))
+    /** A strip to check: its status, its buttons' labels, and the lines the status may take. */
+    private data class Case(val status: String, val buttons: List<String>, val lines: Int = StripLayout.STATUS_MAX_LINES)
+
+    /** Every state in DESIGN.md's "Buttons by context" tables, with the widest numbers. */
+    private val strips: List<Case> = buildList {
+        for (side in Side.entries) add(Case(UiCopy.toMove(side), solving))
+        add(Case(UiCopy.TRY_AGAIN, solving))
+        add(Case(UiCopy.CORRECT, solving))
+        add(Case(UiCopy.FIRST_PUZZLE, listOf(menu)))
+        add(Case(UiCopy.SOLUTION_PLAYING, listOf(menu)))
         for (state in AttemptState.entries) for (rated in listOf(true, false)) for (shown in listOf(true, false)) {
-            for (delta in listOf(-999, 999)) add(UiCopy.result(state, rated, delta, shown) to result)
+            for (delta in listOf(-999, 999)) add(Case(UiCopy.result(state, rated, delta, shown), result))
         }
-        add(UiCopy.review(99, 99) to listOf(UiCopy.LATEST, UiCopy.NEXT, menu))
-        add(UiCopy.review(99, 99) to listOf(UiCopy.LATEST, menu))
-        add(UiCopy.PACK_FINISHED to listOf(menu))
+        add(Case(UiCopy.review(99, 99), listOf(UiCopy.LATEST, UiCopy.NEXT, menu)))
+        add(Case(UiCopy.review(99, 99), listOf(UiCopy.LATEST, menu)))
+        add(Case(UiCopy.PACK_FINISHED, listOf(menu)))
+        for (strip in gameStrips()) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines))
+    }
+
+    /** The game strips must hold one line wherever [GameStrip] says so: all but the Results. */
+    @Test
+    fun gameStripsHoldOneLineButForAResult() {
+        val games = gameStrips()
+        for (strip in games) {
+            val isResult = results.any { r -> Side.entries.any { UiCopy.gameResult(r, it) == strip.status } } ||
+                strip.status == UiCopy.UNFINISHED
+            assertEquals(if (isResult) StripLayout.STATUS_MAX_LINES else 1, strip.statusLines, "\"${strip.status}\"")
+        }
+        assertTrue(games.count { it.statusLines == 1 } >= 6)
+    }
+
+
+    /**
+     * The game screen's strips (DESIGN.md "The game screen"), from [GameStrip] itself: the user's Move
+     * before and after a Takeback is possible, a Game Hint being found, the computer thinking, every
+     * Result, Review (in play, at the Result, in a replay) with the widest Ply numbers, and a replayed
+     * Game from the Games page.
+     */
+    private fun gameStrips(): List<GameStrip> = gameStripsAsShown().map { strip ->
+        if (GameButton.LATEST in strip.buttons) strip.copy(status = UiCopy.review(9999, 9999)) else strip
+    }
+
+    private fun gameStripsAsShown(): List<GameStrip> = buildList {
+        val fresh = GameFlow.start(GameState(), GameChoices(level = 8, side = SideChoice.WHITE), 1L, "2026.09.28")
+        add(GameStrip.of(fresh, null))
+        val thinking = GameFlow.play(fresh, fresh.record!!.game.position.moveFromUci("e2e4")!!)
+        add(GameStrip.of(thinking, null))
+        add(GameStrip.of(thinking, 0))
+        val turn = GameFlow.computerReply(thinking, null)!!
+        val userAgain = GameFlow.computerMoved(thinking, turn, "e7e5", 0)
+        add(GameStrip.of(userAgain, null))
+        add(GameStrip.of(userAgain, 1))
+        add(GameStrip.of(GameFlow.askHint(userAgain), null))
+        add(GameStrip.of(GameState(), null))
+        for (side in Side.entries) for (result in results) {
+            val record = GameRecord(Game.of(), side)
+            add(GameStrip.of(GameState(GameData(), recordWith(record, result)), null))
+            add(GameStrip.of(GameState(GameData(), recordWith(record, result)), 99))
+            add(GameStrip.replay(recordWith(record, result), null))
+        }
+        add(GameStrip.replay(GameRecord(Game.of(), Side.WHITE), null))
+        add(GameStrip.replay(GameRecord(Game.of(), Side.WHITE), 99))
+    }
+
+    /** [record] with a Game that [result] ends. */
+    private fun recordWith(record: GameRecord, result: Result): GameRecord = record.copy(game = endedBy(result).also {
+        assertEquals(result, it.result)
+    })
+
+    private fun play(fen: String?, vararg uci: String): Game =
+        uci.fold(Game.of(fen?.let(Position::fromFen) ?: Position.START)) { g, m -> g + g.position.moveFromUci(m)!! }
+
+    private fun endedBy(result: Result): Game = when (result) {
+        is Result.Win -> when (result.by) {
+            WinReason.RESIGNATION -> Game.of() + Resignation(result.winner.opponent)
+            WinReason.CHECKMATE -> if (result.winner == Side.BLACK) play(null, "f2f3", "e7e5", "g2g4", "d8h4")
+            else play(null, "e2e4", "e7e5", "f1c4", "b8c6", "d1h5", "g8f6", "h5f7")
+        }
+        is Result.Draw -> when (result.by) {
+            DrawReason.AGREEMENT -> Game.of() + DrawOffer(Side.WHITE) + DrawAcceptance(Side.BLACK)
+            DrawReason.STALEMATE -> play("k7/8/8/2Q5/8/8/8/7K w - - 0 1", "c5b6")
+            DrawReason.REPETITION -> play(null, "g1f3", "g8f6", "f3g1", "f6g8", "g1f3", "g8f6", "f3g1", "f6g8")
+            DrawReason.FIFTY_MOVE_RULE -> play("8/8/8/4k3/8/8/4K3/R7 w - - 99 60", "a1a2")
+            DrawReason.INSUFFICIENT_MATERIAL -> play("8/8/8/4k3/8/8/3pK3/8 w - - 0 1", "e2d2")
+        }
     }
 
     /** The room left for the status, in dp, next to [buttons]. */
@@ -60,10 +148,10 @@ class StripFitTest {
 
     @Test
     fun everyStatusFitsNextToItsButtons() {
-        for ((status, buttons) in strips) {
+        for ((status, buttons, maxLines) in strips) {
             val room = statusRoom(buttons)
             val lines = wrap(status, room)
-            assertTrue(lines.size <= StripLayout.STATUS_MAX_LINES, "\"$status\" next to $buttons needs ${lines.size} lines")
+            assertTrue(lines.size <= maxLines, "\"$status\" next to $buttons needs ${lines.size} lines, $maxLines allowed")
             for (line in lines) {
                 assertTrue(AkkuratProxy.width(line) <= room, "\"$line\" (${AkkuratProxy.width(line)} dp) in $room dp next to $buttons")
             }
@@ -72,12 +160,17 @@ class StripFitTest {
 
     @Test
     fun theStripCoversEveryStripString() {
-        val used = strips.map { it.first }.toSet() + strips.flatMap { it.second }
+        val used = strips.map { it.status }.toSet() + strips.flatMap { it.buttons }
         for (copy in listOf(
             UiCopy.WHITE_TO_MOVE, UiCopy.BLACK_TO_MOVE, UiCopy.LATEST, UiCopy.FIRST_PUZZLE, UiCopy.TRY_AGAIN,
             UiCopy.CORRECT, UiCopy.SOLUTION_PLAYING, UiCopy.HINT, UiCopy.SOLUTION, UiCopy.NEXT, UiCopy.MENU,
             UiCopy.UNRATED_SOLVED, UiCopy.UNRATED_HINTED, UiCopy.UNRATED_FAILED, UiCopy.PACK_FINISHED,
+            UiCopy.YOUR_MOVE, UiCopy.THINKING, UiCopy.FINDING_HINT, UiCopy.MOVE_NOW,
+            UiCopy.BACK, UiCopy.DRAW_AGREED, UiCopy.UNFINISHED, UiCopy.NEW_GAME,
         )) assertTrue(copy in used, "\"$copy\" is not checked")
+        for (result in results) for (side in Side.entries) {
+            assertTrue(UiCopy.gameResult(result, side) in used, "\"${UiCopy.gameResult(result, side)}\" is not checked")
+        }
     }
 
     /** The bug seen on the LP3: on one line, the first Puzzle's status lost its end next to Menu. */
@@ -88,21 +181,69 @@ class StripFitTest {
     }
 
     /**
-     * Ink widths (px / 3 = dp) of strip text on LP3 screencaps, LightOS 582 at 480 dpi. The proxy's
-     * advance width (ink plus side bearings) must never be narrower. Akkurat ran up to 12% wider than
-     * Helvetica on these ("Restart"), hence the proxy's scale.
+     * Ink widths in px (/ 3 = dp) of strip text on LP3 screencaps, LightOS at 480 dpi: v1 PR 5's
+     * six, and the game screen's (v2 PR 4 check). The proxy's advance width must never be narrower
+     * than the ink plus [LP3_BEARINGS_DP]. Helvetica × 1.15 fell short on "Hint" and "Latest" (narrow
+     * letters), hence the widened ones.
      */
     @Test
     fun proxyIsNeverNarrowerThanTheLp3() {
         val lp3InkPx = mapOf(
-            "Menu" to 148, "Latest" to 173, "Restart" to 206, "White to move" to 399,
+            "Menu" to 148, "Latest" to 174, "Restart" to 206, "White to move" to 399,
             "Review · 0 of 1" to 382, "Tap a piece, then a squ…" to 694,
+            "Takeback" to 266, "Hint" to 113, "Move now" to 276, "Your move" to 289, "Computer" to 282,
+            "Review · 4 of 6" to 396,
         )
         for ((text, px) in lp3InkPx) {
-            assertTrue(AkkuratProxy.width(text) >= px / 3f, "\"$text\": proxy ${AkkuratProxy.width(text)} dp, LP3 ${px / 3f} dp")
+            val lp3 = px / 3f + LP3_BEARINGS_DP
+            assertTrue(AkkuratProxy.width(text) >= lp3, "\"$text\": proxy ${AkkuratProxy.width(text)} dp, LP3 $lp3 dp")
         }
     }
+
+    /**
+     * The room the LP3 left for the status, from where the first button's ink starts on the screencap:
+     * less the strip's left edge (72 px), [StripLayout.STATUS_GAP], the button's padding and 1 dp of
+     * its left bearing. The proxy's room must never be wider.
+     */
+    @Test
+    fun roomIsNeverWiderThanOnTheLp3() {
+        val firstButtonInkPx = mapOf(
+            listOf(UiCopy.TAKEBACK, UiCopy.HINT, menu) to 341,
+            listOf(UiCopy.MOVE_NOW, menu) to 500,
+            listOf(UiCopy.LATEST, menu) to 601,
+            listOf(UiCopy.HINT, menu) to 663,
+            listOf(menu) to 831,
+        )
+        for ((buttons, px) in firstButtonInkPx) {
+            val lp3 = (px - 72) / 3f - StripLayout.STATUS_GAP.value - StripLayout.BUTTON_PADDING.value - 1f
+            assertTrue(statusRoom(buttons) <= lp3, "next to $buttons: proxy ${statusRoom(buttons)} dp, LP3 $lp3 dp")
+        }
+    }
+
+    /**
+     * What the LP3 showed, which the proxy must reproduce: "Your move" wrapped next to Takeback, Hint
+     * and Menu, and "Computer thinking" next to Move now and Menu (the game strips before R4.16);
+     * "Your move" next to Hint and Menu and "Review · 4 of 6" next to Latest and Menu held one line;
+     * the first Puzzle's status took two lines next to Menu.
+     */
+    @Test
+    fun proxyWrapsWhereTheLp3Did() {
+        assertEquals(2, wrap(UiCopy.YOUR_MOVE, statusRoom(listOf(UiCopy.TAKEBACK, UiCopy.HINT, menu))).size)
+        assertEquals(2, wrap("Computer thinking", statusRoom(listOf(UiCopy.MOVE_NOW, menu))).size)
+        assertEquals(1, wrap(UiCopy.YOUR_MOVE, statusRoom(listOf(UiCopy.HINT, menu))).size)
+        assertEquals(1, wrap(UiCopy.review(4, 6), statusRoom(listOf(UiCopy.LATEST, menu))).size)
+        assertEquals(2, wrap(UiCopy.FIRST_PUZZLE, statusRoom(listOf(menu))).size)
+    }
+
+    private companion object {
+        /** Side bearings, both ends of a string: the ink gap between neighbouring buttons ran 8-9 px past their padding. */
+        const val LP3_BEARINGS_DP = 3f
+    }
 }
+
+/** Every result the game screen and a replay can show. */
+private val results: List<Result> =
+    Side.entries.flatMap { side -> WinReason.entries.map { Result.Win(side, it) } } + DrawReason.entries.map { Result.Draw(it) }
 
 /** A conservative stand-in for Akkurat at LightOS `Copy` size on the LP3. */
 object AkkuratProxy {
@@ -112,8 +253,16 @@ object AkkuratProxy {
     /** LightOS scales design px by screenHeightDp / 600 (light-sdk `designVerticalPxToSp`); sp = dp at font scale 1. */
     private const val FONT_SIZE_DP = StripLayout.COPY_DESIGN_PX * LP3_SCREEN_HEIGHT_DP / 600f
 
-    /** Akkurat against Helvetica, with margin over the widest word measured (12%). */
-    private const val SCALE = 1.15f
+    /**
+     * Akkurat against Helvetica (with [NARROW] widened), with margin: every measured string clears its
+     * LP3 width by at least 1 dp at this scale (proxyIsNeverNarrowerThanTheLp3). Wider would wrap
+     * "White to move" to three lines next to Hint, Solution and Menu, and "Draw: insufficient material"
+     * next to Next and Menu.
+     */
+    private const val SCALE = 1.14f
+
+    /** Akkurat's i, j and t are wider than Helvetica's (222, 222, 278): widened to these, in 1/1000 em. */
+    private val NARROW = mapOf('i' to 280, 'j' to 280, 't' to 325)
 
     /** Helvetica advance widths, in 1/1000 em (the Adobe core font metrics). */
     private val WIDTHS: Map<Char, Int> = buildMap {
@@ -130,8 +279,9 @@ object AkkuratProxy {
             put('a' + i, lower[i])
         }
         for (d in '0'..'9') put(d, 556)
-        put(' ', 278); put(',', 278); put('.', 278); put('\'', 191); put('’', 222); put('?', 556)
+        put(' ', 278); put(',', 278); put('.', 278); put(':', 278); put('\'', 191); put('’', 222); put('?', 556)
         put('·', 278); put('+', 584); put('−', 584); put('-', 333); put('…', 1000)
+        putAll(NARROW)
     }
 
     /** The advance width of [text] in dp. A character without a width fails loudly: add it to the table. */

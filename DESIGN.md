@@ -11,8 +11,9 @@ square (8 × 39 dp, 117 px squares), centred, 12 dp below the top of the app are
 side. The strip is exactly as wide as the board, directly under it, and two `Copy` lines tall (90
 design px, 58 dp on the LP3; never under 48 dp). About 7 dp stay free at the bottom.
 
-The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). v1 has no
-board flip (D10); the puzzle flow puts the side to move after the setup Move at the bottom (A5).
+The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). The puzzle
+flow puts the side to move after the setup Move at the bottom (A5). The game screen puts the user's
+Side at the bottom; "Flip board" in the Menu turns it (D10, v2), and the flip is kept in `games.json`.
 
 ## Palette (D10)
 
@@ -109,12 +110,20 @@ way, "White to move" next to Hint, Solution and Menu and "Review · 12 of 14" ne
 and Menu don't fit on one line either, so they show as "White to / move" and "Review · / 12 of 14".
 The strip is always two lines tall, so the board never moves when a status wraps.
 
-`StripFitTest` checks every strip in the table below: each button on one line, each status in at
-most two lines in the room its buttons leave, with the widest numbers ("Failed −999",
-"Review · 99 of 99"). Akkurat can't ship with the repo, so the test measures with Helvetica's
-advance widths scaled by 1.15 at `Copy` size for a 389 dp tall screen (19.45 sp). Six words measured
-on LP3 screencaps are never wider than the stand-in; the widest, "Restart", ran 12% wider than plain
-Helvetica. A new strip string or state goes into the test.
+`StripFitTest` checks every strip in the table below and in the game screen's: each button on one
+line, each status in the room its buttons leave, in at most two lines (one for a game status but a
+Result, R4.16), with the widest numbers ("Failed −999", "Review · 99 of 99", "Review · 9999 of
+9999"). Akkurat can't ship with the repo, so the test measures with a stand-in: Helvetica's advance
+widths with the narrow letters widened (i and j to 280/1000 em, t to 325), scaled by 1.14, at `Copy`
+size for a 389 dp tall screen (19.45 sp). It is calibrated on LP3 screencaps (1080 px wide, 3 px per
+dp, the strip from x 72 to 1008), three ways: twelve strings measured there (ink plus 3 dp of side
+bearings) are each at least 1 dp narrower than the stand-in; the room before the first button,
+from where its ink starts, is wider than the stand-in's for five button sets; and the stand-in wraps
+"Your move" next to Takeback, Hint and Menu and "Computer thinking" next to Move now and Menu, as the
+LP3 did, and keeps "Your move" next to Hint and Menu and "Review · 4 of 6" next to Latest and Menu on
+one line, as the LP3 did. The v1 stand-in (Helvetica × 1.15) fell short on "Hint" and "Latest"
+(Akkurat's i and t are wider); a wider scale would put "White to move" on three lines next to Hint,
+Solution and Menu, where v1 has it on two (not yet seen on the LP3). A new strip string or state goes into the test.
 
 Buttons by context:
 
@@ -190,7 +199,85 @@ copy for the object on screen, while code names the chess state a Position.
   - "Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate." with the
     Pack manifest's `source.date` ("Puzzles: the Lichess puzzle database (lichess.org), CC0." if a
     manifest has none).
+  - "Opening book: games from the Lichess database (lichess.org), CC0, January 2018." (v2 PR 6,
+    docs/book.md; the Book's dump is fixed, so its month is copy, not read from its manifest).
   - Then `tool/src/main/assets/about/notices.txt`, verbatim legal text kept out of code: the cburnett
     licence in full (BSD-3 asks a binary to reproduce it), Light's SDK (MIT) and the libraries of the
     release APK's runtime classpath by licence, with the Apache-2.0 notice. NOTICE names the same
-    libraries. The v2 engine's credit joins with v2.
+    libraries.
+  - "Engine: Pirarucu by Raoni Campos (ratosh), GPL-3.0." (D7, v2 PR 4), before the Book's line.
+    NOTICE carries the longer credit.
+
+## The game screen (v2 PR 4)
+
+The rules are pure Kotlin in `games/GameFlow.kt`: `GameState` (the file, the Game on screen, a Game
+Hint, the draw response, a pending second tap) and `GameFlow` (start, the turn flow, Takeback, Game
+Hints, draw offers, Resign, what the computer does next), with `GameFlowTest`. `GameOwner` is the
+process-wide owner that runs the computer on `EngineHost.shared`, the clock and `games.json`;
+`GameStrip` picks the strip. Rulings: decision log "v2 PR 4".
+
+- The Tool opens on the mode last used (D6), kept in `mode.txt`. "Play the computer" in the puzzle
+  Menu returns to the Game in progress, or opens the new-game page; "Puzzles" in the game Menu goes
+  back and stops the computer's search until the game mode shows again.
+- The new-game page: "Level" with 1 to 8 on one line, "Play as" with "White", "Black" and "Random",
+  and "Think Time" with "3 s", "10 s" and "30 s" at Level 8 only. The chosen option is in the content
+  colour, the others lightened. "Start" starts; with a Game in progress it reads "Tap again to
+  replace" first, above "The Game in progress is saved as unfinished." The choices are remembered
+  (Level 1, White, 3 s the first time).
+- The computer's Move lands no sooner than 300 ms after the user's (A5's reply delay), so a book Move
+  or a quick Level doesn't land with the user's own, and slides in over 200 ms (F11). The user's Moves
+  are instant. The board takes no Move while the computer thinks (contradiction 3); the wheel still
+  reviews.
+- Game Hint: a Level 8 search at the default Think Time (3 s); the strip reads "Finding a Game Hint"
+  with Menu while it runs, and the board stays live (a Move stops the search, uncounted). Then the
+  Puzzle Hint's ring on the piece and a target mark on its square (the dot, or the capture ring over a
+  piece) show for 5 s or until the user's Move. It counts once shown.
+- Keep the screen on while the computer thinks, and on the user's Move while the last touch or wheel
+  event was under 5 minutes ago (contradiction 4), in the Menu too.
+
+Buttons by context (contradiction 2):
+
+| When | Status | Buttons |
+|---|---|---|
+| The user's Move | "Your move" | Hint, Menu |
+| A Game Hint being found | "Finding a Game Hint" | Menu |
+| The computer thinking | "Thinking" | Move now, Menu |
+| The Result | the Result | Next, Menu |
+| Review | "Review · 12 of 40" | Latest |
+| A finished Game from Games | the Result, or Review | Back at the Result, Latest in Review |
+
+Every game status holds one line on the LP3, but a Result, which may take the strip's second
+(R4.16): in Akkurat, "Your move" wrapped next to Takeback, Hint and Menu, and "Computer thinking" next
+to Move now and Menu. So Takeback is in the Menu only, the computer's think reads "Thinking", and
+Review keeps Latest alone, which leaves room for "Review · 9999 of 9999".
+
+"Game Hint" and "New game" don't fit as labels: next to Takeback and Menu, "Game Hint" leaves no
+room for any status, and "New game" leaves too little for a Result. The labels are "Hint" and "Next";
+their semantics labels are "Game Hint: show the computer's best Move" and "Start a new game". The
+others: "Move now: the computer plays at once", "Back to the Games". Next opens the new-game page.
+
+Results, from the user's view: "You won by checkmate", "You lost by checkmate", "You resigned", "You
+won by resignation" (never, since the computer never resigns, F8, but a hand-edited file can say so),
+"Draw agreed", "Draw by stalemate", "Draw by repetition", "Draw by the 50-move rule" and "Draw:
+insufficient material" ("Draw by insufficient material" needs three lines next to Next and Menu).
+A Game replaced before its end shows "Unfinished".
+
+The Menu while a Game shows, top to bottom:
+
+- "Offer draw" on the user's Move. The answer comes at once, in place: "Draw declined", or back to the
+  board with "Draw agreed". While the computer thinks it reads "Offer draw on your move"; after an
+  offer, "Offer draw again at move 41" (G1's 10 more Moves), both lightened.
+- "Resign", then "Tap again to resign"; the second tap returns to the board with the Result.
+- "Takeback" (both while the computer thinks and on the user's Move, once the user has moved), then
+  back to the board.
+- "Flip board", then back to the board.
+- "Moves": the Game's SAN in two columns, "12." then White's Move then Black's (… for a Game whose
+  first Move is Black's), one row per Move number, scrolled by the wheel (F3, F11). "No Moves yet"
+  before the first.
+- "Think Time · 3 s" at Level 8: each tap goes to the next of 3, 10 and 30 s, for the computer's next
+  Move and the next Games.
+- "New game", "Games", "Puzzles", "About". The page scrolls by the wheel.
+
+Games lists the finished Games, newest first, at most 50 (B7): "2026.09.28 · Level 3 · Won" (Won, Lost,
+Draw or Unfinished); "No finished Games yet" when empty. A tap opens the Game at its Result; the
+wheel reviews its Moves, and Back returns to the list.
