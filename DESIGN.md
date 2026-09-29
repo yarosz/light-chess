@@ -243,7 +243,7 @@ copy for the object on screen, while code names the chess state a Position.
   - "Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate." with the
     Pack manifest's `source.date` ("Puzzles: the Lichess puzzle database (lichess.org), CC0." if a
     manifest has none).
-  - "Opening book: games from the Lichess database (lichess.org), CC0, January 2018." (v2 PR 6,
+  - "Opening book: the Lichess games database (lichess.org), CC0, January 2018." (v2 PR 6, M4,
     docs/book.md; the Book's dump is fixed, so its month is copy, not read from its manifest).
   - Then `tool/src/main/assets/about/notices.txt`, verbatim legal text kept out of code: "Pieces:
     original drawings made for Chess (two sets), released under CC0 1.0 (no rights reserved)." (P1,

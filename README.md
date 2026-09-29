@@ -66,8 +66,8 @@ A plain `assembleDebug` builds for LightOS on a Light Phone III. For the emulato
 
 Chess never uses the network. Nothing leaves this phone. The Puzzles and the opening Book ship inside
 the Tool, the computer thinks on the phone itself, and your rating, Games and history stay in the
-Tool's own storage. Chess declares no permissions of its own; the
-Android permissions its package lists come from Light's SDK. See `SECURITY.md`.
+Tool's own storage. Chess declares no permissions of its own; the Android permissions its package
+lists come from Light's SDK. See `SECURITY.md`.
 
 ## Credits
 
