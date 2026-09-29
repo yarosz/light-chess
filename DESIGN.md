@@ -44,6 +44,13 @@ Floors, in gray levels:
   (126 / 88 on light squares, 100 / 62 on dark ones).
 - The picker cells are at least 60 above the dimmed board under them.
 
+## Pieces (P1)
+
+Chess's own set, original CC0 drawings in `art/pieces/` (its README has the design rules), converted to
+ImageVector code at build time by `scripts/build-pieces.py` (R1.7). Black pieces are solid silhouettes;
+a white piece is the same silhouette in white over a wider black outline, so it keeps an edge on the
+light square (216) as well as the dark one. Each piece is drawn in its square with a small inset.
+
 ## Marks (R1.6, R1.7, A5)
 
 Sizes are fractions of a square (39 dp), in `Marks` next to the shades.
@@ -212,7 +219,8 @@ copy for the object on screen, while code names the chess state a Position.
   - "Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate." with the
     Pack manifest's `source.date` ("Puzzles: the Lichess puzzle database (lichess.org), CC0." if a
     manifest has none).
-  - Then `tool/src/main/assets/about/notices.txt`, verbatim legal text kept out of code: the cburnett
-    licence in full (BSD-3 asks a binary to reproduce it), Light's SDK (MIT) and the libraries of the
-    release APK's runtime classpath by licence, with the Apache-2.0 notice. NOTICE names the same
+  - Then `tool/src/main/assets/about/notices.txt`, verbatim legal text kept out of code: "Pieces:
+    original drawings made for Chess, released under CC0 1.0 (no rights reserved)." (P1), Light's SDK
+    (MIT) and the libraries of the release APK's runtime classpath by licence, with the Apache-2.0
+    notice. NOTICE names the same
     libraries. The v2 engine's credit joins with v2.

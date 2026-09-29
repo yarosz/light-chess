@@ -32,7 +32,7 @@ PackManifest
 PackFormatException
 
 # Board view and input (v1 PR 3): UI vocabulary, not domain terms (DESIGN.md)
-CburnettPieces
+PieceVectors
 Shades
 Marks
 MoveInput

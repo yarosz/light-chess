@@ -70,7 +70,7 @@ object UiCopy {
     /**
      * The About page (D7), one plain-text paragraph per entry. [packDate] is the Lichess dump the Pack
      * was built from (`source.date` in the Pack manifest); [notices] is [NOTICES_ASSET]'s text, whose
-     * paragraphs (split at blank lines) follow: the cburnett licence and the release APK's libraries.
+     * paragraphs (split at blank lines) follow: the pieces' CC0 credit and the release APK's libraries.
      */
     fun about(packDate: String?, notices: String): List<String> = listOf(
         "Chess $VERSION",

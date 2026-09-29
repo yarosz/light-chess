@@ -15,7 +15,7 @@ labels: bug
 **Details**
 - LightOS version (Settings → About):
 - Chess version:
-- The Puzzle id (the Menu shows it, under About):
+- The Puzzle id (the last row of the Menu, "Puzzle ..."):
 
 Chess collects no data, so the details above are the only way we can find the problem. Please don't
 include personal information.
