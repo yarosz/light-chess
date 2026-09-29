@@ -357,9 +357,9 @@ wheel reviews its Moves, and Back returns to the list.
 
 ## Play a friend (v3 PR 2)
 
-Rulings: decision log "v3 PR 2 (expert rulings)" (W1-W10) and "v3 PR 2 (implementation)". The pure
-parts are `FriendStrip` (the board's and the invite's strips), `FriendRows` (the page's order) and
-`FinishedGames` (the Games page's merge), each checked by StripFitTest or FriendPagesTest.
+Rulings: decision log "v3 PR 2 (expert rulings)" (W1-W10), "v3 PR 2 (implementation)" and W12-W13.
+The pure parts are `FriendStrip` (the board's and the invite's strips), `FriendRows` (the page's order)
+and `FinishedGames` (the Games page's merge), each checked by StripFitTest or FriendPagesTest.
 `FriendOwner` is the process-wide owner over the sync engine; it exists only once the Relay URL is
 set (`RelayConfig`, W8).
 
@@ -370,10 +370,16 @@ set (`RelayConfig`, W8).
   move · 2d", "ABCD · Their move · 2d", "ABCD-EFGH · Expires in 47h", "ABCD · Rematch sent", "ABCD ·
   Won", "ABCD · Out of sync", a Seat being taken as "ABCD-EFGH · Not sent"), and "No games yet.
   Create a code for a friend, or enter theirs." when empty. At the cap both buttons are lightened
-  above "Finish a game first".
+  above "Finish a game first". A row opens the Game's board, or its invite; an "ABCD · Game deleted"
+  row opens the Game's Menu, which starts "This game was deleted. Forget it to free its place." and
+  has "Forget game" (W13).
+- Time Left and an invite's expiry show one unit: hours to the nearest while under 48 are left, days
+  to the nearest above (from 47h 30m), the last hour in minutes rounded up. A fresh 1-day Game reads
+  "24h" and a fresh 3-day Game "3d" on both phones, a fresh invite "Expires in 48h", and "0m" comes
+  with "Time is up" (W12).
 - New game: "Play as" (White, Black, Random), "Days per move" (1, 3, 7), "Create code". The invite
   page shows the code in LightOS Subtitle, alone on its line, then "Tell your friend this code. It
-  works once, for 48 hours." Its strip: "Expires in 47h" with Cancel and Menu; the first Cancel
+  works once, for 48 hours." Its strip: "Expires in 48h" with Cancel and Menu; the first Cancel
   shows "Tap again to cancel" next to Cancel alone; an unconfirmed cancel shows "Not sent" with Retry.
 - Enter code: LightOS's text editor with the LP3 keyboard, "Join" to submit; the title reads "Enter
   code", then "Sending", then the answer: "Not a code", "No such code", "Code already used", "Try

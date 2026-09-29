@@ -3,6 +3,8 @@ package com.yarosz.chess
 import com.thelightphone.sdk.LightJobResult
 import com.yarosz.chess.correspondence.Correspondence
 import com.yarosz.chess.correspondence.CorrespondenceStore
+import com.yarosz.chess.correspondence.Delivery
+import com.yarosz.chess.correspondence.HaltReason
 import com.yarosz.chess.correspondence.Phone
 import com.yarosz.chess.correspondence.Stage
 import com.yarosz.chess.relay.FakeRelay
@@ -19,11 +21,13 @@ import java.nio.file.Files
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -51,8 +55,10 @@ class FriendOwnerTest {
     private class CountingTransport(private val relay: FakeRelay) : RelayTransport {
         var calls = 0
         var offline = false
+        var cancelled = false
         override suspend fun exchange(request: RelayRequest): RelayResponse {
             calls++
+            if (cancelled) throw CancellationException("the job was stopped")
             if (offline) throw IOException("offline")
             return relay.handle(request)
         }
@@ -178,6 +184,43 @@ class FriendOwnerTest {
         assertNotNull(owner.state.value.game(id)?.halt)
         assertEquals(0, owner.state.value.yourMove)
         assertEquals(UiCopy.GAME_DELETED, FriendStrip.of(owner.state.value.game(id)!!, relay.now).status)
+    }
+
+    @Test
+    fun `a deleted Game's row leads to Forget game, which works on this phone alone, offline too (W13, V13)`() = runBlocking<Unit> {
+        val id = friendStarted()
+        val owner = owner()
+        relay.delete(id)
+        owner.syncNow()
+        assertEquals(HaltReason.GONE, owner.state.value.game(id)?.halt?.reason)
+        val row = FriendRows.of(owner.state.value.games, owner.state.value.seats, relay.now).single()
+        assertEquals(id, row.gameId)
+        assertTrue(row.menu, "the row opens the Game's Menu")
+
+        // The Menu's Forget game: a first tap asks, the second forgets (W6, Y8).
+        val vm = FriendViewModel(owner, FriendPage.MENU, id)
+        assertFalse(vm.confirm(FriendConfirm.FORGET))
+        assertEquals(FriendConfirm.FORGET, vm.confirming)
+        transport.offline = true
+        transport.calls = 0
+        var forgotten: Delivery? = null
+        assertTrue(vm.confirm(FriendConfirm.FORGET))
+        owner.forget(id) { forgotten = it }
+        assertIs<Delivery.Done>(forgotten)
+        assertEquals(0, transport.calls, "nothing is asked of the Relay, which no longer has the Game")
+        assertNull(owner.state.value.game(id))
+        assertTrue(FriendRows.of(owner.state.value.games, owner.state.value.seats, relay.now).isEmpty())
+        assertFalse(owner.state.value.sending.contains(id))
+        assertNull(Correspondence(RelayClient(transport), CorrespondenceStore(dir)) { relay.now }.game(id), "forgotten in the file too")
+    }
+
+    @Test
+    fun `a background job that is cancelled stays cancelled`() = runBlocking<Unit> {
+        friendStarted()
+        val owner = owner()
+        transport.cancelled = true
+        assertFailsWith<CancellationException> { FriendJobs.run(owner, periodic = false) }
+        assertFailsWith<CancellationException> { FriendJobs.run(owner, periodic = true) }
     }
 
     /** A Game the friend created as Black and this owner's phone took as White, through the same store. */
