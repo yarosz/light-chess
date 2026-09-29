@@ -56,6 +56,11 @@ class MenuViewModel(private val owner: PuzzleOwner, private val page: MenuPage) 
     /** One row per wheel detent: -1 up, +1 down. */
     val scroll: SharedFlow<Int> = steps
 
+    init {
+        // The Missed page reads its Puzzles ahead, so a tap on a row reads no file on the main thread.
+        if (page == MenuPage.MISSED) owner.prefetchMissed()
+    }
+
     fun tapReset(): Boolean {
         owner.touched()
         if (!confirmingReset) {

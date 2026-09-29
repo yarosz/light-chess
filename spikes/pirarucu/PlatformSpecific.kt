@@ -1,3 +1,4 @@
+// Adapted from Pirarucu's pirarucu-jvm PlatformSpecific (github.com/ratosh/pirarucu, 987dd02, Raoni Campos), GPL-3.0 licence.
 package pirarucu.util
 
 // Plain-Kotlin replacement for the `expect object` (was actual in pirarucu-jvm).

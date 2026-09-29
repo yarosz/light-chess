@@ -1,3 +1,4 @@
+// Adapted from Karballo's JvmPlatformUtils (github.com/albertoruibal/karballo, a709a7e, Alberto Alonso Ruibal), MIT licence.
 package karballo.util
 
 import kotlin.random.Random

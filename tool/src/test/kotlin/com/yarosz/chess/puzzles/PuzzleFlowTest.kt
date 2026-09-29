@@ -321,6 +321,93 @@ class PuzzleFlowTest {
         assertEquals(listOf(HistoryEntry(a.puzzle.id, a.puzzle.rating, AttemptState.HINTED, 0, solutionShown = true)), back.data.history)
     }
 
+    @Test
+    fun `a result saved with Moves that don't follow the Solution stays at its result, scored once`() {
+        for (state in listOf(AttemptState.SOLVED, AttemptState.FAILED, AttemptState.HINTED)) {
+            val start = ready(seeded())
+            val done = solve(flow, when (state) {
+                AttemptState.FAILED -> wrong(start)
+                AttemptState.HINTED -> flow.hint(start)
+                else -> start
+            })
+            assertEquals(state, done.current!!.state)
+            // A damaged file: the saved Moves can't be replayed against the Solution.
+            val damaged = done.toData().let { it.copy(current = it.current!!.copy(moves = listOf("a1a2"))) }
+            val back = flow.open(damaged)
+            val a = back.current!!
+            assertEquals(Stage.DONE, a.stage, "$state: at its result, not restarted from the setup Move")
+            assertEquals(state, a.state)
+            assertEquals(done.currentDelta, back.currentDelta)
+            assertEquals(back, flow.advance(back), "$state: nothing left to play")
+            val next = flow.next(back)
+            assertNotEquals(a.puzzle.id, next.current!!.puzzle.id)
+            assertEquals(done.data.rating, next.data.rating, "$state: not scored again")
+            assertEquals(done.data.history, next.data.history, "$state: not recorded again")
+            assertEquals(done.data.missed, next.data.missed)
+        }
+        // Under way, the same damage restarts the Attempt from its setup Move, as before.
+        val mid = wrong(ready(seeded()))
+        val damaged = mid.toData().let { it.copy(current = it.current!!.copy(moves = listOf("a1a2"))) }
+        val restarted = flow.open(damaged).current!!
+        assertEquals(Stage.HOLD, restarted.stage)
+        assertEquals(AttemptState.FAILED, restarted.state)
+    }
+
+    @Test
+    fun `the Band files for the next Puzzle are read ahead, so a result reads none`() {
+        val lines = (800..2000 step 50).flatMap { r -> listOf(TestPacks.line("a$r", r), TestPacks.line("b$r", r)) }
+        for (finish in listOf("solve", "wrong", "hint", "solution")) {
+            for (ahead in listOf(false, true)) {
+                val reads = mutableListOf<String>()
+                val f = PuzzleFlow(TestPacks.of("A", lines, reads), Random(7))
+                val start = f.advance(f.advance(f.seed(f.open(null), 1500.0)))
+                if (ahead) f.prefetchNext(start)
+                reads.clear()
+                var s = when (finish) {
+                    "wrong" -> start.attempt!!.let { a ->
+                        f.play(start, a.position.legalMoves.first { it != a.puzzle.solution[0] && !a.position.play(it).isCheckmate })
+                    }
+                    "hint" -> f.hint(start)
+                    "solution" -> f.showSolution(start)
+                    else -> start
+                }
+                while (s.attempt!!.underWay) {
+                    val a = s.attempt!!
+                    s = if (a.userToMove) f.play(s, a.puzzle.solution[a.played.size]) else f.advance(s)
+                }
+                assertNotNull(s.upNext, finish)
+                // A Hinted end leaves the rating, whose Bands the first pick read already.
+                if (ahead) assertEquals(emptyList(), reads, "$finish: read ahead")
+                else if (finish != "hint") assertTrue(reads.isNotEmpty(), "$finish: the test would see a read")
+            }
+        }
+        // After a relaunch at the result, Next picks at the unchanged rating: read ahead too.
+        val reads = mutableListOf<String>()
+        val f = PuzzleFlow(TestPacks.of("A", lines, reads), Random(7))
+        val saved = PuzzleData(seeded = true, packSha256 = "A", rating = 1900.0, finished = listOf("a1500"),
+            current = InProgress("a1500", 1500, AttemptState.SOLVED, listOf("f3f2", "e1d1", "f2f1"), done = true, delta = 5))
+        val back = f.open(saved)
+        f.prefetchNext(back)
+        reads.clear()
+        assertNotNull(f.next(back).current)
+        assertEquals(emptyList(), reads)
+    }
+
+    @Test
+    fun `Missed Puzzles are read ahead, so opening one reads no file`() {
+        val lines = (800..2000 step 50).flatMap { r -> listOf(TestPacks.line("a$r", r), TestPacks.line("b$r", r)) }
+        val missed = listOf(MissedEntry("a900", 900, AttemptState.FAILED), MissedEntry("b1950", 1950, AttemptState.HINTED))
+        for (ahead in listOf(false, true)) {
+            val reads = mutableListOf<String>()
+            val f = PuzzleFlow(TestPacks.of("A", lines, reads), Random(7))
+            val s = f.open(PuzzleData(seeded = true, packSha256 = "A", finished = missed.map { it.id }, missed = missed))
+            if (ahead) f.prefetchMissed(s)
+            reads.clear()
+            for (entry in missed) assertEquals(entry.id, f.replayMissed(s, entry.id).replay!!.puzzle.id)
+            if (ahead) assertEquals(emptyList(), reads) else assertTrue(reads.isNotEmpty(), "the test would see a read")
+        }
+    }
+
     /** The first Solution Move of [Lines.MATE_IN_2], which every Puzzle in [wide] shares. */
     private fun seededMove() = Puzzle.parse(Lines.MATE_IN_2).solution[0]
 

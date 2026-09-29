@@ -3,12 +3,14 @@
 Chess Puzzles for the Light Phone III.
 
 Solve real positions from the Lichess puzzle database, 46,971 of them, chosen for your level.
-Your Player Rating moves with every Puzzle, and the ones you missed wait for another try.
+Your Player Rating moves with every rated Puzzle, and the ones you missed wait for another try.
 Works offline, with no account and nothing tracked.
 
 > **Status: 0.1.0, feature-complete for v1, not yet listed by Light.** A Light Phone III Tool built on
-> [Light's SDK](https://github.com/lightphone/light-sdk). Playing the computer comes in v2, and a friend
-> by correspondence in v3.
+> [Light's SDK](https://github.com/lightphone/light-sdk). Planned: playing the computer, then a friend
+> by correspondence.
+
+Questions or bugs: https://github.com/yarosz/light-chess/issues
 
 <!-- Screenshots: LP3 photos go in docs/screenshots/ (first Puzzle, a result, the Menu, About). -->
 _Screenshots from a Light Phone III are coming._
