@@ -30,11 +30,11 @@ class FriendScenes {
 
     private fun phone() = Phone(relay, ++seed, "scene$seed").also(phones::add)
 
-    /** A started Game: [Pair.a] White, created it; [Pair.b] redeemed it. */
-    fun started(): Pair = runBlocking {
+    /** A started Game of [daysPerMove]: [Pair.a] White, created it; [Pair.b] redeemed it. */
+    fun started(daysPerMove: Int = 3): Pair = runBlocking {
         val a = phone()
         val b = phone()
-        val invite = checkNotNull((a.c.createInvite(Side.WHITE, 3) as Delivery.Done).game)
+        val invite = checkNotNull((a.c.createInvite(Side.WHITE, daysPerMove) as Delivery.Done).game)
         b.c.redeemInvite(checkNotNull(invite.invite?.code))
         a.c.syncAll()
         Pair(a, b, invite.gameId)

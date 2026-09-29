@@ -80,7 +80,7 @@ data class FriendStrip(val status: String, val buttons: List<FriendButton>, val 
         }
 
         /**
-         * The invite page's strip (W4, G2): "Expires in 47h" with Cancel and Menu; after one tap on
+         * The invite page's strip (W4, G2): "Expires in 48h" with Cancel and Menu; after one tap on
          * Cancel ([confirming]), "Tap again to cancel" next to Cancel alone, which is what fits one
          * line; a cancel the Relay hasn't confirmed, "Not sent" with Retry.
          */
@@ -96,8 +96,12 @@ data class FriendStrip(val status: String, val buttons: List<FriendButton>, val 
     }
 }
 
-/** One row of the Play a friend page (W6), and what a tap on it opens. */
-data class FriendRow(val text: String, val gameId: String? = null, val seat: PendingSeat? = null, val invite: Boolean = false)
+/**
+ * One row of the Play a friend page (W6), and what a tap on it opens: the Game's board, its invite, a
+ * Seat sent again, or with [menu] the Game's Menu, straight to Forget game for a Game the Relay
+ * deleted (W13).
+ */
+data class FriendRow(val text: String, val gameId: String? = null, val seat: PendingSeat? = null, val invite: Boolean = false, val menu: Boolean = false)
 
 /**
  * The Play a friend page's rows (W6), in E7's order: the user's Move first, soonest Time Left first;
@@ -119,7 +123,7 @@ object FriendRows {
             for (g in invites) add(FriendRow(inviteText(g, now), g.gameId, invite = g.invite?.code != null))
             for (s in seats) add(FriendRow(UiCopy.friendRow(s.code?.let(InviteCodes::display) ?: s.label, UiCopy.NOT_SENT), seat = s))
             for (g in over) add(FriendRow(UiCopy.friendRow(g.label, overState(g)), g.gameId))
-            for (g in stopped) add(FriendRow(UiCopy.friendRow(g.label, FriendStrip.of(g, now).status), g.gameId))
+            for (g in stopped) add(FriendRow(UiCopy.friendRow(g.label, FriendStrip.of(g, now).status), g.gameId, menu = g.halt?.reason == HaltReason.GONE))
         }
     }
 
