@@ -170,6 +170,7 @@ object UiCopy {
     const val UPDATE_CHESS = "Update Chess"
     const val UPDATE_CHESS_ROW = "Update Chess to continue this game"
     const val GAME_DELETED = "Game deleted"
+    const val GAME_DELETED_ROW = "This game was deleted. Forget it to free its place."
     const val SEAT_LOST = "Seat lost"
     const val CANCEL = "Cancel"
     const val CANCEL_DESCRIPTION = "Cancel this invite"
@@ -193,10 +194,11 @@ object UiCopy {
         if (result is Result.Draw && result.by == DrawReason.INSUFFICIENT_MATERIAL) "Draw: dead position" else gameResult(result, userSide)
 
     /**
-     * Time Left in one unit (W4, W12): days, then hours, to the nearest ("3d", "5h"), and the last hour
-     * in minutes rounded up ("40m"), so "0m" shows only once the Deadline has passed, as "Time is up"
-     * does. A Deadline falls a whole number of days after a Move, so a fresh Move's Time Left sits in
-     * the middle of its rounding, and both phones read the same through minutes of clock skew.
+     * Time Left in one unit (W4, W12): hours to the nearest while under 48 are left ("47h", "5h"), days
+     * to the nearest above ("2d" from 47h 30m, "3d"), and the last hour in minutes rounded up ("40m"),
+     * so "0m" shows only once the Deadline has passed, as "Time is up" does. A Deadline falls a whole
+     * number of days after a Move, so a fresh Move's Time Left sits in the middle of its rounding, and
+     * both phones read the same through minutes of clock skew.
      */
     fun timeLeft(ms: Long): String = oneUnit(ms, days = true)
 
@@ -209,14 +211,19 @@ object UiCopy {
     /** The invite's strip (W4, W12): "Expires in 48h", in hours (an invite lasts 48) to the nearest, then minutes rounded up. */
     fun expiresIn(ms: Long) = "Expires in " + oneUnit(ms, days = false)
 
-    /** W12's rounding: under an hour, minutes rounded up; above, hours (and with [days], days) to the nearest, half up. */
+    /**
+     * W12's rounding: under an hour, minutes rounded up; then hours to the nearest, half up, while
+     * under 48 would show; above that, with [days], days to the nearest, half up. Clamped to a year
+     * first, so a nonsense Deadline can't overflow the sums.
+     */
     private fun oneUnit(ms: Long, days: Boolean): String {
         if (ms <= 0) return "0m"
-        val minutes = (ms + MINUTE_MS - 1) / MINUTE_MS
+        val left = ms.coerceAtMost(365 * DAY_MS)
+        val minutes = (left + MINUTE_MS - 1) / MINUTE_MS
         if (minutes < 60) return "${minutes}m"
-        val hours = (ms + HOUR_MS / 2) / HOUR_MS
-        if (!days || hours < 24) return "${hours}h"
-        val wholeDays = (ms + DAY_MS / 2) / DAY_MS
+        val hours = (left + HOUR_MS / 2) / HOUR_MS
+        if (!days || hours < 48) return "${hours}h"
+        val wholeDays = (left + DAY_MS / 2) / DAY_MS
         return "${wholeDays}d"
     }
 

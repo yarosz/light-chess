@@ -316,7 +316,9 @@ object FriendJobs {
         val report = try {
             owner.syncNow(periodicJob = periodic)
         } catch (e: CancellationException) {
-            // LightWork stopped the job: it ends as cancelled, not as a sync that failed.
+            // LightWork stopped the job: it ends as cancelled, not as a sync that failed. A
+            // TimeoutCancellationException is one too, so a `withTimeout` around a request must catch
+            // its own timeout as a failure (Retry, C8) before it gets here.
             throw e
         } catch (e: Exception) {
             Log.w("Chess", "background sync failed", e)

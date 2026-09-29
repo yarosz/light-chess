@@ -103,8 +103,8 @@ class StripFitTest {
                 add(chosen)
                 for (san in listOf("Qa1xh8#", "exd8=Q#", "Nbxd7+", "O-O-O+")) add(chosen.copy(status = san))
                 val menu = listOf(FriendButton.MENU)
-                // Time Left at its widest in each unit (W4, W12): "59m", "23h", "7d".
-                for (left in listOf(59 * 60_000L, 23 * 3_600_000L + 29 * 60_000L, 7 * Protocol.DAY_MS)) {
+                // Time Left at its widest in each unit (W4, W12): "59m", "47h", "7d", and a fresh invite's "48h".
+                for (left in listOf(59 * 60_000L, 47 * 3_600_000L + 29 * 60_000L, 48 * 3_600_000L, 7 * Protocol.DAY_MS)) {
                     add(FriendStrip(UiCopy.yourMoveLeft(left), menu))
                     add(FriendStrip(UiCopy.theirMoveLeft(left), menu))
                     if (left <= 48 * 3_600_000L) add(FriendStrip(UiCopy.expiresIn(left), listOf(FriendButton.CANCEL, FriendButton.MENU)))
@@ -268,6 +268,19 @@ class StripFitTest {
             val lines = UiCopy.puzzleRow(id).split('\n')
             assertEquals(listOf("Puzzle $id", "lichess.org/training/$id"), lines)
             for (l in lines) assertTrue(AkkuratProxy.width(l) <= room, "\"$l\" (${AkkuratProxy.width(l)} dp) in $room dp")
+        }
+    }
+
+    /**
+     * A stopped Correspondence Game's Menu opens with why it stopped (W4, W13): each sentence fits in
+     * two Menu lines, the room the out-of-sync line takes.
+     */
+    @Test
+    fun theMenuStopLinesFitTwoLines() {
+        val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
+        for (line in listOf(UiCopy.OUT_OF_SYNC_ROW, UiCopy.UPDATE_CHESS_ROW, UiCopy.GAME_DELETED_ROW, UiCopy.SEAT_LOST)) {
+            val lines = wrap(line, room)
+            assertTrue(lines.size <= 2, "\"$line\" needs ${lines.size} Menu lines: $lines")
         }
     }
 

@@ -67,7 +67,7 @@ class FriendPagesTest {
     }
 
     @Test
-    fun `Time Left is one unit, days and hours to the nearest, the last hour in minutes rounded up (W4, W12)`() {
+    fun `Time Left is one unit, hours under 48 and days above to the nearest, the last hour in minutes rounded up (W4, W12)`() {
         val day = Protocol.DAY_MS
         val hour = 3_600_000L
         val minute = 60_000L
@@ -79,12 +79,17 @@ class FriendPagesTest {
         assertEquals("3d", UiCopy.timeLeft(2 * day + 12 * hour))
         assertEquals("2d", UiCopy.timeLeft(2 * day + 12 * hour - 1))
         assertEquals("7d", UiCopy.timeLeft(7 * day - 5 * minute))
-        assertEquals("1d", UiCopy.timeLeft(day))
-        assertEquals("1d", UiCopy.timeLeft(23 * hour + 30 * minute))
-        // Under a day, hours to the nearest.
+        assertEquals("2d", UiCopy.timeLeft(2 * day))
+        // Days from 47h 30m: "2d" then overstates by at most 30 minutes.
+        assertEquals("2d", UiCopy.timeLeft(47 * hour + 30 * minute))
+        // Under that, hours to the nearest, half up.
+        assertEquals("47h", UiCopy.timeLeft(47 * hour + 30 * minute - 1))
+        assertEquals("36h", UiCopy.timeLeft(36 * hour))
+        assertEquals("24h", UiCopy.timeLeft(day))
+        assertEquals("24h", UiCopy.timeLeft(23 * hour + 30 * minute))
         assertEquals("23h", UiCopy.timeLeft(23 * hour + 30 * minute - 1))
-        assertEquals("6h", UiCopy.timeLeft(5 * hour + 59 * minute))
-        assertEquals("5h", UiCopy.timeLeft(5 * hour + 29 * minute))
+        assertEquals("6h", UiCopy.timeLeft(5 * hour + 30 * minute))
+        assertEquals("5h", UiCopy.timeLeft(5 * hour + 30 * minute - 1))
         assertEquals("1h", UiCopy.timeLeft(hour))
         assertEquals("1h", UiCopy.timeLeft(59 * minute + 1))
         // The last hour, in minutes rounded up: "0m" only once the deadline has passed.
@@ -96,6 +101,10 @@ class FriendPagesTest {
         assertEquals("0m", UiCopy.timeLeft(0))
         assertEquals("0m", UiCopy.timeLeft(-1))
         assertEquals("0m", UiCopy.timeLeft(-2 * day))
+        assertEquals("0m", UiCopy.timeLeft(Long.MIN_VALUE))
+        // A nonsense Deadline: clamped to a year, so the sums can't overflow.
+        assertEquals("365d", UiCopy.timeLeft(Long.MAX_VALUE))
+        assertEquals("Expires in 8760h", UiCopy.expiresIn(Long.MAX_VALUE))
     }
 
     @Test
@@ -121,15 +130,17 @@ class FriendPagesTest {
     }
 
     @Test
-    fun `a fresh Game reads the same Time Left on both phones (W12)`() {
-        val p = scenes.started()
-        val white = p.a.game(p.id)
-        val black = p.b.game(p.id)
-        val start = white.log!!.deadline!! - 3 * Protocol.DAY_MS
-        // One phone reads the Relay's time a little behind, the other a little ahead.
-        for (skew in listOf(-90_000L, -1_000L, 0L, 1_000L, 90_000L)) {
-            assertEquals("${UiCopy.YOUR_MOVE} · 3d", FriendStrip.of(white, start + skew).status)
-            assertEquals("${UiCopy.THEIR_MOVE} · 3d", FriendStrip.of(black, start + skew).status)
+    fun `a fresh Game reads the same Time Left on both phones, one behind the Relay's time and one ahead (W12)`() {
+        for ((days, left) in listOf(1 to "24h", 3 to "3d", 7 to "7d")) {
+            val p = scenes.started(days)
+            val white = p.a.game(p.id)
+            val black = p.b.game(p.id)
+            val start = white.log!!.deadline!! - days * Protocol.DAY_MS
+            // Each phone estimates the Relay's time (V14): White's 90 s behind, Black's 90 s ahead.
+            for (skew in listOf(0L, 1_000L, 90_000L)) {
+                assertEquals("${UiCopy.YOUR_MOVE} · $left", FriendStrip.of(white, start - skew).status, "$days-day, White $skew ms behind")
+                assertEquals("${UiCopy.THEIR_MOVE} · $left", FriendStrip.of(black, start + skew).status, "$days-day, Black $skew ms ahead")
+            }
         }
     }
 

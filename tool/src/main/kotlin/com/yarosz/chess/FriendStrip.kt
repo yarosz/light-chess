@@ -80,7 +80,7 @@ data class FriendStrip(val status: String, val buttons: List<FriendButton>, val 
         }
 
         /**
-         * The invite page's strip (W4, G2): "Expires in 47h" with Cancel and Menu; after one tap on
+         * The invite page's strip (W4, G2): "Expires in 48h" with Cancel and Menu; after one tap on
          * Cancel ([confirming]), "Tap again to cancel" next to Cancel alone, which is what fits one
          * line; a cancel the Relay hasn't confirmed, "Not sent" with Retry.
          */

@@ -335,7 +335,7 @@ class FriendScreen(
         when (game.halt?.reason) {
             HaltReason.OUT_OF_SYNC -> MenuLine(UiCopy.OUT_OF_SYNC_ROW)
             HaltReason.NEEDS_UPDATE -> MenuLine(UiCopy.UPDATE_CHESS_ROW)
-            HaltReason.GONE -> MenuLine(UiCopy.GAME_DELETED)
+            HaltReason.GONE -> MenuLine(UiCopy.GAME_DELETED_ROW)
             HaltReason.SEAT_LOST -> MenuLine(UiCopy.SEAT_LOST)
             null -> {}
         }

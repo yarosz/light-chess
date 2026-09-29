@@ -371,13 +371,15 @@ set (`RelayConfig`, W8).
   Won", "ABCD · Out of sync", a Seat being taken as "ABCD-EFGH · Not sent"), and "No games yet.
   Create a code for a friend, or enter theirs." when empty. At the cap both buttons are lightened
   above "Finish a game first". A row opens the Game's board, or its invite; an "ABCD · Game deleted"
-  row opens the Game's Menu, where "Forget game" is (W13).
-- Time Left and an invite's expiry show one unit: days, then hours, to the nearest, the last hour in
-  minutes rounded up, so a fresh 3-day Game reads "3d" on both phones and "0m" comes with "Time is up"
-  (W12).
+  row opens the Game's Menu, which starts "This game was deleted. Forget it to free its place." and
+  has "Forget game" (W13).
+- Time Left and an invite's expiry show one unit: hours to the nearest while under 48 are left, days
+  to the nearest above (from 47h 30m), the last hour in minutes rounded up. A fresh 1-day Game reads
+  "24h" and a fresh 3-day Game "3d" on both phones, a fresh invite "Expires in 48h", and "0m" comes
+  with "Time is up" (W12).
 - New game: "Play as" (White, Black, Random), "Days per move" (1, 3, 7), "Create code". The invite
   page shows the code in LightOS Subtitle, alone on its line, then "Tell your friend this code. It
-  works once, for 48 hours." Its strip: "Expires in 47h" with Cancel and Menu; the first Cancel
+  works once, for 48 hours." Its strip: "Expires in 48h" with Cancel and Menu; the first Cancel
   shows "Tap again to cancel" next to Cancel alone; an unconfirmed cancel shows "Not sent" with Retry.
 - Enter code: LightOS's text editor with the LP3 keyboard, "Join" to submit; the title reads "Enter
   code", then "Sending", then the answer: "Not a code", "No such code", "Code already used", "Try
