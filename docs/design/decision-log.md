@@ -725,3 +725,11 @@ review follow-ups (V1-V5). Two rulings reconcile them with v2's Menus and save f
   Games.
 - M3 V4 holds for the game owner too: `GameOwner` reads the Book through the latest screen that asked
   for it, as `PuzzleOwner` reads the Pack, so a relaunch releases the old activity.
+- M4 Fixes M1 on a cold start into the game mode (PR 2 review): the game screen waited only for
+  `games.json` and drew the default set until the puzzle owner had read `puzzles.json` and the first
+  Puzzle's Band (about 250 KB), and the game Menu had no Pieces row until then. RULING: the puzzle
+  owner reads `puzzles.json` first and publishes its Piece Set before any Band is read; the game
+  screen draws no board until it has both its file and the Piece Set, and the game Menu and the Games
+  Review read the set from there. Only a small file stands before the first frame, as `games.json`
+  already did, so the Game isn't slowed; waiting for the whole puzzle session would have put the Band
+  read in front of it. A tap on Pieces before the first Puzzle is read is kept and applied to it.

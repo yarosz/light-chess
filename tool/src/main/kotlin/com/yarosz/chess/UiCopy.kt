@@ -111,7 +111,7 @@ object UiCopy {
     const val ABOUT_ENGINE = "Engine: Pirarucu by Raoni Campos (ratosh), GPL-3.0."
 
     /** The opening Book's credit (book ruling 1, docs/book.md). */
-    const val ABOUT_BOOK = "Opening book: games from the Lichess database (lichess.org), CC0, January 2018."
+    const val ABOUT_BOOK = "Opening book: the Lichess games database (lichess.org), CC0, January 2018."
 
     /** The legal notices About shows after its own copy: verbatim licence text, kept out of code. */
     const val NOTICES_ASSET = "about/notices.txt"

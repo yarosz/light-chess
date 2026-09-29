@@ -186,6 +186,7 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
         val session by owner.session.collectAsState()
+        val pieceSet by owner.pieceSet.collectAsState()
         val gameState by game.state.collectAsState()
         val mode by modes.mode.collectAsState()
         val puzzleAwake by owner.awake.collectAsState()
@@ -197,9 +198,11 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
             Box(Modifier.fillMaxSize().background(LightThemeTokens.colors.background)) {
                 // D3: an attached View's keepScreenOn sets the window's flag (PLATFORM.md).
                 AndroidView(factory = { View(it) }, modifier = Modifier.size(0.dp), update = { it.keepScreenOn = awake })
-                if (mode == Mode.GAME && gameState == null) return@Box
+                // Game mode waits for its file and for the Piece Set (read before any Band, M4), so the
+                // first frame of a Game draws the chosen set.
+                if (mode == Mode.GAME && (gameState == null || pieceSet == null)) return@Box
                 if (gameShown != null) {
-                    GameView(gameShown, session?.data?.pieceSet ?: PieceSet.DEFAULT)
+                    GameView(gameShown, pieceSet ?: PieceSet.DEFAULT)
                     return@Box
                 }
                 val s = session ?: return@Box

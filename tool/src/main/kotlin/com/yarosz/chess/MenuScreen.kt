@@ -42,6 +42,7 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.lightClickable
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.engine.ThinkTime
 import com.yarosz.chess.games.Confirm
@@ -51,7 +52,6 @@ import com.yarosz.chess.games.GameRecord
 import com.yarosz.chess.games.GameState
 import com.yarosz.chess.games.Phase
 import com.yarosz.chess.games.SideChoice
-import com.yarosz.chess.puzzles.PuzzleData
 import com.yarosz.chess.rules.Side
 import com.yarosz.chess.rules.san
 import kotlinx.coroutines.channels.BufferOverflow
@@ -215,6 +215,7 @@ class MenuScreen(
         val gameAwake by game.awake.collectAsState()
         val vm = viewModel
         val data = session?.data
+        val pieceSet by owner.pieceSet.collectAsState()
         LightTheme(colors = themeColors) {
             Column(Modifier.fillMaxSize().background(LightThemeTokens.colors.background)) {
                 // The computer may be thinking behind the Menu: keep the screen on for it too (contradiction 4).
@@ -232,7 +233,7 @@ class MenuScreen(
                     when (page) {
                         MenuPage.MENU -> {
                             val shown = gameState?.takeIf { mode == Mode.GAME && it.record != null }
-                            if (shown != null) GameMenu(shown, data) else if (data != null) {
+                            if (shown != null) GameMenu(shown, pieceSet) else if (data != null) {
                                 Row(UiCopy.ratingRow(data.player.text)) { open(MenuPage.RATING) }
                                 Row(UiCopy.missedCount(data.missed.size)) { open(MenuPage.MISSED) }
                                 Row(UiCopy.PLAY_COMPUTER) { if (vm.playComputer()) goBack() else open(MenuPage.NEW_GAME) }
@@ -284,7 +285,7 @@ class MenuScreen(
 
     /** The Menu while a Game shows (B5, D10, contradiction 2): the Game's actions, then the pages. */
     @Composable
-    private fun GameMenu(state: GameState, data: PuzzleData?) {
+    private fun GameMenu(state: GameState, pieceSet: PieceSet?) {
         val vm = viewModel
         val record = state.record ?: return
         if (state.phase != Phase.OVER) {
@@ -321,7 +322,8 @@ class MenuScreen(
             goBack()
         }
         // P2, M1: the one Piece Set, the puzzle Menu's row again, just above About.
-        if (data != null) Row(UiCopy.piecesRow(data.pieceSet)) { owner.nextPieceSet() }
+        // It is read before the first Puzzle (M4), so the row is there as soon as the Menu is.
+        if (pieceSet != null) Row(UiCopy.piecesRow(pieceSet)) { owner.nextPieceSet() }
         Row(UiCopy.ABOUT) { open(MenuPage.ABOUT) }
     }
 

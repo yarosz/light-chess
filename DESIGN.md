@@ -58,8 +58,11 @@ next set on each tap ("Pieces · Rounded", then back), and every board and its p
 it from then on: the Puzzle, the Game with the computer and a finished Game from Games (M1). The row
 is in the puzzle Menu and the game Menu, just above About. The choice is saved once, in
 `puzzles.json` (`pieceSet`), so it outlasts a relaunch and Reset rating; a set a later build adds
-reads as geometric here. The row is a tap target only: the puzzle Menu doesn't scroll, so the wheel
-stays with LightOS there (R1.9, R4.17).
+reads as geometric here. The puzzle owner reads it from the file before any Band (M4): a cold start
+into a Game draws its first frame in the chosen set, and the game Menu has the row at once. The row
+is a tap target only: the puzzle Menu doesn't scroll, so the wheel stays with LightOS there (R1.9,
+R4.17); the game Menu scrolls, so there the wheel moves the page one row per detent and takes every
+wheel event, a click included (F3).
 
 ## Marks (R1.6, R1.7, A5)
 
@@ -139,7 +142,8 @@ from where its ink starts, is wider than the stand-in's for five button sets; an
 LP3 did, and keeps "Your move" next to Hint and Menu and "Review · 4 of 6" next to Latest and Menu on
 one line, as the LP3 did. The v1 stand-in (Helvetica × 1.15) fell short on "Hint" and "Latest"
 (Akkurat's i and t are wider); a wider scale would put "White to move" on three lines next to Hint,
-Solution and Menu, where v1 has it on two (not yet seen on the LP3). A new strip string or state goes into the test.
+Solution and Menu, where v1 has it on two (not yet seen on the LP3). A new strip string or state goes
+into the test.
 
 Buttons by context:
 
@@ -219,15 +223,15 @@ copy for the object on screen, while code names the chess state a Position.
   then" (1200), "I play often and study the game" (1600), "I play in a club or in tournaments" (2000),
   and "Skip" (1500).
 - The Menu: "Menu", "Player Rating · 1500?", "Missed · 3", "Play the computer", "Pieces · Geometric"
-  or "Pieces · Rounded" (P2, M1; a tap moves to the next set and stays on the Menu), "About", then a plain row (not a
-  button) for the Puzzle on screen, "Puzzle 00sHx" over "lichess.org/training/00sHx" (A9 with D7, v1
-  smoke fixes). The Puzzle row stays last. The address has its own line, since Android breaks it at a
-  slash; `StripFitTest` checks that each line, and each Pieces row, fits 360 dp. Each page is its own
-  screen (the game Menu's New game, Games and Moves too: M2), so Back, the arrow or the system's,
-  goes from a page to the Menu and from the Menu to the board; Reset rating and a Missed replay go straight to the puzzle screen. The rating page: "Player
-  Rating", the rating, "Reset rating" then "Tap again to reset" (F5), and rows "1523 · Solved +12";
-  "No rated Puzzles yet" when empty. Missed: rows "1541 · Failed" or "1541 · Hinted"; "Nothing missed
-  yet".
+  or "Pieces · Rounded" (P2, M1; a tap moves to the next set and stays on the Menu), "About", then a
+  plain row (not a button) for the Puzzle on screen, "Puzzle 00sHx" over "lichess.org/training/00sHx"
+  (A9 with D7, v1 smoke fixes). The Puzzle row stays last. The address has its own line, since Android
+  breaks it at a slash; `StripFitTest` checks that each line, and each Pieces row, fits 360 dp. Each
+  page is its own screen (the game Menu's New game, Games and Moves too: M2), so Back, the arrow or
+  the system's, goes from a page to the Menu and from the Menu to the board; Reset rating and a Missed
+  replay go straight to the puzzle screen. The rating page: "Player Rating", the rating, "Reset
+  rating" then "Tap again to reset" (F5), and rows "1523 · Solved +12"; "No rated Puzzles yet" when
+  empty. Missed: rows "1541 · Failed" or "1541 · Hinted"; "Nothing missed yet".
 - About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).
   - "Chess $VERSION" (0.1.0, equal to `versionName`)
   - "Copyright 2026 Nicolas Yarosz."
@@ -318,7 +322,8 @@ The Menu while a Game shows, top to bottom:
 - "Think Time · 3 s" at Level 8: each tap goes to the next of 3, 10 and 30 s, for the computer's next
   Move and the next Games.
 - "New game", "Games", "Puzzles", "Pieces · Geometric" (the Piece Set, as on the puzzle Menu: M1),
-  "About". The page scrolls by the wheel.
+  "About". The page scrolls by the wheel, one row per detent; it takes every wheel event there, a
+  click included, which does nothing (F3).
 
 Games lists the finished Games, newest first, at most 50 (B7): "2026.09.28 · Level 3 · Won" (Won, Lost,
 Draw or Unfinished); "No finished Games yet" when empty. A tap opens the Game at its Result; the

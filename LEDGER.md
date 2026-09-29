@@ -20,6 +20,13 @@ king/queen likeness, the white bishop's slot and the knight's ear at 1x) and the
 Akkurat; the geometric set's white outer line on light squares, the knight's eye and the bishop's
 slot; system Back from each Menu page and the Puzzle id row in Akkurat; a reply slide doesn't replay
 after Menu and back, Hint taps during a reply don't delay it, and a Missed replay opens at once.
+HANDOFF (PR 2 review fixes, fix/v2-review from feat/v2, 2026-09-29): the README describes v2 (the
+computer, its credits, privacy); About's Book line reads "the Lichess games database", as NOTICE;
+`ToolMetadataTest` checks the engine and Book credits in About, NOTICE and the README; decision log
+M4: the Piece Set is read from `puzzles.json` before any Band, so a cold start into a Game draws the
+chosen set from its first frame and the game Menu has the Pieces row at once. DESIGN.md rewrapped and
+says what the wheel does on the game Menu. Checked on the emulator; no version bump (the release PR
+does that). To check on the LP3: a cold start into a Game in the rounded set.
 LAST SESSION: 2026-09-29
 
 ## HANDOFF (read first when resuming)

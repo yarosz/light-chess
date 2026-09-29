@@ -71,7 +71,7 @@ class GameReviewScreen(
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
-        val session by owner.session.collectAsState()
+        val pieceSet by owner.pieceSet.collectAsState()
         val vm = viewModel
         val positions = record.game.positions
         val shown = vm.review.ply ?: positions.lastIndex
@@ -94,7 +94,7 @@ class GameReviewScreen(
                     bottom = record.userSide,
                     onTouch = vm::touch,
                     description = UiCopy.BOARD_DESCRIPTION,
-                    pieceSet = session?.data?.pieceSet ?: PieceSet.DEFAULT,
+                    pieceSet = pieceSet ?: PieceSet.DEFAULT,
                 )
                 Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE))
             }

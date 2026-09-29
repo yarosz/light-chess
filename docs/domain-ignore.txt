@@ -119,7 +119,7 @@ Draw by threefold repetition
 # Opening Book (v2 PR 6): the per-Level rule for playing from the Book (docs/book.md). The user meets the Book and the Level.
 BookPolicy
 # About copy for the Book (DESIGN.md): "Opening book" and "database" are the chess player's and Lichess's words here.
-Opening book: games from the Lichess database (lichess.org), CC0, January 2018.
+Opening book: the Lichess games database (lichess.org), CC0, January 2018.
 
 # Levels (v2 PR 3): how the computer plays at a Level. The user meets the Level, Think Time and Move Now.
 LevelPlayer
