@@ -733,3 +733,27 @@ review follow-ups (V1-V5). Two rulings reconcile them with v2's Menus and save f
   Review read the set from there. Only a small file stands before the first frame, as `games.json`
   already did, so the Game isn't slowed; waiting for the whole puzzle session would have put the Band
   read in front of it. A tap on Pieces before the first Puzzle is read is kept and applied to it.
+
+## Stockfish calibration (2026-09-29; docs/levels.md "The Stockfish gauntlet")
+- Facts: Stockfish 19 (Homebrew; 17.x no longer offered), Mac only, run as a UCI process from
+  `LevelCalibrationTest` (`-Dcalibrate=stockfish`), never in the APK, the runtime classpath or the
+  repo; the mode skips when no `stockfish` is on PATH. No cutechess-cli: our rules core referees.
+  `UCI_LimitStrength`, `UCI_Elo`, Threads 1, Hash 16, a fixed 1,000,000 nodes per Move (the pick
+  depth, 1 + level, was reached on every Move up to 2700 and on 97.9% at 3000). Our Levels as on the
+  LP3 (Level 8 = 1,674,000 nodes); the 20 openings × 2 colours; seeded on our side, clock-seeded on
+  Stockfish's.
+- Measured (1,280 Games, 80 per pairing, 4 h 40 min): Level 1 below 1320 (9/80 against 1320; ~960
+  extrapolated), Level 2 1263 [1194, 1330], 3 1472 [1410, 1535], 4 1738 [1679, 1796], 5 1984 [1920,
+  2047], 6 2390 [2326, 2453], 7 2628 [2565, 2692], 8 2948 [2888, 3008] (95% likelihood intervals,
+  settings fixed at their labels).
+- Contradiction: B2's "approx." labels need a consistent fit, and this one isn't. Seen from our
+  Levels, the settings' steps are 463, 233 and 245 Elo from 1320 to 1700, 2100 and 2500, not 380,
+  400 and 400 (free fit: 1700 +143 off its label, 2500 -179), and Level 5's scores against 1700 and
+  2100 fit no single rating (p = 0.0003). The test, set before the fit: every Level at p >= 0.01 and
+  every shared setting within ±100 of its label. Both parts fail.
+- RULING: no Elo labels. The Level picker stays numbers only (v2 PR 3); B2 and B8 stand, and the
+  estimates stay in docs/levels.md, not in the UI.
+- Caveat for a rerun: the settings were calibrated at 120 s + 1 s (several million nodes per Move).
+  A side run suggests they get stronger with the budget (Level 2 against 1320: 10/24 at 100K, 4.5/22
+  at 3M), though not significantly at 20-24 Games a cell. A 3M-node gauntlet (about 15 hours with 8
+  threads) is the next thing to try before giving up on UCI_Elo labels.

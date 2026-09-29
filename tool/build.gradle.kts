@@ -76,7 +76,7 @@ android {
             // -Dbench.runs=<n> runs the engine benchmark suite on this JVM (BenchSuiteJvmTest).
             providers.systemProperty("bench.runs").orNull?.let { runs -> it.systemProperty("bench.runs", runs) }
             // -Dcalibrate=<modes> runs the Level calibration (LevelCalibrationTest, docs/levels.md).
-            for (key in listOf("calibrate", "calibrate.threads", "calibrate.rounds", "calibrate.karballo", "calibrate.karballo.nodes", "calibrate.levels", "calibrate.set", "calibrate.seeds", "calibrate.elos")) {
+            for (key in listOf("calibrate", "calibrate.threads", "calibrate.rounds", "calibrate.karballo", "calibrate.karballo.nodes", "calibrate.levels", "calibrate.set", "calibrate.seeds", "calibrate.elos", "calibrate.stockfish", "calibrate.stockfish.nodes", "calibrate.plan", "calibrate.pgn", "calibrate.firstRound")) {
                 providers.systemProperty(key).orNull?.let { value -> it.systemProperty(key, value) }
             }
         }

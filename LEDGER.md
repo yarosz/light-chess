@@ -58,6 +58,9 @@ LAST SESSION: 2026-09-29
     (bbaad95) is left behind it; feat/v2-play carries both.
   - feat/v3-relay: the Relay (TypeScript Worker + Durable Object, 93 tests, dry-run OK), from the v1
     pack commit. Not merged into feat/v2-play; not deployed.
+  - feat/level-calibration (on main): the Stockfish mode of LevelCalibrationTest and its
+    gauntlet (docs/levels.md "The Stockfish gauntlet"). Test code, script and docs only; no labels,
+    because the fit was not consistent. 289 tests.
 - v2 PR 4 is done and merged into feat/v2-play (brief `docs/design/briefs/v2-pr4-game-screen.md`),
   reviewed by the orchestrator (GameFlow, GameOwner's search and save races, screenshots). Checked on the emulator: a Level 1 Game as White to
   checkmate, Level 8 at 30 s with Move now and a Takeback in both states, a Game Hint, a declined draw
@@ -105,7 +108,9 @@ LAST SESSION: 2026-09-29
   - LP3 photos for the README, then the v1 submission.
   - Maybe: release the CC0 opening Book as its own repo (builder MIT, book.bin CC0) after checking
     whether a CC0 Polyglot book already exists.
-  - Stockfish: approved for later, for real Elo labels (decision log "Stockfish for calibration").
+  - Stockfish: installed (Homebrew, 19) and run on 2026-09-29; the UCI_Elo fit was not consistent,
+    so still no Elo labels (decision log "Stockfish calibration (2026-09-29)"). Next try, if wanted: a
+    3M-node gauntlet, about 15 hours of the Mac with 8 threads.
 
 ## Where things are
 - Design: `CONTEXT.md` (glossary), `docs/adr/0001-0003`, `docs/design/decision-log.md`. The log holds
@@ -172,7 +177,8 @@ LAST SESSION: 2026-09-29
   `engine/LevelPlayer.kt` (the pick, seeded per Game and Ply; MoveNow; `LevelMove.trueScore` for G1),
   `EngineHost.play`. Calibration: `LevelCalibrationTest` (`-Dcalibrate=blunders,random,ladder,anchor`),
   `scripts/level-elo.py`, Karballo line server `spikes/karballo/flat/serve`. Values, tables and method:
-  `docs/levels.md` and decision log "v2 PR 3". No Elo labels (the Karballo anchor is too loose).
+  `docs/levels.md` and decision log "v2 PR 3". No Elo labels: neither Karballo nor Stockfish's UCI_Elo
+  (`-Dcalibrate=stockfish`, decision log "Stockfish calibration (2026-09-29)") gives a consistent fit.
 - Licence: GPL-3.0-or-later, relicensable later. Outside code needs a copyright assignment
   (CONTRIBUTING.md).
 - Emulator: AVD `LightPhone3-chess` on emulator-5556 (`scripts/emulator/RECIPE.md`). Scripts find it by
