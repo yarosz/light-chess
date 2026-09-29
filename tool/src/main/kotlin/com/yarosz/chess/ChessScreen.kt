@@ -176,6 +176,7 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
                 description = UiCopy.BOARD_DESCRIPTION,
                 hint = attempt.hintSquare.takeIf { review.ply == null },
                 motion = motion.takeIf { review.ply == null },
+                pieceSet = session.data.pieceSet,
             )
             Strip(status, buttons, Modifier.width(POSITION_VIEW_SIZE))
         }

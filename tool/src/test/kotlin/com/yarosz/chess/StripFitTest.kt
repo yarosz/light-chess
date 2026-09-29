@@ -1,6 +1,7 @@
 package com.yarosz.chess
 
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.StripLayout
 import com.yarosz.chess.puzzles.AttemptState
 import com.yarosz.chess.rules.Side
@@ -99,6 +100,23 @@ class StripFitTest {
             assertEquals(listOf("Puzzle $id", "lichess.org/training/$id"), lines)
             for (l in lines) assertTrue(AkkuratProxy.width(l) <= room, "\"$l\" (${AkkuratProxy.width(l)} dp) in $room dp")
         }
+    }
+
+    /** The Menu's Pieces row (P2): "Pieces · <set>" for every Piece Set, each on one Menu line. */
+    @Test
+    fun theMenuPiecesRowNamesEverySetOnOneLine() {
+        val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
+        assertEquals("Pieces · Geometric", UiCopy.piecesRow(PieceSet.GEOMETRIC))
+        assertEquals("Pieces · Rounded", UiCopy.piecesRow(PieceSet.ROUNDED))
+        assertEquals(PieceSet.entries.size, PieceSet.entries.map(UiCopy::pieceSetName).toSet().size, "every set has its own name")
+        for (set in PieceSet.entries) {
+            val row = UiCopy.piecesRow(set)
+            assertTrue(AkkuratProxy.width(row) <= room, "\"$row\" (${AkkuratProxy.width(row)} dp) in $room dp")
+        }
+        // A tap moves to the next set; from the last it wraps to the first, so every set is reachable.
+        assertEquals(PieceSet.ROUNDED, PieceSet.GEOMETRIC.next)
+        assertEquals(PieceSet.GEOMETRIC, PieceSet.ROUNDED.next)
+        assertEquals(PieceSet.GEOMETRIC, PieceSet.DEFAULT)
     }
 
     /** The bug seen on the LP3: on one line, the first Puzzle's status lost its end next to Menu. */

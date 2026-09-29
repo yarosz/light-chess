@@ -1,5 +1,6 @@
 package com.yarosz.chess
 
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.puzzles.AttemptState
 import com.yarosz.chess.rules.Side
 
@@ -44,6 +45,7 @@ object UiCopy {
     const val MENU_TITLE = "Menu"
     const val MISSED = "Missed"
     const val ABOUT = "About"
+    const val PIECES = "Pieces"
     const val PLAYER_RATING = "Player Rating"
     const val RESET_RATING = "Reset rating"
     const val RESET_CONFIRM = "Tap again to reset"
@@ -109,6 +111,15 @@ object UiCopy {
     fun ratingRow(text: String) = "$PLAYER_RATING · $text"
 
     fun missedCount(count: Int) = "$MISSED · $count"
+
+    /** The Piece Set's name in the Menu (P2). */
+    fun pieceSetName(set: PieceSet) = when (set) {
+        PieceSet.GEOMETRIC -> "Geometric"
+        PieceSet.ROUNDED -> "Rounded"
+    }
+
+    /** The Menu's Pieces row (P2): the Piece Set in use; a tap moves to the next one. */
+    fun piecesRow(set: PieceSet) = "$PIECES · ${pieceSetName(set)}"
 
     /**
      * The Menu's last row (A9 with D7, "v1 smoke fixes"): the Puzzle on screen by its Lichess id, then

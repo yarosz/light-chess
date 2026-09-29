@@ -56,7 +56,8 @@ data class Motion(val move: Move, val id: Int) {
 }
 
 /**
- * Draws [position] with the Chess piece set (P1) and reports touches as [Touch]es (R1.6, R1.7).
+ * Draws [position] in [pieceSet] (P1, P2), the promotion picker included, and reports touches as
+ * [Touch]es (R1.6, R1.7).
  * [bottom] is the Side whose first rank is at the bottom. [input] carries the selection, targets,
  * drag and promotion picker; null draws the Position alone (Review, or while input is locked), and
  * touches still arrive as [Touch.Tap]s. [lastMove] gets the last-move shade and corner marks (A5).
@@ -73,6 +74,7 @@ fun PositionView(
     description: String,
     hint: Square? = null,
     motion: Motion? = null,
+    pieceSet: PieceSet = PieceSet.DEFAULT,
 ) {
     val slide = remember { Animatable(1f) }
     LaunchedEffect(motion) {
@@ -83,7 +85,7 @@ fun PositionView(
             slide.animateTo(1f, tween(Motion.MS, easing = LinearOutSlowInEasing))
         }
     }
-    val painters = Piece.entries.map { rememberVectorPainter(PieceVectors.vector(it)) }
+    val painters = Piece.entries.map { rememberVectorPainter(PieceVectors.vector(pieceSet, it)) }
     val measurer = rememberTextMeasurer()
     var finger by remember { mutableStateOf<Offset?>(null) }
     val touch by rememberUpdatedState(onTouch)

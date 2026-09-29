@@ -44,12 +44,19 @@ Floors, in gray levels:
   (126 / 88 on light squares, 100 / 62 on dark ones).
 - The picker cells are at least 60 above the dimmed board under them.
 
-## Pieces (P1)
+## Pieces (P1, P2)
 
-Chess's own set, original CC0 drawings in `art/pieces/` (its README has the design rules), converted to
-ImageVector code at build time by `scripts/build-pieces.py` (R1.7). Black pieces are solid silhouettes;
-a white piece is the same silhouette in white over a wider black outline, so it keeps an edge on the
-light square (216) as well as the dark one. Each piece is drawn in its square with a small inset.
+Chess's own two sets, original CC0 drawings in `art/pieces/geometric/` and `art/pieces/rounded/` (the
+README there has the design rules), converted to ImageVector code at build time by
+`scripts/build-pieces.py` (R1.7). Black pieces are solid silhouettes; a white piece is the same
+silhouette in white over a wider black outline, so it keeps an edge on the light square (216) as well
+as the dark one. Each piece is drawn in its square with a small inset.
+
+The player's Piece Set is geometric until changed. The Menu's "Pieces · Geometric" row moves to the
+next set on each tap ("Pieces · Rounded", then back), and the board and the promotion picker draw
+it from then on. The choice is saved in `puzzles.json` (`pieceSet`), so it outlasts a relaunch and
+Reset rating; a set a later build adds reads as geometric here. The row is a tap target only: the
+Menu page doesn't scroll, so the wheel stays with LightOS there (R1.9, R4.17).
 
 ## Marks (R1.6, R1.7, A5)
 
@@ -200,14 +207,16 @@ copy for the object on screen, while code names the chess state a Position.
 - The seed screen (D4): "How well do you play chess?", then "I'm new to chess" (800), "I play now and
   then" (1200), "I play often and study the game" (1600), "I play in a club or in tournaments" (2000),
   and "Skip" (1500).
-- The Menu: "Menu", "Player Rating · 1500?", "Missed · 3", "About", then a plain row (not a button)
-  for the Puzzle on screen, "Puzzle 00sHx" over "lichess.org/training/00sHx" (A9 with D7, v1 smoke
-  fixes). The address has its own line, since Android breaks it at a slash; `StripFitTest` checks
-  that each line fits 360 dp. Each page is its own screen, so Back, the
-  arrow or the system's, goes from a page to the Menu and from the Menu to the Puzzle; Reset rating and
-  a Missed replay go straight to the puzzle screen. The rating page: "Player Rating",
-  the rating, "Reset rating" then "Tap again to reset" (F5), and rows "1523 · Solved +12"; "No rated
-  Puzzles yet" when empty. Missed: rows "1541 · Failed" or "1541 · Hinted"; "Nothing missed yet".
+- The Menu: "Menu", "Player Rating · 1500?", "Missed · 3", "Pieces · Geometric" or "Pieces ·
+  Rounded" (P2; a tap moves to the next set and stays on the Menu), "About", then a plain row (not a
+  button) for the Puzzle on screen, "Puzzle 00sHx" over "lichess.org/training/00sHx" (A9 with D7, v1
+  smoke fixes). The Puzzle row stays last. The address has its own line, since Android breaks it at a
+  slash; `StripFitTest` checks that each line, and each Pieces row, fits 360 dp. Each page is its own
+  screen, so Back, the arrow or the system's, goes from a page to the Menu and from the Menu to the
+  Puzzle; Reset rating and a Missed replay go straight to the puzzle screen. The rating page: "Player
+  Rating", the rating, "Reset rating" then "Tap again to reset" (F5), and rows "1523 · Solved +12";
+  "No rated Puzzles yet" when empty. Missed: rows "1541 · Failed" or "1541 · Hinted"; "Nothing missed
+  yet".
 - About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).
   - "Chess $VERSION" (0.1.0, equal to `versionName`)
   - "Copyright 2026 Nicolas Yarosz."
@@ -220,7 +229,7 @@ copy for the object on screen, while code names the chess state a Position.
     Pack manifest's `source.date` ("Puzzles: the Lichess puzzle database (lichess.org), CC0." if a
     manifest has none).
   - Then `tool/src/main/assets/about/notices.txt`, verbatim legal text kept out of code: "Pieces:
-    original drawings made for Chess, released under CC0 1.0 (no rights reserved)." (P1), Light's SDK
+    original drawings made for Chess (two sets), released under CC0 1.0 (no rights reserved)." (P1,
+    P2; NOTICE and the README carry the same line, `ToolMetadataTest` checks all three), Light's SDK
     (MIT) and the libraries of the release APK's runtime classpath by licence, with the Apache-2.0
-    notice. NOTICE names the same
-    libraries. The v2 engine's credit joins with v2.
+    notice. NOTICE names the same libraries. The v2 engine's credit joins with v2.

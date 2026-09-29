@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
-"""Convert the piece SVGs into Kotlin ImageVector code (decision log R1.7, P1).
+"""Convert the piece SVGs into Kotlin ImageVector code (decision log R1.7, P1, P2).
 
-    scripts/build-pieces.py           write tool/src/main/kotlin/com/yarosz/chess/board/PieceVectors.kt
-    scripts/build-pieces.py --check   exit 1 if the committed file differs from what the SVGs give
+    scripts/build-pieces.py               write tool/src/main/kotlin/com/yarosz/chess/board/PieceVectors.kt
+    scripts/build-pieces.py --check       run the self-test, then exit 1 if the committed file differs
+                                          from what the SVGs give
+    scripts/build-pieces.py --self-test   check the converter on small inputs
 
-Input: art/pieces/<w|b><K|Q|R|B|N|P>.svg (see its README). Output: one generated Kotlin
-file that builds each piece with ImageVector's path builder (moveTo / lineTo / curveTo / close), so
-the Tool parses no SVG or path text at run time and Light's offline builder needs nothing extra.
+Input: art/pieces/<set>/<w|b><K|Q|R|B|N|P>.svg, one directory per Piece Set (see its README).
+Output: one generated Kotlin file that builds each piece of each set with ImageVector's path builder
+(moveTo / lineTo / curveTo / close), so the Tool parses no SVG or path text at run time and Light's
+offline builder needs nothing extra.
 
-The conversion flattens each SVG: transforms are applied to the points, circles and elliptical arcs
-become cubic Béziers, relative and shorthand commands become absolute M/L/C/Z, and style is resolved
-through the <g> inheritance chain (attributes and `style=""`). Paths keep the document's order, so a
-white piece's wide black outline is drawn before the white fill over it. Only the SVG features the
-piece files use are supported; anything else fails loudly. Python standard library only; no network.
+The conversion flattens each SVG: transforms are applied to the points, circles, elliptical arcs and
+quadratic curves become cubic Béziers, relative and shorthand commands become absolute M/L/C/Z, and
+style is resolved through the <g> inheritance chain (attributes and `style=""`). Paths keep the
+document's order, so a white piece's wide black outline is drawn before the white fill over it. Only
+the SVG features the piece files use are supported; anything else, an attribute included, fails
+loudly. Python standard library only; no network.
 """
 
 import math
@@ -23,6 +27,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "art" / "pieces"
+# (Kotlin PieceSet name, directory under art/pieces). Order is the PieceSet enum's.
+SETS = [("GEOMETRIC", "geometric"), ("ROUNDED", "rounded")]
 OUT = ROOT / "tool" / "src" / "main" / "kotlin" / "com" / "yarosz" / "chess" / "board" / "PieceVectors.kt"
 NS = "{http://www.w3.org/2000/svg}"
 
@@ -35,6 +41,10 @@ DEFAULTS = {"fill": "#000000", "stroke": "none", "stroke-width": "1", "stroke-li
             "stroke-linejoin": "miter", "fill-rule": "nonzero"}
 IGNORED = {"opacity": "1", "fill-opacity": "1", "stroke-opacity": "1", "stroke-miterlimit": "4",
            "stroke-dasharray": "none"}
+# Geometry and structure, read where they apply rather than as style. An attribute in none of
+# INHERITED, IGNORED and STRUCTURE (paint-order, display, visibility, stroke-dashoffset, ...) fails,
+# so a presentation attribute is never dropped without notice.
+STRUCTURE = {"d", "cx", "cy", "r", "transform", "viewBox", "width", "height", "version", "id", "style"}
 
 IDENTITY = (1.0, 0.0, 0.0, 1.0, 0.0, 0.0)  # SVG matrix(a b c d e f)
 
@@ -65,18 +75,23 @@ def parse_transform(text):
 
 
 def style_of(el, parent):
+    """The element's style over its parent's. Unknown attributes and declarations fail (STRUCTURE)."""
     s = dict(parent)
-    props = {k: v for k, v in el.attrib.items()}
+    props = [(k, v, False) for k, v in el.attrib.items()]
     for decl in (el.get("style") or "").split(";"):
-        if ":" in decl:
+        if decl.strip():
+            if ":" not in decl:
+                raise SystemExit(f"unsupported style declaration {decl.strip()!r}")
             k, v = decl.split(":", 1)
-            props[k.strip()] = v.strip()
-    for k, v in props.items():
+            props.append((k.strip(), v.strip(), True))
+    for k, v, in_style in props:
         if k in INHERITED:
             s[k] = v
         elif k in IGNORED:
             if v != IGNORED[k]:
                 raise SystemExit(f"unsupported {k}={v}")
+        elif k not in STRUCTURE or in_style:
+            raise SystemExit(f"unsupported attribute {k}={v!r}")
     return s
 
 
@@ -169,6 +184,8 @@ def path_ops(d):
 
     def num():
         nonlocal i
+        if i >= len(toks) or re.fullmatch(r"[A-Za-z]", toks[i]):
+            raise SystemExit(f"path data: {cmd} is missing a number")
         v = float(toks[i])
         i += 1
         return v
@@ -178,7 +195,7 @@ def path_ops(d):
             cmd = toks[i]
             i += 1
         elif cmd is None:
-            raise SystemExit("path data starts with a number")
+            raise SystemExit("path data: a number with no command (at the start, or after Z)")
         rel = cmd.islower()
         c = cmd.upper()
         ox, oy = cur if rel else (0.0, 0.0)
@@ -186,6 +203,7 @@ def path_ops(d):
             ops.append(("Z",))
             cur = start
             last_ctrl = None
+            cmd = None  # Z takes no numbers: a number after it is an error, not another Z
             continue
         if c == "M":
             p = (ox + num(), oy + num())
@@ -220,6 +238,14 @@ def path_ops(d):
             p = (ox + num(), oy + num())
             ops.append(("C", c1, c2, p))
             cur, last_ctrl = p, c2
+        elif c == "Q":
+            q = (ox + num(), oy + num())
+            p = (ox + num(), oy + num())
+            c1 = (cur[0] + 2 / 3 * (q[0] - cur[0]), cur[1] + 2 / 3 * (q[1] - cur[1]))
+            c2 = (p[0] + 2 / 3 * (q[0] - p[0]), p[1] + 2 / 3 * (q[1] - p[1]))
+            ops.append(("C", c1, c2, p))
+            cur = p
+            last_ctrl = None  # S reflects only a C or S control point
         elif c == "A":
             rx, ry, rot = num(), num(), num()
             large, sweep = num() != 0, num() != 0
@@ -300,21 +326,31 @@ def kotlin_path(p):
     return "\n".join(lines)
 
 
+def fun_name(set_name, side, name):
+    return f"{set_name.lower()}{side.capitalize()}{name.capitalize()}"
+
+
 def generate():
     blocks = []
-    for side, name, letter in PIECES:
-        file = SRC / f"{side[0].lower()}{letter}.svg"
-        root = ET.parse(file).getroot()
-        if root.get("viewBox") != "0 0 45 45" or root.get("width") not in (None, "45") or root.get("height") not in (None, "45"):
-            raise SystemExit(f"{file.name}: expected a 45x45 SVG (viewBox 0 0 45 45)")
-        paths = []
-        walk(root, dict(DEFAULTS), IDENTITY, paths)
-        body = "\n".join(kotlin_path(p) for p in paths)
-        blocks.append(
-            f"    private fun {side.lower()}{name.capitalize()}(): ImageVector = piece(\"{side}_{name}\") {{\n"
-            f"        // {file.name}\n{body}\n    }}\n"
-        )
-    whens = "\n".join(f"        Piece.{s}_{n} -> {s.lower()}{n.capitalize()}()" for s, n, _ in PIECES)
+    for set_name, directory in SETS:
+        for side, name, letter in PIECES:
+            file = SRC / directory / f"{side[0].lower()}{letter}.svg"
+            root = ET.parse(file).getroot()
+            if root.get("viewBox") != "0 0 45 45" or root.get("width") not in (None, "45") or root.get("height") not in (None, "45"):
+                raise SystemExit(f"{directory}/{file.name}: expected a 45x45 SVG (viewBox 0 0 45 45)")
+            paths = []
+            walk(root, dict(DEFAULTS), IDENTITY, paths)
+            body = "\n".join(kotlin_path(p) for p in paths)
+            blocks.append(
+                f"    private fun {fun_name(set_name, side, name)}(): ImageVector = piece(\"{set_name}_{side}_{name}\") {{\n"
+                f"        // {directory}/{file.name}\n{body}\n    }}\n"
+            )
+    whens = "\n".join(
+        f"        PieceSet.{set_name} -> when (piece) {{\n"
+        + "\n".join(f"            Piece.{s}_{n} -> {fun_name(set_name, s, n)}()" for s, n, _ in PIECES)
+        + "\n        }"
+        for set_name, _ in SETS
+    )
     return f"""// GENERATED by scripts/build-pieces.py from art/pieces (original drawings, CC0 1.0).
 // Do not edit: change the SVGs or the script and rerun it.
 @file:Suppress("MagicNumber")
@@ -331,15 +367,17 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 import com.yarosz.chess.rules.Piece
 
-/** The piece set (P1) as ImageVectors on a 45 × 45 viewport, built once per piece on first use. */
+/** Both Piece Sets (P1, P2) as ImageVectors on a 45 × 45 viewport, each piece built once on first use. */
 internal object PieceVectors {{
 
-    private val cache = arrayOfNulls<ImageVector>(Piece.entries.size)
+    private val cache = arrayOfNulls<ImageVector>(PieceSet.entries.size * Piece.entries.size)
 
-    fun vector(piece: Piece): ImageVector =
-        cache[piece.ordinal] ?: build(piece).also {{ cache[piece.ordinal] = it }}
+    fun vector(set: PieceSet, piece: Piece): ImageVector {{
+        val i = set.ordinal * Piece.entries.size + piece.ordinal
+        return cache[i] ?: build(set, piece).also {{ cache[i] = it }}
+    }}
 
-    private fun build(piece: Piece): ImageVector = when (piece) {{
+    private fun build(set: PieceSet, piece: Piece): ImageVector = when (set) {{
 {whens}
     }}
 
@@ -352,9 +390,69 @@ internal object PieceVectors {{
 """
 
 
+def self_test():
+    """The converter on small inputs: path data, the fail-loudly rules and style resolution."""
+    import signal
+
+    def fails(what, f, *args):
+        try:
+            f(*args)
+        except SystemExit:
+            return
+        raise AssertionError(f"{what}: expected a failure")
+
+    def close(a, b):
+        return all(abs(x - y) < 1e-9 for x, y in zip(a, b))
+
+    def el(**attrib):
+        return ET.Element("path", {k.replace("_", "-"): v for k, v in attrib.items()})
+
+    # A hang is a failure too: the Z bug below used to loop forever.
+    if hasattr(signal, "alarm"):
+        signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(AssertionError("self-test hung")))
+        signal.alarm(10)
+
+    ops = path_ops("M1 2 3 4l1 1H10v2Z")
+    assert [op[0] for op in ops] == ["M", "L", "L", "L", "L", "Z"], ops
+    assert close(ops[1][1], (3, 4)) and close(ops[2][1], (4, 5)), "implicit and relative lineto"
+    assert close(ops[3][1], (10, 5)) and close(ops[4][1], (10, 7)), "H and V"
+    ops = path_ops("M0 0Q3 3 6 0")
+    assert ops[1][0] == "C" and close(ops[1][1], (2, 2)) and close(ops[1][2], (4, 2)) and close(ops[1][3], (6, 0)), ops
+    ops = path_ops("M0 0A5 5 0 0 1 10 0")
+    assert all(op[0] == "C" for op in ops[1:]) and close(ops[-1][3], (10, 0)), "an arc ends on its endpoint"
+    ops = path_ops("M0 0L1 1ZM2 2L3 3z")
+    assert [op[0] for op in ops] == ["M", "L", "Z", "M", "L", "Z"], ops
+    fails("numbers after Z", path_ops, "M0 0L1 1Z 5 5")
+    fails("a number first", path_ops, "5 5")
+    fails("too few numbers", path_ops, "M0 0L1")
+    fails("a letter for a number", path_ops, "M0 0LZ")
+    fails("an unsupported command", path_ops, "M0 0T1 1")
+
+    s = style_of(el(fill="#fff", stroke="#000", stroke_width="2", opacity="1", d="M0 0"), DEFAULTS)
+    assert (s["fill"], s["stroke"], s["stroke-width"]) == ("#fff", "#000", "2"), s
+    s = style_of(el(style="fill: #123; stroke-linejoin: round"), DEFAULTS)
+    assert (s["fill"], s["stroke-linejoin"]) == ("#123", "round"), s
+    for attr in ("paint-order", "display", "visibility", "stroke-dashoffset", "clip-path", "mask", "filter"):
+        fails(f"attribute {attr}", style_of, ET.Element("path", {attr: "x"}), DEFAULTS)
+        fails(f"style {attr}", style_of, el(style=f"{attr}: x"), DEFAULTS)
+    fails("opacity other than 1", style_of, el(opacity="0.5"), DEFAULTS)
+    fails("geometry inside style", style_of, el(style="d: path('M0 0')"), DEFAULTS)
+    fails("a colour it can't read", color, "red")
+    assert color("#Fa0") == "FFAA00" and color("none") is None
+
+    if hasattr(signal, "alarm"):
+        signal.alarm(0)
+    print("build-pieces: self-test passed")
+
+
 def main():
+    args = sys.argv[1:]
+    if "--self-test" in args or "--check" in args:
+        self_test()
+        if "--self-test" in args and "--check" not in args:
+            return
     text = generate()
-    if "--check" in sys.argv[1:]:
+    if "--check" in args:
         if not OUT.exists() or OUT.read_text() != text:
             print(f"build-pieces: {OUT.relative_to(ROOT)} is stale; run scripts/build-pieces.py", file=sys.stderr)
             sys.exit(1)

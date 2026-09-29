@@ -61,11 +61,18 @@ class ToolMetadataTest {
     }
 
     @Test
-    fun `About credits the pieces as original CC0 drawings, the same waiver art-pieces carries (P1)`() {
-        val about = UiCopy.about(null, notices).joinToString("\n")
-        assertTrue("Pieces: original drawings made for Chess, released under CC0 1.0" in about)
-        assertTrue("CC0 1.0 Universal" in File("../art/pieces/LICENSE.txt").readText())
-        assertTrue("cburnett" !in about.lowercase() && "Burnett" !in notices)
+    fun `About, NOTICE and the README credit both piece sets in the same line, the waiver art-pieces carries (P1, P2)`() {
+        val credit = "Pieces: original drawings made for Chess (two sets), released under CC0 1.0 (no rights reserved)."
+        val about = UiCopy.about(null, notices)
+        assertTrue(credit in about, "About shows the credit as one paragraph")
+        for (file in listOf("../NOTICE", "../README.md")) {
+            val lines = File(file).readLines().map { it.removePrefix("- ").trim() }
+            assertTrue(credit in lines, "$file has the credit as one line")
+        }
+        val licence = File("../art/pieces/LICENSE.txt").readText()
+        assertTrue("CC0 1.0 Universal" in licence && "geometric/" in licence && "rounded/" in licence)
+        assertTrue(licence.startsWith("Chess pieces\n"), "titled for Chess, not for Light")
+        assertTrue("cburnett" !in about.joinToString("\n").lowercase() && "Burnett" !in notices)
     }
 
     @Test

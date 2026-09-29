@@ -23,6 +23,7 @@ _Screenshots from a Light Phone III are coming._
   one question on first launch, or skip it.
 - **Missed.** The last 100 Puzzles you failed or needed a Hint for, to replay unrated.
 - **Review.** Turn the scroll wheel back to step through the Moves of the Puzzle on screen.
+- **Pieces.** Two sets, geometric and rounded; choose one in the Menu.
 - The screen stays on while you think, for up to five minutes without a touch.
 
 ## Install
@@ -64,7 +65,8 @@ Android permissions its package lists come from Light's SDK. See `SECURITY.md`.
 
 - Puzzles: the [Lichess puzzle database](https://database.lichess.org/#puzzles) (lichess.org),
   released under CC0. The Pack is built from the dump of 2026-09-09 (`docs/pack.md`).
-- Pieces: original drawings made for Chess, released under CC0 (`art/pieces/`).
+- Pieces: original drawings made for Chess (two sets), released under CC0 1.0 (no rights reserved).
+  The drawings are in `art/pieces/`.
 - Built on Light's SDK (MIT) and the libraries it brings, listed in `NOTICE` and on the About screen.
 
 ## Licence

@@ -112,6 +112,10 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
         return PuzzleState(data, current, if (current == null) null else session.currentDelta)
     }
 
+    /** The Menu's Pieces row (P2): the next Piece Set, saved with the rest; play is untouched. */
+    fun nextPieceSet(session: PuzzleState): PuzzleState =
+        session.copy(data = session.data.copy(pieceSet = session.data.pieceSet.next))
+
     fun play(session: PuzzleState, move: Move): PuzzleState = step(session) { it.play(move) }
 
     fun hint(session: PuzzleState): PuzzleState = step(session) { it.hint() }

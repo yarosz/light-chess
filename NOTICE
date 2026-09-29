@@ -14,8 +14,8 @@ Puzzles: the Lichess puzzle database (https://database.lichess.org/#puzzles), by
 released under CC0 1.0. The Pack in tool/src/main/assets/pack/ is built from the dump of
 2026-09-09 (docs/pack.md).
 
-Chess pieces: original drawings made for Chess, released under CC0 1.0 Universal
-(art/pieces/LICENSE.txt).
+Pieces: original drawings made for Chess (two sets), released under CC0 1.0 (no rights reserved).
+The waiver is CC0 1.0 Universal, in art/pieces/LICENSE.txt.
 
 The APK is built on Light's SDK (https://github.com/lightphone/light-sdk), MIT licence,
 Copyright (c) 2026 The Light Phone. The SDK and the Tool bring these libraries into the APK (its
