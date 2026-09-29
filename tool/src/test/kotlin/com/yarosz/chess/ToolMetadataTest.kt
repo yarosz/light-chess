@@ -57,13 +57,15 @@ class ToolMetadataTest {
         assertTrue("Source: github.com/yarosz/light-chess" in about)
         assertTrue(UiCopy.PRIVACY in about)
         assertTrue("(lichess.org), CC0, from the dump of 2026-09-09." in about)
-        assertTrue("cburnett" in about && "Apache License, Version 2.0" in about)
+        assertTrue("Apache License, Version 2.0" in about)
     }
 
     @Test
-    fun `About reproduces the cburnett licence verbatim (BSD-3 clause 2)`() {
-        val licence = words(File("../third_party/cburnett/LICENSE").readText())
-        assertTrue(licence in UiCopy.about(null, notices).joinToString(" "))
+    fun `About credits the pieces as original CC0 drawings, the same waiver art-pieces carries (P1)`() {
+        val about = UiCopy.about(null, notices).joinToString("\n")
+        assertTrue("Pieces: original drawings made for Chess, released under CC0 1.0" in about)
+        assertTrue("CC0 1.0 Universal" in File("../art/pieces/LICENSE.txt").readText())
+        assertTrue("cburnett" !in about.lowercase() && "Burnett" !in notices)
     }
 
     @Test

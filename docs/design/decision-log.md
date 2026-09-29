@@ -22,6 +22,7 @@
 - R1.6 Input: tap-tap primary (dots on legal targets, rings on captures; reselect/deselect rules),
   plus drag with the lifted piece drawn one square above the finger; four-piece promotion picker.
 - R1.7 Rendering: cburnett (Wikimedia BSD-3 / GPLv2+ option), converted to ImageVector at build time.
+  (Piece source SUPERSEDED by P1: an original CC0 set; the build-time conversion stays.)
   Tune shades on the LP3 (start: #D8D8D8 / #8C8C8C). Last move = shade + outline, check = ring,
   selection = heavy border, coordinates inside the edge squares. Exclude staunty and maestro (NC).
 - R1.8 Layout: 312 dp board (39 dp = 117 px squares) plus a 48 dp strip: status + up to 3 text buttons.
@@ -341,3 +342,24 @@ default Think time).
   from Player Rating, Missed or About returns to the Menu, as the arrow does, and the Menu returns to
   the Puzzle. System Back can't be intercepted by a screen (PLATFORM.md), which is why pages that were
   only state inside one screen skipped the Menu. Back from the puzzle screen still closes the Tool.
+
+## Pieces: an original CC0 set (2026-09-29)
+- P1 SUPERSEDES R1.7's piece source (cburnett), D7's cburnett credit, and F11's "cburnett only" and
+  "Icon: gray cburnett knight" (one set, now this one; see the icon below); the rest of R1.7 stands,
+  including the conversion to ImageVector at build time (`scripts/build-pieces.py`). RULING: the
+  pieces are Chess's own drawings, twelve SVGs in `art/pieces/` released under CC0 1.0 Universal
+  (`art/pieces/LICENSE.txt`), not derived from cburnett or any other set. The owner approved the
+  design as drawn; a change to a drawing is a design change and goes back to the owner.
+  - Style: LightOS's glyph style, geometric and flat on a 45 × 45 viewBox, no shading or texture.
+  - One silhouette per piece. Black is that silhouette, solid, with thin white cuts where needed (the
+    bishop's slot, the knight's eye).
+  - White is its outer-line twin: the same silhouette filled white over a wider black stroke painted
+    first, with thin black cuts, so a white piece keeps an edge on the light square as well as the
+    dark one. The converter keeps each file's path order for this; `PieceVectorsTest` pins it.
+  - Credit: one line, "Pieces: original drawings made for Chess, released under CC0 1.0 (no rights
+    reserved).", in NOTICE, the README and About (`assets/about/notices.txt`). With cburnett gone,
+    About no longer reproduces a BSD licence.
+  - The Tool icon is unchanged: Light's plugin generates the manifest with no `android:icon`,
+    `lighttool.toml` has no icon field, a hand-written manifest fails the build, and LightOS lists
+    Tools by label. When Light offers a way to set one, it is this set's knight (the owner has a
+    white-on-black and a black-on-white version), not a cburnett knight.

@@ -62,8 +62,7 @@ Android permissions its package lists come from Light's SDK. See `SECURITY.md`.
 
 - Puzzles: the [Lichess puzzle database](https://database.lichess.org/#puzzles) (lichess.org),
   released under CC0. The Pack is built from the dump of 2026-09-09 (`docs/pack.md`).
-- Pieces: the cburnett set by Colin M.L. Burnett, under the BSD 3-Clause licence
-  (`third_party/cburnett/`).
+- Pieces: original drawings made for Chess, released under CC0 (`art/pieces/`).
 - Built on Light's SDK (MIT) and the libraries it brings, listed in `NOTICE` and on the About screen.
 
 ## Licence
