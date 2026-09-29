@@ -192,12 +192,13 @@ object UiCopy {
     fun friendResult(result: Result?, userSide: Side): String =
         if (result is Result.Draw && result.by == DrawReason.INSUFFICIENT_MATERIAL) "Draw: dead position" else gameResult(result, userSide)
 
-    /** Time Left in one unit, rounded down (W4): "2d", "5h", "40m". */
-    fun timeLeft(ms: Long): String = when {
-        ms >= DAY_MS -> "${ms / DAY_MS}d"
-        ms >= HOUR_MS -> "${ms / HOUR_MS}h"
-        else -> "${maxOf(0L, ms / MINUTE_MS)}m"
-    }
+    /**
+     * Time Left in one unit (W4, W12): days, then hours, to the nearest ("3d", "5h"), and the last hour
+     * in minutes rounded up ("40m"), so "0m" shows only once the Deadline has passed, as "Time is up"
+     * does. A Deadline falls a whole number of days after a Move, so a fresh Move's Time Left sits in
+     * the middle of its rounding, and both phones read the same through minutes of clock skew.
+     */
+    fun timeLeft(ms: Long): String = oneUnit(ms, days = true)
 
     fun yourMoveLeft(ms: Long) = "$YOUR_MOVE · ${timeLeft(ms)}"
 
@@ -205,8 +206,19 @@ object UiCopy {
 
     const val THEIR_MOVE = "Their move"
 
-    /** The invite's strip (W4): "Expires in 47h", in hours (an invite lasts 48), then minutes. */
-    fun expiresIn(ms: Long) = "Expires in " + if (ms >= HOUR_MS) "${ms / HOUR_MS}h" else timeLeft(ms)
+    /** The invite's strip (W4, W12): "Expires in 48h", in hours (an invite lasts 48) to the nearest, then minutes rounded up. */
+    fun expiresIn(ms: Long) = "Expires in " + oneUnit(ms, days = false)
+
+    /** W12's rounding: under an hour, minutes rounded up; above, hours (and with [days], days) to the nearest, half up. */
+    private fun oneUnit(ms: Long, days: Boolean): String {
+        if (ms <= 0) return "0m"
+        val minutes = (ms + MINUTE_MS - 1) / MINUTE_MS
+        if (minutes < 60) return "${minutes}m"
+        val hours = (ms + HOUR_MS / 2) / HOUR_MS
+        if (!days || hours < 24) return "${hours}h"
+        val wholeDays = (ms + DAY_MS / 2) / DAY_MS
+        return "${wholeDays}d"
+    }
 
     /** The Menu entry (W6): "Play a friend", or "Play a friend · Your move: 2" when that count is above 0. */
     fun playFriend(yourMove: Int) = if (yourMove > 0) "$PLAY_FRIEND · Your move: $yourMove" else PLAY_FRIEND

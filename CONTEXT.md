@@ -205,7 +205,8 @@ _Avoid_: time control, clock
 
 **Time Left**:
 How long the side to move has until the Deadline, in the Relay's time as this phone estimates it,
-shown in one unit rounded down ("2d", "5h", "40m").
+shown in one unit: days or hours to the nearest, the last hour in minutes rounded up ("3d", "5h",
+"40m"; decision log W12).
 _Avoid_: clock, remaining time
 
 **Opponent Label**:

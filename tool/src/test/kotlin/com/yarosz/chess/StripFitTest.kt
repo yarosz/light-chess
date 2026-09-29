@@ -103,8 +103,8 @@ class StripFitTest {
                 add(chosen)
                 for (san in listOf("Qa1xh8#", "exd8=Q#", "Nbxd7+", "O-O-O+")) add(chosen.copy(status = san))
                 val menu = listOf(FriendButton.MENU)
-                // Time Left at its widest in each unit (W4: one unit, rounded down).
-                for (left in listOf(59 * 60_000L + 59_999, 23 * 3_600_000L + 3_599_999, 7 * Protocol.DAY_MS)) {
+                // Time Left at its widest in each unit (W4, W12): "59m", "23h", "7d".
+                for (left in listOf(59 * 60_000L, 23 * 3_600_000L + 29 * 60_000L, 7 * Protocol.DAY_MS)) {
                     add(FriendStrip(UiCopy.yourMoveLeft(left), menu))
                     add(FriendStrip(UiCopy.theirMoveLeft(left), menu))
                     if (left <= 48 * 3_600_000L) add(FriendStrip(UiCopy.expiresIn(left), listOf(FriendButton.CANCEL, FriendButton.MENU)))

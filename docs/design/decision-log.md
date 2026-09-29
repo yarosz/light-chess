@@ -784,7 +784,7 @@ A fresh chess-expert agent's rulings on v3 PR 1's open questions (LEDGER.md "Ope
   "Offer draw" on its own. An offer refused because the opponent already moved: "Offer not sent".
 - W3 No clock warning (V14, C2).
 - W4 Strip copy, one line each (R4.16; every string in StripFitTest):
-  - your move: "Your move · 2d" + Menu (one unit, rounded down: 2d / 5h / 40m);
+  - your move: "Your move · 2d" + Menu (one unit, rounded down: 2d / 5h / 40m; rounding SUPERSEDED by W12);
   - a Move chosen, not confirmed: its SAN + Send + Undo;
   - "Sending" + Menu, with the board locked;
   - "Not sent" + Retry + Menu;
@@ -1131,3 +1131,27 @@ feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 an
     Ply. The pieces simply appear in the band once there is a capture.
   - Accessibility: the row reads, in its own order, "Captured by White: two pawns, a queen. Captured by
     Black: a knight. White is ahead by 7." ("Material is even." when neither leads), from `UiCopy`.
+
+## Play a friend: Time Left and a deleted Game (orchestrator, 2026-09-29; LEDGER "FOLLOW-UPS (v3 review)")
+- W12 SUPERSEDES W4's "one unit, rounded down" for Time Left and the invite's expiry. Rounding down
+  put a fresh Game on a unit's edge: a Deadline falls a whole number of days after a Move (C2), so
+  a 3-day Game read "3d" on one phone and "2d" on the other a few seconds later, or with the phones'
+  estimates of the Relay's time (V14) a few seconds apart. Rounding up has the same edge the other
+  way (3d and a second reads "4d"). RULING: days, then hours, to the nearest (half up); the last
+  hour in minutes rounded up. "3d" from 2d 12h to 3d 12h, so a fresh Game reads "3d" on both phones
+  through half a day of skew; "1d" from 23h 30m, then "23h" down to "1h", then "59m" down to "1m".
+  "0m" shows only once the Deadline has passed, which is exactly when "Time is up" and "Claim win"
+  show (the Relay's stamps still decide, and a claim it refuses is rolled back as "Not yet", V14).
+  The display is never off by more than half its unit, and by under a minute in the last hour,
+  where a claim is near. The invite's "Expires in 48h" rounds its hours the same way (it stays in
+  hours: an invite lasts 48). `UiCopy.timeLeft`, `UiCopy.expiresIn`; `FriendPagesTest` holds the
+  boundaries.
+- W13 A Game the Relay deleted ("Game deleted", GONE, C6) can never change again, so its row on the
+  Play a friend page opens the Game's Menu, not its board: the Menu's first line says "Game deleted",
+  and Forget game (second tap "Tap again to forget", W6, Y8) is on it with Moves and Rename. Before,
+  Forget game was reachable only through the board's Menu button, and the list itself offered
+  nothing. Forget is local: it removes the Game from `correspondence.json` and sends nothing
+  (the Relay has nothing to delete), so it works offline. The other Stopped Games (Out of Sync,
+  Update Chess, Seat lost) still open their board: the Game still exists on the Relay.
+- Implementation: `FriendJobs.run` lets a `CancellationException` through (LightWork stopping the
+  job ends it as cancelled), instead of logging it as a failed sync.

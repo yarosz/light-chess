@@ -22,6 +22,7 @@ import com.yarosz.chess.rules.Move
 import com.yarosz.chess.rules.Side
 import java.io.File
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -314,6 +315,9 @@ object FriendJobs {
         if (owner == null) return LightJobResult.Success()
         val report = try {
             owner.syncNow(periodicJob = periodic)
+        } catch (e: CancellationException) {
+            // LightWork stopped the job: it ends as cancelled, not as a sync that failed.
+            throw e
         } catch (e: Exception) {
             Log.w("Chess", "background sync failed", e)
             return if (periodic) LightJobResult.Success() else LightJobResult.Retry

@@ -84,10 +84,8 @@ FOLLOW-UPS (v3 review, 2026-09-29), none blocking: the zone answers plain HTTP t
 HTTPS/HSTS on the zone, or the Worker refusing non-https, for third-party clients of the public
 protocol); the redeem limiter keys on the full IPv6 address (key on the /64) and `POST /games` has
 no limit; `localhost` is accepted by `RelayConfig.allowed` but not by the debug network security
-config; a cold-started `friend-send` job REPLACEs itself once (FriendOwner init), and
-`FriendJobs.run` catches CancellationException; `parseSync` doesn't shape-check seatSecret.
-Product: Time Left rounds down, so a fresh 3-day Game can read 2d on one phone and 3d on the other;
-a "Game deleted" row gives no way to forget it from the list.
+config; a cold-started `friend-send` job REPLACEs itself once (FriendOwner init); `parseSync`
+doesn't shape-check seatSecret.
 LAST SESSION: 2026-09-29
 
 ## HANDOFF (read first when resuming)

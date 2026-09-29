@@ -10,6 +10,7 @@ import java.time.ZoneOffset
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /** The Play a friend page's rows (W6), the Games page's merge (W5) and the copy that isn't a strip. */
@@ -66,10 +67,81 @@ class FriendPagesTest {
     }
 
     @Test
-    fun `Time Left is one unit, rounded down (W4)`() {
-        assertEquals("2d", UiCopy.timeLeft(2 * Protocol.DAY_MS + 23 * 3_600_000L))
-        assertEquals("5h", UiCopy.timeLeft(5 * 3_600_000L + 59 * 60_000L))
-        assertEquals("40m", UiCopy.timeLeft(40 * 60_000L + 59_000L))
+    fun `Time Left is one unit, days and hours to the nearest, the last hour in minutes rounded up (W4, W12)`() {
+        val day = Protocol.DAY_MS
+        val hour = 3_600_000L
+        val minute = 60_000L
+        // A fresh 3-day Game reads 3d on both phones, whichever way a few seconds of skew go.
+        assertEquals("3d", UiCopy.timeLeft(3 * day))
+        assertEquals("3d", UiCopy.timeLeft(3 * day - 1_000))
+        assertEquals("3d", UiCopy.timeLeft(3 * day + 1_000))
+        assertEquals("3d", UiCopy.timeLeft(2 * day + 23 * hour + 59 * minute))
+        assertEquals("3d", UiCopy.timeLeft(2 * day + 12 * hour))
+        assertEquals("2d", UiCopy.timeLeft(2 * day + 12 * hour - 1))
+        assertEquals("7d", UiCopy.timeLeft(7 * day - 5 * minute))
+        assertEquals("1d", UiCopy.timeLeft(day))
+        assertEquals("1d", UiCopy.timeLeft(23 * hour + 30 * minute))
+        // Under a day, hours to the nearest.
+        assertEquals("23h", UiCopy.timeLeft(23 * hour + 30 * minute - 1))
+        assertEquals("6h", UiCopy.timeLeft(5 * hour + 59 * minute))
+        assertEquals("5h", UiCopy.timeLeft(5 * hour + 29 * minute))
+        assertEquals("1h", UiCopy.timeLeft(hour))
+        assertEquals("1h", UiCopy.timeLeft(59 * minute + 1))
+        // The last hour, in minutes rounded up: "0m" only once the deadline has passed.
+        assertEquals("59m", UiCopy.timeLeft(59 * minute))
+        assertEquals("41m", UiCopy.timeLeft(40 * minute + 59_000))
+        assertEquals("40m", UiCopy.timeLeft(40 * minute))
+        assertEquals("1m", UiCopy.timeLeft(59_000))
+        assertEquals("1m", UiCopy.timeLeft(1))
+        assertEquals("0m", UiCopy.timeLeft(0))
         assertEquals("0m", UiCopy.timeLeft(-1))
+        assertEquals("0m", UiCopy.timeLeft(-2 * day))
+    }
+
+    @Test
+    fun `an invite's expiry is in hours to the nearest, then minutes rounded up (W4, W12)`() {
+        val hour = 3_600_000L
+        assertEquals("Expires in 48h", UiCopy.expiresIn(48 * hour))
+        assertEquals("Expires in 48h", UiCopy.expiresIn(48 * hour - 30_000))
+        assertEquals("Expires in 47h", UiCopy.expiresIn(47 * hour))
+        assertEquals("Expires in 1h", UiCopy.expiresIn(hour))
+        assertEquals("Expires in 59m", UiCopy.expiresIn(59 * 60_000L))
+        assertEquals("Expires in 1m", UiCopy.expiresIn(1))
+        assertEquals("Expires in 0m", UiCopy.expiresIn(0))
+    }
+
+    @Test
+    fun `the claim shows exactly when Time Left reads 0m (W12, V14)`() {
+        val timeUp = scenes.timeUp()
+        val deadline = timeUp.log!!.deadline!!
+        assertEquals(UiCopy.theirMoveLeft(1), FriendStrip.of(timeUp, deadline - 1).status)
+        assertEquals("${UiCopy.THEIR_MOVE} · 1m", FriendStrip.of(timeUp, deadline - 1).status)
+        assertEquals(UiCopy.TIME_IS_UP, FriendStrip.of(timeUp, deadline).status)
+        assertEquals(listOf(FriendButton.CLAIM, FriendButton.MENU), FriendStrip.of(timeUp, deadline).buttons)
+    }
+
+    @Test
+    fun `a fresh Game reads the same Time Left on both phones (W12)`() {
+        val p = scenes.started()
+        val white = p.a.game(p.id)
+        val black = p.b.game(p.id)
+        val start = white.log!!.deadline!! - 3 * Protocol.DAY_MS
+        // One phone reads the Relay's time a little behind, the other a little ahead.
+        for (skew in listOf(-90_000L, -1_000L, 0L, 1_000L, 90_000L)) {
+            assertEquals("${UiCopy.YOUR_MOVE} · 3d", FriendStrip.of(white, start + skew).status)
+            assertEquals("${UiCopy.THEIR_MOVE} · 3d", FriendStrip.of(black, start + skew).status)
+        }
+    }
+
+    @Test
+    fun `a deleted Game's row opens its Menu, where Forget game is, other rows open the board (W6, W13)`() {
+        val gone = scenes.stopped(HaltReason.GONE)
+        val outOfSync = scenes.stopped(HaltReason.OUT_OF_SYNC)
+        val yours = scenes.yourMove()
+        val rows = FriendRows.of(listOf(gone, outOfSync, yours), emptyList(), scenes.now).associateBy { it.gameId }
+        assertEquals("${gone.label} · ${UiCopy.GAME_DELETED}", rows.getValue(gone.gameId).text)
+        assertTrue(rows.getValue(gone.gameId).menu)
+        assertFalse(rows.getValue(outOfSync.gameId).menu)
+        assertFalse(rows.getValue(yours.gameId).menu)
     }
 }

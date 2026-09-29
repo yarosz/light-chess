@@ -361,6 +361,8 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
                         if (code != null) friends.redeem(code) {} else seat.rematchOf?.let { friends.acceptRematch(it) }
                     }
                     row.gameId == null -> {}
+                    // A Game the Relay deleted (W13): nothing more can happen to it, so its Menu, with Forget game.
+                    row.menu -> navigateTo({ FriendScreen(it, FriendPage.MENU, row.gameId) }, ::openNext)
                     state.game(row.gameId)?.stage == com.yarosz.chess.correspondence.Stage.WAITING ->
                         navigateTo({ FriendScreen(it, FriendPage.INVITE, row.gameId) }, ::openNext)
                     else -> openGame(row.gameId)
