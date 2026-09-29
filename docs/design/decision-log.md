@@ -310,3 +310,14 @@ default Think time).
 - Player Rating settling: with RD 500, vol 0.09, tau 0.75 and one Puzzle per rating period, RD settles
   at about 73-74, so the "?" goes after about 48 Puzzles and the 45 floor is never reached. ACCEPTED as
   is: RD <= 75 is Lichess's own "established" threshold. No change.
+
+## Wheel key-up (LP3 check, 2026-09-28)
+- R4.17 A wheel key's up and repeats go where its down went. Seen on the LP3: in Review, a click
+  returned to the latest Position and also turned the flashlight on (the torch was requested by
+  com.lightos). LightActivity asks the screen about a key's down, repeats and up separately and
+  forwards every LightDeviceKeys key the screen doesn't take to LightOS; our screens took only the
+  down, so LightOS got the up. RULING: a screen that takes a press takes its repeats and its up; a
+  press it leaves alone goes to LightOS whole (down, repeats, up), which keeps R1.9's "otherwise return
+  false" (brightness and the flashlight when Chess has no use for the wheel). An up with no down seen
+  isn't taken. A repeat gets its press's answer without acting again. `WheelViewModel` and
+  `TakenKeys` (tested on the JVM) hold the rule for every screen.

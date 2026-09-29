@@ -7,6 +7,11 @@ release docs (README, RELEASING, SECURITY, NOTICE, docs/release-notes/0.1.0.md),
 instead of being cut short. Release checks on the emulator: the minified release solves a Puzzle and
 shows About; the PR 4 build's save survives an upgrade to it. The LP3 checks of PRs 3-5 are still open.
 Next is v2. The engine choice is Pirarucu, pending the LP3 benchmark.
+fix/v1-keyup (on feat/v1-release, the 0.1.0 candidate) fixes an LP3 finding: a wheel click that left
+Review also turned the flashlight on, because LightOS got the key-up of a press the screen had taken.
+Every wheel screen now extends `WheelViewModel`, which takes a press's repeats and up with it (R4.17,
+`TakenKeysTest`). To re-check on the LP3: a click in Review returns to the latest Position and leaves
+the flashlight off; outside Review a click still toggles it and a turn still changes the brightness.
 LAST SESSION: 2026-09-28
 
 ## Where things are

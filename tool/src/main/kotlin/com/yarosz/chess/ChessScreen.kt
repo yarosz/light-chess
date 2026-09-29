@@ -1,6 +1,5 @@
 package com.yarosz.chess
 
-import android.view.KeyEvent
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.thelightphone.sdk.InitialScreen
 import com.thelightphone.sdk.LightScreen
-import com.thelightphone.sdk.LightViewModel
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.ui.LightText
 import com.thelightphone.sdk.ui.LightTextVariant
@@ -51,7 +49,7 @@ import com.yarosz.chess.puzzles.Stage
  * The puzzle screen's view state over the process's [PuzzleOwner]: the touches in progress
  * ([MoveInput]) and Review. Everything that outlives a touch lives in the owner.
  */
-class ChessViewModel(private val owner: PuzzleOwner) : LightViewModel<Unit>() {
+class ChessViewModel(private val owner: PuzzleOwner) : WheelViewModel() {
     private var input by mutableStateOf<MoveInput?>(null)
     private var review by mutableStateOf(Review())
 
@@ -90,8 +88,7 @@ class ChessViewModel(private val owner: PuzzleOwner) : LightViewModel<Unit>() {
         review = Review()
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        val key = Wheel.of(keyCode) ?: return false
+    override fun onWheel(key: Wheel): Boolean {
         val session = owner.session.value ?: return false
         val attempt = session.attempt ?: return false
         if (session.needsSeed || attempt.stage == Stage.HOLD) return false

@@ -23,7 +23,8 @@ enum class Wheel {
  * - Click returns to the latest Position.
  *
  * [wheel] returns null when the key isn't Review's to take (not in Review, or nothing to review), so
- * the screen returns false and LightOS keeps the wheel's brightness and flashlight.
+ * the screen returns false and LightOS keeps the wheel's brightness and flashlight (for the whole
+ * press, down and up: R4.17, [TakenKeys]).
  */
 data class Review(val ply: Int? = null) {
 

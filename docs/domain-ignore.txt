@@ -39,6 +39,9 @@ MoveInput
 Touch
 StripButton
 Wheel
+# The wheel's key-up rule (R4.17): implementation vocabulary
+TakenKeys
+WheelViewModel
 UiCopy
 ${square.rank + 1}
 # The board view's accessibility label names the object on screen, not a Position (DESIGN.md "Copy")

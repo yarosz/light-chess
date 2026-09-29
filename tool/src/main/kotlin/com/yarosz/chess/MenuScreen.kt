@@ -1,6 +1,5 @@
 package com.yarosz.chess
 
-import android.view.KeyEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Column
@@ -22,7 +21,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.thelightphone.sdk.LightScreen
-import com.thelightphone.sdk.LightViewModel
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.ui.LightBarButton
 import com.thelightphone.sdk.ui.LightIcons
@@ -44,7 +42,7 @@ import kotlinx.coroutines.flow.SharedFlow
 enum class MenuPage(val scrolls: Boolean) { MENU(false), RATING(true), MISSED(true), ABOUT(true) }
 
 /** Which page shows, the reset's second tap, and the wheel's scroll steps (F3). */
-class MenuViewModel(private val owner: PuzzleOwner) : LightViewModel<Unit>() {
+class MenuViewModel(private val owner: PuzzleOwner) : WheelViewModel() {
     var page by mutableStateOf(MenuPage.MENU)
         private set
 
@@ -75,8 +73,7 @@ class MenuViewModel(private val owner: PuzzleOwner) : LightViewModel<Unit>() {
     }
 
     /** F3: on a page that scrolls, the wheel moves one row per detent and takes every event, even at the ends. */
-    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        val key = Wheel.of(keyCode) ?: return false
+    override fun onWheel(key: Wheel): Boolean {
         if (!page.scrolls) return false
         owner.touched()
         when (key) {

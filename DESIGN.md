@@ -86,6 +86,10 @@ maps touches to squares. Every legality question goes to the rules core.
   reaching the latest Position leaves Review. A click returns to the latest Position.
 - Outside Review, clockwise and click return false, as does counter-clockwise before any Move, so
   LightOS keeps brightness and the flashlight.
+- A key's up and repeats go where its down went (R4.17): LightActivity asks the screen about each
+  separately and hands LightOS every wheel event the screen doesn't take, so a screen that took only
+  the down turned the flashlight on with the up of a click it had used (seen on the LP3). Every view
+  model that takes the wheel extends `WheelViewModel`, which records the taken presses (`TakenKeys`).
 - A tap on the board during Review returns to the latest Position (the "live" tap of R1.9); the strip
   shows a Latest button while Review is on.
 - The emulator's Android build doesn't know Light's wheel keycodes: an injected 317-319 arrives as
