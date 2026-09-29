@@ -7,9 +7,9 @@ Your Player Rating moves with every rated Puzzle, and the ones you missed wait f
 Or play the computer at one of eight Levels, on the phone itself. Works offline, with no account and
 nothing tracked.
 
-> **Status: 0.2.0, Puzzles (v1) and playing the computer (v2) are done; not yet listed by Light.** A
-> Light Phone III Tool built on [Light's SDK](https://github.com/lightphone/light-sdk). Planned: a friend
-> by correspondence.
+> **Status: 0.3.0, Puzzles (v1), playing the computer (v2) and playing a friend by correspondence
+> (v3) are done; not yet listed by Light.** A Light Phone III Tool built on
+> [Light's SDK](https://github.com/lightphone/light-sdk).
 
 Questions or bugs: https://github.com/yarosz/light-chess/issues
 
