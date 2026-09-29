@@ -57,8 +57,8 @@ The player's Piece Set is geometric until changed. The Menu's "Pieces · Geometr
 next set on each tap ("Pieces · Rounded", then back), and every board and its promotion picker draw
 it from then on: the Puzzle, the Game with the computer and a finished Game from Games (M1). The row
 is in the puzzle Menu and the game Menu, just above About. The choice is saved once, in
-`puzzles.json` (`pieceSet`), so it outlasts a relaunch and Reset rating; a set a later build adds
-reads as geometric here. The puzzle owner reads it from the file before any Band (M4): a cold start
+`puzzles.json` (`pieceSet`), so it outlasts a relaunch and Reset rating; a set this build doesn't know
+reads as geometric. The puzzle owner reads it from the file before any Band (M4): a cold start
 into a Game draws its first frame in the chosen set, and the game Menu has the row at once. The row
 is a tap target only: the puzzle Menu doesn't scroll, so the wheel stays with LightOS there (R1.9,
 R4.17); the game Menu scrolls, so there the wheel moves the page one row per detent and takes every

@@ -15,11 +15,19 @@ stays in `puzzles.json` and every board draws it (puzzle, game, Games Review, pr
 their own Menu screens (S3); the game owner takes V4. Checked on the emulator: both Menus, a Puzzle
 and a Game in the rounded set. To re-check on the LP3: the rounded set on the game board, and system
 Back from New game, Games and Moves. Next: forward-merge feat/v2-play into feat/v3.
-To check on the LP3, from main's v1 work: the rounded set on the grayscale panel (its NOTES flag the
-king/queen likeness, the white bishop's slot and the knight's ear at 1x) and the Pieces row in
-Akkurat; the geometric set's white outer line on light squares, the knight's eye and the bishop's
-slot; system Back from each Menu page and the Puzzle id row in Akkurat; a reply slide doesn't replay
-after Menu and back, Hint taps during a reply don't delay it, and a Missed replay opens at once.
+HANDOFF (v1 pre-submission LP3 checks, 2026-09-29): checked under the lease on main (ecd6349): both
+Piece Sets draw on the LP3; the Menu's Pieces row switches sets and the choice survives a relaunch;
+the Puzzle id row is the Menu's last row; Back from About returns to the Menu (S3); the wheel scrolls
+back into Review and its click returns to the latest Move (R4.17). v0.1.0 tagged at ecd6349 with a
+notes-only GitHub Release, after the release checks (scan, apk, run, light-build). The Light
+submission of that hash is the maintainer's. Noted: main's `release-check.sh scan` history check will
+need v3's `10.0.2.2` allowance (and check `10.0.2.3`) once feat/v3 merges -- its "Play a friend"
+commits already carry the emulator host alias, which main's version of the script doesn't yet allow.
+Still open on the LP3, from main's v1 work: how the greys and both sets look on the physical panel
+(maintainer's eyes/photos) -- the rounded set's king/queen likeness, the white bishop's slot and the
+knight's ear at 1x, and the geometric set's white outer line on light squares, the knight's eye and
+the bishop's slot; a reply slide doesn't replay after Menu and back, Hint taps during a reply don't
+delay it, and a Missed replay opens at once.
 HANDOFF (PR 2 review fixes, fix/v2-review from feat/v2, 2026-09-29): the README describes v2 (the
 computer, its credits, privacy); About's Book line reads "the Lichess games database", as NOTICE;
 `ToolMetadataTest` checks the engine and Book credits in About, NOTICE and the README; decision log

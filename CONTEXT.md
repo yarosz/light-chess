@@ -31,8 +31,8 @@ One Move by one side, counted from the start of a Game or Puzzle. White's first 
 _Avoid_: half-move, turn
 
 **Piece Set**:
-The user's chosen look for the pieces: geometric (the default) or rounded. It changes how the pieces
-are drawn and nothing about play.
+The player's chosen look for the pieces: geometric or rounded. It changes how the pieces are drawn
+and nothing about play.
 _Avoid_: theme (a theme is a kind of Puzzle), skin, style
 
 **Review**:

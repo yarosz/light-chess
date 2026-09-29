@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Generate Set 2 (rounded) chess piece SVGs.
+"""Generate the rounded chess piece SVGs.
 
 Geometry is written once, in "core" coordinates. The black piece is the core
-dilated by 1.7 (fill + 3.4 stroke, round joins), exactly like Set 1. The white
-piece is the core scaled 0.9 about (22.5, 18.7) -- Set 1's transform, so the
-outer line lands on the same 38.7 baseline -- drawn as a 7.06 black underlay and
-a 3.06 white top, which leaves a 2-unit black line outside the silhouette.
+dilated by 1.7 (fill + 3.4 stroke, round joins), exactly like the geometric set.
+The white piece is the core scaled 0.9 about (22.5, 18.7) -- the geometric set's
+transform, so the outer line lands on the same 38.7 baseline -- drawn as a 7.06
+black underlay and a 3.06 white top, which leaves a 2-unit black line outside
+the silhouette.
 """
 import re, sys, os
 
@@ -38,7 +39,10 @@ def scale_path(d, scale):
         if t.isalpha():
             cmd = t; i += 1; out.append(cmd)
             if cmd == "Z":
+                cmd = None
                 continue
+        elif cmd is None:
+            raise SystemExit("path data: a number with no command (at the start, or after Z)")
         if cmd in "ML":
             x, y = num(), num(); out += [fmt(tx(x) if scale else x), fmt(ty(y) if scale else y)]
         elif cmd == "H":
@@ -76,7 +80,8 @@ def circle(cx, cy, r):
 # All core coordinates; baseline of core = 37.
 # ---------------------------------------------------------------------------
 PIECES = {}
-exec(open(os.path.join(os.path.dirname(__file__), "shapes.py")).read(), {"PIECES": PIECES, "circle": circle})
+with open(os.path.join(os.path.dirname(__file__), "shapes.py")) as f:
+    exec(f.read(), {"PIECES": PIECES, "circle": circle})
 
 
 def el_fill(d, fill, stroke_w):
