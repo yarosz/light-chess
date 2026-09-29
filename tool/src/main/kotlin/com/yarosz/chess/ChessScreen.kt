@@ -333,7 +333,10 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
                 motion = motion.takeIf { live },
                 pieceSet = pieceSet,
             )
-            Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE))
+            Strip(
+                strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE),
+                captured = capturedRow(record.game, shown, state.bottom, pieceSet),
+            )
         }
     }
 

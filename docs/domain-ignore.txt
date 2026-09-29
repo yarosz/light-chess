@@ -298,3 +298,11 @@ with no name or account, and the Relay deletes each Game within 30 days of the l
 
 # docs/privacy.md (reader-facing copy, 2026-09-28)
 Games with a friend
+
+# The Captured Pieces row (P3): UI names for the row under the board, and its label built from
+# templates (DESIGN.md "The game screen" quotes the sentences whole).
+CapturedRowLayout
+CapturedRowState
+${sideName(leader)} is ahead by ${kotlin.math.abs(captured.lead)}.
+a $name
+Captured by ${sideName(side)}: ${kinds.joinToString(

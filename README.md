@@ -31,6 +31,8 @@ _Screenshots from a Light Phone III are coming._
   ones to look back through.
 - **Review.** Turn the scroll wheel back to step through the Moves of the Puzzle or Game on screen.
 - **Pieces.** Two sets, geometric and rounded; choose one in the Menu.
+- **Captured Pieces.** In a Game, a row under the board shows the pieces each Side has taken, and
+  "+3" for the Side ahead in material.
 - The screen stays on while you think, for up to five minutes without a touch.
 
 ## Install

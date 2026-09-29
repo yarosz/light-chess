@@ -140,6 +140,16 @@ Undoing the user's last Move and the computer's reply in a Game against the comp
 every Level and recorded with the Game.
 _Avoid_: undo
 
+**Captured Pieces**:
+The pieces a Side has taken from the other in a Game, up to the Position shown. A piece taken is what
+stood on its square: a pawn that was promoted and then taken counts as the piece it became.
+_Avoid_: taken pieces, graveyard, losses
+
+**Material Lead**:
+How far one Side is ahead in material in a Position, counting a pawn as 1, a knight or bishop as 3, a
+rook as 5 and a queen as 9. Nothing when the material is even.
+_Avoid_: advantage, points
+
 **Game Hint**:
 The computer's best Move in the current Position of a Game, shown briefly. Recorded with the Game.
 _Avoid_: tip, suggestion, hint (alone)

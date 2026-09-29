@@ -23,6 +23,13 @@ object Shades {
     const val PICKER = 0xF0
     const val DIM_ALPHA = 0.6f
 
+    /**
+     * The body of a captured black piece in the captured-pieces row under the board (P3): the white
+     * drawing with this gray body, since solid black would vanish on the black ground. The piece
+     * vectors are generated with it (`scripts/build-pieces.py`, CAPTURED_BLACK_BODY).
+     */
+    const val CAPTURED_BLACK_BODY = 0x96
+
     /** The grounds a marker can be drawn on. */
     val GROUNDS = listOf(LIGHT_SQUARE, DARK_SQUARE, LAST_MOVE)
 

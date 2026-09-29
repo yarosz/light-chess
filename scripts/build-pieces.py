@@ -17,6 +17,11 @@ style is resolved through the <g> inheritance chain (attributes and `style=""`).
 document's order, so a white piece's wide black outline is drawn before the white fill over it. Only
 the SVG features the piece files use are supported; anything else, an attribute included, fails
 loudly. Python standard library only; no network.
+
+It also writes each set's captured-black twins (decision log P3): for every piece but the king, the
+white drawing with its white body painted CAPTURED_BLACK_BODY gray, which the captured-pieces row
+under the board draws for a captured black piece. The row's ground is black, where the solid black
+drawing would vanish; the twin keeps the black outer line, so overlapping pieces stay separate.
 """
 
 import math
@@ -31,6 +36,13 @@ SRC = ROOT / "art" / "pieces"
 SETS = [("GEOMETRIC", "geometric"), ("ROUNDED", "rounded")]
 OUT = ROOT / "tool" / "src" / "main" / "kotlin" / "com" / "yarosz" / "chess" / "board" / "PieceVectors.kt"
 NS = "{http://www.w3.org/2000/svg}"
+
+# The body of a captured black piece in the captured-pieces row (P3): `Shades.CAPTURED_BLACK_BODY`,
+# which ShadesTest and PieceVectorsTest tie to this value.
+CAPTURED_BLACK_BODY = 0x96
+# The kinds a Side can capture: every piece but the king, in the Piece enum's order.
+CAPTURABLE = [(name, letter) for name, letter in
+              (("PAWN", "P"), ("KNIGHT", "N"), ("BISHOP", "B"), ("ROOK", "R"), ("QUEEN", "Q"))]
 
 # (Kotlin Piece name, file letter). Order is the Piece enum's.
 PIECES = [(side, name, letter) for side in ("WHITE", "BLACK") for name, letter in
@@ -308,6 +320,12 @@ def fmt(v):
     return s + "f"
 
 
+def recolour(p, white):
+    """[p] with its white fill and stroke painted [white] (a six-digit hex colour) instead."""
+    swap = lambda c: white if c == "FFFFFF" else c
+    return dict(p, fill=swap(p["fill"]), stroke=swap(p["stroke"]))
+
+
 def kotlin_path(p):
     args = [
         f"fill = {'SolidColor(Color(0xFF' + p['fill'] + '))' if p['fill'] else 'null'}",
@@ -330,24 +348,47 @@ def fun_name(set_name, side, name):
     return f"{set_name.lower()}{side.capitalize()}{name.capitalize()}"
 
 
+def read_paths(directory, file):
+    root = ET.parse(file).getroot()
+    if root.get("viewBox") != "0 0 45 45" or root.get("width") not in (None, "45") or root.get("height") not in (None, "45"):
+        raise SystemExit(f"{directory}/{file.name}: expected a 45x45 SVG (viewBox 0 0 45 45)")
+    paths = []
+    walk(root, dict(DEFAULTS), IDENTITY, paths)
+    return paths
+
+
+def captured_name(set_name, name):
+    return f"{set_name.lower()}CapturedBlack{name.capitalize()}"
+
+
 def generate():
     blocks = []
+    grey = f"{CAPTURED_BLACK_BODY:02X}" * 3
     for set_name, directory in SETS:
         for side, name, letter in PIECES:
             file = SRC / directory / f"{side[0].lower()}{letter}.svg"
-            root = ET.parse(file).getroot()
-            if root.get("viewBox") != "0 0 45 45" or root.get("width") not in (None, "45") or root.get("height") not in (None, "45"):
-                raise SystemExit(f"{directory}/{file.name}: expected a 45x45 SVG (viewBox 0 0 45 45)")
-            paths = []
-            walk(root, dict(DEFAULTS), IDENTITY, paths)
-            body = "\n".join(kotlin_path(p) for p in paths)
+            body = "\n".join(kotlin_path(p) for p in read_paths(directory, file))
             blocks.append(
                 f"    private fun {fun_name(set_name, side, name)}(): ImageVector = piece(\"{set_name}_{side}_{name}\") {{\n"
                 f"        // {directory}/{file.name}\n{body}\n    }}\n"
             )
+        for name, letter in CAPTURABLE:
+            file = SRC / directory / f"w{letter}.svg"
+            body = "\n".join(kotlin_path(recolour(p, grey)) for p in read_paths(directory, file))
+            blocks.append(
+                f"    private fun {captured_name(set_name, name)}(): ImageVector = piece(\"{set_name}_CAPTURED_BLACK_{name}\") {{\n"
+                f"        // {directory}/{file.name}, its white body painted gray\n{body}\n    }}\n"
+            )
     whens = "\n".join(
         f"        PieceSet.{set_name} -> when (piece) {{\n"
         + "\n".join(f"            Piece.{s}_{n} -> {fun_name(set_name, s, n)}()" for s, n, _ in PIECES)
+        + "\n        }"
+        for set_name, _ in SETS
+    )
+    captured_whens = "\n".join(
+        f"        PieceSet.{set_name} -> when (type) {{\n"
+        + "\n".join(f"            PieceType.{n} -> {captured_name(set_name, n)}()" for n, _ in CAPTURABLE)
+        + "\n            PieceType.KING -> throw IllegalArgumentException(\"a king is never captured\")"
         + "\n        }"
         for set_name, _ in SETS
     )
@@ -366,19 +407,39 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 import com.yarosz.chess.rules.Piece
+import com.yarosz.chess.rules.PieceType
+import com.yarosz.chess.rules.Side
 
-/** Both Piece Sets (P1, P2) as ImageVectors on a 45 × 45 viewport, each piece built once on first use. */
+/**
+ * Both Piece Sets (P1, P2) as ImageVectors on a 45 × 45 viewport, each piece built once on first use,
+ * and each set's captured-black twins for the captured-pieces row (P3).
+ */
 internal object PieceVectors {{
 
     private val cache = arrayOfNulls<ImageVector>(PieceSet.entries.size * Piece.entries.size)
+    private val capturedCache = arrayOfNulls<ImageVector>(PieceSet.entries.size * PieceType.entries.size)
 
     fun vector(set: PieceSet, piece: Piece): ImageVector {{
         val i = set.ordinal * Piece.entries.size + piece.ordinal
         return cache[i] ?: build(set, piece).also {{ cache[i] = it }}
     }}
 
+    /**
+     * [piece] as the captured-pieces row draws it (P3): a white piece as on the board; a black one as
+     * the white drawing with its body gray, so it keeps an outer line on the black ground.
+     */
+    fun captured(set: PieceSet, piece: Piece): ImageVector {{
+        if (piece.side == Side.WHITE) return vector(set, piece)
+        val i = set.ordinal * PieceType.entries.size + piece.type.ordinal
+        return capturedCache[i] ?: buildCaptured(set, piece.type).also {{ capturedCache[i] = it }}
+    }}
+
     private fun build(set: PieceSet, piece: Piece): ImageVector = when (set) {{
 {whens}
+    }}
+
+    private fun buildCaptured(set: PieceSet, type: PieceType): ImageVector = when (set) {{
+{captured_whens}
     }}
 
     private inline fun piece(name: String, paths: ImageVector.Builder.() -> Unit): ImageVector =
@@ -439,6 +500,11 @@ def self_test():
     fails("geometry inside style", style_of, el(style="d: path('M0 0')"), DEFAULTS)
     fails("a colour it can't read", color, "red")
     assert color("#Fa0") == "FFAA00" and color("none") is None
+    # P3's twins: only white turns gray; black lines and cuts, and no paint, stay as they are.
+    p = recolour({"fill": "FFFFFF", "stroke": "000000", "width": 1.0}, "969696")
+    assert (p["fill"], p["stroke"], p["width"]) == ("969696", "000000", 1.0), p
+    p = recolour({"fill": None, "stroke": "FFFFFF"}, "969696")
+    assert (p["fill"], p["stroke"]) == (None, "969696"), p
 
     if hasattr(signal, "alarm"):
         signal.alarm(0)

@@ -369,9 +369,6 @@ object AkkuratProxy {
     /** The LP3's app area is 1168 px tall at 480 dpi: Configuration.screenHeightDp = 389. */
     private const val LP3_SCREEN_HEIGHT_DP = 389f
 
-    /** LightOS scales design px by screenHeightDp / 600 (light-sdk `designVerticalPxToSp`); sp = dp at font scale 1. */
-    private const val FONT_SIZE_DP = StripLayout.COPY_DESIGN_PX * LP3_SCREEN_HEIGHT_DP / 600f
-
     /**
      * Akkurat against Helvetica (with [NARROW] widened), with margin: every measured string clears its
      * LP3 width by at least 1 dp at this scale (proxyIsNeverNarrowerThanTheLp3). Wider would wrap
@@ -405,6 +402,12 @@ object AkkuratProxy {
     }
 
     /** The advance width of [text] in dp. A character without a width fails loudly: add it to the table. */
-    fun width(text: String): Float =
-        text.sumOf { c -> requireNotNull(WIDTHS[c]) { "no width for '$c' in \"$text\"" } } / 1000f * FONT_SIZE_DP * SCALE
+    fun width(text: String): Float = width(text, StripLayout.COPY_DESIGN_PX)
+
+    /** The same at another LightOS size, in design px (Superfine is 16: the captured-pieces row's lead, P3). */
+    fun width(text: String, designPx: Float): Float =
+        text.sumOf { c -> requireNotNull(WIDTHS[c]) { "no width for '$c' in \"$text\"" } } / 1000f * size(designPx) * SCALE
+
+    /** LightOS scales design px by screenHeightDp / 600 (light-sdk `designVerticalPxToSp`); sp = dp at font scale 1. */
+    fun size(designPx: Float): Float = designPx * LP3_SCREEN_HEIGHT_DP / 600f
 }
