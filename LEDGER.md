@@ -83,9 +83,12 @@ emulator joined it, and 1.e4 (LP3) and 1...e5 (emulator) each reached the other 
 FOLLOW-UPS (v3 review, 2026-09-29), none blocking: `localhost` is accepted by `RelayConfig.allowed`
 but not by the debug network security config; a cold-started `friend-send` job REPLACEs itself once
 (FriendOwner init), and `FriendJobs.run` catches CancellationException. Optional: Always Use
-HTTPS/HSTS on the zone (the Worker itself now refuses plain HTTP, L3). Fixed in fix/relay-limits
-(L1-L4, needs a Relay deploy after merge): the limits key on the IPv6 /64, `POST /games` is limited
-(10/60 s), plain HTTP gets 426, `parseSync` shape-checks seatSecret.
+HTTPS/HSTS on the zone (the Worker itself now refuses plain HTTP, L3), the maintainer's choice.
+Fixed in fix/relay-limits (L1-L5, needs a Relay deploy after merge): the limits key on the IPv6
+/64, plus 100/60 s per /48 on redeem and create (L5, two new bindings), `POST /games` is limited
+(10/60 s), plain HTTP gets 426 with `Upgrade: TLS/1.0, HTTP/1.1`, `parseSync` shape-checks
+seatSecret. After deploying, check `curl -si http://chess-relay.yarosz.com/health`: a 426 with an
+`Upgrade` header and no `Location`.
 Product: Time Left rounds down, so a fresh 3-day Game can read 2d on one phone and 3d on the other;
 a "Game deleted" row gives no way to forget it from the list.
 LAST SESSION: 2026-09-29

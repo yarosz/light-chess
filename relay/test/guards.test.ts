@@ -1,9 +1,9 @@
-// What the Worker checks before routing: the rate-limit key (L1), the create limit (L2), plain HTTP
-// refused (L3), and the shape of a sync's seat secrets.
+// What the Worker checks before routing: the rate-limit keys (L1, L5), the create limit (L2), the
+// /48 limits (L5), plain HTTP refused (L3), and the shape of a sync's seat secrets.
 import { SELF } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { UNKNOWN_CLIENT, clientKey, isRefusedPlainHttp } from "../src/limits";
-import { call, create, freshIp, freshV6, start } from "./helpers";
+import { UNKNOWN_CLIENT, clientKey, isRefusedPlainHttp, wideClientKey } from "../src/limits";
+import { call, create, fresh48, freshIp, freshV6, oneWindow, start } from "./helpers";
 
 describe("the rate-limit key (L1)", () => {
   it("keeps an IPv4 address whole", () => {
@@ -45,10 +45,38 @@ describe("the rate-limit key (L1)", () => {
   });
 });
 
+describe("the wide rate-limit key (L5)", () => {
+  it("keys an IPv6 address on its /48, however it is written", () => {
+    const key = "2001:db8:0::/48";
+    expect(wideClientKey("2001:db8::1")).toBe(key);
+    expect(wideClientKey("2001:0db8:0000:ffff:ffff:ffff:ffff:ffff")).toBe(key);
+    expect(wideClientKey("2001:DB8:0:1::ABCD")).toBe(key);
+    expect(wideClientKey("2001:db8:a:b:c:d:e:f")).toBe("2001:db8:a::/48");
+    expect(wideClientKey("2001:db8:1a::1")).toBe("2001:db8:1a::/48");
+    expect(wideClientKey("::1")).toBe("0:0:0::/48");
+    expect(wideClientKey("64:ff9b::1.2.3.4")).toBe("64:ff9b:0::/48");
+  });
+
+  it("keys IPv4, IPv4-mapped and unreadable addresses exactly as the per-client key does", () => {
+    for (const header of ["203.0.113.7", " 203.0.113.7 ", "::ffff:1.2.3.4", "0:0:0:0:0:ffff:0102:0304", null, "", "1.2.3.256", "fe80::1%eth0"]) {
+      expect(wideClientKey(header), String(header)).toBe(clientKey(header));
+    }
+  });
+
+  it("gives the test helpers' fresh addresses distinct valid keys", () => {
+    const ips = Array.from({ length: 600 }, freshIp);
+    expect(new Set(ips.map(clientKey)).size).toBe(600);
+    expect(ips.map(clientKey)).not.toContain(UNKNOWN_CLIENT);
+    const v6 = Array.from({ length: 300 }, freshV6);
+    expect(new Set(v6.map(wideClientKey)).size).toBe(300);
+  });
+});
+
 describe("the create limit (L2)", () => {
   const post = (ip: string) => call("POST", "/v1/games", { body: { v: "1.0", side: "white", daysPerMove: 3 }, ip });
 
   it("allows 10 Games a minute per address, then answers 429 with Retry-After", async () => {
+    await oneWindow();
     const ip = freshIp();
     const statuses: number[] = [];
     for (let i = 0; i < 10; i++) statuses.push((await post(ip)).status);
@@ -62,13 +90,31 @@ describe("the create limit (L2)", () => {
   });
 
   it("counts every address of one IPv6 /64 together, and no other /64", async () => {
-    const base = freshV6().replace(/::1$/, "");
-    for (let i = 1; i <= 10; i++) expect((await post(`${base}::${i.toString(16)}`)).status).toBe(201);
-    expect((await post(`${base}:ffff:ffff:ffff:ffff`)).status).toBe(429);
+    await oneWindow();
+    const block = fresh48();
+    for (let i = 1; i <= 10; i++) expect((await post(`${block}:0::${i.toString(16)}`)).status).toBe(201);
+    expect((await post(`${block}:0:ffff:ffff:ffff:ffff`)).status).toBe(429);
+    // The next /64 of the same /48 has its own budget.
+    expect((await post(`${block}:1::1`)).status).toBe(201);
+  });
+
+  it("allows 100 Games a minute per IPv6 /48, however many /64s they come from (L5)", async () => {
+    await oneWindow();
+    const block = fresh48();
+    const statuses: number[] = [];
+    for (let net = 0; net < 10; net++) {
+      for (let i = 1; i <= 10; i++) statuses.push((await post(`${block}:${net.toString(16)}::${i.toString(16)}`)).status);
+    }
+    expect(statuses).toEqual(Array(100).fill(201));
+    const limited = await post(`${block}:ffff::1`);
+    expect(limited.status).toBe(429);
+    expect(limited.json.error.code).toBe("rate_limited");
+    expect(limited.headers.get("Retry-After")).toBe("60");
     expect((await post(freshV6())).status).toBe(201);
   });
 
   it("counts malformed bodies too", async () => {
+    await oneWindow();
     const ip = freshIp();
     for (let i = 0; i < 10; i++) {
       expect((await call("POST", "/v1/games", { body: { v: "1.0" }, ip })).status).toBe(400);
@@ -76,7 +122,10 @@ describe("the create limit (L2)", () => {
     expect((await post(ip)).status).toBe(429);
   });
 
+  // The only test in this file that sends no address, and rate-limit state is per test file, so the
+  // shared key starts this test unspent.
   it("puts requests without a readable address under one shared key", async () => {
+    await oneWindow();
     const statuses: number[] = [];
     for (let i = 0; i < 11; i++) {
       const res = await SELF.fetch("https://relay.test/v1/games", { method: "POST", body: "{}" });
@@ -89,15 +138,55 @@ describe("the create limit (L2)", () => {
   });
 });
 
-describe("the redeem limit, keyed the same way (F11, L1)", () => {
+describe("the redeem limit, keyed the same way (F11, L1, L5)", () => {
+  const redeem = (ip: string) =>
+    call("POST", "/v1/invites/ZZZZ-ZZZ0/redeem", { body: { v: "1.0", seatSecret: "S".repeat(43) }, ip });
+
   it("counts every address of one IPv6 /64 together", async () => {
-    const base = freshV6().replace(/::1$/, "");
-    const redeem = (ip: string) =>
-      call("POST", "/v1/invites/ZZZZ-ZZZ0/redeem", { body: { v: "1.0", seatSecret: "S".repeat(43) }, ip });
-    for (let i = 1; i <= 10; i++) expect((await redeem(`${base}::${i.toString(16)}`)).status).toBe(404);
-    const limited = await redeem(`${base}:1:2:3:4`);
+    await oneWindow();
+    const block = fresh48();
+    for (let i = 1; i <= 10; i++) expect((await redeem(`${block}:0::${i.toString(16)}`)).status).toBe(404);
+    const limited = await redeem(`${block}:0:1:2:3:4`);
     expect(limited.status).toBe(429);
     expect(limited.headers.get("Retry-After")).toBe("60");
+  });
+
+  it("allows 100 guesses a minute per IPv6 /48, however many /64s they come from", async () => {
+    await oneWindow();
+    const block = fresh48();
+    const statuses: number[] = [];
+    for (let net = 0; net < 10; net++) {
+      for (let i = 1; i <= 10; i++) statuses.push((await redeem(`${block}:${net.toString(16)}::${i.toString(16)}`)).status);
+    }
+    expect(statuses).toEqual(Array(100).fill(404));
+    const limited = await redeem(`${block}:abcd::1`);
+    expect(limited.status).toBe(429);
+    expect(limited.json.error.code).toBe("rate_limited");
+    // Another /48 is unaffected.
+    expect((await redeem(freshV6())).status).toBe(404);
+  });
+
+  it("does not charge the /48 for a request its /64 already refused", async () => {
+    await oneWindow();
+    const block = fresh48();
+    // One /64 sends 50: 10 pass both limits, 40 are refused by its own and never reach the /48's.
+    const busy: number[] = [];
+    for (let i = 1; i <= 50; i++) busy.push((await redeem(`${block}:0::${i.toString(16)}`)).status);
+    expect(busy.filter((s) => s === 404)).toHaveLength(10);
+    // So the /48 still has 90 for its other /64s.
+    for (let net = 1; net <= 9; net++) {
+      for (let i = 1; i <= 10; i++) expect((await redeem(`${block}:${net.toString(16)}::${i.toString(16)}`)).status).toBe(404);
+    }
+    expect((await redeem(`${block}:a::1`)).status).toBe(429);
+  });
+
+  it("keys an IPv4 address on the address alone, on both limits", async () => {
+    await oneWindow();
+    const ip = freshIp();
+    for (let i = 0; i < 10; i++) expect((await redeem(ip)).status).toBe(404);
+    expect((await redeem(ip)).status).toBe(429);
+    // The neighbouring address is another client.
+    expect((await redeem(freshIp())).status).toBe(404);
   });
 });
 
@@ -112,6 +201,9 @@ describe("plain HTTP (L3)", () => {
       });
       expect(res.status, path).toBe(426);
       expect(res.headers.get("Location")).toBeNull();
+      // RFC 9110 15.5.22: a 426 names the protocol to switch to.
+      expect(res.headers.get("Upgrade")).toBe("TLS/1.0, HTTP/1.1");
+      expect(res.headers.get("Connection")).toBe("Upgrade");
       const json = (await res.json()) as any;
       expect(json.error.code).toBe("upgrade_required");
       expect(json.error.message).toContain(`https://chess-relay.example${path}`);

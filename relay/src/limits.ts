@@ -1,5 +1,5 @@
 // What the Worker checks before it routes a request: the scheme (plain HTTP is refused, docs/protocol.md
-// "Conventions") and the key the rate limits count under (F11, L1, L2).
+// "Conventions") and the keys the rate limits count under (F11, L1, L2, L5).
 
 /** The key every request with a missing or unreadable `CF-Connecting-IP` shares. */
 export const UNKNOWN_CLIENT = "unknown";
@@ -9,21 +9,35 @@ const HEXTET = /^[0-9a-f]{1,4}$/;
 
 /**
  * The rate-limit key for a client address (L1): an IPv4 address as it is, an IPv6 address as its
- * /64 (the first four hextets, expanded and lowercase, such as `2001:db8:0:0::/64`), because one
- * subscriber is usually handed a whole /64 and can pick a fresh address in it for every request.
- * An IPv4-mapped IPv6 address (`::ffff:1.2.3.4`) is its IPv4 address. Anything else, or no header,
- * is [UNKNOWN_CLIENT].
+ * /64 (the first four hextets, expanded and lowercase, such as `2001:db8:0:0::/64`), the least a
+ * subscriber is handed, so a fresh address in it is not a fresh budget. An IPv4-mapped IPv6 address
+ * (`::ffff:1.2.3.4`) is its IPv4 address. Anything else, or no header, is [UNKNOWN_CLIENT].
  */
 export function clientKey(header: string | null): string {
+  return addressKey(header, 4);
+}
+
+/**
+ * The coarser key the wide limits count under (L5): an IPv6 address as its /48 (the first three
+ * hextets, such as `2001:db8:0::/48`), which bounds a holder of a larger delegation (a /56 or /48
+ * from an ISP, a /48 from a tunnel broker) who can pick a fresh /64 for every request. An IPv4
+ * address, an IPv4-mapped one, and [UNKNOWN_CLIENT] key exactly as [clientKey] does.
+ */
+export function wideClientKey(header: string | null): string {
+  return addressKey(header, 3);
+}
+
+/** The key for [header]: IPv4 whole, IPv6 by its first [hextets] hextets, else [UNKNOWN_CLIENT]. */
+function addressKey(header: string | null, hextets: 3 | 4): string {
   const raw = header?.trim().toLowerCase() ?? "";
   if (IPV4.test(raw)) return raw;
-  const hextets = ipv6Hextets(raw);
-  if (!hextets) return UNKNOWN_CLIENT;
-  if (hextets.slice(0, 5).every((h) => h === 0) && hextets[5] === 0xffff) {
-    const [hi, lo] = [hextets[6]!, hextets[7]!];
+  const groups = ipv6Hextets(raw);
+  if (!groups) return UNKNOWN_CLIENT;
+  if (groups.slice(0, 5).every((h) => h === 0) && groups[5] === 0xffff) {
+    const [hi, lo] = [groups[6]!, groups[7]!];
     return [hi >> 8, hi & 0xff, lo >> 8, lo & 0xff].join(".");
   }
-  return `${hextets.slice(0, 4).map((h) => h.toString(16)).join(":")}::/64`;
+  return `${groups.slice(0, hextets).map((h) => h.toString(16)).join(":")}::/${hextets * 16}`;
 }
 
 /** The eight hextets of an IPv6 address, or null. Takes `::` and a dotted IPv4 tail; no zone id. */

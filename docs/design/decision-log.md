@@ -1139,10 +1139,13 @@ docs/protocol.md; the Tool is unchanged (it speaks HTTPS only, RelayConfig.URL, 
   (relay/src/limits.ts) reads it: an IPv4 address whole; an IPv6 address by its /64, the first four
   hextets after expanding `::`, in lowercase hex without leading zeros (`2001:db8:0:0::/64`); an
   IPv4-mapped address (`::ffff:1.2.3.4`) as its IPv4 address; anything missing or unreadable under
-  one shared key. Why the /64: an ISP hands one subscriber a whole /64, so the full address let one
-  client pick a fresh budget per request. AMENDS F11 and H7 ("per client IP" is now per client
-  address in this sense). The shared fallback key means a Cloudflare fault that drops the header
-  would limit everyone together, which fails safe; the header is always set on the deployed Worker.
+  one shared key. Why the /64: a subscriber holds at least a whole /64, so the full address let one
+  client pick a fresh budget per request. The /64 alone does not close that hole: a holder of a
+  larger delegation still gets one budget per /64 in it, which L5 bounds. AMENDS F11 and H7 ("per
+  client IP" is now per client address in this sense). The shared fallback key means a Cloudflare
+  fault that drops the header would limit everyone together, which fails safe; the header is always
+  set on the deployed Worker. Every limit is approximate: Cloudflare's binding counts per location
+  and is eventually consistent.
 - L2 `POST /v1/games` is limited like a redemption: its own binding `CREATE_LIMITER` (namespace
   1002), 10 per 60 s per client address (L1), counted before the body is read, `429 rate_limited`
   with `Retry-After: 60`. Why 10: a phone creates one Game per invite or rematch offer and holds at
@@ -1167,3 +1170,22 @@ docs/protocol.md; the Tool is unchanged (it speaks HTTPS only, RelayConfig.URL, 
   infrastructure choice.
 - L4 `/v1/sync` checks each `seatSecret` is 43 base64url characters, like redeem and join (W9);
   a malformed one is `400 bad_request` for the whole batch, since no phone can hold such a secret.
+- L5 (code review of L1) Redeem and create are each also limited per IPv6 /48: bindings
+  `REDEEM_WIDE_LIMITER` (namespace 1003) and `CREATE_WIDE_LIMITER` (1004), 100 per 60 s, keyed by
+  `wideClientKey` (the first three hextets, `2001:db8:0::/48`). A request must pass both its /64
+  limit and its /48 limit; the /64 is checked first, so a request it refuses is not charged to the
+  /48, and one busy /64 spends at most 10 of its /48's 100 a minute. IPv4, IPv4-mapped and
+  unreadable addresses key the wide limit exactly as L1 does: the per-client limit already counts
+  the whole address, so the wide one never binds there, and one code path is simpler than a skip.
+  Why: ISPs delegate a /56 or /48 by DHCPv6-PD and free tunnel brokers hand anyone a /48, so under
+  L1 alone a /48 holder had 65,536 /64s, 655,360 redeem guesses a minute. Against the 2^40 Invite
+  Codes that is about 1.9 billion guesses over an invite's 48 hours, 1 in 583 of hitting a given
+  open invite. With L5 a /48 gets 100 guesses a minute, 288,000 in 48 hours, 1 in 3.8 million per
+  open invite (a lone /64: 28,800, 1 in 38 million). The odds grow with the number of open invites
+  and the Cloudflare locations an attacker reaches, and a holder of many /48s or many IPv4
+  addresses is not bounded; that is accepted for a Relay with no accounts. Create gets the wide
+  limit too although it is a storage-fill vector, not a guessing one: without it a /48 could create
+  655,360 Games a minute, which undoes L2's "not at request rate"; with it, at most 288,000
+  unredeemed Games per /48 are alive at once, each deleted after 48 hours. Why 100: ten /64s' worth,
+  so a /48 that is one site (a household, an office) with several phones behind it is never the
+  limit before each phone's own /64 is.

@@ -31,15 +31,38 @@ export async function call<T = any>(
 /** A stand-in digest: the Relay checks only that it is 64 lowercase hex characters. */
 export const digest = (n: number): string => n.toString(16).padStart(64, "0");
 
-let ipCounter = 0;
-/** A fresh documentation-range IP, so one test's redemptions never touch another's rate limit. */
-export const freshIp = (): string => `198.51.100.${++ipCounter}`;
+// Each test file gets its own module instance and its own Miniflare rate-limit state (checked with
+// two files spending the same key), so these counters only need to be distinct within a file.
 
-/** This run's own IPv6 hextet, so no two test files' fresh addresses share a /64. */
-const run = crypto.getRandomValues(new Uint16Array(1))[0]!.toString(16);
-let prefixCounter = 0;
-/** An address in a fresh documentation-range IPv6 /64, so one test's Games never touch another's create limit (L1, L2). */
-export const freshV6 = (): string => `2001:db8:${run}:${(++prefixCounter).toString(16)}::1`;
+let ipCounter = 0;
+/**
+ * A fresh IPv4 address in the benchmarking range 198.18.0.0/15 (131,071 of them), so one test's
+ * requests never touch another's rate limit (L1, L2).
+ */
+export const freshIp = (): string => {
+  const n = ++ipCounter;
+  return `198.${18 + (n >> 16)}.${(n >> 8) & 255}.${n & 255}`;
+};
+
+let blockCounter = 0;
+/**
+ * A fresh IPv6 /48 in the documentation range 2001:db8::/32, as its first three hextets
+ * (`2001:db8:1a`), so one test's addresses never touch another's /64 or /48 limits (L1, L5).
+ */
+export const fresh48 = (): string => `2001:db8:${(++blockCounter).toString(16)}`;
+
+/** An address in a fresh IPv6 /48 (and so a fresh /64). */
+export const freshV6 = (): string => `${fresh48()}::1`;
+
+/**
+ * Waits out the last 10 seconds of a clock minute. Miniflare's limiter counts in fixed 60-second
+ * windows aligned to the clock, so a test that spends a budget and then expects a 429 would find
+ * the budget reset if a new window opened midway.
+ */
+export async function oneWindow(): Promise<void> {
+  const into = Date.now() % 60_000;
+  if (into > 50_000) await new Promise((resolve) => setTimeout(resolve, 60_000 - into + 100));
+}
 
 export interface Created {
   gameId: string;
