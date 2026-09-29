@@ -1,12 +1,17 @@
 package com.yarosz.chess.board
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -15,7 +20,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.thelightphone.sdk.ui.LightText
 import com.thelightphone.sdk.ui.LightTextVariant
+import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.designVerticalPxToDp
+import com.thelightphone.sdk.ui.designVerticalPxToSp
 import com.thelightphone.sdk.ui.lightClickable
 
 /**
@@ -35,6 +42,27 @@ object StripLayout {
     /** Padding on each side of a button's label. */
     val BUTTON_PADDING: Dp = 8.dp
 
+    /** Padding above and below a button's label. */
+    val BUTTON_VERTICAL_PADDING: Dp = 8.dp
+
+    /**
+     * The same while the captured-pieces row shows (P3): a label's line (Copy, 45 design px) plus this
+     * above and below fits the 38 dp left under the row, so no label is clipped; still a 37 dp target.
+     */
+    val BUTTON_VERTICAL_PADDING_BELOW_ROW: Dp = 4.dp
+
+    /**
+     * Where the status and buttons start, from the strip's top (P3, the owner's choice): below the
+     * captured-pieces row's band on every Game board ([captured] non-null), captures or not, so the
+     * text never moves when the first piece is taken or when Review steps across it; at the top in a
+     * Puzzle, as before.
+     */
+    fun textTop(captured: CapturedRowState?): Dp = if (captured != null) CapturedRowLayout.BOTTOM.dp else 0.dp
+
+    /** The buttons' padding above and below: the smaller one wherever the row's band is reserved. */
+    fun buttonVerticalPadding(captured: CapturedRowState?): Dp =
+        if (captured != null) BUTTON_VERTICAL_PADDING_BELOW_ROW else BUTTON_VERTICAL_PADDING
+
     /** LightOS `Copy` text: 30 design px with a line height of 1.5 (light-sdk `LightTheme.kt`). */
     const val COPY_DESIGN_PX = 30f
     const val COPY_LINE_HEIGHT = 1.5f
@@ -52,35 +80,67 @@ data class StripButton(val label: String, val description: String = label, val e
  * the status in the secondary content colour, buttons in the content colour with LightOS's
  * press-without-ripple. It is always two status lines tall, so the board never moves when a status
  * wraps.
+ *
+ * On a Game board, [captured] reserves the strip's top band for the captured-pieces row (P3): the
+ * status and buttons always centre in the part of the strip below it, from the first Position on, and
+ * a status's two lines are set closer so that a two-line Result still fits there; the pieces appear
+ * in the band once something is taken. The strip keeps its size and place. A Puzzle passes no
+ * [captured], and its strip is as it was.
  */
 @Composable
-fun Strip(status: String, buttons: List<StripButton>, modifier: Modifier = Modifier) {
+fun Strip(status: String, buttons: List<StripButton>, modifier: Modifier = Modifier, captured: CapturedRowState? = null) {
     // Three by context (contradiction 2); four only for a chosen Correspondence Move (SAN, Send, Undo, Menu).
     require(buttons.size <= 4) { "the strip holds at most 4 buttons" }
     val statusLines = with(StripLayout) { COPY_DESIGN_PX * COPY_LINE_HEIGHT * STATUS_MAX_LINES }.designVerticalPxToDp()
-    Row(
-        modifier.fillMaxWidth().height(maxOf(StripLayout.MIN_HEIGHT, statusLines)),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        LightText(
-            text = status,
-            variant = LightTextVariant.Copy,
-            lighten = true,
-            maxLines = StripLayout.STATUS_MAX_LINES,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f).padding(end = StripLayout.STATUS_GAP),
-        )
-        for (button in buttons) {
-            LightText(
-                text = button.label,
-                variant = LightTextVariant.Copy,
-                lighten = !button.enabled,
-                maxLines = 1,
-                modifier = Modifier
-                    .lightClickable(onClickLabel = button.description, role = Role.Button) { if (button.enabled) button.onClick() }
-                    .semantics { contentDescription = button.description }
-                    .padding(horizontal = StripLayout.BUTTON_PADDING, vertical = 8.dp),
-            )
+    val height = maxOf(StripLayout.MIN_HEIGHT, statusLines)
+    BoxWithConstraints(modifier.fillMaxWidth().height(height)) {
+        if (captured != null && captured.shown) CapturedRow(captured, maxWidth, Modifier.align(Alignment.TopStart))
+        val top = StripLayout.textTop(captured)
+        val buttonPadding = StripLayout.buttonVerticalPadding(captured)
+        Row(
+            Modifier.fillMaxWidth().fillMaxHeight().padding(top = top),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            val statusModifier = Modifier.weight(1f).padding(end = StripLayout.STATUS_GAP)
+            if (captured == null) {
+                LightText(
+                    text = status,
+                    variant = LightTextVariant.Copy,
+                    lighten = true,
+                    maxLines = StripLayout.STATUS_MAX_LINES,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = statusModifier,
+                )
+            } else {
+                // LightText has no line height of its own: the same Copy style, its lines set to fill
+                // the room below the row exactly.
+                val copy = LightThemeTokens.typography.copy
+                val lineHeight = with(LocalDensity.current) { ((height - top) / StripLayout.STATUS_MAX_LINES).toSp() }
+                BasicText(
+                    text = status,
+                    style = copy.copy(
+                        fontSize = copy.fontSize.value.designVerticalPxToSp(),
+                        lineHeight = lineHeight,
+                        color = LightThemeTokens.colors.contentSecondary,
+                    ),
+                    maxLines = StripLayout.STATUS_MAX_LINES,
+                    overflow = TextOverflow.Ellipsis,
+                    // Two such lines fill the room exactly: unbounded, so rounding never ellipsizes the second.
+                    modifier = statusModifier.wrapContentHeight(unbounded = true),
+                )
+            }
+            for (button in buttons) {
+                LightText(
+                    text = button.label,
+                    variant = LightTextVariant.Copy,
+                    lighten = !button.enabled,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .lightClickable(onClickLabel = button.description, role = Role.Button) { if (button.enabled) button.onClick() }
+                        .semantics { contentDescription = button.description }
+                        .padding(horizontal = StripLayout.BUTTON_PADDING, vertical = buttonPadding),
+                )
+            }
         }
     }
 }

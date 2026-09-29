@@ -3,7 +3,9 @@ package com.yarosz.chess
 import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.correspondence.Refusal
 import com.yarosz.chess.puzzles.AttemptState
+import com.yarosz.chess.rules.CapturedPieces
 import com.yarosz.chess.rules.DrawReason
+import com.yarosz.chess.rules.PieceType
 import com.yarosz.chess.rules.Result
 import com.yarosz.chess.rules.Side
 import com.yarosz.chess.rules.WinReason
@@ -325,4 +327,37 @@ object UiCopy {
      * at a slash. Text, not a link: the phone has no browser and Chess never uses the network (D5).
      */
     fun puzzleRow(id: String) = "Puzzle $id\nlichess.org/training/$id"
+
+    /**
+     * The captured-pieces row's accessibility label (P3), in the row's order, the Side at the
+     * [bottom] first: "Captured by White: two pawns, a queen. Captured by Black: a knight. White is
+     * ahead by 7." A Side that has taken nothing is left out; "Material is even." when neither leads.
+     */
+    fun capturedPieces(captured: CapturedPieces, bottom: Side): String {
+        val sentences = mutableListOf<String>()
+        for (side in listOf(bottom, bottom.opponent)) {
+            val taken = captured.by(side)
+            if (taken.isEmpty()) continue
+            val kinds = CapturedPieces.ORDER.mapNotNull { kind -> taken.count { it == kind }.takeIf { it > 0 }?.let { pieceCount(it, kind) } }
+            sentences += "Captured by ${sideName(side)}: ${kinds.joinToString(", ")}."
+        }
+        val leader = captured.leader
+        sentences += if (leader == null) MATERIAL_EVEN else "${sideName(leader)} is ahead by ${kotlin.math.abs(captured.lead)}."
+        return sentences.joinToString(" ")
+    }
+
+    const val MATERIAL_EVEN = "Material is even."
+
+    fun sideName(side: Side) = if (side == Side.WHITE) WHITE else BLACK
+
+    /** "a pawn", "two pawns", up to fifteen in words (a Side can take at most fifteen pieces). */
+    private fun pieceCount(n: Int, kind: PieceType): String {
+        val name = kind.name.lowercase()
+        return if (n == 1) "a $name" else "${COUNT_WORDS.getOrElse(n - 1) { n.toString() }} ${name}s"
+    }
+
+    private val COUNT_WORDS = listOf(
+        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven",
+        "twelve", "thirteen", "fourteen", "fifteen",
+    )
 }

@@ -4,9 +4,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.VectorPath
 import com.yarosz.chess.rules.Piece
+import com.yarosz.chess.rules.PieceType
 import com.yarosz.chess.rules.Side
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -38,6 +40,36 @@ class PieceVectorsTest {
     private fun VectorPath.fillColor(): Color? = (fill as? SolidColor)?.value
 
     private fun VectorPath.strokeColor(): Color? = (stroke as? SolidColor)?.value
+
+    /**
+     * P3: the captured-pieces row draws a white piece as on the board, and a black one as its white
+     * drawing, path for path, with the white body painted [Shades.CAPTURED_BLACK_BODY] gray: same
+     * silhouette and black outer line, so overlapping pieces stay separate on the black ground.
+     */
+    @Test
+    fun capturedBlackPiecesAreTheWhiteDrawingWithAGrayBody() {
+        val gray = Color(Shades.argb(Shades.CAPTURED_BLACK_BODY))
+        for (set in PieceSet.entries) for (piece in Piece.entries.filter { it.type != PieceType.KING }) {
+            val captured = PieceVectors.captured(set, piece)
+            assertSame(captured, PieceVectors.captured(set, piece), "$set $piece is built once")
+            if (piece.side == Side.WHITE) {
+                assertSame(PieceVectors.vector(set, piece), captured, "$set $piece as on the board")
+                continue
+            }
+            assertEquals("${set.name}_CAPTURED_BLACK_${piece.type.name}", captured.name)
+            val white = PieceVectors.vector(set, Piece.of(Side.WHITE, piece.type)).root.map { it as VectorPath }
+            val twin = captured.root.map { it as VectorPath }
+            assertEquals(white.map { it.pathData }, twin.map { it.pathData }, "$set $piece has the white silhouette")
+            assertEquals(white.map { it.strokeLineWidth }, twin.map { it.strokeLineWidth })
+            for ((w, t) in white.zip(twin)) {
+                assertEquals(w.fillColor()?.let { if (it == Color.White) gray else it }, t.fillColor(), "$set $piece fill")
+                assertEquals(w.strokeColor()?.let { if (it == Color.White) gray else it }, t.strokeColor(), "$set $piece stroke")
+            }
+            assertTrue(twin.any { it.fillColor() == gray }, "$set $piece has a gray body")
+            assertTrue(twin.none { it.fillColor() == Color.White || it.strokeColor() == Color.White }, "$set $piece has no white left")
+        }
+        assertFailsWith<IllegalArgumentException> { PieceVectors.captured(PieceSet.DEFAULT, Piece.BLACK_KING) }
+    }
 
     @Test
     fun whitePiecesAreOutlinedTwinsOfTheBlackSilhouette() {

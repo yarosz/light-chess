@@ -1,9 +1,16 @@
 package com.yarosz.chess
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import com.yarosz.chess.board.CapturedRowState
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.StripLayout
 import com.yarosz.chess.games.GameRecord
 import com.yarosz.chess.games.GameState
 import com.yarosz.chess.games.Phase
+import com.yarosz.chess.rules.CapturedPieces
+import com.yarosz.chess.rules.Game
+import com.yarosz.chess.rules.Side
 
 /** The game screen's strip buttons. */
 enum class GameButton(val label: String, val description: String) {
@@ -58,3 +65,18 @@ data class GameStrip(
             GameStrip(UiCopy.review(reviewPly, record.game.ply), listOf(GameButton.LATEST))
     }
 }
+
+/**
+ * The captured-pieces row for a Game's board (P3): [game]'s Captured Pieces after [ply] Moves, the Ply
+ * on screen, with [bottom] at the bottom of the board, drawn in [pieceSet]. Every board in a Game has
+ * it (the game screen, a Correspondence Game and Games Review); a Puzzle's never does.
+ */
+fun capturedRow(game: Game, ply: Int, bottom: Side, pieceSet: PieceSet): CapturedRowState {
+    val captured = CapturedPieces.of(game, ply)
+    return CapturedRowState(captured, bottom, pieceSet, UiCopy.capturedPieces(captured, bottom))
+}
+
+/** [capturedRow], computed again only when the Game, the Ply shown, the bottom Side or the Piece Set changes. */
+@Composable
+fun rememberCapturedRow(game: Game, ply: Int, bottom: Side, pieceSet: PieceSet): CapturedRowState =
+    remember(game, ply, bottom, pieceSet) { capturedRow(game, ply, bottom, pieceSet) }

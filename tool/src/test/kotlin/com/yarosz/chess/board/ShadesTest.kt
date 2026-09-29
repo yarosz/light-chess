@@ -56,6 +56,17 @@ class ShadesTest {
         }
     }
 
+    /**
+     * P3: a captured black piece's gray body stands out from the strip's black ground and from a
+     * captured white piece's body, by the squares' floor, so the two ends read as two Sides.
+     */
+    @Test
+    fun capturedBlackPiecesStandOutFromTheGroundAndFromWhite() {
+        assertTrue(apart(Shades.CAPTURED_BLACK_BODY, 0x00) >= Shades.SQUARE_CONTRAST)
+        assertTrue(apart(Shades.CAPTURED_BLACK_BODY, 0xFF) >= Shades.SQUARE_CONTRAST)
+        assertEquals(0x96, Shades.CAPTURED_BLACK_BODY, "the owner's mock-up (#969696), and scripts/build-pieces.py")
+    }
+
     @Test
     fun thePickerStandsOutFromTheDimmedBoard() {
         fun dimmed(level: Int) = level * (1 - Shades.DIM_ALPHA) + Shades.MARKER * Shades.DIM_ALPHA

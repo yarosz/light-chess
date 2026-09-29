@@ -96,7 +96,10 @@ class GameReviewScreen(
                     description = UiCopy.BOARD_DESCRIPTION,
                     pieceSet = pieceSet ?: PieceSet.DEFAULT,
                 )
-                Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE))
+                Strip(
+                    strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE),
+                    captured = rememberCapturedRow(record.game, shown, record.userSide, pieceSet ?: PieceSet.DEFAULT),
+                )
             }
         }
     }

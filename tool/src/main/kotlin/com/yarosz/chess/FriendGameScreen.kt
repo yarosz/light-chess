@@ -227,7 +227,9 @@ class FriendGameScreen(
                 description = UiCopy.BOARD_DESCRIPTION,
                 pieceSet = pieceSet,
             )
-            Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE))
+            // A chosen Move not yet sent counts as shown (F11): its capture is in the row at once.
+            val captured = rememberCapturedRow(shownGame ?: played, shownGame?.ply ?: shown, game.seat.side, pieceSet)
+            Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE), captured = captured)
         }
     }
 

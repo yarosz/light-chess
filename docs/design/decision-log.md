@@ -1091,3 +1091,43 @@ feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 an
   build still takes `-Prelay.url` for a local Worker (W8, Y3); release,
   and a debug build without it, use this URL. The URL is set before the deploy, so a release waits
   on `/health` answering there as well as on `release-check.sh relay` (RELEASING.md).
+
+## Captured Pieces under the board (owner, 2026-09-29)
+- P3 RULING, from the owner's review of a mock-up drawn on the LP3's layout: every board in a Game
+  shows the Captured Pieces (CONTEXT.md) in one row under the board: the game screen against the
+  computer, a Correspondence Game's board, and Games Review. A Puzzle's board never does (a Puzzle
+  starts mid-Game, so captures mean nothing there), and its strip is unchanged.
+  - Place: the strip's top band, the gap between the board's bottom edge and the strip's text. At the
+    left end the pieces the Side at the bottom of the board has taken, at the right end the other
+    Side's, each end growing inwards from the board's edge; a flipped board swaps them. Both ends read
+    pawn, knight, bishop, rook, queen from left to right, as the mock-up drew them, so the left end has
+    its pawns at the edge and the right end its queens. Pieces of one kind overlap like a fanned hand,
+    the inner piece over the outer. Every captured piece is drawn; nothing is summarised, and the row
+    never wraps (`CapturedRowTest` proves the widest row, fifteen pieces at each end with a +103
+    Material Lead, keeps its two ends apart).
+  - Sizes (`CapturedRowLayout`), from the mock-up's 52, 17 and 50 px at 3 px per dp: drawings 17 dp,
+    5.5 dp from one piece to the next of its kind, 16.5 dp to the next kind, 3 dp below the board.
+  - The Material Lead, "+7" from the material on the board (P1 N3 B3 R5 Q9, so a promotion counts), in
+    LightOS Superfine and the secondary content colour, just inside the leading Side's end; nothing
+    when the material is even.
+  - A captured black piece is the white drawing with its body gray (`Shades.CAPTURED_BLACK_BODY`,
+    150, the mock-up's #969696): solid black would vanish on the black ground, and the black outer
+    line keeps overlapping pieces apart, as it does for white ones. `scripts/build-pieces.py` writes
+    these twins for both Piece Sets (P1's rule that a change to a drawing goes back to the owner is
+    kept: the twin changes only a fill colour, and the owner approved it in the mock-up), and
+    `--check` covers them. The row uses the player's Piece Set.
+  - What counts: the Game's Moves up to the Position shown (Review follows the Ply on screen; a
+    Correspondence Game's chosen Move, not yet sent, counts as shown), en passant included. A piece
+    taken is the one its capture removed from the board (en passant's pawn included), so a promoted pawn taken later is the piece it became, and the
+    pawn it came from is never counted.
+  - The strip: on every Game board the status and buttons centre in the part of the strip below the
+    row's band (a one-line status 10 dp lower than in a Puzzle), and a status's two lines are set
+    closer (the room below the row divided by two, just under Copy's font size) so a two-line Result
+    (R4.16) still fits there; the buttons' padding above and below is 4 dp there, not 8. The strip
+    keeps its size and place, so the board never moves. A Puzzle's strip is exactly as before.
+  - The band is reserved from a Game's first Position, before anything is captured (owner's choice,
+    2026-09-29, SUPERSEDES this ruling's first draft, which lowered the text only at the first capture):
+    the text never moves, neither when the first piece is taken nor when Review steps back across that
+    Ply. The pieces simply appear in the band once there is a capture.
+  - Accessibility: the row reads, in its own order, "Captured by White: two pawns, a queen. Captured by
+    Black: a knight. White is ahead by 7." ("Material is even." when neither leads), from `UiCopy`.

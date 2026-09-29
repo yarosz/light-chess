@@ -9,7 +9,10 @@ small decisions v1 PRs 3 and 4 made that the log doesn't cover.
 The LP3's app area is 1080 × 1168 px at 480 dpi: 360 dp wide, about 389 dp tall. The board is 312 dp
 square (8 × 39 dp, 117 px squares), centred, 12 dp below the top of the app area, with 24 dp either
 side. The strip is exactly as wide as the board, directly under it, and two `Copy` lines tall (90
-design px, 58 dp on the LP3; never under 48 dp). About 7 dp stay free at the bottom.
+design px, 58 dp on the LP3; never under 48 dp). About 7 dp stay free at the bottom. In a Game, the
+strip's top band is kept for the Captured Pieces row (P3; "The game screen" below): 17 dp drawings 3 dp
+under the board once something is taken, and from the first Position the strip's text centred in the
+38 dp left below them. A Puzzle's strip has no band.
 
 The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). The puzzle
 flow puts the side to move after the setup Move at the bottom (A5). The game screen puts the user's
@@ -31,6 +34,7 @@ photo of the panel as the final check.
 | `COORDINATE_ON_LIGHT` | 90 | `#5A5A5A` | coordinates on light squares |
 | `COORDINATE_ON_DARK` | 240 | `#F0F0F0` | coordinates on dark squares |
 | `PICKER` | 240 | `#F0F0F0` | promotion picker cells; the rest of the board is dimmed with `MARKER` at 60% |
+| `CAPTURED_BLACK_BODY` | 150 | `#969696` | the body of a captured black piece in the Captured Pieces row (P3), at least 60 from the black ground and from white |
 
 Floors, in gray levels:
 
@@ -290,6 +294,28 @@ Buttons by context (contradiction 2):
 | The Result | the Result | Next, Menu |
 | Review | "Review · 12 of 40" | Latest |
 | A finished Game from Games | the Result, or Review | Back at the Result, Latest in Review |
+
+The Captured Pieces (P3), on every board in a Game (this screen, a Correspondence Game's board and
+Games Review), never on a Puzzle's. `CapturedPieces` (rules core) reads them from the Moves up to the
+Ply on screen, en passant included, a promoted pawn taken later as the piece it became; `CapturedRow`
+draws them and `CapturedRowTest` checks the layout:
+
+- One row in the strip's top band. Left end: what the Side at the bottom has taken; right end: the
+  other Side's; each from the board's edge inwards, both reading pawn, knight, bishop, rook, queen from
+  left to right (pawns at the left edge, queens at the right). One kind fans out, 5.5 dp a piece; the
+  next kind starts 16.5 dp on; drawings are 17 dp. The widest row (fifteen a side, "+103") fits.
+- The Material Lead, "+7", in Superfine and the secondary content colour just inside the leading
+  Side's end; nothing when even. From the material on the board, so a promotion counts.
+- A captured white piece is its board drawing; a captured black one the white drawing with a gray
+  body (`CAPTURED_BLACK_BODY`), generated for both Piece Sets by `scripts/build-pieces.py`.
+- The strip: on every Game board, from its first Position (the owner's choice: the text never moves
+  when the first piece is taken or when Review steps across it), the status and buttons centre below
+  the row's band (10 dp lower than in a Puzzle), whether or not the band holds pieces yet, and a
+  two-line status's lines are set to half the room below the row, so a
+  Result still fits in two lines; the buttons' padding above and below drops from 8 dp to 4, so a
+  label's line fits the 38 dp there unclipped (a 37 dp target). The strip keeps its size.
+- Its label: "Captured by White: two pawns, a queen. Captured by Black: a knight. White is ahead by
+  7.", the bottom Side first; "Material is even." when neither leads.
 
 Every game status holds one line on the LP3, but a Result, which may take the strip's second
 (R4.16): in Akkurat, "Your move" wrapped next to Takeback, Hint and Menu, and "Computer thinking" next
