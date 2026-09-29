@@ -15,6 +15,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -58,7 +60,9 @@ class ChessViewModel(
     private val owner: PuzzleOwner,
     private val game: GameOwner,
     private val modes: ModeOwner,
-) : WheelViewModel() {
+    /** Play a friend's owner, or null while the Relay URL is empty (W8). */
+    private val friends: () -> FriendOwner?,
+) : WheelViewModel<Unit>() {
     private var input by mutableStateOf<MoveInput?>(null)
     private var review by mutableStateOf(Review())
 
@@ -148,11 +152,14 @@ class ChessViewModel(
         return true
     }
 
+    /** The Tool opening, or its first screen showing again: the computer resumes, and Play a friend syncs (W7). */
     override fun onScreenShow(screen: SimpleLightScreen<Unit>) {
         if (modes.mode.value == Mode.GAME) game.resume()
+        friends()?.sync()
     }
 
     override fun onWheel(key: Wheel): Boolean {
+        if (modes.mode.value == Mode.FRIEND && friends() != null) return false
         if (modes.mode.value == Mode.GAME && game.state.value?.record != null) return gameKey(key)
         val session = owner.session.value ?: return false
         val attempt = session.attempt ?: return false
@@ -180,7 +187,10 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
     private val game: GameOwner by lazy { GameOwner.of(lightContext.filesDir, lightContext::readAsset) }
     private val modes: ModeOwner by lazy { ModeOwner.of(lightContext.filesDir) }
 
-    override fun createViewModel() = ChessViewModel(owner, game, modes)
+    /** Read each time: null while the Relay URL is empty (W8). */
+    private val friends: FriendOwner? get() = FriendOwner.of(lightContext)
+
+    override fun createViewModel() = ChessViewModel(owner, game, modes) { friends }
 
     @Composable
     override fun Content() {
@@ -191,9 +201,17 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
         val mode by modes.mode.collectAsState()
         val puzzleAwake by owner.awake.collectAsState()
         val gameAwake by game.awake.collectAsState()
+        val friendOwner = friends
+        val friendState = friendOwner?.state?.collectAsState()?.value
         // Game mode shows the Game on screen; with none (a lost file), the puzzles show instead.
         val gameShown = gameState?.takeIf { mode == Mode.GAME && it.record != null }
-        val awake = if (gameShown != null) gameAwake else puzzleAwake
+        // Friend mode shows the Play a friend page; with Play a friend off (W8), the puzzles show.
+        val friendShown = friendState?.takeIf { mode == Mode.FRIEND }
+        val awake = when {
+            friendShown != null -> false
+            gameShown != null -> gameAwake
+            else -> puzzleAwake
+        }
         LightTheme(colors = themeColors) {
             Box(Modifier.fillMaxSize().background(LightThemeTokens.colors.background)) {
                 // D3: an attached View's keepScreenOn sets the window's flag (PLATFORM.md).
@@ -201,6 +219,10 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
                 // Game mode waits for its file and for the Piece Set (read before any Band, M4), so the
                 // first frame of a Game draws the chosen set.
                 if (mode == Mode.GAME && (gameState == null || pieceSet == null)) return@Box
+                if (friendShown != null && friendOwner != null) {
+                    FriendHome(friendOwner, friendShown)
+                    return@Box
+                }
                 if (gameShown != null) {
                     GameView(gameShown, pieceSet ?: PieceSet.DEFAULT)
                     return@Box
@@ -235,13 +257,13 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
         }
         val menu = StripButton(UiCopy.MENU, UiCopy.MENU_DESCRIPTION) { owner.touched(); navigateTo({ MenuScreen(it) }) }
         val buttons = buildList {
-            if (review.ply != null) add(StripButton(UiCopy.LATEST, UiCopy.LATEST_DESCRIPTION, vm::leaveReview))
+            if (review.ply != null) add(StripButton(UiCopy.LATEST, UiCopy.LATEST_DESCRIPTION, onClick = vm::leaveReview))
             when {
-                attempt.stage == Stage.DONE -> add(StripButton(UiCopy.NEXT, UiCopy.NEXT_DESCRIPTION, owner::next))
+                attempt.stage == Stage.DONE -> add(StripButton(UiCopy.NEXT, UiCopy.NEXT_DESCRIPTION, onClick = owner::next))
                 attempt.stage == Stage.SOLUTION || first -> {}
                 review.ply == null -> {
-                    add(StripButton(UiCopy.HINT, UiCopy.HINT_DESCRIPTION, owner::hint))
-                    add(StripButton(UiCopy.SOLUTION, UiCopy.SOLUTION_DESCRIPTION, owner::showSolution))
+                    add(StripButton(UiCopy.HINT, UiCopy.HINT_DESCRIPTION, onClick = owner::hint))
+                    add(StripButton(UiCopy.SOLUTION, UiCopy.SOLUTION_DESCRIPTION, onClick = owner::showSolution))
                 }
             }
             add(menu)
@@ -313,6 +335,45 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
             )
             Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE))
         }
+    }
+
+    /** The Play a friend page (W6) and where its rows lead. */
+    @Composable
+    private fun FriendHome(friends: FriendOwner, state: FriendState) {
+        val now by produceState(friends.serverNow()) {
+            while (true) {
+                delay(30_000L)
+                value = friends.serverNow()
+            }
+        }
+        FriendList(
+            state = state,
+            now = now,
+            onRow = { row ->
+                val seat = row.seat
+                when {
+                    seat != null -> {
+                        // A Seat the Relay hasn't confirmed: a tap sends it again (W9).
+                        val code = seat.code
+                        if (code != null) friends.redeem(code) {} else seat.rematchOf?.let { friends.acceptRematch(it) }
+                    }
+                    row.gameId == null -> {}
+                    state.game(row.gameId)?.stage == com.yarosz.chess.correspondence.Stage.WAITING ->
+                        navigateTo({ FriendScreen(it, FriendPage.INVITE, row.gameId) }, ::openNext)
+                    else -> openGame(row.gameId)
+                }
+            },
+            onNew = { navigateTo({ FriendScreen(it, FriendPage.NEW) }, ::openNext) },
+            onEnterCode = { navigateTo({ FriendScreen(it, FriendPage.ENTER_CODE) }, ::openNext) },
+            onMenu = { navigateTo({ MenuScreen(it) }) },
+        )
+    }
+
+    private fun openGame(gameId: String) = navigateTo({ FriendGameScreen(it, gameId) }, ::openNext)
+
+    /** A Play a friend screen closed, maybe into a Game's board (a code just joined, a rematch accepted). */
+    private fun openNext(exit: FriendExit?) {
+        exit?.open?.let(::openGame)
     }
 
     /** First launch only, and after Reset rating (D4, F5, F6): four plain rows and Skip. */

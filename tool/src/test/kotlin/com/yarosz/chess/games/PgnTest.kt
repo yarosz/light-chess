@@ -11,6 +11,7 @@ import com.yarosz.chess.rules.RandomGames
 import com.yarosz.chess.rules.Resignation
 import com.yarosz.chess.rules.Result
 import com.yarosz.chess.rules.Side
+import com.yarosz.chess.rules.TimeoutClaim
 import com.yarosz.chess.rules.WinReason
 import kotlin.random.Random
 import kotlin.test.Test
@@ -115,6 +116,7 @@ class PgnTest {
         val cases = listOf(
             game("f2f3", "e7e5", "g2g4", "d8h4") to ("0-1" to "Black wins by checkmate"),
             (game("e2e4") + Resignation(Side.BLACK)) to ("1-0" to "White wins by resignation"),
+            (game("e2e4", "e7e5") + TimeoutClaim(Side.BLACK)) to ("0-1" to "Black wins on time"),
             (game("e2e4") + DrawOffer(Side.BLACK) + DrawAcceptance(Side.WHITE)) to ("1/2-1/2" to "Draw by agreement"),
             game("g1f3", "g8f6", "f3g1", "f6g8", "g1f3", "g8f6", "f3g1", "f6g8") to ("1/2-1/2" to "Draw by threefold repetition"),
             game("a1a2", fen = "8/8/8/4k3/8/8/4K3/R7 w - - 99 60") to ("1/2-1/2" to "Draw by the 50-move rule"),
@@ -145,6 +147,15 @@ class PgnTest {
         val record = GameRecord(refused + checkNotNull(refused.position.moveFromUci("e7e5")) + DrawOffer(Side.WHITE))
         val pgn = assertRoundTrip(record)
         assertEquals("1. e4 {[%draw offer black]} {[%draw refuse white]} 1... e5 {[%draw offer white]} *", movetext(pgn))
+    }
+
+    @Test
+    fun `a timeout claim is a comment command, and its Result reads back`() {
+        val won = assertRoundTrip(GameRecord(game("e2e4") + TimeoutClaim(Side.WHITE)))
+        assertEquals("1. e4 {[%claim white]} 1-0", movetext(won))
+        assertEquals("White wins on time", tags(won)["Termination"])
+        val drawn = assertRoundTrip(GameRecord(game("e8d8", fen = "4k3/8/8/8/8/8/8/Q3K3 b - - 0 1") + TimeoutClaim(Side.BLACK)))
+        assertEquals("Draw by insufficient material", tags(drawn)["Termination"])
     }
 
     @Test

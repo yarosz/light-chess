@@ -30,7 +30,7 @@ import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.games.GameRecord
 
 /** Review of one finished Game from the Games page, by the wheel (R1.9, F2). It opens at the Result. */
-class GameReviewViewModel(private val game: GameOwner, val record: GameRecord) : WheelViewModel() {
+class GameReviewViewModel(private val game: GameOwner, val record: GameRecord) : WheelViewModel<Unit>() {
     var review by mutableStateOf(Review())
         private set
 

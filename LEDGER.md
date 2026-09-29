@@ -6,7 +6,36 @@ README and the maintainer's submission to Light. v2: Pirarucu is GO (ADR 0001 ac
 non-debuggable 558K nps P50, depth 18 in 3 s). feat/v2-play merges feat/v1-release and feat/v2-bench
 as v2's base, and also the Levels (PR 3), the game record (PR 5 core), the Book (PR 6) and the game
 screen (PR 4, with R4.16/R4.17), reviewed and checked on the LP3: the computer is playable at every
-Level. v3: the Relay is done on feat/v3-relay (protocol 1.0, not deployed); the client is on feat/v3.
+Level. v0.2.0 (v1 + v2) is released from main. v3: the Relay is done (protocol 1.0) and has its
+address, `https://chess-relay.yarosz.com` (decision log W11), deployed and live since 2026-09-29; the client (v3 PR 1)
+and Play a friend (v3 PR 2) are on feat/v3. v3/relay-url carries feat/v3 with main (0.2.0) merged in
+and the Relay URL wired. Next: the v3 release PR; v3 PR 3 (the
+live WebSocket) after.
+HANDOFF (v3 Relay URL, v3/relay-url from feat/v3, 2026-09-29): main after 0.2.0 (585d8d6, a4706da, #7,
+#8, #9) merged into feat/v3's tip (a merge commit, no rewrite). main's v2 is a squash (#2), so the
+conflicts were resolved against 359219b, the v2 tip feat/v3 had merged: only main's later work (README
+for v2, M4, the About Book line, the Stockfish calibration, 0.2.0, the scan's 10.0.2.2/10.0.2.3) had
+to be combined with v3. Kept main's versionName 0.2.0 / versionCode 2 (v3 had no bump of its own;
+the v3 release PR bumps it). v3's forward-merge rulings M4/M5 are now M5/M6 (main's M4 came first);
+M7: the friend screens read M4's early Piece Set too. The Relay's URL (W11): `RelayConfig.URL` is
+`https://chess-relay.yarosz.com`, a custom domain on the maintainer's zone bound by the maintainer's
+infrastructure code, not wrangler (no `routes`); `workers_dev` off (relay/wrangler.jsonc,
+relay/README.md "Deploying"). A debug build still takes `-Prelay.url` (the emulator's local Relay);
+without it a debug build, like release, talks to that URL. README's Privacy paragraph still says the
+Relay isn't deployed: the v3 release PR changes it with the deploy. Next: the maintainer deploys
+(`npx wrangler deploy` in relay/, then binds the domain, then `/health` at the URL), then the v3
+release PR (version bump, notes, README privacy, LP3 checks).
+HANDOFF (forward merge, 2026-09-29): main (v1 0.1.0 + #4-#6) is merged into feat/v2-play, and
+feat/v2-play into feat/v3 (merge commits, no rewrite). main's v1 is a squash, so the first merge's
+content was resolved against fix/v1-keyup (25530a1), the commit v1's squash starts from. Decision
+log "Forward merge" M1-M3 and M5-M6: the Piece Set stays in `puzzles.json` and every board draws it
+(puzzle, game, Games Review, a Correspondence Game, each promotion picker); "Pieces" sits just above
+About in every Menu (puzzle, game, Play a friend, a Correspondence Game's); New game, Games and Moves
+are their own Menu screens (S3); the game owner takes V4. Checked on the emulator: the Menus, a
+Puzzle and a Game in the rounded set; not Play a friend (the emulator build has no Relay URL). To
+re-check on the LP3: the rounded set on a Correspondence Game. Open (M6): the Correspondence Game's
+Menu (FriendScreen) keeps Moves and Rename as pages inside one screen, so system Back there skips to
+the board, the bug S3 fixed for the other Menus; give each its own screen.
 HANDOFF (0.2.0 release PR, release/0.2.0 from main, 2026-09-29): versionName 0.2.0, versionCode 2,
 `UiCopy.VERSION` with it; notes in `docs/release-notes/0.2.0.md` (the Pack is unchanged since v0.1.0,
 only the Book is new, so the notes say nothing of the Pack). `release-check.sh scan` now allows the
@@ -18,14 +47,6 @@ the computer, then Pieces just above About, then the Puzzle id row; the rounded 
 game board; a cold start into a Game shows a black frame, then its first board in the rounded set
 (M4); system Back from New game, Moves and Games returns to the Menu (S3, M2). The 0.2.0 notes don't
 list the two piece sets: they are already in v0.1.0.
-HANDOFF (forward merge, 2026-09-29): main (v1 0.1.0 + #4-#6) is merged into feat/v2-play (a merge
-commit, no rewrite). main's v1 is a squash, so the merge's content was resolved against fix/v1-keyup
-(25530a1), the commit v1's squash starts from. Decision log "Forward merge" M1-M3: the Piece Set
-stays in `puzzles.json` and every board draws it (puzzle, game, Games Review, promotion picker);
-"Pieces" sits just above About in the puzzle Menu and the game Menu; New game, Games and Moves are
-their own Menu screens (S3); the game owner takes V4. Checked on the emulator: both Menus, a Puzzle
-and a Game in the rounded set. To re-check on the LP3: the rounded set on the game board, and system
-Back from New game, Games and Moves. Next: forward-merge feat/v2-play into feat/v3.
 HANDOFF (v1 pre-submission LP3 checks, 2026-09-29): checked under the lease on main (ecd6349): both
 Piece Sets draw on the LP3; the Menu's Pieces row switches sets and the choice survives a relaunch;
 the Puzzle id row is the Menu's last row; Back from About returns to the Menu (S3); the wheel scrolls
@@ -46,6 +67,19 @@ M4: the Piece Set is read from `puzzles.json` before any Band, so a cold start i
 chosen set from its first frame and the game Menu has the Pieces row at once. DESIGN.md rewrapped and
 says what the wheel does on the game Menu. Checked on the emulator; no version bump (the release PR
 does that). To check on the LP3: a cold start into a Game in the rounded set.
+HANDOFF (Relay live, 2026-09-29): the Worker `chess-relay` is deployed with wrangler from this branch
+(`relay/`, workers_dev off, no routes); `chess-relay.yarosz.com` is bound to it by the maintainer's
+infrastructure code (W11). `/health` answers `{"status":"ok","protocol":"1.0","majors":[1]}`.
+`RelayEndToEndTest` passes against the live URL. On devices: the LP3 created an Invite Code, the
+emulator joined it, and 1.e4 (LP3) and 1...e5 (emulator) each reached the other within one 60 s poll.
+FOLLOW-UPS (v3 review, 2026-09-29), none blocking: the zone answers plain HTTP too (Always Use
+HTTPS/HSTS on the zone, or the Worker refusing non-https, for third-party clients of the public
+protocol); the redeem limiter keys on the full IPv6 address (key on the /64) and `POST /games` has
+no limit; `localhost` is accepted by `RelayConfig.allowed` but not by the debug network security
+config; a cold-started `friend-send` job REPLACEs itself once (FriendOwner init), and
+`FriendJobs.run` catches CancellationException; `parseSync` doesn't shape-check seatSecret.
+Product: Time Left rounds down, so a fresh 3-day Game can read 2d on one phone and 3d on the other;
+a "Game deleted" row gives no way to forget it from the list.
 LAST SESSION: 2026-09-29
 
 ## HANDOFF (read first when resuming)
@@ -86,12 +120,57 @@ LAST SESSION: 2026-09-29
   Hint + Menu, "Thinking" + Move now + Menu and "Review · n of m" + Latest each on one line in
   Akkurat. Not yet seen on the phone: "White to move" next to Hint, Solution and Menu (two lines
   expected), a Result's two lines, the 200 ms slide, and the Games page's Review.
-- Next: the v3 Kotlin client against the Relay's `docs/protocol.md` (feat/v3-relay), from feat/v2-play.
+- feat/v3-client (from feat/v2-play, merges feat/v3-relay): v3 PR 1, the correspondence client core.
+  365 JVM tests (4 skipped: calibration, and the opt-in end-to-end test), relay 93. Rulings: decision
+  log "v3 PR 1" (V1-V15). `relay/` protocol types + `RelayClient` over a `RelayTransport` seam
+  (`OkHttpTransport`, OkHttp already in the SDK's dependencies); `correspondence/` `GameLog` (every
+  entry checked by the rules core), `Correspondence` (invites, entries, conflicts, rematch, `syncAll`
+  for the LightWork job), `CorrespondenceStore` (`no_backup/correspondence.json`). The rules core
+  gained `TimeoutClaim` / `WinReason.TIME`. Tests: a fake Relay mirroring relay/src, error-code tables,
+  a two-phone property test in bad weather (`-Dcorrespondence.seeds=`), and `RelayEndToEndTest`
+  against `wrangler dev --local` (`-Drelay.e2e=`; run once, green). Nothing in the Tool constructs
+  the client (`NoNetworkYetTest`).
+- feat/v3-play (from feat/v3-client): v3 PR 2, Play a friend: the screens and the network. Rulings:
+  decision log "v3 PR 2 (expert rulings)" (W1-W10) and "v3 PR 2 (implementation)" (Y1-Y14); the
+  screens: DESIGN.md "Play a friend". 392 JVM tests (5 skipped: calibration and the opt-in e2e and
+  second-phone tests), relay 101. Built:
+  - W9 in protocol 1.0: the phone chooses its seat secret on redeem and join (docs/protocol.md,
+    relay/, the client, FakeRelay), saved first as a `PendingSeat` and sent again until answered.
+  - W8: `RelayConfig.URL`, committed empty (Play a friend doesn't exist then); `-Prelay.url` for a
+    debug build only (its BuildConfig), cleartext to 10.0.2.2/127.0.0.1 in debug only;
+    `scripts/release-check.sh relay` refuses a release declaring INTERNET with no URL.
+  - W1: ADR 0004, lighttool.toml declares INTERNET, the privacy line once the URL is set, BoundaryTest
+    in place of NoNetworkYetTest, FriendOwnerTest's empty-store and empty-URL tests.
+  - W4/W6/W5/W2/W10: `FriendOwner`, the Play a friend page, New game + invite, Enter code (LP3
+    keyboard), the board with Send/Undo, the game Menu (Send and offer draw, Offer draw, Resign, Moves,
+    Rename, Forget game), Rematch, finished Games in the Games list, mode.txt `FRIEND`.
+  - W7: LightWork `friend-sync` (hourly, only while a Game waits on the opponent) and `friend-send`
+    (one-off, Retry); syncAll when the Tool opens and when a friend screen shows.
+  - Checked on the emulator against `wrangler dev --local` and a JVM second phone
+    (`SecondPhoneTest`, `-Drelay.phone=`): create code, enter code, Moves both ways, Send/Undo, a
+    declined draw offer, Send and offer draw, the Worker stopped mid-send (Not sent, then Retry), a
+    force-stop with a Pending Entry then relaunch (sent on open), the one-minute board sync, Resign,
+    Rematch accepted, the Result in Games, "Not a code" / "No such code".
+- Next: v3 PR 3, the live WebSocket (`/live`, G3: ping every 5 s while the board shows, closed in
+  onAppPause, "Live · Your move" / "Live · Their move"), which replaces Y12's one-minute board sync.
+  Done on the LP3 (2026-09-29): LightOS disables Doze (PLATFORM.md). A one-off friend-send job
+  delivered a Move that had failed to send once a local Relay was back (via adb reverse), with no
+  user action, and a second phone on the JVM saw it.
+- For the maintainer (PR 2):
+  - Done 2026-09-28: the privacy wording is approved (UiCopy.PRIVACY_FRIENDS, docs/privacy.md, ADR
+    0004). Still ask Light whether a privacy statement is needed.
+  - A deploy of the Relay (relay/README.md) at `https://chess-relay.yarosz.com`, the URL
+    `RelayConfig.URL` now has (W11, v3/relay-url). Until it answers `/health`, a release would show
+    Play a friend with nothing behind it.
 - Deferred from PR 4: "Play from here" (F7) from a Puzzle's start (R4.15: its own entry on the puzzle
   screen, a decided-Position test, "Ends your current game"); a draw offer while the computer thinks
   (R4.5: on the user's Move only); exact replay at Level 8 (clock-bound). Not measured: the strength
   effect of clearing the engine's table before each Move at Levels 1-7 (R4.8), so a rerun of
   LevelCalibrationTest with the same clearing would confirm the Level gaps.
+- Parked (2026-09-28): a standalone CC0 Polyglot book repo. A CC0 book already exists (the jja
+  books, CC0 by their author, built from the Lichess database; no checksums, 50 KB-339 MB). Ours
+  would add a small reproducible book with a published checksum, but its builder compiles the rules
+  core and Book reader, so publishing it means relicensing those to MIT. Revisit only if asked.
 - Slated for a follow-up, not scheduled (maintainer, 2026-09-28):
   - "Play a stranger", v3.x after friend play ships. It is anonymous matchmaking with no accounts and
     no visible lobby: the Relay's matchmaker hands a waiting ticket to the next phone that asks, and
@@ -109,13 +188,14 @@ LAST SESSION: 2026-09-29
   - Long gradle and light-build runs go in the background (the maintainer backgrounds long blocking
     commands).
   - The LP3's serial is in the umbrella PLATFORM.md (never in this public repo). Take the lease with noclobber and message
-    light-doom and the Reader session before and after. The chess emulator is LightPhone3-chess on
+    the Reader session before and after (Doom is finished, 2026-09-28). The chess emulator is LightPhone3-chess on
     emulator-5556; never touch 5554.
 - Waiting on the maintainer (none blocks development):
   - Light: a GPLv3 Tool (and GPL alongside the SDK's proprietary ML Kit); production push; an
     alert/badge method; a privacy statement; listing requirements; the SDK's 1 s splash; and the
     scanner's bare-`javaClass` gap (light-sdk).
-  - A Cloudflare account and URL to deploy the Relay (relay/README.md).
+  - The Relay's deploy from the maintainer's Cloudflare account (relay/README.md); the URL is chosen
+    (W11).
   - LP3 photos for the README, then the v1 submission.
   - Maybe: release the CC0 opening Book as its own repo (builder MIT, book.bin CC0) after checking
     whether a CC0 Polyglot book already exists.
@@ -196,6 +276,12 @@ LAST SESSION: 2026-09-29
   AVD name (`scripts/chess-emu.sh`, `CHESS_AVD`). Never use emulator-5554, which belongs to the Reader.
   On a fresh boot, dismiss the ImmersiveModeConfirmation dialog (`mise run ui tap "GOT IT"`). The LP3 is
   shared through `~/.cache/lp3-lease`; the protocol is in the umbrella PLATFORM.md.
+- Correspondence client (v3 PR 1, feat/v3-client): `tool/src/main/kotlin/com/yarosz/chess/relay/`
+  and `correspondence/`; tests in the same packages under `tool/src/test/` (`FakeRelay`,
+  `FlakyTransport`, `Phones.kt`). Decision log "v3 PR 1".
+- Relay (v3, branch feat/v3-relay): `docs/protocol.md` v1.0 is the wire contract; `relay/` is the
+  Worker + `CorrespondenceGame` Durable Object, tested locally only (`cd relay && npm test`, Node
+  >= 22). NOT deployed: deploying needs the maintainer's account choice (`relay/README.md`).
 
 ## Next
 1. Checked on the LP3 (2026-09-28): the wheel's Review in free play and in a Puzzle, the wheel

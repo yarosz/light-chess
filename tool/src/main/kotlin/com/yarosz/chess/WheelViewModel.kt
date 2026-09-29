@@ -11,7 +11,7 @@ import com.yarosz.chess.board.Wheel
  * the screen used never reaches LightOS's flashlight or brightness, and one it left alone reaches
  * LightOS whole.
  */
-abstract class WheelViewModel : LightViewModel<Unit>() {
+abstract class WheelViewModel<T> : LightViewModel<T>() {
     private val keys = TakenKeys()
 
     /** A wheel press: true if the screen takes it. Asked once per press, never for its repeats. */

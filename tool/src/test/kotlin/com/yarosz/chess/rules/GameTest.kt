@@ -160,4 +160,20 @@ class GameTest {
         }
         assertEquals(4, e.index)
     }
+
+    @Test
+    fun `a timeout claim by the side not to move wins on time, or draws with a lone king (FIDE 6_9)`() {
+        val g = game(Position.START, "e2e4")
+        assertEquals(Result.Win(Side.WHITE, WinReason.TIME), (g + TimeoutClaim(Side.WHITE)).result)
+        assertFailsWith<InvalidGameEventException> { g + TimeoutClaim(Side.BLACK) }
+        val offered = g + DrawOffer(Side.WHITE)
+        assertNull((offered + TimeoutClaim(Side.WHITE)).openDrawOffer)
+        // Black has only its king: it can never checkmate, so White's time running out is a draw.
+        val lone = game(fen("4k3/8/8/8/8/8/8/Q3K3 b - - 0 1"), "e8d8")
+        assertEquals(Result.Draw(DrawReason.INSUFFICIENT_MATERIAL), (lone + TimeoutClaim(Side.BLACK)).result)
+        // White still has its queen: Black running out of time loses.
+        val black = game(fen("4k3/8/8/8/8/8/8/Q3K3 w - - 0 1"), "e1d1")
+        assertEquals(Result.Win(Side.WHITE, WinReason.TIME), (black + TimeoutClaim(Side.WHITE)).result)
+        assertFailsWith<InvalidGameEventException> { (g + TimeoutClaim(Side.WHITE)) + TimeoutClaim(Side.WHITE) }
+    }
 }

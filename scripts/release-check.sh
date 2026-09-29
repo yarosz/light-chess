@@ -2,10 +2,11 @@
 # The release checks of RELEASING.md that a script can run (decision log D9 item 5).
 #
 #   scripts/release-check.sh apk            unsigned minified release, as Light builds it: size, badging
+#   scripts/release-check.sh relay          a release that declares INTERNET must have a Relay URL (W8)
 #   scripts/release-check.sh run            minified release on the Chess emulator: open, solve a Puzzle, About
 #   scripts/release-check.sh upgrade REF    REF's build with two solved Puzzles, then this release over it
 #   scripts/release-check.sh scan           public-content scan of the tracked files and of all history
-#   scripts/release-check.sh all REF        all four
+#   scripts/release-check.sh all REF        all five
 #
 # `run` and `upgrade` uninstall the Tool from the Chess emulator (AVD $CHESS_AVD, found by name through
 # scripts/chess-emu.sh) and drive it with scripts/release-drive.py. Screenshots and JSON go to
@@ -36,18 +37,38 @@ check_apk() {
   badging=$("$aapt" dump badging "$apk")
   grep -q "^package: name='$pkg' versionCode='[0-9]*' versionName='[0-9.]*'" <<<"$badging" \
     || die "badging: $(head -1 <<<"$badging")"
-  # lighttool.toml declares no permissions (D5, ToolMetadataTest), but the manifest merger adds those of
-  # Light's SDK and its libraries (OkHttp and Google's datatransport add INTERNET). They are pinned here
-  # so that any new one fails the check; the Tool's own code never opens a connection.
-  local sdk_permissions="android.permission.ACCESS_NETWORK_STATE android.permission.CAMERA
+  # lighttool.toml declares INTERNET, for the Relay only (ADR 0004, ToolMetadataTest); the manifest merger
+  # adds those of Light's SDK and its libraries (OkHttp and Google's datatransport add INTERNET too). Both
+  # sets are pinned here, so that any new permission fails the check.
+  local declared sdk_permissions="android.permission.ACCESS_NETWORK_STATE android.permission.CAMERA
 android.permission.FOREGROUND_SERVICE android.permission.INTERNET android.permission.RECEIVE_BOOT_COMPLETED
 android.permission.VIBRATE android.permission.WAKE_LOCK $pkg.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+  declared=$(declared_permissions)
+  [ "$declared" = "android.permission.INTERNET" ] || die "lighttool.toml declares \"$declared\", pinned: android.permission.INTERNET"
   local found extra
   found=$(grep "^uses-permission:" <<<"$badging" | sed -E "s/.*name='([^']+)'.*/\1/" | sort)
   extra=$(comm -23 <(echo "$found") <(tr ' ' '\n' <<<"$sdk_permissions" | grep . | sort))
   [ -z "$extra" ] || die "permissions beyond the SDK's pinned set: $(echo $extra)"
   echo "release-check: apk OK $(head -1 <<<"$badging" | grep -oE "versionCode='[0-9]+' versionName='[^']+'")," \
-    "$(stat -f%z "$apk" 2>/dev/null || stat -c%s "$apk") bytes, permissions all from Light's SDK: $(echo $found)"
+    "$(stat -f%z "$apk" 2>/dev/null || stat -c%s "$apk") bytes, declared: $declared, all: $(echo $found)"
+}
+
+# The permissions tool/lighttool.toml declares, one per line: Chess's own, not the SDK's merged ones.
+declared_permissions() {
+  sed -nE 's/^permissions = \[(.*)\]$/\1/p' tool/lighttool.toml | tr ',' '\n' | tr -d ' "' | grep . || true
+}
+
+# W8: Light builds releases from the public commit. A release that declares Chess's own INTERNET while
+# RelayConfig.URL is empty would ask for the network and never use it, so it isn't releasable. Keyed on
+# lighttool.toml's declared permissions, since INTERNET is in every Tool's APK through Light's SDK.
+check_relay() {
+  local url
+  url=$(sed -nE 's/^[[:space:]]*const val URL = "(.*)"$/\1/p' tool/src/main/kotlin/com/yarosz/chess/relay/RelayConfig.kt)
+  if grep -qx 'android.permission.INTERNET' <<<"$(declared_permissions)"; then
+    [ -n "$url" ] || die "relay: lighttool.toml declares INTERNET but RelayConfig.URL is empty: deploy the Relay and set it (relay/README.md)"
+    [[ "$url" == https://* ]] || die "relay: RelayConfig.URL must be https://, got $url"
+  fi
+  echo "release-check: relay OK RelayConfig.URL=${url:-(empty)}, declared: $(declared_permissions | paste -sd' ' -)"
 }
 
 build_emulator_release() {
@@ -165,9 +186,10 @@ $hits"
 
 case "${1:-}" in
   apk) check_apk ;;
+  relay) check_relay ;;
   run) check_run ;;
   upgrade) [ -n "${2:-}" ] || die "usage: scripts/release-check.sh upgrade REF"; check_upgrade "$2" ;;
   scan) check_scan ;;
-  all) [ -n "${2:-}" ] || die "usage: scripts/release-check.sh all REF"; check_scan; check_apk; check_run; check_upgrade "$2" ;;
-  *) sed -n '2,15p' "$0" >&2; exit 2 ;;
+  all) [ -n "${2:-}" ] || die "usage: scripts/release-check.sh all REF"; check_scan; check_relay; check_apk; check_run; check_upgrade "$2" ;;
+  *) sed -n '2,16p' "$0" >&2; exit 2 ;;
 esac

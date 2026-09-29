@@ -328,3 +328,67 @@ The Menu while a Game shows, top to bottom:
 Games lists the finished Games, newest first, at most 50 (B7): "2026.09.28 · Level 3 · Won" (Won, Lost,
 Draw or Unfinished); "No finished Games yet" when empty. A tap opens the Game at its Result; the
 wheel reviews its Moves, and Back returns to the list.
+
+## Play a friend (v3 PR 2)
+
+Rulings: decision log "v3 PR 2 (expert rulings)" (W1-W10) and "v3 PR 2 (implementation)". The pure
+parts are `FriendStrip` (the board's and the invite's strips), `FriendRows` (the page's order) and
+`FinishedGames` (the Games page's merge), each checked by StripFitTest or FriendPagesTest.
+`FriendOwner` is the process-wide owner over the sync engine; it exists only once the Relay URL is
+set (`RelayConfig`, W8).
+
+- The Menu entry: "Play a friend", or "Play a friend · Your move: 2". It sets the friend mode: the
+  Tool's first screen becomes the Play a friend page (mode.txt `FRIEND`).
+- The Play a friend page: the title "Play a friend" with "Menu" at the right of the top bar (next to
+  "New game" and "Enter code" the strip has no room for it), the rows in E7's order ("ABCD · Your
+  move · 2d", "ABCD · Their move · 2d", "ABCD-EFGH · Expires in 47h", "ABCD · Rematch sent", "ABCD ·
+  Won", "ABCD · Out of sync", a Seat being taken as "ABCD-EFGH · Not sent"), and "No games yet.
+  Create a code for a friend, or enter theirs." when empty. At the cap both buttons are lightened
+  above "Finish a game first".
+- New game: "Play as" (White, Black, Random), "Days per move" (1, 3, 7), "Create code". The invite
+  page shows the code in LightOS Subtitle, alone on its line, then "Tell your friend this code. It
+  works once, for 48 hours." Its strip: "Expires in 47h" with Cancel and Menu; the first Cancel
+  shows "Tap again to cancel" next to Cancel alone; an unconfirmed cancel shows "Not sent" with Retry.
+- Enter code: LightOS's text editor with the LP3 keyboard, "Join" to submit; the title reads "Enter
+  code", then "Sending", then the answer: "Not a code", "No such code", "Code already used", "Try
+  again in a minute", "No connection".
+- The board: the user's Side at the bottom, no flip. The strip:
+
+| When | Status | Buttons |
+|---|---|---|
+| The user's Move | "Your move · 2d" | Menu |
+| A Move chosen, not sent (F11) | its SAN, such as "Nf3" | Send, Undo, Menu |
+| Sending | "Sending" | Menu |
+| Saved, not sent | "Not sent" | Retry, Menu |
+| Their move | "Their move · 2d" | Menu |
+| Their Deadline passed | "Time is up" | "Claim win" ("Claim win on time"), Menu |
+| Their draw offer | "Draw offered" | Accept, Decline |
+| Stopped | "Out of sync", "Update Chess", "Game deleted" or "Seat lost" | Menu |
+| The Result | R4.13's copy, "You won on time", "You lost on time", "Draw: dead position" | Rematch, Menu |
+| Our rematch offer | "Rematch sent" | Menu |
+| Theirs | "Rematch?" | Accept, Decline |
+| For 5 s after a rollback or refusal | "Not yet", "Offer not sent", or the Refusal's copy | Menu |
+| Review | "Review · 12 of 40" | Latest |
+
+  The chosen Move's strip is the one with four buttons: Menu there holds "Send and offer draw".
+  "Draw: dead position" replaces "Draw: insufficient material", which needs three lines next to
+  Rematch and Menu.
+- The Refusals' copy: "Not allowed now", "Finish a game first", "Game deleted", "This game stopped",
+  "Not a code", "No such code", "Code already used", "Your friend joined", "Try again in a minute",
+  "Update Chess", "No connection", "The game moved on", "Not yet", "Couldn't save".
+- The game's Menu: "This game stopped: the two phones disagree." or "Update Chess to continue this
+  game" first when stopped, then "Send and offer draw" (a Move chosen), "Offer draw" (after one's own
+  Move) or "Offer draw after your move", "Resign" / "Tap again to resign", "Moves", "Rename", "Forget
+  game" / "Tap again to forget" (over or stopped), "Play a friend", "Pieces · Geometric" (M4), "About".
+- Button labels: "Send" ("Send this Move"), "Undo" ("Take this Move back before it is sent"),
+  "Retry" ("Send it again"), "Accept" ("Accept the draw", "Accept the rematch"), "Decline" ("Decline
+  the draw", "Decline the rematch"), "Rematch" ("Offer a rematch, Sides swapped"), "Cancel" ("Cancel
+  this invite"), "Create code", "Save".
+- Games lists finished Correspondence Games with the others: "2026.09.28 · ABCD · Won".
+- About, once the Relay URL is set: "Chess uses the network only for Games with a friend: it sends
+  their Moves to its Relay, with no name or account, and the Relay deletes each Game within 30 days of
+  the last thing either phone sent it. Puzzles and Games against the computer never leave this
+  phone."
+- Keep the screen on while the board shows and the last touch or wheel event was under 5 minutes
+  ago (contradiction 4). While it also waits on the opponent, the board syncs once a minute (until v3
+  PR 3's live socket).

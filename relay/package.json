@@ -1,0 +1,25 @@
+{
+  "name": "chess-relay",
+  "version": "1.0.0",
+  "description": "The Chess Tool's Relay: a Cloudflare Worker with one Durable Object per Correspondence Game",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "types": "wrangler types --include-runtime=false",
+    "dev": "wrangler dev --local",
+    "check": "npm run typecheck && npm test && wrangler deploy --dry-run --outdir .wrangler/dry-run"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20260928.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.142.0"
+  }
+}

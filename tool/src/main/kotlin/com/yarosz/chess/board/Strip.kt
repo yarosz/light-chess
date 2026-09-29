@@ -40,8 +40,11 @@ object StripLayout {
     const val COPY_LINE_HEIGHT = 1.5f
 }
 
-/** One text button in the strip. [description] is its accessibility label (F11). */
-data class StripButton(val label: String, val description: String = label, val onClick: () -> Unit)
+/**
+ * One text button in the strip. [description] is its accessibility label (F11). A button that can't
+ * act now ([enabled] false) shows lightened and ignores taps (W6: New game and Enter code at the cap).
+ */
+data class StripButton(val label: String, val description: String = label, val enabled: Boolean = true, val onClick: () -> Unit)
 
 /**
  * The strip under the board: a status on the left and up to three text buttons on the right, chosen
@@ -52,7 +55,8 @@ data class StripButton(val label: String, val description: String = label, val o
  */
 @Composable
 fun Strip(status: String, buttons: List<StripButton>, modifier: Modifier = Modifier) {
-    require(buttons.size <= 3) { "the strip holds at most 3 buttons" }
+    // Three by context (contradiction 2); four only for a chosen Correspondence Move (SAN, Send, Undo, Menu).
+    require(buttons.size <= 4) { "the strip holds at most 4 buttons" }
     val statusLines = with(StripLayout) { COPY_DESIGN_PX * COPY_LINE_HEIGHT * STATUS_MAX_LINES }.designVerticalPxToDp()
     Row(
         modifier.fillMaxWidth().height(maxOf(StripLayout.MIN_HEIGHT, statusLines)),
@@ -70,9 +74,10 @@ fun Strip(status: String, buttons: List<StripButton>, modifier: Modifier = Modif
             LightText(
                 text = button.label,
                 variant = LightTextVariant.Copy,
+                lighten = !button.enabled,
                 maxLines = 1,
                 modifier = Modifier
-                    .lightClickable(onClickLabel = button.description, role = Role.Button, onClick = button.onClick)
+                    .lightClickable(onClickLabel = button.description, role = Role.Button) { if (button.enabled) button.onClick() }
                     .semantics { contentDescription = button.description }
                     .padding(horizontal = StripLayout.BUTTON_PADDING, vertical = 8.dp),
             )
