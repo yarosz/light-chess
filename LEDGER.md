@@ -14,8 +14,10 @@ HANDOFF (0.3.0 release PR, release/0.3.0 from main bb8da79, 2026-09-29): version
 versionCode 3, `UiCopy.VERSION` with it; notes in `docs/release-notes/0.3.0.md` (the Pack is unchanged
 since v0.2.0, so the notes say nothing of it). README's status line names v3 done. Two doc nits from
 #10: DESIGN.md's strip bullet split into sentences, the decision log's P3 "What counts" rewrapped.
-The release checks (scan on a fresh public clone, relay and `/health`, apk, run, upgrade v0.2.0,
-light-build) ran on this branch's HEAD. Next: merge, tag v0.3.0 with a notes-only GitHub Release;
+`release-check.sh run` expected v1's privacy line; it now expects the one the build shows (v3's
+while `RelayConfig.URL` is set), and `release-drive.py about` scrolls About, since v3's longer line
+pushes the Puzzles line below the fold. The release checks (scan on a fresh public clone, relay and
+`/health`, apk, run, upgrade v0.2.0, light-build) ran on this branch's HEAD. Next: merge, tag v0.3.0 with a notes-only GitHub Release;
 the Light submission of that hash is the maintainer's.
 HANDOFF (v3 Relay URL, v3/relay-url from feat/v3, 2026-09-29): main after 0.2.0 (585d8d6, a4706da, #7,
 #8, #9) merged into feat/v3's tip (a merge commit, no rewrite). main's v2 is a squash (#2), so the
