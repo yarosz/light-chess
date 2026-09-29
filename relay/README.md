@@ -49,13 +49,15 @@ cd relay && npm run dev -- --port 8787 --ip 127.0.0.1     # leave it running
 mise exec -- ./gradlew :tool:testDebugUnitTest --tests '*RelayEndToEndTest' -Drelay.e2e=http://127.0.0.1:8787
 ```
 
-The client allows plain HTTP only to 127.0.0.1 or localhost; everything else must be HTTPS.
+A debug build allows plain HTTP only to a local Worker (127.0.0.1, or 10.0.2.2 from the emulator);
+everything else, and every release build, must be HTTPS.
 
 ## Deploying
 
 The Relay's address is `https://chess-relay.yarosz.com` (decision log W11). The Tool ships with it
 (`RelayConfig.URL`), so it doesn't change once a release is out. The maintainer deploys it, from
-the maintainer's Cloudflare account that holds the `yarosz.com` zone. Not deployed yet.
+the maintainer's Cloudflare account that holds the `yarosz.com` zone. Deployed on 2026-09-29;
+`/health` answers at https://chess-relay.yarosz.com.
 
 `npx wrangler deploy` uploads the Worker and its Durable Object migration only. The custom domain
 `chess-relay.yarosz.com` is bound to the `chess-relay` Worker separately, after the first deploy,

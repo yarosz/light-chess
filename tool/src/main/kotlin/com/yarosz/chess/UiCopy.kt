@@ -270,7 +270,7 @@ object UiCopy {
         null -> UNFINISHED
         is Result.Win -> when {
             result.by == WinReason.RESIGNATION -> if (result.winner == userSide) "You won by resignation" else "You resigned"
-            // A Game against the computer has no clock; a Correspondence Game's timeout (v3) gets its copy in v3 PR 2.
+            // A Game against the computer has no clock; a Correspondence Game's timeout has its copy below (v3 PR 2).
             result.by == WinReason.TIME -> if (result.winner == userSide) "You won on time" else "You lost on time"
             result.winner == userSide -> "You won by checkmate"
             else -> "You lost by checkmate"

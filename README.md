@@ -69,8 +69,8 @@ Chess uses the network only for Games with a friend: it sends their Moves to its
 30 days of the last thing either phone sent it. Puzzles and Games against the computer never leave
 this phone: the Puzzles and the opening Book ship inside the Tool, the computer thinks on the phone
 itself, and your rating, Games and history stay in the Tool's own storage. The Android permissions
-its package lists come from Light's SDK, but for INTERNET, which Chess declares for playing a friend
-(ADR 0004). See `SECURITY.md`.
+its package lists come from Light's SDK; Chess itself declares only INTERNET, for playing a friend
+(ADR 0004). The full statement is `docs/privacy.md`; see also `SECURITY.md`.
 
 ## Credits
 
