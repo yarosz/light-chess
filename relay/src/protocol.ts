@@ -263,7 +263,9 @@ export function parseSync(body: unknown, pathMajor: number): SyncItem[] {
   return (games as unknown[]).map((g) => {
     const item = asObject(g);
     if (typeof item.gameId !== "string") bad('Each game needs "gameId"');
-    if (typeof item.seatSecret !== "string") bad('Each game needs "seatSecret"');
+    if (typeof item.seatSecret !== "string" || !TOKEN.test(item.seatSecret)) {
+      bad('Each game needs "seatSecret", 43 base64url characters');
+    }
     const since = item.since ?? 0;
     if (!isCount(since)) bad('"since" must be an integer >= 0');
     return { gameId: item.gameId as string, seatSecret: item.seatSecret as string, since: since as number };

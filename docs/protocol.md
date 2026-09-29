@@ -10,7 +10,13 @@ Game). The Kotlin client implements this document. Decision-log ids are cited in
 
 ## Conventions
 
-- HTTPS only. Request and response bodies are JSON (`Content-Type: application/json`).
+- HTTPS only. A request over plain HTTP, to any endpoint, gets `426 upgrade_required` (with
+  `Upgrade: TLS/1.0, HTTP/1.1` and `Connection: Upgrade`, as RFC 9110 requires of a 426) before
+  any other check or rate limit. It is never redirected: a redirected POST can arrive as a GET, and a
+  secret sent in the clear has already been sent [L3]. The one exception is a local `wrangler dev`
+  reached as `localhost`, `127.0.0.1`, `[::1]` or `10.0.2.2` (the Android emulator's alias for the
+  host); the deployed Relay answers at none of those [W11].
+  Request and response bodies are JSON (`Content-Type: application/json`).
 - A request body is at most 4,096 bytes. A larger one gets `413 body_too_large`. The Relay checks
   `Content-Length` and also counts the bytes it reads, so a chunked body is capped too [R5].
 - Times are integers: milliseconds since the Unix epoch, from the Relay's clock (`serverTime`).
@@ -82,8 +88,8 @@ Every error has one shape:
 | 409 | `game_not_over` | A `rematchOffer` on an open log. |
 | 409 | `log_full` | The Game already holds 2,000 entries (only `move`, `drawOffer` and `drawDecline`). |
 | 413 | `body_too_large` | The request body is over 4,096 bytes. |
-| 426 | `upgrade_required` | The live endpoint needs a WebSocket upgrade. |
-| 429 | `rate_limited` | Too many invite redemptions from this address. Sends `Retry-After`. |
+| 426 | `upgrade_required` | The request came over plain HTTP (use HTTPS), or the live endpoint needs a WebSocket upgrade. Sends `Upgrade`. |
+| 429 | `rate_limited` | Too many invite redemptions or Games created from this address. Sends `Retry-After`. |
 
 ## The entry
 
@@ -215,7 +221,7 @@ log before any rematch.
 | Method and path | Auth | Purpose |
 |---|---|---|
 | `GET /health` | none | Liveness and the served majors. |
-| `POST /v1/games` | none | Create a Game and its invite. The Relay makes the creator's seat secret. |
+| `POST /v1/games` | none, rate-limited | Create a Game and its invite. The Relay makes the creator's seat secret. |
 | `POST /v1/invites/{code}/redeem` | none, rate-limited | Take the other Seat with an Invite Code and the phone's own seat secret. |
 | `POST /v1/games/{gameId}/join` | none | Take the other Seat with a rematch join token and the phone's own seat secret. |
 | `DELETE /v1/games/{gameId}/invite` | creator's seat | Cancel an unredeemed invite. |
@@ -262,6 +268,11 @@ A lost create response leaves an invite nobody holds; it expires unredeemed afte
 The Relay has no accounts, so the cap of 5 Games (outstanding invites and outgoing rematch offers
 included) is the phone's to enforce [E7, F9].
 
+Rate limit [L2]: creates are limited to 10 per 60 seconds per client address, and 100 per IPv6
+/48 [L5], keyed as for redemptions below, and counted before the body is read. Past it: `429 rate_limited` with
+`Retry-After: 60`. A phone creates one Game per invite or rematch offer and holds at most 5, so
+10 a minute leaves room for all 5 at once plus a retry of each after lost responses.
+
 ### `POST /v1/invites/{code}/redeem` and `POST /v1/games/{gameId}/join`: redeem
 
 Body `{ "v": "1.0", "seatSecret": "…" }` for a code; `{ "v": "1.0", "seatSecret": "…", "joinToken":
@@ -291,10 +302,21 @@ phone has it.
   `409 invite_used`. A malformed `gameId`: `404 game_not_found`. A `joinToken` that isn't 43
   base64url characters: `400 bad_request` (so an Invite Code can't be redeemed here, around the
   rate limit).
-- Rate limit [F11]: redemptions by code are limited to 10 per 60 seconds per client IP
-  (`CF-Connecting-IP`), counted before the code is read. Past it: `429 rate_limited` with
-  `Retry-After: 60`. Cloudflare's rate-limiting binding is per location and eventually consistent,
-  so the limit is approximate. Join tokens carry 256 bits and are not limited.
+- Rate limit [F11]: redemptions by code are limited to 10 per 60 seconds per client address,
+  counted before the code is read. Past it: `429 rate_limited` with `Retry-After: 60`. Join tokens
+  carry 256 bits and are not limited.
+- The client address [L1] is `CF-Connecting-IP`: an IPv4 address whole, an IPv6 address by its /64
+  (a subscriber holds at least a whole /64, so keying on the full address would give one client
+  2^64 budgets). An IPv4-mapped IPv6 address (`::ffff:1.2.3.4`) counts as its IPv4 address. A
+  missing or unreadable header puts the request under one key shared by all such requests. Both
+  limits (this one and create's) key the same way.
+- Wide limit [L5]: an IPv6 /48 (the first three hextets) may also send at most 100 redemptions and
+  100 creates per 60 seconds, however many /64s they come from, since a subscriber may hold a /56
+  or a /48. A request must pass both its address's limit and its /48's; one its address's limit
+  refuses is not counted against the /48. For IPv4 the two limits count the same address. Past it:
+  `429 rate_limited` with `Retry-After: 60`, as above.
+- Cloudflare's rate-limiting binding is per location and eventually consistent, so every limit is
+  approximate.
 
 ### `DELETE /v1/games/{gameId}/invite`: cancel [G2]
 
@@ -345,8 +367,8 @@ travel in the body). `200`:
 ] }
 ```
 
-Results come in request order. One Game's error doesn't fail the batch. More than 5 Games is a
-`400 bad_request`.
+Results come in request order. One Game's error doesn't fail the batch. More than 5 Games, or a
+`seatSecret` that isn't 43 base64url characters, is a `400 bad_request` for the whole batch.
 
 ### `GET /v1/games/{gameId}/live`: WebSocket [C1, G3]
 

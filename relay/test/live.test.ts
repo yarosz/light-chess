@@ -149,5 +149,7 @@ describe("live presence", () => {
     const plain = await call("GET", `/v1/games/${game.gameId}/live`, { secret: game.white });
     expect(plain.status).toBe(426);
     expect(plain.json.error.code).toBe("upgrade_required");
+    expect(plain.headers.get("Upgrade")).toBe("websocket");
+    expect(plain.headers.get("Connection")).toBe("Upgrade");
   });
 });

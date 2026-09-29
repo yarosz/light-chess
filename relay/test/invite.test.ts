@@ -2,7 +2,7 @@
 import { env, runInDurableObject } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 import { sha256Hex } from "../src/secrets";
-import { call, create, events, freshIp, patchMeta, redeem, stub, tableCount } from "./helpers";
+import { call, create, events, freshIp, oneWindow, patchMeta, redeem, stub, tableCount } from "./helpers";
 
 const cancel = (gameId: string, secret: string) => call("DELETE", `/v1/games/${gameId}/invite`, { secret });
 
@@ -125,6 +125,7 @@ describe("cancel and redeem inside one Durable Object", () => {
 
 describe("the redeem rate limit", () => {
   it("allows 10 redemptions a minute per IP, then answers 429 with Retry-After", async () => {
+    await oneWindow();
     const ip = freshIp();
     const statuses: number[] = [];
     for (let i = 0; i < 11; i++) {
@@ -142,6 +143,7 @@ describe("the redeem rate limit", () => {
   });
 
   it("counts malformed codes too", async () => {
+    await oneWindow();
     const ip = freshIp();
     for (let i = 0; i < 10; i++) await call("POST", "/v1/invites/x/redeem", { body: { v: "1.0", seatSecret: "S".repeat(43) }, ip });
     expect((await call("POST", "/v1/invites/x/redeem", { body: { v: "1.0", seatSecret: "S".repeat(43) }, ip })).status).toBe(429);

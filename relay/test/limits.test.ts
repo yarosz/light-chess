@@ -1,7 +1,7 @@
 // Size limits: the 2,000-entry cap and its exempt kinds (R4), and the request body cap (R5).
 import { SELF } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { ORIGIN, append, call, create, digest, patchMeta, play, start, type Started } from "./helpers";
+import { ORIGIN, append, call, create, digest, freshV6, patchMeta, play, start, type Started } from "./helpers";
 
 const MAX = 2_000;
 
@@ -61,7 +61,7 @@ describe("the body cap (R5)", () => {
   it("refuses a body whose Content-Length is over 4,096 bytes", async () => {
     const res = await SELF.fetch(`${ORIGIN}/v1/games`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": freshV6() },
       body: oversized(),
     });
     expect(res.status).toBe(413);
@@ -78,7 +78,7 @@ describe("the body cap (R5)", () => {
     });
     const res = await SELF.fetch(`${ORIGIN}/v1/games`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": freshV6() },
       body: stream,
     });
     expect(res.status).toBe(413);
@@ -107,7 +107,7 @@ describe("the body cap (R5)", () => {
     expect(new TextEncoder().encode(body).length).toBe(4_096);
     const res = await SELF.fetch(`${ORIGIN}/v1/games`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "CF-Connecting-IP": freshV6() },
       body,
     });
     expect(res.status).toBe(201);

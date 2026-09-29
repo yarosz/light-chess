@@ -80,12 +80,15 @@ HANDOFF (Relay live, 2026-09-29): the Worker `chess-relay` is deployed with wran
 infrastructure code (W11). `/health` answers `{"status":"ok","protocol":"1.0","majors":[1]}`.
 `RelayEndToEndTest` passes against the live URL. On devices: the LP3 created an Invite Code, the
 emulator joined it, and 1.e4 (LP3) and 1...e5 (emulator) each reached the other within one 60 s poll.
-FOLLOW-UPS (v3 review, 2026-09-29), none blocking: the zone answers plain HTTP too (Always Use
-HTTPS/HSTS on the zone, or the Worker refusing non-https, for third-party clients of the public
-protocol); the redeem limiter keys on the full IPv6 address (key on the /64) and `POST /games` has
-no limit; `localhost` is accepted by `RelayConfig.allowed` but not by the debug network security
-config; a cold-started `friend-send` job REPLACEs itself once (FriendOwner init); `parseSync`
-doesn't shape-check seatSecret.
+FOLLOW-UPS (v3 review, 2026-09-29), none blocking: `localhost` is accepted by `RelayConfig.allowed`
+but not by the debug network security config; a cold-started `friend-send` job REPLACEs itself once
+(FriendOwner init). Optional: Always Use HTTPS/HSTS on the zone (the Worker itself now refuses
+plain HTTP, L3), the maintainer's choice.
+Fixed in L1-L5 (a Relay deploy, relay/README.md, puts them live): the limits key on the IPv6
+/64, plus 100/60 s per /48 on redeem and create (L5, two new bindings), `POST /games` is limited
+(10/60 s), plain HTTP gets 426 with `Upgrade: TLS/1.0, HTTP/1.1`, `parseSync` shape-checks
+seatSecret. After deploying, check `curl -si http://chess-relay.yarosz.com/health`: a 426 with an
+`Upgrade` header and no `Location`.
 LAST SESSION: 2026-09-29
 
 ## HANDOFF (read first when resuming)

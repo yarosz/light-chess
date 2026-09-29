@@ -19,6 +19,7 @@ import {
   parseSync,
   type Reply,
 } from "./protocol";
+import { clientKey, isRefusedPlainHttp, wideClientKey } from "./limits";
 import { displayInviteCode, newInviteCode, newToken, normalizeInviteCode, sha256Hex } from "./secrets";
 
 export { CorrespondenceGame };
@@ -50,7 +51,18 @@ export default {
 } satisfies ExportedHandler<Env>;
 
 async function route(request: Request, env: Env): Promise<Response> {
-  const { pathname } = new URL(request.url);
+  const url = new URL(request.url);
+  // Refused, never redirected: a client that sent a secret in the clear has already sent it, and a
+  // redirected POST can come back as a GET (L3). A 426 must name the protocol to switch to (RFC 9110
+  // 15.5.22). `TLS/1.0, HTTP/1.1` is RFC 2817's own example for switching to TLS, and TLS/1.0 its
+  // registered token; no client is expected to upgrade in place, the message says to use HTTPS.
+  if (isRefusedPlainHttp(url)) {
+    return respond(fail("upgrade_required", `Use HTTPS: https://${url.host}${url.pathname}`), {
+      Upgrade: "TLS/1.0, HTTP/1.1",
+      Connection: "Upgrade",
+    });
+  }
+  const { pathname } = url;
   if (pathname === "/health") {
     if (request.method !== "GET") return respond(fail("method_not_allowed", "Use GET"));
     return Response.json({ status: "ok", protocol: PROTOCOL, majors: MAJORS });
@@ -138,7 +150,24 @@ function withSecrets(reply: Reply, secrets: Record<string, string>): Response {
   return respond({ status: reply.status, body: { ...(reply.body as object), ...secrets } });
 }
 
+/**
+ * Counts one request against [perClient] under its client's key (L1), then against [wide] under its
+ * /48 (L5). Null when both let it go on, else the `429 rate_limited` reply, with Retry-After set to
+ * the limiters' 60-second period. The narrow limit goes first, so a request it refuses is not also
+ * charged to the /48: one busy /64 spends at most its own 10 of its /48's 100 a minute.
+ */
+async function limited(request: Request, perClient: RateLimit, wide: RateLimit, what: string): Promise<Response | null> {
+  const address = request.headers.get("CF-Connecting-IP");
+  const passed =
+    (await perClient.limit({ key: clientKey(address) })).success && (await wide.limit({ key: wideClientKey(address) })).success;
+  if (passed) return null;
+  return respond(fail("rate_limited", `Too many ${what}; wait a minute`), { "Retry-After": "60" });
+}
+
 async function createGame(request: Request, env: Env, major: number): Promise<Response> {
+  // Counted before the body is read, like a redemption (L2, L5).
+  const refused = await limited(request, env.CREATE_LIMITER, env.CREATE_WIDE_LIMITER, "Games created");
+  if (refused) return refused;
   const req = parseCreate(await body(request), major);
   const seatSecret = newToken();
   const seatHash = await sha256Hex(seatSecret);
@@ -158,12 +187,9 @@ async function createGame(request: Request, env: Env, major: number): Promise<Re
 }
 
 async function redeemCode(request: Request, env: Env, major: number, [rawCode]: string[]): Promise<Response> {
-  // Counted before the code is read, so malformed guesses cost the same as wrong ones (F11).
-  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
-  const { success } = await env.REDEEM_LIMITER.limit({ key: ip });
-  if (!success) {
-    return respond(fail("rate_limited", "Too many invite redemptions; wait a minute"), { "Retry-After": "60" });
-  }
+  // Counted before the code is read, so malformed guesses cost the same as wrong ones (F11, L5).
+  const refused = await limited(request, env.REDEEM_LIMITER, env.REDEEM_WIDE_LIMITER, "invite redemptions");
+  if (refused) return refused;
   const req = parseSeatRequest(await body(request), major, false);
   const code = normalizeInviteCode(rawCode!);
   if (!code) return respond(fail("bad_request", "An Invite Code is 8 characters, such as ABCD-EFGH"));
@@ -196,7 +222,7 @@ async function appendEvent(request: Request, env: Env, major: number, [gameId]: 
 
 async function live(request: Request, env: Env, _major: number, [gameId]: string[]): Promise<Response> {
   if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") {
-    return respond(fail("upgrade_required", "This endpoint is a WebSocket"));
+    return respond(fail("upgrade_required", "This endpoint is a WebSocket"), { Upgrade: "websocket", Connection: "Upgrade" });
   }
   return gameStub(env, gameId!).fetch(request);
 }
