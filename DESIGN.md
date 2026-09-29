@@ -237,7 +237,7 @@ copy for the object on screen, while code names the chess state a Position.
   rating" then "Tap again to reset" (F5), and rows "1523 · Solved +12"; "No rated Puzzles yet" when
   empty. Missed: rows "1541 · Failed" or "1541 · Hinted"; "Nothing missed yet".
 - About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).
-  - "Chess $VERSION" (0.3.0, equal to `versionName`)
+  - "Chess $VERSION" (0.3.1, equal to `versionName`)
   - "Copyright 2026 Nicolas Yarosz."
   - "Free software under the GNU General Public License, version 3 or later, with no warranty."
   - "Source: $SOURCE" (github.com/yarosz/light-chess, as text: the phone has no browser)

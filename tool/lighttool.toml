@@ -1,8 +1,8 @@
 [tool]
 id = "com.yarosz.chess"
 label = "Chess"
-versionCode = 3
-versionName = "0.3.0"
+versionCode = 4
+versionName = "0.3.1"
 # INTERNET for the Relay only, and only for Games with a friend (ADR 0004, decision log W1). Puzzles and
 # Games against the computer never use the network. scripts/release-check.sh relay refuses a release that
 # declares it while RelayConfig.URL is empty (W8).
