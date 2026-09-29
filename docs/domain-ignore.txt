@@ -69,6 +69,8 @@ $MISSED · $count
 $PLAYER_RATING · $text
 Failed ${delta(delta ?: 0)}
 Solved ${delta(delta ?: 0)}
+# The Menu's Puzzle row (decision log S1): the Lichess id and its lichess.org address, two lines
+Puzzle $id\nlichess.org/training/$id
 # F5's own wording for the button; the page it sits on is titled "Player Rating"
 Reset rating
 # Try Mode's prompt after a wrong Move (CONTEXT.md "Try Mode")

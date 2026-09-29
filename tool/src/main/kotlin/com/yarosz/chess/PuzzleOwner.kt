@@ -33,8 +33,8 @@ private const val TAG = "Chess"
  * view models are views onto it, as Reader's `ShelfOwner` is (its ADR 0008).
  *
  * Every change happens on the main thread. The file is written on [io], one save at a time, after
- * every change to what it keeps except the Moves of the Attempt on screen; [flush] (onAppPause)
- * writes everything at once on the calling thread.
+ * every change to what it keeps except the Moves of the Attempt on screen ([PuzzleState.kept]);
+ * [flush] (onAppPause) writes everything at once on the calling thread.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PuzzleOwner(filesDir: File, private val readAsset: (String) -> ByteArray) {
@@ -154,7 +154,7 @@ class PuzzleOwner(filesDir: File, private val readAsset: (String) -> ByteArray) 
             val upNext = next.upNext
             scope.launch(Dispatchers.Default) { upNext.position }
         }
-        if (save || next.data != before?.data || next.current?.puzzle != before?.current?.puzzle) {
+        if (save || next.kept != before?.kept) {
             scope.launch(io) {
                 val latest = sessions.value ?: return@launch
                 runCatching { store.save(latest.toData()) }.onFailure { Log.w(TAG, "puzzles.json save failed", it) }

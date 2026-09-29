@@ -59,6 +59,8 @@ data class InProgress(
     /** UCI, the Moves after the setup Move. */
     val moves: List<String> = emptyList(),
     val solutionShown: Boolean = false,
+    /** The last Move tried was wrong and taken back: the strip reads "Try again" until the next correct Move. */
+    val justWrong: Boolean = false,
     /** The Attempt reached its result; the strip shows it and Next. */
     val done: Boolean = false,
     /** The Player Rating's change when the Attempt was scored, shown in the result strip. */

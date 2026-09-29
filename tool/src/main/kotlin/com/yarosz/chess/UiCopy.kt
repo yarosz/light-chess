@@ -109,4 +109,11 @@ object UiCopy {
     fun ratingRow(text: String) = "$PLAYER_RATING · $text"
 
     fun missedCount(count: Int) = "$MISSED · $count"
+
+    /**
+     * The Menu's last row (A9 with D7, "v1 smoke fixes"): the Puzzle on screen by its Lichess id, then
+     * its page on lichess.org on a line of its own, since Android would otherwise break the address
+     * at a slash. Text, not a link: the phone has no browser and Chess never uses the network (D5).
+     */
+    fun puzzleRow(id: String) = "Puzzle $id\nlichess.org/training/$id"
 }

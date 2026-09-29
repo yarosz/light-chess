@@ -155,6 +155,11 @@ and writes the file; the two screens' view models are views onto it.
 - The save file, `puzzles.json` in filesDir, is written on a background thread after every change to
   what it keeps (results, seed, Next, reset, Missed), and on the main thread in onAppPause, which also
   saves the Moves played so far. It writes this build's schemaVersion; unknown fields are dropped.
+  "What it keeps" is everything but those Moves (`PuzzleState.kept`): the Attempt's state, `done`,
+  `solutionShown` and "Try again" (`justWrong`) included. So a Failed Attempt's result, a Puzzle Hint,
+  Solution and each wrong Move in Try Mode are written at once, and a kill at any of them relaunches
+  into it, never scoring twice (v1 smoke fixes). Before, a Failed result reached the file only in
+  onAppPause, which a kill skips.
 - Cold start: `ChessPerf` logs "session loaded ms=" and, once per process, "first puzzle drawn ms=...
   since process start". LightActivity keeps its splash screen up for at least 1 s after onCreate
   (light-sdk `LightActivity.kt`), so what the user sees first can't come sooner than that.
@@ -176,7 +181,12 @@ copy for the object on screen, while code names the chess state a Position.
 - The seed screen (D4): "How well do you play chess?", then "I'm new to chess" (800), "I play now and
   then" (1200), "I play often and study the game" (1600), "I play in a club or in tournaments" (2000),
   and "Skip" (1500).
-- The Menu: "Menu", "Player Rating · 1500?", "Missed · 3", "About". The rating page: "Player Rating",
+- The Menu: "Menu", "Player Rating · 1500?", "Missed · 3", "About", then a plain row (not a button)
+  for the Puzzle on screen, "Puzzle 00sHx" over "lichess.org/training/00sHx" (A9 with D7, v1 smoke
+  fixes). The address has its own line, since Android breaks it at a slash; `StripFitTest` checks
+  that each line fits 360 dp. Each page is its own screen, so Back, the
+  arrow or the system's, goes from a page to the Menu and from the Menu to the Puzzle; Reset rating and
+  a Missed replay go straight to the puzzle screen. The rating page: "Player Rating",
   the rating, "Reset rating" then "Tap again to reset" (F5), and rows "1523 · Solved +12"; "No rated
   Puzzles yet" when empty. Missed: rows "1541 · Failed" or "1541 · Hinted"; "Nothing missed yet".
 - About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).

@@ -216,6 +216,111 @@ class PuzzleFlowTest {
         assertEquals(mid.currentDelta, back.currentDelta)
     }
 
+    /**
+     * The owner's save rule, without Android: the file is written whenever [PuzzleState.kept] changes,
+     * as `PuzzleOwner.set` does, and never in onAppPause, which a kill skips. [kill] relaunches from
+     * the file as it stands, through the JSON.
+     */
+    private class Disk(private val flow: PuzzleFlow, start: PuzzleState) {
+        var state = start
+            private set
+        private var file = start.toData().encode()
+
+        fun act(change: (PuzzleState) -> PuzzleState): Disk {
+            val next = change(state)
+            if (next.kept != state.kept) file = next.toData().encode()
+            state = next
+            return this
+        }
+
+        /** The clock: hold, setup, replies and the Solution, until the user is to move or the result shows. */
+        fun settle(): Disk {
+            while (state.attempt!!.let { !it.userToMove && it.underWay }) act(flow::advance)
+            return this
+        }
+
+        fun kill(): PuzzleState = flow.open(PuzzleData.decode(file))
+    }
+
+    private fun Disk.wrongMove() = act { wrong(it) }
+
+    private fun Disk.rightMove() = act { flow.play(it, it.attempt!!.puzzle.solution[it.attempt!!.played.size]) }
+
+    @Test
+    fun `a kill at a Failed result relaunches into the result, scored once`() {
+        for (finish in listOf("solve", "solution")) {
+            val disk = Disk(flow, seeded()).settle().wrongMove()
+            val scored = disk.state.data
+            if (finish == "solve") {
+                while (disk.state.attempt!!.underWay) disk.rightMove().settle()
+            } else {
+                disk.act(flow::showSolution).settle()
+            }
+            assertEquals(Stage.DONE, disk.state.current!!.stage)
+            val back = disk.kill()
+            val a = back.current!!
+            assertEquals(Stage.DONE, a.stage, "$finish: the result, not the Puzzle mid-way")
+            assertEquals(AttemptState.FAILED, a.state)
+            assertEquals(disk.state.current!!.played, a.played)
+            assertEquals(finish == "solution", a.solutionShown)
+            assertEquals(disk.state.currentDelta, back.currentDelta, "the strip reads \"Failed −N\" again")
+            assertEquals(scored.rating, back.data.rating, "counted once")
+            assertEquals(1, back.data.history.size)
+            // Next goes on from there and scores nothing more.
+            val next = flow.next(back)
+            assertNotEquals(a.puzzle.id, next.current!!.puzzle.id)
+            assertEquals(scored.rating, next.data.rating)
+        }
+    }
+
+    @Test
+    fun `a kill in Try Mode relaunches Failed, reading Try again, and never scores it twice`() {
+        // A wrong Move after a correct one: the file holds the correct Moves and the wrong one's state.
+        val disk = Disk(flow, seeded()).settle().rightMove().settle().wrongMove()
+        val scored = disk.state
+        val back = disk.kill()
+        val a = back.current!!
+        assertEquals(AttemptState.FAILED, a.state)
+        assertEquals(scored.current!!.played, a.played)
+        assertEquals(Stage.PLAY, a.stage)
+        assertTrue(a.justWrong, "the strip reads \"Try again\", as before the kill")
+        assertEquals(scored.data.rating, back.data.rating)
+        assertEquals(scored.currentDelta, back.currentDelta)
+
+        // Relaunched, the Attempt finishes in Try Mode without a second score, and a second kill at
+        // its result lands on the result.
+        val again = Disk(flow, back).rightMove().settle()
+        assertEquals(Stage.DONE, again.state.current!!.stage)
+        assertEquals(scored.data.rating, again.state.data.rating)
+        assertEquals(1, again.state.data.history.size)
+        assertEquals(Stage.DONE, again.kill().current!!.stage)
+
+        // A wrong first Move: nothing played yet, so the Attempt restarts from its setup Move, still Failed.
+        val first = Disk(flow, seeded()).settle().wrongMove().kill()
+        assertEquals(AttemptState.FAILED, first.current!!.state)
+        assertTrue(first.current!!.justWrong)
+        assertTrue(first.data.rating < 1500)
+        assertEquals(first.data.rating, Disk(flow, first).settle().rightMove().settle().state.data.rating)
+    }
+
+    @Test
+    fun `a Puzzle Hint then the Solution is saved as shown, and the result reads Hinted, unrated`() {
+        val disk = Disk(flow, seeded()).settle().act(flow::hint)
+        assertEquals(AttemptState.HINTED, disk.kill().current!!.state, "a kill after the Hint can't make it rated again")
+        disk.act(flow::showSolution)
+        val mid = disk.kill().current!!
+        assertTrue(mid.solutionShown, "saved when the Solution is asked for")
+        assertEquals(Stage.SOLUTION, mid.stage)
+        disk.settle()
+        val back = disk.kill()
+        val a = back.current!!
+        assertEquals(Stage.DONE, a.stage)
+        assertEquals(AttemptState.HINTED, a.state)
+        assertTrue(a.solutionShown)
+        assertEquals(1500.0, back.data.rating)
+        assertEquals(listOf(HistoryEntry(a.puzzle.id, a.puzzle.rating, AttemptState.HINTED, 0, solutionShown = true)), back.data.history)
+    }
+
     /** The first Solution Move of [Lines.MATE_IN_2], which every Puzzle in [wide] shares. */
     private fun seededMove() = Puzzle.parse(Lines.MATE_IN_2).solution[0]
 

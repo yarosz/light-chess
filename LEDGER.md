@@ -12,7 +12,14 @@ Review also turned the flashlight on, because LightOS got the key-up of a press 
 Every wheel screen now extends `WheelViewModel`, which takes a press's repeats and up with it (R4.17,
 `TakenKeysTest`). To re-check on the LP3: a click in Review returns to the latest Position and leaves
 the flashlight off; outside Review a click still toggles it and a turn still changes the brightness.
-LAST SESSION: 2026-09-28
+HANDOFF: fix/v1-smoke (on feat/v1-release) holds the v1 smoke fixes, decision log "v1 smoke fixes"
+S1-S3: a Failed result, a Puzzle Hint, Solution and each wrong Move in Try Mode now reach
+`puzzles.json` at once (`PuzzleState.kept`), so a kill relaunches into the result or into "Try
+again", never scoring twice; each Menu page is its own screen, so system Back from Player Rating,
+Missed or About returns to the Menu; the Menu shows the Puzzle on screen as "Puzzle <id>" over
+"lichess.org/training/<id>" (A9 reconciled with D7). These must merge forward into the v2 and v3
+branches. To re-check on the LP3: system Back from each Menu page, and the id row in Akkurat.
+LAST SESSION: 2026-09-29
 
 ## Where things are
 - Design: `CONTEXT.md` (glossary), `docs/adr/0001-0003`, `docs/design/decision-log.md`. The log holds

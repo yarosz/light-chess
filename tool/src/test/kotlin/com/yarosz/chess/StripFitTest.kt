@@ -20,6 +20,12 @@ import kotlin.test.assertTrue
  */
 class StripFitTest {
 
+    private companion object {
+        /** The LP3's app area (DESIGN.md "Layout") and a Menu line's side padding (`MenuScreen.Line`). */
+        const val MENU_WIDTH_DP = 360f
+        const val MENU_PADDING_DP = 24f
+    }
+
     private val menu = UiCopy.MENU
     private val solving = listOf(UiCopy.HINT, UiCopy.SOLUTION, menu)
     private val result = listOf(UiCopy.NEXT, menu)
@@ -80,6 +86,21 @@ class StripFitTest {
         )) assertTrue(copy in used, "\"$copy\" is not checked")
     }
 
+    /**
+     * The Menu's Puzzle row (A9 with D7): a Menu line is the LP3's 360 dp less 24 dp either side. With
+     * the widest 5-character Lichess id, each of its two lines fits whole, so Android never breaks the
+     * address (it would at a slash: seen on the emulator when the address shared a line).
+     */
+    @Test
+    fun theMenuPuzzleRowFits() {
+        val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
+        for (id in listOf("WWWWW", "mmmmm", "00sHx")) {
+            val lines = UiCopy.puzzleRow(id).split('\n')
+            assertEquals(listOf("Puzzle $id", "lichess.org/training/$id"), lines)
+            for (l in lines) assertTrue(AkkuratProxy.width(l) <= room, "\"$l\" (${AkkuratProxy.width(l)} dp) in $room dp")
+        }
+    }
+
     /** The bug seen on the LP3: on one line, the first Puzzle's status lost its end next to Menu. */
     @Test
     fun oneLineWasTooShortForTheFirstPuzzle() {
@@ -132,6 +153,7 @@ object AkkuratProxy {
         for (d in '0'..'9') put(d, 556)
         put(' ', 278); put(',', 278); put('.', 278); put('\'', 191); put('’', 222); put('?', 556)
         put('·', 278); put('+', 584); put('−', 584); put('-', 333); put('…', 1000)
+        put('/', 278)
     }
 
     /** The advance width of [text] in dp. A character without a width fails loudly: add it to the table. */

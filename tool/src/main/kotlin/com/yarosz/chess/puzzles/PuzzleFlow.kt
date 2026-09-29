@@ -36,11 +36,19 @@ data class PuzzleState(
                 state = it.state,
                 moves = it.played.map(Move::uci),
                 solutionShown = it.solutionShown,
+                justWrong = it.justWrong,
                 done = it.stage == Stage.DONE,
                 delta = currentDelta,
             )
         },
     )
+
+    /**
+     * What a change must reach the file for: everything [toData] keeps except the Moves of the
+     * Attempt on screen, which onAppPause writes. So every result, a Puzzle Hint, the Solution asked
+     * for and a wrong Move in Try Mode are saved at once, and a kill at any of them relaunches into it.
+     */
+    val kept: PuzzleData get() = toData().let { it.copy(current = it.current?.copy(moves = emptyList())) }
 }
 
 /**
@@ -71,7 +79,7 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
         } else if (progress != null) {
             val puzzle = pack.puzzle(progress.id, progress.puzzleRating)
             if (puzzle != null) {
-                current = Attempt.resume(puzzle, progress.state, progress.moves, progress.solutionShown, progress.done)
+                current = Attempt.resume(puzzle, progress.state, progress.moves, progress.solutionShown, progress.done, progress.justWrong)
                     ?: Attempt(puzzle, progress.state)
                 delta = progress.delta
             }

@@ -321,3 +321,23 @@ default Think time).
   false" (brightness and the flashlight when Chess has no use for the wheel). An up with no down seen
   isn't taken. A repeat gets its press's answer without acting again. `WheelViewModel` and
   `TakenKeys` (tested on the JVM) hold the rule for every screen.
+
+## v1 smoke fixes (orchestrator, 2026-09-29)
+- S1 Reconciles A9 with D7. A9 asked About for "per-puzzle lichess.org/training/<id> as text"; D7,
+  which built About, lists only the Lichess CC0 credit and dump date, and About is one page for the
+  whole Tool, so no screen showed a Puzzle's id. RULING: About keeps D7's credit unchanged; the
+  per-puzzle part of A9 moves to the Menu, the one screen opened from a Puzzle: a plain row under
+  About, "Puzzle <id>" over "lichess.org/training/<id>", for the Attempt on screen (a Missed replay's
+  own id). Text only, never a link: the phone has no browser and Chess never uses the network (D5).
+  The address gets its own line because Android broke it at a slash when it shared one with the id
+  (emulator); each line fits 360 dp whole with the widest id (`StripFitTest`).
+- S2 The save file keeps up with every result (A8, "written on every result"): a background save
+  follows every change to what the file keeps except the Moves of the Attempt on screen, which is
+  the Attempt's state, `done`, `solutionShown` and "Try again". Seen on the emulator: after a wrong
+  Move, the Failed result reached the file only in onAppPause, so a kill at the result relaunched
+  into the Puzzle mid-way. A relaunch in Try Mode after a wrong Move reads "Try again", as before the
+  kill. Scoring stays on the Attempt's own transitions (A3), so a relaunch never scores twice.
+- S3 Back is page-aware: each Menu page is its own screen on the SDK's back stack, so system Back
+  from Player Rating, Missed or About returns to the Menu, as the arrow does, and the Menu returns to
+  the Puzzle. System Back can't be intercepted by a screen (PLATFORM.md), which is why pages that were
+  only state inside one screen skipped the Menu. Back from the puzzle screen still closes the Tool.
