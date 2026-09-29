@@ -98,6 +98,10 @@ else
   ./gradlew -q --console=plain :tool:testDebugUnitTest || fail_ctx emulator "unit tests"
   tests=$(cat tool/build/test-results/testDebugUnitTest/*.xml | grep -oE '<testsuite [^>]*tests="[0-9]+"' | grep -oE 'tests="[0-9]+"' | grep -oE '[0-9]+' | paste -sd+ - | bc)
   note "unit + property tests: $tests passed"
+  ./gradlew -q --console=plain :tool:testBenchmarkUnitTest --tests com.yarosz.chess.bench.BenchSuiteJvmTest \
+    || fail_ctx emulator "benchmark JVM test"
+  scripts/bench-test.sh >/dev/null || fail_ctx emulator "bench.sh check"
+  note "benchmark harness: JVM test and bench.sh check passed"
 
   lblog=$(mktemp)
   if ! scripts/light-build.sh >"$lblog" 2>&1; then

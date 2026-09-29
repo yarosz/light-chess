@@ -57,6 +57,7 @@ class ToolMetadataTest {
         assertTrue("Source: github.com/yarosz/light-chess" in about)
         assertTrue(UiCopy.PRIVACY in about)
         assertTrue("(lichess.org), CC0, from the dump of 2026-09-09." in about)
+        assertTrue(UiCopy.ABOUT_BOOK in about)
         assertTrue("Apache License, Version 2.0" in about)
     }
 
@@ -73,6 +74,24 @@ class ToolMetadataTest {
         assertTrue("CC0 1.0 Universal" in licence && "geometric/" in licence && "rounded/" in licence)
         assertTrue(licence.startsWith("Chess pieces\n"), "titled for Chess, not for Light")
         assertTrue("cburnett" !in about.joinToString("\n").lowercase() && "Burnett" !in notices)
+    }
+
+    @Test
+    fun `About, NOTICE and the README credit the engine and the Book (D7, book ruling 1)`() {
+        val texts = mapOf(
+            "About" to UiCopy.about(null, notices).joinToString("\n"),
+            "NOTICE" to words(File("../NOTICE").readText()),
+            "README" to words(File("../README.md").readText()),
+        )
+        for ((name, text) in texts) {
+            // The engine: Pirarucu, its author, its licence (GPL-3.0, NOTICE writes it out).
+            for (fact in listOf("Pirarucu", "Raoni Campos (ratosh)")) assertTrue(fact in text, "$name: $fact")
+            assertTrue("GPL-3.0" in text || "General Public License version 3" in text, "$name: Pirarucu's licence")
+            // The Book: the Lichess games database, CC0, the January 2018 dump.
+            for (fact in listOf("Opening book", "Lichess", "games database", "CC0", "January 2018")) {
+                assertTrue(fact in text, "$name: $fact")
+            }
+        }
     }
 
     @Test

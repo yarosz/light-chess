@@ -1,0 +1,28 @@
+# Upstream Pirarucu 987dd02 at fixed depth, written by scripts/vendor-pirarucu.py --parity
+# (delete this file and rerun to re-pin). One search per line: position depth nodes bestmove score.
+# Fresh TranspositionTable(16 MB), PawnEvaluationCache(2 MB) and History per search, no time limit.
+start 8 11399 b1c3 20
+start 9 25288 b1c3 43
+start 10 43938 b1c3 22
+start 12 104706 b1c3 34
+start 14 389174 e2e4 42
+kiwipete 8 15792 e2a6 -55
+kiwipete 9 33308 e2a6 -59
+kiwipete 10 47169 e2a6 -70
+kiwipete 12 115013 e2a6 -68
+kiwipete 14 509565 e2a6 -123
+ruylopez 8 18112 a2a4 17
+ruylopez 9 24129 a2a4 15
+ruylopez 10 36333 a2a4 12
+ruylopez 12 172345 h2h3 23
+ruylopez 14 591436 h2h3 16
+endgame 8 10933 a5a6 17
+endgame 9 14491 a5a6 25
+endgame 10 18666 a5a6 25
+endgame 12 142567 b4f4 132
+endgame 14 167033 b4f4 133
+position4 8 11141 c4c5 -658
+position4 9 17781 c4c5 -657
+position4 10 53709 c4c5 -851
+position4 12 81078 c4c5 -810
+position4 14 511005 c4c5 -667

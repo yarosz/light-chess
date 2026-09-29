@@ -2,7 +2,6 @@ package com.yarosz.chess.rules
 
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -16,22 +15,9 @@ import kotlin.test.assertTrue
 class RulesPropertyTest {
 
     private val games = 400
-    private val maxPlies = 300
+    private val maxPlies = RandomGames.MAX_PLIES
 
-    /** A random Game from the start, with draw offers and refusals mixed in, played to its end or [maxPlies]. */
-    private fun randomGame(seed: Int): Game {
-        val random = Random(seed)
-        var game = Game.of()
-        while (game.result == null && game.ply < maxPlies) {
-            val toMove = game.position.sideToMove
-            game = when {
-                game.openDrawOffer == toMove.opponent && random.nextInt(4) == 0 -> game + DrawRefusal(toMove)
-                game.openDrawOffer == null && random.nextInt(40) == 0 -> game + DrawOffer(toMove)
-                else -> game + game.position.legalMoves.random(random)
-            }
-        }
-        return game
-    }
+    private fun randomGame(seed: Int): Game = RandomGames.game(seed)
 
     private fun forEachPosition(count: Int = games, check: (Position, Int) -> Unit) {
         for (seed in 0 until count) for (p in randomGame(seed).positions) check(p, seed)

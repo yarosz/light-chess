@@ -1,14 +1,15 @@
 # Chess
 
-Chess Puzzles for the Light Phone III.
+Chess Puzzles, and games against the computer, for the Light Phone III.
 
 Solve real positions from the Lichess puzzle database, 46,971 of them, chosen for your level.
 Your Player Rating moves with every rated Puzzle, and the ones you missed wait for another try.
-Works offline, with no account and nothing tracked.
+Or play the computer at one of eight Levels, on the phone itself. Works offline, with no account and
+nothing tracked.
 
-> **Status: 0.1.0, feature-complete for v1, not yet listed by Light.** A Light Phone III Tool built on
-> [Light's SDK](https://github.com/lightphone/light-sdk). Planned: playing the computer, then a friend
-> by correspondence.
+> **Status: Puzzles (v1) and playing the computer (v2) are done; not yet listed by Light.** A Light
+> Phone III Tool built on [Light's SDK](https://github.com/lightphone/light-sdk). Planned: a friend by
+> correspondence.
 
 Questions or bugs: https://github.com/yarosz/light-chess/issues
 
@@ -22,7 +23,13 @@ _Screenshots from a Light Phone III are coming._
 - **Player Rating.** A Glicko-2 rating, like Lichess's own, picks each Puzzle near your level. Answer
   one question on first launch, or skip it.
 - **Missed.** The last 100 Puzzles you failed or needed a Hint for, to replay unrated.
-- **Review.** Turn the scroll wheel back to step through the Moves of the Puzzle on screen.
+- **Play the computer.** Choose a Level from 1 to 8 and play as White, Black or at random. Level 8 is
+  the computer's full strength, with a Think Time of 3, 10 or 30 seconds a Move. From Level 2 up it
+  opens from a Book of strong players' Games. "Hint" shows the computer's best Move (a Game Hint);
+  "Move now" makes it play at once. The Menu has Takeback, Offer draw, Resign, Flip board and the
+  Game's Moves. A Game in progress is kept when you leave, and Games lists your last 50 finished
+  ones to look back through.
+- **Review.** Turn the scroll wheel back to step through the Moves of the Puzzle or Game on screen.
 - **Pieces.** Two sets, geometric and rounded; choose one in the Menu.
 - The screen stays on while you think, for up to five minutes without a touch.
 
@@ -57,14 +64,20 @@ A plain `assembleDebug` builds for LightOS on a Light Phone III. For the emulato
 
 ## Privacy
 
-Chess never uses the network. Nothing leaves this phone. The Puzzles ship inside the Tool, and your
-rating and history stay in the Tool's own storage. Chess declares no permissions of its own; the
-Android permissions its package lists come from Light's SDK. See `SECURITY.md`.
+Chess never uses the network. Nothing leaves this phone. The Puzzles and the opening Book ship inside
+the Tool, the computer thinks on the phone itself, and your rating, Games and history stay in the
+Tool's own storage. Chess declares no permissions of its own; the Android permissions its package
+lists come from Light's SDK. See `SECURITY.md`.
 
 ## Credits
 
 - Puzzles: the [Lichess puzzle database](https://database.lichess.org/#puzzles) (lichess.org),
   released under CC0. The Pack is built from the dump of 2026-09-09 (`docs/pack.md`).
+- The computer: [Pirarucu](https://github.com/ratosh/pirarucu), a chess engine by Raoni Campos
+  (ratosh) and its contributors, under GPL-3.0, vendored with the changes listed in
+  `vendor/pirarucu/README.md`.
+- Opening book: the [Lichess games database](https://database.lichess.org/#standard_games)
+  (lichess.org), released under CC0. The Book is built from the January 2018 dump (`docs/book.md`).
 - Pieces: original drawings made for Chess (two sets), released under CC0 1.0 (no rights reserved).
   The drawings are in `art/pieces/`.
 - Built on Light's SDK (MIT) and the libraries it brings, listed in `NOTICE` and on the About screen.

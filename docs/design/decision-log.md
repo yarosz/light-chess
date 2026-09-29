@@ -317,7 +317,283 @@ default Think time).
   at about 73-74, so the "?" goes after about 48 Puzzles and the 45 floor is never reached. ACCEPTED as
   is: RD <= 75 is Lichess's own "established" threshold. No change.
 
-## Wheel key-up (LP3 check, 2026-09-28)
+## v2 PR 1: Pirarucu vendored (facts and implementation choices, 2026-09-28)
+- Layout: `tool/src/main/kotlin/vendor/pirarucu/<package>/`, package names kept (`pirarucu.*`), so
+  unchanged files are byte-for-byte upstream. It must live under src/main/kotlin (the plugin bans
+  srcDir); LICENSE and provenance go in `vendor/pirarucu/` at the root (the extractor takes only .kt
+  there). `scripts/vendor-pirarucu.py` regenerates it; `--check` and `--parity` guard it.
+- Plugin scan: the real `:tool:assembleDebug` scan covers the vendored tree (a probe `.javaClass` in
+  it fails the build); 0 violations.
+- Parity: upstream 987dd02 (pirarucu-common + its JVM `actual`, compiled at Kotlin API 2.0 because of
+  one `toUpperCase()` in applyConfig) and the vendored copy agree node for node, move and score on 25
+  fixed-depth searches (5 positions, depths 8, 9, 10, 12, 14); pinned in
+  `tool/src/test/resources/engine/parity.txt`. Fresh 16 MB TT / 2 MB pawn cache per search.
+- "Completed iteration" = an iteration whose result is inside the aspiration window, or fails high
+  (the move is proven better than the window); a fail low never replaces the move. The root records
+  its best move when not stopped; the TT-read bestMove agrees on all 25 parity searches.
+- Engine board = the Position at the last 50-move reset plus the Moves after it: repetitions are seen,
+  the 1,024-entry game history never fills.
+- Wall limits are exact through a timer in EngineHost (Pirarucu reads the clock every 65,536 nodes);
+  a per-search StopHandle keeps a late stop or timer from reaching the next search.
+- Hash: 16 MB TT, 2 MB pawn cache (ADR 0001 range). Node budget overshoot: at most a few quiescence
+  nodes (1,004 for 1,000; 20,001 for 20,000).
+- Benchmark trigger: a debug-only `@EntryPoint` (src/debug, never in release or Light's builder) runs
+  the suite when `files/chess-bench` exists. The SDK allows one @EntryPoint, so if main ever needs one,
+  the trigger moves into it. Numbers come from a debuggable build.
+- Release APK unchanged (27,855,909 bytes): R8 drops the engine until a screen calls it. Debug APK
+  +246 KB.
+- Mac JVM (M3 Pro, JDK 17, 1 thread, 5 runs): ~1.9M nps P50 (1.7-3.0M by position); depth 14 in
+  195 ms P50 / 331 ms P90; 3 s reaches depth 20 P50 (18-28). The LP3 run is v2 PR 2's gate.
+
+## v2 PR 2: LP3 benchmark (facts and implementation choices, 2026-09-28)
+- Harness fixes: `logcat -s ChessBench:I` (the old second spec `ChessBench:E` replaced the first and
+  hid every Info line, so bench.sh never saw "done"); bench.sh exits 0 on "done", reads and validates
+  `stay_on_while_plugged_in` before any change and restores exactly that value (delete if unset) on
+  exit, Ctrl-C, TERM and HUP. `scripts/bench-test.sh` checks this against a fake adb (CI + ci.sh).
+- Thread: the search always ran on `chess-engine` through `EngineHost.search`; logcat's tid == pid was
+  only the main thread logging the lines. Each search line now carries `thread=` and `tid=` sampled on
+  the searching thread; `BenchSuiteJvmTest` asserts it is the engine thread, not the caller's.
+- Benchmark build type `benchmark`: not debuggable (aapt: no `application-debuggable`), dev-signed, not
+  minified, `matchingFallbacks = release`. It alone owns `src/benchmark` and `src/testBenchmark`: the
+  plugin bans srcDir, so a source set shared with debug is impossible; `-Pbench.debuggable=true` builds
+  a debuggable twin of the same APK instead. Debug and release dex carry 0 bench references; release is
+  still 27,855,909 bytes; the extractor takes 88 files and none from src/benchmark; the unsigned
+  offline release build passes.
+- Trigger without run-as: a file adb writes under `/sdcard/Android/data/<pkg>/files` is created
+  `shell:ext_data_rw`, which the Tool cannot read (seen on the emulator), and the entry point has no
+  Context or Intent. So bench.sh builds with `-Pbench.id=<fresh> -Pbench.runs=<n>` (BuildConfig,
+  `buildConfig = true`) and the Tool runs the suite once per id, writing the id to its own
+  `files/chess-bench-ran` first (no crash loop, no rerun of the same build).
+- The LP3, 10 runs + warm-up, non-debuggable benchmark build: think-time nps P50 558,116 /
+  P90 862,055 (all 120 searches: 567,309 / 831,009); time to depth 14 P50 693 ms / P90 1,151 ms; depth
+  in 3 s P50 18 / P90 22 (16-22 by position: ruylopez 16, endgame 22). Engine thread `chess-engine`
+  tid 12064 (pid and main thread 12029) on the A78 cores only (6: 111 samples, 7: 9). maxMemory 128 MB,
+  32 MB used at the end. Thermal status 0 before and 0 immediately after.
+- Same session, debuggable twin: nps P50 153,614 / P90 263,687; depth 14 P50 2,551 / P90 4,301 ms;
+  depth in 3 s P50 14 / P90 19; cores 6-7; thermal 0/0. It matches the earlier debug-build run (158,566
+  nps, 2,473 ms). Non-debuggable / debuggable: 3.6x nps at P50 (3.3x P90), 3.7x faster to depth 14.
+- Against E2: 0.56M nps is inside the 0.3-1M band, so the 3 s default stands; Pirarucu passes the
+  E11 speed gate (GO pending the owner's call). The Tool must be measured as Light's release builder
+  ships it (minified, not debuggable); the benchmark build is the closest proxy without R8.
+
+## Takeback rule corrected (orchestrator, 2026-09-28)
+- F11's "Takeback while thinking = stop, then undo 2 plies" is wrong: during the computer's think
+  the user's Move is the last ply, so undoing 2 would also remove the computer's previous reply, which
+  it would then replay. RULING (as built on feat/v2-record): a Takeback cuts the event list back to
+  just before the user's latest Move (1 ply while the computer thinks, 2 after it has replied), and
+  stops any search first. No Takeback before the user's first Move or after the Game is over.
+
+## v2 PR 5 core: game record and resume (implementation choices, 2026-09-28)
+- Code: `tool/src/main/kotlin/com/yarosz/chess/games/`, pure Kotlin, no UI (the game screen comes
+  later). `GameRecord` = a Game plus what is recorded with it (user's Side, Level, Level-8 think
+  time, Takebacks, Game Hints, date); `Pgn` writes and reads it; `GameData`/`GameStore` save it.
+- Tags (B5/B7, F7): the Seven Tag Roster (Event "Game against the computer", Site "?", Round "-",
+  White/Black "You"/"Computer"), then SetUp "1" + FEN when the start isn't the standard Position,
+  then Termination, then ours, named like PGN's own: `Level` (1-8), `ThinkTime` (whole seconds, when
+  set), `Takebacks`, `GameHints`. Termination is a sentence per Result: "White wins by checkmate",
+  "Black wins by resignation", "Draw by agreement", "Draw by threefold repetition", "Draw by the
+  50-move rule", "Draw by insufficient material", "Draw by stalemate"; none while the Game goes on.
+- Game Events that aren't Moves are PGN-style comment commands in place: `{[%draw offer white]}`,
+  `{[%draw accept black]}`, `{[%draw refuse black]}`. A resignation has none: a decisive Result the
+  Moves don't reach by checkmate reads back as the loser's resignation (so ordinary PGN resignations
+  read too). A draw the Moves don't show without an accept command is rejected.
+- Reader: rebuilds through the core; rejects illegal or unknown SAN, a Result tag the Game doesn't
+  reach, a movetext marker that disagrees with the tag, bad Level/counter values, a bad FEN. Skips
+  comments (other than the commands, and those only outside variations), NAGs, `!?` marks, nested
+  variations, `;` comments and `%` lines; ignores unknown tags; a bad Date becomes "????.??.??".
+  Movetext lines wrap at 79 columns; tag lines don't wrap.
+- One file, `games.json` (schemaVersion 1), not a PGN file per game or one `.pgn`: `{current: {pgn,
+  fen}, finished: [{pgn}]}`, newest first, capped at 50. Ending a Game (current to finished) and F7's
+  replacement (old Game to finished as "*", new one current) are then one atomic save, schemaVersion
+  and unknown fields have a place (the PuzzleData rule: later schemas only add), and the save
+  pattern is the one `.bak` of `puzzles.json`. Size: about 1-2 KB per Game, under 100 KB at the cap.
+  The temp + rename + `.bak` + `.corrupt` code moved from PuzzleStore into a shared `SaveFile`, which
+  both stores now use (PuzzleStore's tests unchanged and green).
+- Resume: the in-progress PGN replayed exactly (Position, events, open draw offer, counters). The FEN
+  checkpoint is the fallback when the PGN doesn't read (a file from a newer build): the Game restarts
+  from that Position without its earlier Moves or counters. When both read, the PGN wins.
+- Takeback (contradiction 6): cut the event list just before the user's latest Move, so it drops that
+  Move, the computer's reply if there is one yet (F11's "takeback while thinking" is then one ply),
+  and any draw event after it; the counter goes up by one; the user is to move. No Takeback once the
+  Game is over (it goes to the history) or before the user's first Move.
+- Tests: 200 seeded random Games (the rules tests' generator, now `RandomGames`, a quarter from set-up
+  Positions, ended by the rules, resigned, agreed or left unfinished, random counters) round-trip
+  equal and re-write to the same text; hand-written PGN (the Opera Game with comments, NAGs, nested
+  variations, `;` and `%` lines); every Result and Termination; SetUp/FEN starts; castling, promotion
+  and disambiguation SAN; the store (round trip, `.bak`, unknown fields, the 50 cap's order, F7,
+  Takeback counter, the checkpoint fallback).
+
+## Opening book rulings (expert, 2026-09-28; supersedes B4's source detail)
+Facts: database.lichess.org's standard rated monthly dumps are CC0 1.0 (2018-01: 5.47 GB, 17.9M
+games; 2026-08: 30.1 GB). No official elite subset. Broadcasts are CC BY-SA; masters data is API-only;
+nikonoel has no licence; TWIC is personal use only: all rejected.
+- (1) Source: stream `lichess_db_standard_rated_2018-01.pgn.zst` (URL + SHA-256 pinned), no local copy.
+  Filter: both players >= 2200; base + 40 x increment >= 180 s; Termination "Normal"; the first 20
+  plies. Keep a (Position, Move) pair with >= 10 occurrences AND >= 5% of the Position's games; drop a
+  Move with >= 30 games where the side playing it scores < 40%. Weight = game count scaled per
+  Position to 16 bits; learn = 0. Credit Lichess in About.
+- (2) At most 40,000 entries (<= 640 KB) in one book.bin; over the cap, raise the minimum count until
+  it fits. Commit the entry count and the book.bin SHA-256.
+- (3) Build: a Kotlin JVM CLI on our rules core (SAN, Polyglot keys from the spec's Random64 table,
+  sorted big-endian 16-byte entries), as a mise task; no Python. Gate: our keys against the spec's
+  published keys. The build and the game share the reader.
+- (4) Levels: L1 no book; L2-4 to ply 8, pick proportional to sqrt(weight); L5-8 to ply 20, pick
+  proportional to weight; out of book, or once the user leaves book, the engine for the rest of the
+  Game. The book RNG seed is stored with the saved Game (resume and Takeback replay the same pick);
+  the strip says nothing about book Moves; the Game Hint stays the engine's best Move (B5); lookup is
+  by Polyglot key (transpositions covered), and the ply limit counts real Game plies.
+
+## v2 PR 6: the Book (facts and implementation choices, 2026-09-28)
+- Spec: https://hgm.nubati.net/book_format.html. `scripts/polyglot-random64.sh` generates
+  `rules/PolyglotRandom64.kt` from the page (781 constants, none typed by hand; `--check`).
+  `Position.polyglotKey` matches all nine published test keys, from the spec's FENs and by playing
+  its moves. The en passant file counts whenever a side-to-move pawn stands beside the pushed pawn,
+  legal capture or not (the spec says so explicitly), unlike our canonical FEN.
+- Dump pin: SHA-256 `8ac6ff9d722a4bba1c1d72c700523408dff2e09cc52cbfe4e454289ca60e8d6b`, from
+  Lichess's `standard/sha256sums.txt`; the build hashes the streamed bytes through a fifo and
+  publishes only on a match.
+- Result: 17,945,784 games read, 77,509 kept (0.43%, below the ruling's 0.60% sample estimate of
+  about 107k; the Termination filter is the likely difference, not measured), 0 unparseable; 7,082
+  entries in 4,801 Positions, 113,312 bytes, SHA-256
+  `0e5b8eb75b6556cf66d8a9526c682abdc32bc340d7565c7137be7b404d8c311c`. The cap is far away, so the
+  minimum count stays 10. Two streaming runs and a rebuild from the kept games
+  give identical bytes.
+- Choices beyond the rulings: games with a SetUp/FEN header are skipped; entries in Positions the
+  Book can't reach from the start by book Moves within 20 plies are pruned (they could never be
+  played, since leaving the Book is final), before the cap applies; weights are scaled so each
+  Position's top Move weighs 65,535 (rounded, at least 1); ties sort by weight descending, then move
+  code. The reader rejects a king's two-square step (Polyglot castles only as king takes rook) and
+  checks every Move with the core.
+- `BookPolicy.pick(book, start, moves, seed)` is pure: it replays the Game's Moves, returns null once
+  any Move wasn't a book Move (either side) or past the Level's ply, and draws with
+  `Random(seed * mix + ply)`, so a pick depends only on the seed and the ply. The game screen (PR 4)
+  wires it in and stores the seed.
+
+## v2 PR 3: Levels (tuned values and calibration method, 2026-09-28; docs/levels.md)
+- Values (nodes per search / depth cap / N / margin cp): L1 60/2/4/100, L2 400/4/4/150, L3 1,000/-/3/80,
+  L4 2,500/-/3/55, L5 6,000/-/2/35, L6 25,000/-/2/20, L7 120,000/-/2/15; L8 one plain search with
+  Think time × 1,000 nodes/ms (3M/10M/30M), wall-capped at 3/10/30 s. Estimated LP3 time per Move
+  (nodes / 558K nps): L1-L5 < 25 ms, L6 ~90 ms, L7 ~430 ms; L8 is clock-bound on the LP3.
+- Method: Mac JVM only. Nothing installed (no Stockfish, cutechess-cli or python-chess), so a Kotlin
+  match runner in the Tool's test source set (`LevelCalibrationTest`, `-Dcalibrate=...`), our rules
+  core as referee, fresh engines per Game, seeded and node-based, so every run replays. A self-play
+  ladder (80 Games per pair), a gauntlet against Karballo's limiter (the spike's flattened Karballo
+  behind a line server, `spikes/karballo/flat/serve`, in its own process), a blunder profile (40
+  middlegames × 5 seeds, judged at depth 12), and Level 1 against a random mover.
+- Measured: ladder gaps +436 to +636 (span ~3,450); gauntlet gaps +164 to +394 (span ~2,020);
+  cp loss 131/61/59/32/26/17/13/11, blunders per 40 7.4/3.2/2.2/0.6/0.6/0/0/0; Level 1 38.5/40 against
+  random; Level 8 (3 s of LP3 nodes) 75/80 against Level 7 and 31.5/40 against full Karballo at 2M
+  nodes.
+- The 150-300 target cannot hold in self-play with a beginner at Level 1 and full strength at Level 8:
+  self-play inflates gaps. The settings aim for even gaps. The gauntlet gaps (closer to human feel) are
+  within or near the target.
+- NO Elo labels (B2): Karballo's own labels measure 505 Elo apart from 500 to 1000 but 755 from 1000 to
+  1500, so an "approx." label would be off by ~250 depending on the reference. Levels show by number.
+  Labels wait for a Stockfish UCI_Elo gauntlet (B8).
+Implementation choices beyond the log:
+- The random pick is seeded by (Game seed, Ply), so it does not depend on what was searched before; a
+  pick is uniform among the candidates. Sampling stops at the first search outside the margin, and N
+  never exceeds the number of legal Moves.
+- Move now below Level 8: the search in progress stops and keeps its last completed iteration (a
+  candidate if within the margin), and no further search starts. Before the first search completes
+  depth 1, the fallback Move plays (as in v2 PR 1). EngineHost.play enforces Level 8's Think time as a
+  Move now, to the millisecond.
+- G1's true eval = the first, unrestricted search at the Level's own budget (`LevelMove.trueScore`). At
+  Levels 1-2 it is shallow (depth 2-4). If PR 4 finds draw answers noisy there, add a separate eval
+  search on a small engine of its own (not the shared TT, which would strengthen the next Move).
+- The transposition table carries over between the searches of a choice and between Moves. A Game
+  replays exactly from a fresh engine; a resumed or taken-back Game on a warm engine may choose
+  differently (PR 5 should replay from a fresh engine if exact replay matters).
+- Levels 6-7 keep N = 2 with a small margin (20/15 cp), so repeated Games don't repeat.
+- The margin shrinks from Level 2 up; Level 1's margin (100) is below Level 2's (150). Level 1's
+  blunders come from its 60-node, depth-2 search: margin 400 with N = 6 had the same blunder rate (7.7
+  per 40) but played ~280 Elo weaker in self-play, which would widen the Level 1-2 gap for nothing.
+- CONTEXT.md gains Think Time and Move Now.
+
+## Stockfish for calibration (owner, 2026-09-28)
+- The owner approved installing Stockfish on the Mac (for example `brew install stockfish`) to
+  calibrate the Levels against UCI_LimitStrength / UCI_Elo, "maybe later". When it's done, rerun
+  LevelCalibrationTest's anchor mode against Stockfish and, if the fit is consistent, show
+  "approx." Elo labels (B2). Until then the UI shows Levels only (v2 PR 3).
+
+## v2 PR 4: the game screen (rulings and implementation choices, 2026-09-28)
+Rulings the log didn't make, each chosen as the one most consistent with it:
+- R4.1 Result strip: "Next" and Menu, where Next ("Start a new game") opens the new-game page. The
+  brief's "Next / New game" is read as one button: a Result next to three buttons (Next, New game,
+  Menu) has 51 dp left, which fits no Result in two lines (StripFitTest).
+- R4.2 The Game Hint's strip label is "Hint", its semantics label "Game Hint: show the computer's best
+  Move" (F11). "Game Hint" next to Takeback and Menu leaves 0 dp for the status. The user's-Move status
+  is "Your move", which wraps in the 67 dp those three buttons leave.
+- R4.3 Takeback while the computer thinks (contradiction 2 keeps that strip to Move now and Menu) is in
+  the Menu, where Takeback also sits on the user's Move. The "Takeback rule corrected" cut applies in
+  both.
+- R4.4 Game Hint = a plain Level 8 search at the default Think Time (3 s, 3M nodes), whatever the Game's
+  Think Time (30 s would be too long to wait for a hint). While it runs the strip reads "Finding a Game
+  Hint" with Menu, and the board stays live: a Move stops the search and nothing is counted. It shows
+  (Puzzle Hint ring on the piece, target mark on its square) for 5 s or until the user's Move ("shown
+  briefly", B5), and it is counted once shown.
+- R4.5 Draw offers are made from the Menu, on the user's Move only (the true eval is the computer's own
+  search, and while it thinks there is none for the Position). The answer shows in place:
+  "Draw declined", or back to the board with the Result "Draw agreed". G1's terms: "past move 30" =
+  the Position's move number > 30; "move >= 40" = move number >= 40; "10 more moves" = 10 of each
+  side's, 20 Plies; "R + minor" = non-pawn material <= 8 (minor 3, rook 5), and no queen on the board.
+  With no eval yet (only book Moves), the computer declines.
+- R4.6 The true evals G1 needs are saved with the Game, as Lichess's `{[%eval -0.52]}` comment after
+  each Move the computer searched (pawns, White's view), so a resume or a Takeback judges the next
+  offer on the same evals. `GameRecord.evals`; a Takeback drops the evals of the Moves it cuts. A
+  search stopped before depth 1 leaves no eval: on the emulator, Level 1 reported exactly 0.00 in
+  lost Positions (a 60-node search can end before depth 1), which could feed G1's dead-level rule.
+- R4.7 One Game seed (`Random.nextLong` at Start) drives both the Book pick and the Level pick, saved as
+  the PGN tag `Seed`. "Random" picks the user's Side from the same seed.
+- R4.8 Exact replay: at Levels 1-7 the engine forgets what earlier searches learned before each of the
+  computer's Moves (`Engine.newGame`, cheap at these budgets), so a Move depends only on the Game, the
+  Level and the seed, and a resume or a Takeback followed by the same Move gets the same reply.
+  Level 8 keeps its table between Moves (it ends on the clock, so it can't replay exactly anyway) and
+  clears it at each new Game. The calibration (v2 PR 3) carried the table between Moves at every
+  Level; the effect of clearing it at Levels 1-7 was not measured, and is expected to be small next
+  to the 164-394 Elo gauntlet gaps.
+- R4.9 The computer's Move lands no sooner than 300 ms after the user's (A5's reply delay, so a book or
+  Level 1 Move doesn't land with the user's), then slides in over 200 ms (F11).
+- R4.10 The last mode lives in `mode.txt` (one word; missing = Puzzles), not in either mode's file: it
+  is read before either mode loads (D6). The new-game choices (Level, Side, Think Time; first time
+  Level 1, White, 3 s) and the board flip are new fields of `games.json`, schemaVersion still 1
+  (fields only added).
+- R4.11 On relaunch with no Game in progress, the game mode shows the last finished Game at its Result
+  (Next leads on). "Play the computer" in the puzzle Menu returns to the Game in progress, else opens
+  the new-game page. "Puzzles" in the game Menu stops the computer's search until the game mode
+  shows again; the Menu itself doesn't stop it, and keeps the screen on while it thinks
+  (contradiction 4).
+- R4.12 The new-game page names the Side choice "Play as" (White, Black, Random): CONTEXT.md avoids
+  "colour". Think Time is offered on it only at Level 8, and in the game Menu only for a Level 8 Game,
+  where it applies from the computer's next Move; the record's ThinkTime tag keeps the latest value.
+- R4.13 Result copy is from the user's view: "You won by checkmate", "You lost by checkmate", "You
+  resigned", "Draw agreed", "Draw by stalemate", "Draw by repetition", "Draw by the 50-move rule",
+  "Draw: insufficient material" ("Draw by insufficient material" needs three lines next to Next and
+  Menu).
+- R4.14 Games rows read "2026.09.28 · Level 3 · Won" (Won, Lost, Draw, Unfinished). A tap opens that
+  Game at its Result, with the user's Side at the bottom, for Review by the wheel; Back returns.
+- R4.15 "Play from here" (F7) is deferred to v2.x: it needs its own entry on the puzzle screen, a
+  "decided Position" test (an eval before the Game starts) and the "Ends your current game" copy.
+  LEDGER.md lists it. GameData.startNew already saves the replaced Game as unfinished.
+- R4.16 Game strips hold one line on the LP3, but for a Result. Seen on the LP3 (Akkurat): "Your
+  move" wrapped to "Your / move" next to Takeback, Hint and Menu, and "Computer thinking" to
+  "Computer / thinking" next to Move now and Menu; the emulator's Roboto fit both, and StripFitTest
+  allowed two lines (R4.2 had accepted the wrap). A state label broken word by word reads as a
+  fault, where a Result is a sentence at rest, like the first Puzzle's status, and keeps R4.13's two
+  lines. RULING, each change the one closest to an existing ruling:
+  - The user's Move: "Your move", Hint, Menu. Takeback leaves the strip for the Menu, where R4.3 put
+    it while the computer thinks and where it already sat on the user's Move.
+  - The computer thinking: "Thinking", Move now, Menu (Move now and Menu stay, per contradiction 2).
+  - Review, on the game screen and on the Games page: "Review · 12 of 40" and Latest alone. Next at
+    the Result, Menu and Back come back at the latest Position, one tap (or a click, or a tap on the
+    board: R1.9, F2) away. Next to Latest and Menu even "Review · 99 of 99" needs two lines, and a
+    Game passes 100 Plies at move 50.
+  - Unchanged: "Finding a Game Hint" with Menu, "New game" with Menu, a Result with Next and Menu
+    (R4.1) or with Back.
+  StripFitTest checks the game strips at one line (`GameStrip.statusLines`: 2 only for a Result) with
+  "Review · 9999 of 9999". Its stand-in was recalibrated on the LP3 screencaps of v2 PR 4 (DESIGN.md
+  "The strip"): it reproduces both wraps and both one-line strips, measures every string at least
+  1 dp wider than the LP3 did, and every room narrower. The puzzle strips are unchanged.
 - R4.17 A wheel key's up and repeats go where its down went. Seen on the LP3: in Review, a click
   returned to the latest Position and also turned the flashlight on (the torch was requested by
   com.lightos). LightActivity asks the screen about a key's down, repeats and up separately and
@@ -326,7 +602,15 @@ default Think time).
   press it leaves alone goes to LightOS whole (down, repeats, up), which keeps R1.9's "otherwise return
   false" (brightness and the flashlight when Chess has no use for the wheel). An up with no down seen
   isn't taken. A repeat gets its press's answer without acting again. `WheelViewModel` and
-  `TakenKeys` (tested on the JVM) hold the rule for every screen.
+  `TakenKeys` (tested on the JVM) hold the rule for every screen. Also on fix/v1-keyup for v1.
+Implementation:
+- `games/GameFlow.kt` (pure): `GameState`, `GameFlow`, `DrawJudge` (G1), `ComputerReply` (a book Move
+  or a `LevelRequest`, plus whether to start from a fresh engine). `GameOwner` runs it on
+  `EngineHost.shared`; a stale reply (after a Takeback, Resign or new Game) is dropped by comparing the
+  Game it was asked for. The file is written after every change (a force-stop skips onAppPause) and
+  at once in onAppPause, which also stops the search; onScreenShow re-runs the computer's turn.
+- `GameStrip` (pure) picks the strip; StripFitTest measures every state it returns, every Result for
+  both Sides, and the Games Review strips.
 
 ## v1 smoke fixes (orchestrator, 2026-09-29)
 - S1 Reconciles A9 with D7. A9 asked About for "per-puzzle lichess.org/training/<id> as text"; D7,
@@ -421,3 +705,31 @@ default Think time).
   - `scripts/build-pieces.py` converts both sets into `PieceVectors` and now fails loudly on numbers
     after Z (it looped forever) and on any attribute it doesn't understand (it dropped them);
     `--self-test`, which `--check` runs in CI, covers both.
+
+## Forward merge: v2 on v1 0.1.0 (orchestrator, 2026-09-29)
+v2 (feat/v2-play) takes main's v1 release, the smoke fixes (S1-S3), the new pieces (P1, P2) and the
+review follow-ups (V1-V5). Two rulings reconcile them with v2's Menus and save files:
+- M1 Reconciles P2's placement with v2 (D6's second save file, R4.11's two Menus). RULING: the Piece
+  Set stays one Tool-wide choice, and every board draws it: the puzzle screen, the game screen, a
+  finished Game from Games, and each one's promotion picker. It stays in `puzzles.json` (P2's
+  field, its compatibility rule unchanged); `games.json` doesn't copy it, and the game screen and
+  the Games Review read it from the puzzle owner. P2's "may move to a Tool-wide file, with a
+  migration" is left for a second Tool-wide setting: one field doesn't need a third file. The row,
+  "Pieces · Geometric", sits just above About in both Menus: the puzzle Menu reads Player Rating,
+  Missed, Play the computer, Pieces, About, then the Puzzle id row, still last (S1); the game Menu
+  ends New game, Games, Puzzles, Pieces, About. A tap moves to the next set and stays on the Menu.
+- M2 Applies S3 to v2's pages: New game, Games and Moves are each their own Menu screen on the back
+  stack, so Back (the arrow or the system's) goes one page up to the Menu. Start leaves the Menu for
+  the board, as a reset or a Missed replay does. New game opened from the Result's Next is its own
+  screen over the board, so Back returns to the board. A finished Game opened from Games goes back to
+  Games.
+- M3 V4 holds for the game owner too: `GameOwner` reads the Book through the latest screen that asked
+  for it, as `PuzzleOwner` reads the Pack, so a relaunch releases the old activity.
+- M4 Fixes M1 on a cold start into the game mode (PR 2 review): the game screen waited only for
+  `games.json` and drew the default set until the puzzle owner had read `puzzles.json` and the first
+  Puzzle's Band (about 250 KB), and the game Menu had no Pieces row until then. RULING: the puzzle
+  owner reads `puzzles.json` first and publishes its Piece Set before any Band is read; the game
+  screen draws no board until it has both its file and the Piece Set, and the game Menu and the Games
+  Review read the set from there. Only a small file stands before the first frame, as `games.json`
+  already did, so the Game isn't slowed; waiting for the whole puzzle session would have put the Band
+  read in front of it. A tap on Pieces before the first Puzzle is read is kept and applied to it.

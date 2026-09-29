@@ -119,6 +119,21 @@ _Avoid_: outcome, score
 How strongly the computer plays, from 1 to 8. Level 8 is the computer's full strength.
 _Avoid_: difficulty, Elo, strength
 
+**Book**:
+The opening Moves the computer may play without thinking, in the first plies of a Game at Level 2
+and above, taken from strong players' Games on Lichess. Once a Game leaves the Book, the computer
+thinks for every Move after.
+_Avoid_: opening book (alone), repertoire, library
+
+**Think Time**:
+How long the computer may think about one Move at Level 8: 3 seconds (the default), 10 or 30. Below
+Level 8 the computer's Moves are quick and Think Time changes nothing.
+_Avoid_: clock, time control, thinking time
+
+**Move Now**:
+Telling the computer to stop thinking and play at once. It plays the best Move it has found so far.
+_Avoid_: force move, hurry
+
 **Takeback**:
 Undoing the user's last Move and the computer's reply in a Game against the computer. Allowed at
 every Level and recorded with the Game.

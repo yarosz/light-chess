@@ -27,6 +27,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.thelightphone.sdk.InitialScreen
 import com.thelightphone.sdk.LightScreen
 import com.thelightphone.sdk.SealedLightActivity
+import com.thelightphone.sdk.SimpleLightScreen
 import com.thelightphone.sdk.ui.LightText
 import com.thelightphone.sdk.ui.LightTextVariant
 import com.thelightphone.sdk.ui.LightTheme
@@ -34,6 +35,7 @@ import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.lightClickable
 import com.yarosz.chess.board.MoveInput
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
 import com.yarosz.chess.board.PositionView
 import com.yarosz.chess.board.Review
@@ -41,15 +43,22 @@ import com.yarosz.chess.board.Strip
 import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Touch
 import com.yarosz.chess.board.Wheel
+import com.yarosz.chess.games.GameState
+import com.yarosz.chess.games.Phase
 import com.yarosz.chess.puzzles.Attempt
 import com.yarosz.chess.puzzles.PuzzleState
 import com.yarosz.chess.puzzles.Stage
 
 /**
- * The puzzle screen's view state over the process's [PuzzleOwner]: the touches in progress
- * ([MoveInput]) and Review. Everything that outlives a touch lives in the owner.
+ * The Tool's first screen, in the mode last used (D6): the puzzle screen over the process's
+ * [PuzzleOwner], or the game screen over its [GameOwner]. This holds only the touches in progress
+ * ([MoveInput]) and Review; everything that outlives a touch lives in the owners.
  */
-class ChessViewModel(private val owner: PuzzleOwner) : WheelViewModel() {
+class ChessViewModel(
+    private val owner: PuzzleOwner,
+    private val game: GameOwner,
+    private val modes: ModeOwner,
+) : WheelViewModel() {
     private var input by mutableStateOf<MoveInput?>(null)
     private var review by mutableStateOf(Review())
 
@@ -88,7 +97,63 @@ class ChessViewModel(private val owner: PuzzleOwner) : WheelViewModel() {
         review = Review()
     }
 
+    // --- The game screen ---
+
+    private var gameInput by mutableStateOf<MoveInput?>(null)
+    private var gameReview by mutableStateOf(Review())
+
+    /** The Game [gameReview] belongs to, by its seed: a new Game starts at its latest Position. */
+    private var gameReviewFor by mutableStateOf<Long?>(null)
+
+    /** The input for the user's Move in [state]; null while the computer thinks or the Game is over (contradiction 3). */
+    fun gameInput(state: GameState): MoveInput? {
+        val record = state.record ?: return null
+        if (state.phase != Phase.USER) return null
+        val position = record.game.position
+        val current = gameInput
+        if (current != null && current.position == position) return current
+        return MoveInput(position, setOf(record.userSide))
+    }
+
+    fun gameReview(state: GameState): Review {
+        val ply = gameReview.ply ?: return gameReview
+        val record = state.record ?: return Review()
+        return if (gameReviewFor != record.seed || ply >= record.game.ply) Review() else gameReview
+    }
+
+    fun gameTouch(touch: Touch) {
+        game.touched()
+        val state = game.state.value ?: return
+        if (gameReview(state).active) {
+            if (touch is Touch.Tap) gameReview = Review()
+            return
+        }
+        val step = gameInput(state)?.touch(touch) ?: return
+        gameInput = step.input
+        step.move?.let(game::play)
+    }
+
+    fun leaveGameReview() {
+        game.touched()
+        gameReview = Review()
+    }
+
+    private fun gameKey(key: Wheel): Boolean {
+        val state = game.state.value ?: return false
+        val record = state.record ?: return false
+        val next = gameReview(state).wheel(key, record.game.ply) ?: return false
+        game.touched()
+        gameReview = next
+        gameReviewFor = record.seed
+        return true
+    }
+
+    override fun onScreenShow(screen: SimpleLightScreen<Unit>) {
+        if (modes.mode.value == Mode.GAME) game.resume()
+    }
+
     override fun onWheel(key: Wheel): Boolean {
+        if (modes.mode.value == Mode.GAME && game.state.value?.record != null) return gameKey(key)
         val session = owner.session.value ?: return false
         val attempt = session.attempt ?: return false
         if (session.needsSeed || attempt.stage == Stage.HOLD) return false
@@ -99,7 +164,10 @@ class ChessViewModel(private val owner: PuzzleOwner) : WheelViewModel() {
         return true
     }
 
-    override fun onAppPause() = owner.flush()
+    override fun onAppPause() {
+        owner.flush()
+        game.pause()
+    }
 }
 
 @InitialScreen
@@ -109,18 +177,34 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
         get() = ChessViewModel::class.java
 
     private val owner: PuzzleOwner by lazy { PuzzleOwner.of(lightContext.filesDir, lightContext::readAsset) }
+    private val game: GameOwner by lazy { GameOwner.of(lightContext.filesDir, lightContext::readAsset) }
+    private val modes: ModeOwner by lazy { ModeOwner.of(lightContext.filesDir) }
 
-    override fun createViewModel() = ChessViewModel(owner)
+    override fun createViewModel() = ChessViewModel(owner, game, modes)
 
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
         val session by owner.session.collectAsState()
-        val awake by owner.awake.collectAsState()
+        val pieceSet by owner.pieceSet.collectAsState()
+        val gameState by game.state.collectAsState()
+        val mode by modes.mode.collectAsState()
+        val puzzleAwake by owner.awake.collectAsState()
+        val gameAwake by game.awake.collectAsState()
+        // Game mode shows the Game on screen; with none (a lost file), the puzzles show instead.
+        val gameShown = gameState?.takeIf { mode == Mode.GAME && it.record != null }
+        val awake = if (gameShown != null) gameAwake else puzzleAwake
         LightTheme(colors = themeColors) {
             Box(Modifier.fillMaxSize().background(LightThemeTokens.colors.background)) {
                 // D3: an attached View's keepScreenOn sets the window's flag (PLATFORM.md).
                 AndroidView(factory = { View(it) }, modifier = Modifier.size(0.dp), update = { it.keepScreenOn = awake })
+                // Game mode waits for its file and for the Piece Set (read before any Band, M4), so the
+                // first frame of a Game draws the chosen set.
+                if (mode == Mode.GAME && (gameState == null || pieceSet == null)) return@Box
+                if (gameShown != null) {
+                    GameView(gameShown, pieceSet ?: PieceSet.DEFAULT)
+                    return@Box
+                }
                 val s = session ?: return@Box
                 when {
                     s.needsSeed -> SeedView()
@@ -184,6 +268,50 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
             withFrameNanos {}
             withFrameNanos {}
             owner.firstPuzzleDrawn(attempt.puzzle.id)
+        }
+    }
+
+    /** The game screen (v2 PR 4): the board with the user's Side at the bottom, and the strip by context. */
+    @Composable
+    private fun GameView(state: GameState, pieceSet: PieceSet) {
+        val vm = viewModel
+        val record = state.record ?: return
+        val motion by game.motion.collectAsState()
+        val review = vm.gameReview(state)
+        val positions = record.game.positions
+        val shown = review.ply ?: positions.lastIndex
+        val strip = GameStrip.of(state, review.ply)
+        val buttons = strip.buttons.map { button ->
+            StripButton(button.label, button.description) {
+                when (button) {
+                    GameButton.HINT -> game.hint()
+                    GameButton.MOVE_NOW -> game.moveNow()
+                    GameButton.NEXT -> { game.touched(); navigateTo({ MenuScreen(it, MenuPage.NEW_GAME) }) }
+                    GameButton.LATEST -> vm.leaveGameReview()
+                    GameButton.MENU -> { game.touched(); navigateTo({ MenuScreen(it) }) }
+                    GameButton.BACK -> {}
+                }
+            }
+        }
+        val live = review.ply == null
+        Column(
+            Modifier.fillMaxSize().padding(top = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+        ) {
+            PositionView(
+                position = positions[shown],
+                lastMove = record.game.moves.getOrNull(shown - 1),
+                input = if (live) vm.gameInput(state) else null,
+                bottom = state.bottom,
+                onTouch = vm::gameTouch,
+                description = UiCopy.BOARD_DESCRIPTION,
+                hint = state.hint?.from.takeIf { live },
+                hintTarget = state.hint?.to.takeIf { live },
+                motion = motion.takeIf { live },
+                pieceSet = pieceSet,
+            )
+            Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE))
         }
     }
 

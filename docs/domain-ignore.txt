@@ -84,3 +84,80 @@ Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packD
 # Release (v1 PR 5): the Pack manifest's source field, and the strip's measures (DESIGN.md "The strip")
 PackSource
 StripLayout
+
+# Engine boundary (ADR 0001): implementation vocabulary. The user meets "the computer" and its Level.
+Engine
+EngineHost
+PirarucuEngine
+SearchLimits
+SearchProgress
+SearchRequest
+SearchResult
+StopHandle
+
+# Game record (v2 PR 5): implementation types around the glossary's Game, Takeback and Game Hint. A
+# GameRecord is a Game plus what CONTEXT.md says is "recorded with the Game"; PGN is its text form.
+SaveFile
+GameRecord
+GameData
+GameStore
+SavedGame
+Pgn
+PgnException
+# PGN text, not UI copy: the Event tag, the draw commands in comments, and the Termination tag's
+# sentences (Pgn's KDoc lists them)
+Game against the computer
+{[%draw $kind ${side.name.lowercase()}]}
+$winner wins by checkmate
+$winner wins by resignation
+Draw by agreement
+Draw by insufficient material
+Draw by stalemate
+Draw by the 50-move rule
+Draw by threefold repetition
+
+# Opening Book (v2 PR 6): the per-Level rule for playing from the Book (docs/book.md). The user meets the Book and the Level.
+BookPolicy
+# About copy for the Book (DESIGN.md): "Opening book" and "database" are the chess player's and Lichess's words here.
+Opening book: the Lichess games database (lichess.org), CC0, January 2018.
+
+# Levels (v2 PR 3): how the computer plays at a Level. The user meets the Level, Think Time and Move Now.
+LevelPlayer
+LevelRequest
+LevelMove
+LevelSettings
+Candidate
+
+# Game screen (v2 PR 4): the state machine around the glossary's Game, Level, Takeback, Game Hint and
+# Result (decision log "v2 PR 4"), and the Tool's two modes (D6). UI and implementation vocabulary.
+GameState
+GameFlow
+GameChoices
+SideChoice
+Phase
+Confirm
+DrawResponse
+DrawJudge
+ComputerReply
+GameOwner
+GameStrip
+GameButton
+Mode
+ModeOwner
+# PGN text: Lichess's eval comment, written in pawns from White's view (Pgn's KDoc)
+{[%eval ${pawns(it)}]}
+${abs / 100}.
+${abs % 100}
+# UI copy templates (DESIGN.md "The game screen" quotes what they make)
+$LEVEL $it
+$seconds s
+$THINK_TIME · ${seconds(seconds)}
+Offer draw again at move $move
+# Tool shell for Review of a finished Game from the Games page (LightScreen / LightViewModel)
+GameReviewScreen
+GameReviewViewModel
+# UI copy with a glossary _Avoid_ word used in its everyday sense: "board" names the object on screen
+# (as "Chess board" does), and a Game against the computer is lost, as chess players say (Failed is
+# the Puzzle word).
+Flip board
+You lost by checkmate

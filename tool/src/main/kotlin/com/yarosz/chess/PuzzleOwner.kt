@@ -4,8 +4,10 @@ import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import com.yarosz.chess.board.Motion
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.puzzles.Attempt
 import com.yarosz.chess.puzzles.Pack
+import com.yarosz.chess.puzzles.PuzzleData
 import com.yarosz.chess.puzzles.PuzzleFlow
 import com.yarosz.chess.puzzles.PuzzleStore
 import com.yarosz.chess.puzzles.PuzzleState
@@ -56,6 +58,15 @@ class PuzzleOwner(filesDir: File, @Volatile private var readAsset: (String) -> B
     /** Null until the save file and the first Puzzle are read. */
     val session: StateFlow<PuzzleState?> = sessions
 
+    private val pieceSets = MutableStateFlow<PieceSet?>(null)
+
+    /**
+     * The Piece Set every board draws (P2, M1), null only until `puzzles.json` is read. It comes from
+     * the file before any Band is read (M4), so the game screen and the game Menu have it from their
+     * first frame instead of waiting for the first Puzzle.
+     */
+    val pieceSet: StateFlow<PieceSet?> = pieceSets
+
     private val motions = MutableStateFlow<Motion?>(null)
 
     /** The Move the board animates as it lands: the setup Move, each reply and each Solution Move. */
@@ -76,11 +87,13 @@ class PuzzleOwner(filesDir: File, @Volatile private var readAsset: (String) -> B
     init {
         scope.launch {
             val started = SystemClock.uptimeMillis()
+            val saved = withContext(Dispatchers.Default) { store.load() }
+            pieceSets.value = (saved ?: PuzzleData()).pieceSet
             val opened = withContext(Dispatchers.Default) {
-                flow.open(store.load()).also { it.attempt?.positions }
+                flow.open(saved).also { it.attempt?.positions }
             }
             Log.i(PERF_TAG, "session loaded ms=${SystemClock.uptimeMillis() - started}")
-            set(opened, save = true)
+            set(withPieceSet(opened, pieceSets.value), save = true)
             touched()
         }
     }
@@ -99,7 +112,10 @@ class PuzzleOwner(filesDir: File, @Volatile private var readAsset: (String) -> B
 
     fun resetRating() = act(flow::resetRating)
 
-    fun nextPieceSet() = act(flow::nextPieceSet)
+    /** A tap on a Menu's Pieces row. Before the first Puzzle is read, the choice waits for it (M4). */
+    fun nextPieceSet() {
+        if (sessions.value == null) pieceSets.value = pieceSets.value?.next else act(flow::nextPieceSet)
+    }
 
     /** The Missed page is open: read its Puzzles ahead, so a tap on one reads no file (D2). */
     fun prefetchMissed() {
@@ -152,6 +168,7 @@ class PuzzleOwner(filesDir: File, @Volatile private var readAsset: (String) -> B
     private fun set(next: PuzzleState, save: Boolean = false) {
         val before = sessions.value
         sessions.value = next
+        pieceSets.value = next.data.pieceSet
         val was = before?.attempt
         val now = next.attempt
         val motion = slideAfter(was, now, motions.value, motionId + 1)
@@ -219,6 +236,13 @@ class PuzzleOwner(filesDir: File, @Volatile private var readAsset: (String) -> B
         }
     }
 }
+
+/**
+ * The session [opened] from the file, with the Piece Set [chosen] while it was being read (M4): a
+ * tap on a Pieces row before the first Puzzle is read isn't lost. Null (not read yet) changes nothing.
+ */
+internal fun withPieceSet(opened: PuzzleState, chosen: PieceSet?): PuzzleState =
+    if (chosen == null || chosen == opened.data.pieceSet) opened else opened.copy(data = opened.data.copy(pieceSet = chosen))
 
 /** A stage whose Moves play themselves, so the board animates them. */
 private val Stage.auto: Boolean get() = this != Stage.PLAY && this != Stage.DONE

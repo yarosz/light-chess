@@ -1,18 +1,25 @@
 package com.yarosz.chess
 
 import com.yarosz.chess.board.Motion
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.puzzles.Attempt
 import com.yarosz.chess.puzzles.Lines
 import com.yarosz.chess.puzzles.Puzzle
+import com.yarosz.chess.puzzles.PuzzleData
+import com.yarosz.chess.puzzles.PuzzleFlow
 import com.yarosz.chess.puzzles.Stage
 import com.yarosz.chess.puzzles.TestPacks
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-/** The owner's two pure rules: which slide the board shows, and when the stage clock starts again. */
+/**
+ * The owner's pure rules: which slide the board shows, when the stage clock starts again, and the
+ * Piece Set chosen before the first Puzzle was read (M4).
+ */
 class PuzzleOwnerTest {
     private val puzzle = Puzzle.parse(Lines.MATE_IN_2)
     private val hold = Attempt(puzzle)
@@ -54,5 +61,17 @@ class PuzzleOwnerTest {
         }
         assertTrue(restartsClock(null, hold), "the first Attempt")
         assertTrue(restartsClock(play, reply), "a correct Move starts the reply's wait")
+    }
+
+    @Test
+    fun `a Piece Set chosen while the first Puzzle is read survives the read (M4)`() {
+        val flow = PuzzleFlow(TestPacks.of("A", listOf(TestPacks.line("a1500", 1500))))
+        val opened = flow.open(PuzzleData(pieceSet = PieceSet.ROUNDED))
+        assertSame(opened, withPieceSet(opened, null), "nothing read yet changes nothing")
+        assertSame(opened, withPieceSet(opened, PieceSet.ROUNDED), "the file's own set")
+        val tapped = withPieceSet(opened, PieceSet.GEOMETRIC)
+        assertEquals(PieceSet.GEOMETRIC, tapped.data.pieceSet)
+        assertEquals(opened.current, tapped.current, "the Attempt on screen is untouched")
+        assertTrue(opened.kept != tapped.kept, "the choice reaches the file")
     }
 }
