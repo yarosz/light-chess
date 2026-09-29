@@ -19,6 +19,7 @@ import {
   parseSync,
   type Reply,
 } from "./protocol";
+import { clientKey, isRefusedPlainHttp } from "./limits";
 import { displayInviteCode, newInviteCode, newToken, normalizeInviteCode, sha256Hex } from "./secrets";
 
 export { CorrespondenceGame };
@@ -50,7 +51,13 @@ export default {
 } satisfies ExportedHandler<Env>;
 
 async function route(request: Request, env: Env): Promise<Response> {
-  const { pathname } = new URL(request.url);
+  const url = new URL(request.url);
+  // Refused, never redirected: a client that sent a secret in the clear has already sent it, and a
+  // redirected POST can come back as a GET (L3).
+  if (isRefusedPlainHttp(url)) {
+    return respond(fail("upgrade_required", `Use HTTPS: https://${url.host}${url.pathname}`));
+  }
+  const { pathname } = url;
   if (pathname === "/health") {
     if (request.method !== "GET") return respond(fail("method_not_allowed", "Use GET"));
     return Response.json({ status: "ok", protocol: PROTOCOL, majors: MAJORS });
@@ -138,7 +145,20 @@ function withSecrets(reply: Reply, secrets: Record<string, string>): Response {
   return respond({ status: reply.status, body: { ...(reply.body as object), ...secrets } });
 }
 
+/**
+ * Counts one request against [limiter] under its client's key (L1). Null when it may go on, else
+ * the `429 rate_limited` reply, with Retry-After set to the limiters' 60-second period.
+ */
+async function limited(request: Request, limiter: RateLimit, what: string): Promise<Response | null> {
+  const { success } = await limiter.limit({ key: clientKey(request.headers.get("CF-Connecting-IP")) });
+  if (success) return null;
+  return respond(fail("rate_limited", `Too many ${what}; wait a minute`), { "Retry-After": "60" });
+}
+
 async function createGame(request: Request, env: Env, major: number): Promise<Response> {
+  // Counted before the body is read, like a redemption (L2).
+  const refused = await limited(request, env.CREATE_LIMITER, "Games created");
+  if (refused) return refused;
   const req = parseCreate(await body(request), major);
   const seatSecret = newToken();
   const seatHash = await sha256Hex(seatSecret);
@@ -159,11 +179,8 @@ async function createGame(request: Request, env: Env, major: number): Promise<Re
 
 async function redeemCode(request: Request, env: Env, major: number, [rawCode]: string[]): Promise<Response> {
   // Counted before the code is read, so malformed guesses cost the same as wrong ones (F11).
-  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
-  const { success } = await env.REDEEM_LIMITER.limit({ key: ip });
-  if (!success) {
-    return respond(fail("rate_limited", "Too many invite redemptions; wait a minute"), { "Retry-After": "60" });
-  }
+  const refused = await limited(request, env.REDEEM_LIMITER, "invite redemptions");
+  if (refused) return refused;
   const req = parseSeatRequest(await body(request), major, false);
   const code = normalizeInviteCode(rawCode!);
   if (!code) return respond(fail("bad_request", "An Invite Code is 8 characters, such as ABCD-EFGH"));

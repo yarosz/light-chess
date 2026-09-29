@@ -18,8 +18,10 @@
     "bindings": [{ "name": "GAME", "class_name": "CorrespondenceGame" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["CorrespondenceGame"] }],
-  // Invite redemptions per client IP (F11). namespace_id is any integer unique within the account.
+  // Per client, keyed by src/limits.ts clientKey (an IPv4 address, or an IPv6 /64; L1): invite
+  // redemptions (F11) and Games created (L2). namespace_id is any integer unique within the account.
   "ratelimits": [
-    { "name": "REDEEM_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }
+    { "name": "REDEEM_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
+    { "name": "CREATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } }
   ]
 }

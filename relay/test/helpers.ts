@@ -35,6 +35,12 @@ let ipCounter = 0;
 /** A fresh documentation-range IP, so one test's redemptions never touch another's rate limit. */
 export const freshIp = (): string => `198.51.100.${++ipCounter}`;
 
+/** This run's own IPv6 hextet, so no two test files' fresh addresses share a /64. */
+const run = crypto.getRandomValues(new Uint16Array(1))[0]!.toString(16);
+let prefixCounter = 0;
+/** An address in a fresh documentation-range IPv6 /64, so one test's Games never touch another's create limit (L1, L2). */
+export const freshV6 = (): string => `2001:db8:${run}:${(++prefixCounter).toString(16)}::1`;
+
 export interface Created {
   gameId: string;
   seatSecret: string;
@@ -49,6 +55,7 @@ export async function create(
   extra: { invite?: "code" | "token"; daysPerMove?: number; v?: string } = {},
 ): Promise<Created> {
   const res = await call("POST", "/v1/games", {
+    ip: freshV6(),
     body: { v: extra.v ?? "1.0", side, daysPerMove: extra.daysPerMove ?? 3, invite: extra.invite ?? "code" },
   });
   if (res.status !== 201) throw new Error(`create failed: ${JSON.stringify(res.json)}`);
