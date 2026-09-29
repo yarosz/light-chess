@@ -353,11 +353,11 @@ object UiCopy {
     /** "a pawn", "two pawns", up to fifteen in words (a Side can take at most fifteen pieces). */
     private fun pieceCount(n: Int, kind: PieceType): String {
         val name = kind.name.lowercase()
-        return if (n == 1) "a $name" else "${COUNT_WORDS.getOrElse(n) { n.toString() }} ${name}s"
+        return if (n == 1) "a $name" else "${COUNT_WORDS.getOrElse(n - 1) { n.toString() }} ${name}s"
     }
 
     private val COUNT_WORDS = listOf(
-        "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven",
+        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven",
         "twelve", "thirteen", "fourteen", "fifteen",
     )
 }

@@ -1,5 +1,7 @@
 package com.yarosz.chess
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.yarosz.chess.board.CapturedRowState
 import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.StripLayout
@@ -73,3 +75,8 @@ fun capturedRow(game: Game, ply: Int, bottom: Side, pieceSet: PieceSet): Capture
     val captured = CapturedPieces.of(game, ply)
     return CapturedRowState(captured, bottom, pieceSet, UiCopy.capturedPieces(captured, bottom))
 }
+
+/** [capturedRow], computed again only when the Game, the Ply shown, the bottom Side or the Piece Set changes. */
+@Composable
+fun rememberCapturedRow(game: Game, ply: Int, bottom: Side, pieceSet: PieceSet): CapturedRowState =
+    remember(game, ply, bottom, pieceSet) { capturedRow(game, ply, bottom, pieceSet) }

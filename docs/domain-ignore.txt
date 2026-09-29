@@ -306,3 +306,4 @@ CapturedRowState
 ${sideName(leader)} is ahead by ${kotlin.math.abs(captured.lead)}.
 a $name
 Captured by ${sideName(side)}: ${kinds.joinToString(
+${COUNT_WORDS.getOrElse(n - 1) { n.toString() }} ${name}s

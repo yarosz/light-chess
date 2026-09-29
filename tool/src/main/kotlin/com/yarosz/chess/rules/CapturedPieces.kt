@@ -2,9 +2,9 @@ package com.yarosz.chess.rules
 
 /**
  * The Captured Pieces of a Game at one Ply (CONTEXT.md, P3): the pieces each Side has taken, read
- * from the Moves up to that Ply, en passant included. A captured piece is what stood on its square
- * when it was taken, so a promoted pawn taken later counts as the piece it became, and the pawn it
- * came from was never captured. Each list is in [ORDER], pawns first.
+ * from the Moves up to that Ply, en passant included. A captured piece is the one its capture removed
+ * from the board, so a promoted pawn taken later counts as the piece it became, and the pawn it came
+ * from was never captured. Each list is in [ORDER], pawns first.
  *
  * [lead] is the Material Lead from White's view (P1, N3, B3, R5, Q9): the material on the board at
  * that Ply, so a promotion counts. Positive when White is ahead, negative when Black is, 0 when level.

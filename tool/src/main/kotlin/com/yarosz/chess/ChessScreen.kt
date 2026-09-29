@@ -335,7 +335,7 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
             )
             Strip(
                 strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE),
-                captured = capturedRow(record.game, shown, state.bottom, pieceSet),
+                captured = rememberCapturedRow(record.game, shown, state.bottom, pieceSet),
             )
         }
     }

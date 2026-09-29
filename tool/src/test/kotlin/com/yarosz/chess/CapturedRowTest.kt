@@ -146,6 +146,24 @@ class CapturedRowTest {
         assertEquals(10f, CapturedRowLayout.BOTTOM / 2, 0.5f)
     }
 
+    /**
+     * The buttons below the row (P3, PR review): a label's line (Copy's line height) plus its padding
+     * above and below fits the room under the row, so no label (descenders included) is clipped, and
+     * the target stays at least 36 dp tall. Without the row, the padding is as before.
+     */
+    @Test
+    fun theStripsButtonsFitBelowTheRow() {
+        val strip = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX * StripLayout.COPY_LINE_HEIGHT * StripLayout.STATUS_MAX_LINES)
+        val below = strip - CapturedRowLayout.BOTTOM
+        val line = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX * StripLayout.COPY_LINE_HEIGHT)
+        val button = line + 2 * StripLayout.BUTTON_VERTICAL_PADDING_BELOW_ROW.value
+        assertTrue(button <= below, "a button is $button dp tall in $below dp below the row")
+        assertTrue(button >= 36f, "a $button dp tap target")
+        // The regular padding would not fit: this is why the row needs its own.
+        assertTrue(line + 2 * StripLayout.BUTTON_VERTICAL_PADDING.value > below)
+        assertEquals(8f, StripLayout.BUTTON_VERTICAL_PADDING.value)
+    }
+
     @Test
     fun theRowShowsOnceSomethingIsCaptured() {
         val start = capturedRow(Game.of(), 0, Side.WHITE, PieceSet.DEFAULT)

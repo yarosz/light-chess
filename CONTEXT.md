@@ -141,8 +141,9 @@ every Level and recorded with the Game.
 _Avoid_: undo
 
 **Captured Pieces**:
-The pieces a Side has taken from the other in a Game, up to the Position shown. A piece taken is what
-stood on its square: a pawn that was promoted and then taken counts as the piece it became.
+The pieces a Side has taken from the other in a Game, up to the Position shown. A piece taken is the
+one its capture removed from the board: a pawn that was promoted and then taken counts as the piece
+it became.
 _Avoid_: taken pieces, graveyard, losses
 
 **Material Lead**:

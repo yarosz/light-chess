@@ -309,7 +309,8 @@ draws them and `CapturedRowTest` checks the layout:
   body (`CAPTURED_BLACK_BODY`), generated for both Piece Sets by `scripts/build-pieces.py`.
 - The strip: until the first capture, as in a Puzzle. Once the row shows, the status and buttons centre
   below it (10 dp lower), and a two-line status's lines are set to half the room below the row, so a
-  Result still fits in two lines; the strip keeps its size.
+  Result still fits in two lines; the buttons' padding above and below drops from 8 dp to 4, so a
+  label's line fits the 38 dp there unclipped (a 37 dp target). The strip keeps its size.
 - Its label: "Captured by White: two pawns, a queen. Captured by Black: a knight. White is ahead by
   7.", the bottom Side first; "Material is even." when neither leads.
 

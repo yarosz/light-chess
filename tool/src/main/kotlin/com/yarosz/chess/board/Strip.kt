@@ -42,6 +42,15 @@ object StripLayout {
     /** Padding on each side of a button's label. */
     val BUTTON_PADDING: Dp = 8.dp
 
+    /** Padding above and below a button's label. */
+    val BUTTON_VERTICAL_PADDING: Dp = 8.dp
+
+    /**
+     * The same while the captured-pieces row shows (P3): a label's line (Copy, 45 design px) plus this
+     * above and below fits the 38 dp left under the row, so no label is clipped; still a 37 dp target.
+     */
+    val BUTTON_VERTICAL_PADDING_BELOW_ROW: Dp = 4.dp
+
     /** LightOS `Copy` text: 30 design px with a line height of 1.5 (light-sdk `LightTheme.kt`). */
     const val COPY_DESIGN_PX = 30f
     const val COPY_LINE_HEIGHT = 1.5f
@@ -75,6 +84,7 @@ fun Strip(status: String, buttons: List<StripButton>, modifier: Modifier = Modif
     BoxWithConstraints(modifier.fillMaxWidth().height(height)) {
         if (row != null) CapturedRow(row, maxWidth, Modifier.align(Alignment.TopStart))
         val top = if (row != null) CapturedRowLayout.BOTTOM.dp else 0.dp
+        val buttonPadding = if (row != null) StripLayout.BUTTON_VERTICAL_PADDING_BELOW_ROW else StripLayout.BUTTON_VERTICAL_PADDING
         Row(
             Modifier.fillMaxWidth().fillMaxHeight().padding(top = top),
             verticalAlignment = Alignment.CenterVertically,
@@ -116,7 +126,7 @@ fun Strip(status: String, buttons: List<StripButton>, modifier: Modifier = Modif
                     modifier = Modifier
                         .lightClickable(onClickLabel = button.description, role = Role.Button) { if (button.enabled) button.onClick() }
                         .semantics { contentDescription = button.description }
-                        .padding(horizontal = StripLayout.BUTTON_PADDING, vertical = 8.dp),
+                        .padding(horizontal = StripLayout.BUTTON_PADDING, vertical = buttonPadding),
                 )
             }
         }

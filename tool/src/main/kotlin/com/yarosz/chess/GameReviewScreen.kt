@@ -98,7 +98,7 @@ class GameReviewScreen(
                 )
                 Strip(
                     strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE),
-                    captured = capturedRow(record.game, shown, record.userSide, pieceSet ?: PieceSet.DEFAULT),
+                    captured = rememberCapturedRow(record.game, shown, record.userSide, pieceSet ?: PieceSet.DEFAULT),
                 )
             }
         }

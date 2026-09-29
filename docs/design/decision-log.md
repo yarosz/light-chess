@@ -1118,7 +1118,7 @@ feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 an
     `--check` covers them. The row uses the player's Piece Set.
   - What counts: the Game's Moves up to the Position shown (Review follows the Ply on screen; a
     Correspondence Game's chosen Move, not yet sent, counts as shown), en passant included. A piece
-    taken is what stood on its square, so a promoted pawn taken later is the piece it became, and the
+    taken is the one its capture removed from the board (en passant's pawn included), so a promoted pawn taken later is the piece it became, and the
     pawn it came from is never counted.
   - The strip: once the row shows, the status and buttons centre in the part of the strip below it (a
     one-line status 10 dp lower than before), and a status's two lines are set closer (the room below
