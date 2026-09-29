@@ -13,6 +13,7 @@ import com.yarosz.chess.rules.Position
 import com.yarosz.chess.rules.Resignation
 import com.yarosz.chess.rules.Result
 import com.yarosz.chess.rules.Side
+import com.yarosz.chess.rules.TimeoutClaim
 import com.yarosz.chess.rules.WinReason
 import com.yarosz.chess.rules.moveFromSan
 import com.yarosz.chess.rules.san
@@ -35,7 +36,8 @@ class PgnException(message: String) : IllegalArgumentException(message)
  *
  * White and Black are [YOU] and [COMPUTER]. The movetext is SAN from the rules core. Game Events that
  * aren't Moves go in comments as PGN-style commands: `{[%draw offer white]}`, `{[%draw accept
- * black]}`, `{[%draw refuse black]}`. The computer's true evaluation before a Move it searched follows
+ * black]}`, `{[%draw refuse black]}`, and a timeout claim (v3; never in a Game against the computer)
+ * `{[%claim white]}`. The computer's true evaluation before a Move it searched follows
  * that Move as `{[%eval -0.52]}`, Lichess's form (pawns, White's view). A resignation has no
  * command: it is what a decisive Result without checkmate means, so it is read back from the Result
  * tag.
@@ -167,6 +169,7 @@ object Pgn {
             when (result.by) {
                 WinReason.CHECKMATE -> "$winner wins by checkmate"
                 WinReason.RESIGNATION -> "$winner wins by resignation"
+                WinReason.TIME -> "$winner wins on time"
             }
         }
         is Result.Draw -> when (result.by) {
@@ -198,6 +201,7 @@ object Pgn {
                 is DrawOffer -> { add(command("offer", event.side)); numberNext = true }
                 is DrawAcceptance -> { add(command("accept", event.side)); numberNext = true }
                 is DrawRefusal -> { add(command("refuse", event.side)); numberNext = true }
+                is TimeoutClaim -> { add("{[%claim ${event.side.name.lowercase()}]}"); numberNext = true }
                 is Resignation -> {} // the Result tag carries it
             }
         }
@@ -217,7 +221,8 @@ object Pgn {
         when (match.groupValues[1]) {
             "offer" -> DrawOffer(side)
             "accept" -> DrawAcceptance(side)
-            else -> DrawRefusal(side)
+            "refuse" -> DrawRefusal(side)
+            else -> TimeoutClaim(side) // group 1 is empty for a claim
         }
     }.toList()
 
@@ -245,7 +250,8 @@ object Pgn {
     private val RESULTS = setOf("1-0", "0-1", "1/2-1/2", "*")
     /** A move number, `12.` or `12...`, alone or stuck to its Move (`12.Nf3`). */
     private val MOVE_NUMBER = Regex("""^\d+\.+""")
-    private val COMMAND = Regex("""\[%draw\s+(offer|accept|refuse)\s+(white|black)\s*]""")
+    /** A draw command's kind in group 1, or a claim; the side in group 2. */
+    private val COMMAND = Regex("""\[%(?:draw\s+(offer|accept|refuse)|claim)\s+(white|black)\s*]""")
     private val EVAL = Regex("""\[%eval\s+(-?\d+(?:\.\d+)?)\s*]""")
     private val DATE = Regex("""[0-9?]{4}\.[0-9?]{2}\.[0-9?]{2}""")
 

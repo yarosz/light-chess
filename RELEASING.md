@@ -42,6 +42,8 @@ Release PR (version bump, notes, and the `light-sdk` submodule at Light's newest
 - [ ] `scripts/release-check.sh scan`, with `RELEASE_SCAN_PRIVATE` naming a local file of private
       patterns (names, serials, hostnames), one extended regex per line. The file stays outside the
       repo. The scan covers every tracked file and every commit on every branch.
+- [ ] `scripts/release-check.sh relay`: `tool/lighttool.toml` declares INTERNET (ADR 0004), so
+      `RelayConfig.URL` must name the deployed Relay over HTTPS; it fails while the URL is empty (W8).
 - [ ] `scripts/release-check.sh apk`: the unsigned, minified release, as Light builds it. It checks
       the package, `versionCode` and `versionName` with `aapt dump badging`, fails on any permission
       beyond the set Light's SDK merges in, and prints the APK's size.

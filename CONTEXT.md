@@ -102,12 +102,13 @@ _Avoid_: match, session
 
 **Game Event**:
 One thing that happens in a Game: a Move, a resignation, a draw offer, acceptance or refusal, or a
-claim of a draw.
+Timeout Claim.
 _Avoid_: action, message
 
 **Result**:
 How a Game ended and why: a win for one side, or a draw, by checkmate, resignation, stalemate,
-agreement, repetition, the 50-move rule, insufficient material or time.
+agreement, repetition, the 50-move rule, insufficient material or time. In a Correspondence Game each
+phone derives it from the Game Events; the Relay never states one.
 _Avoid_: outcome, score
 
 **Level**:
@@ -159,3 +160,51 @@ _Avoid_: game code, link, token
 The server that keeps each Correspondence Game's Game Events in order and passes them between the
 two phones. It knows nothing about chess: each phone checks every Game Event itself.
 _Avoid_: server (alone), backend, lobby
+
+**Deadline**:
+When the side to move's time for its Move runs out in a Correspondence Game: its days per Move after
+the latest Move (or after the Game started), in the Relay's time. A Move made after it still counts
+until the other side makes a Timeout Claim.
+_Avoid_: clock, flag, time control
+
+**Timeout Claim**:
+The Game Event by which the side not to move, once the Deadline has passed, wins the Game on time. It
+is one tap, never automatic. If the claimant has only its king left, the Game is drawn instead.
+_Avoid_: flag, timeout (alone), claim (alone)
+
+**Rematch**:
+A new Correspondence Game offered through the log of one that is over, with the Sides swapped and the
+same days per Move. Each Game gets one offer, which the other Seat accepts or declines.
+_Avoid_: return game, revenge
+
+**Out of Sync**:
+The state of a Correspondence Game whose phone found a Game Event its rules core refuses, or whose
+Relay disagrees with its own record. Nothing more is sent or accepted for that Game.
+_Avoid_: desync, corrupted, conflict
+
+**Days per Move**:
+How long each side has for each of its Moves in a Correspondence Game: 1, 3 or 7 days, chosen by the
+player who creates the Invite Code (3 by default). The Deadline follows from it.
+_Avoid_: time control, clock
+
+**Time Left**:
+How long the side to move has until the Deadline, in the Relay's time as this phone estimates it,
+shown in one unit rounded down ("2d", "5h", "40m").
+_Avoid_: clock, remaining time
+
+**Opponent Label**:
+This phone's own name for the other player of a Correspondence Game: the first four characters of the
+Invite Code until the user renames it. It is never sent.
+_Avoid_: opponent name, nickname, player
+
+**Pending Entry**:
+The user's Game Event in a Correspondence Game, saved on the phone and not yet stored by the Relay.
+A Game has at most one; it is sent again until the Relay stores it, or rolled back when the Game has
+moved on so that it no longer makes sense.
+_Avoid_: queued move, outbox
+
+**Stopped**:
+A Correspondence Game that nothing more is sent or accepted for: Out of Sync, waiting for the user to
+update Chess, deleted by the Relay, or its Seat lost. It counts toward the five Games until the user
+forgets it.
+_Avoid_: frozen, broken

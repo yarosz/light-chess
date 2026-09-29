@@ -1,5 +1,8 @@
 # A committed Puzzle Pack and no network in v1
 
+Partly superseded by ADR 0004 (v3): the no-INTERNET sentence and the privacy sentence below hold for
+v1 and v2 only. Chess now declares INTERNET for the Relay, and only for Correspondence Games.
+
 The Pack is about 50,000 Puzzles from the Lichess puzzle database (CC0): 2,000 per 100-point Band
 from 400 to 2800, filtered for quality and one per source game. It is written as one plain-text file
 per Band (`id;FEN;UCI moves;rating;RD;themes`), about 6.5 MB in all, and committed to the repo. A

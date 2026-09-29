@@ -1,9 +1,8 @@
 package com.yarosz.chess.rules
 
 /**
- * One thing that happens in a Game: a [Move], a resignation, or a draw offer and its answer.
- * Claims arrive with clocks (v3); threefold repetition and the 50-move rule need no claim
- * (contradiction 9).
+ * One thing that happens in a Game: a [Move], a resignation, a draw offer and its answer, or a
+ * timeout claim (v3). Threefold repetition and the 50-move rule need no claim (contradiction 9).
  */
 sealed interface GameEvent
 
@@ -15,13 +14,21 @@ data class DrawAcceptance(val side: Side) : GameEvent
 
 data class DrawRefusal(val side: Side) : GameEvent
 
+/**
+ * [side], not to move, claims the Game because the side to move let its time run out (C2,
+ * contradiction 9). The core has no clock: whoever builds the Game checks the deadline first (in a
+ * Correspondence Game, from the Relay's serverTime stamps). The claimant wins on time, unless it has
+ * only its king left, which can never give checkmate: then the Game is drawn (FIDE 6.9).
+ */
+data class TimeoutClaim(val side: Side) : GameEvent
+
 /** How a Game ended and why. */
 sealed interface Result {
     data class Win(val winner: Side, val by: WinReason) : Result
     data class Draw(val by: DrawReason) : Result
 }
 
-enum class WinReason { CHECKMATE, RESIGNATION }
+enum class WinReason { CHECKMATE, RESIGNATION, TIME }
 
 enum class DrawReason { STALEMATE, AGREEMENT, REPETITION, FIFTY_MOVE_RULE, INSUFFICIENT_MATERIAL }
 
@@ -88,6 +95,12 @@ class Game private constructor(
             is DrawRefusal -> {
                 if (openDrawOffer != event.side.opponent) invalid("no draw offer from the other side to refuse")
                 copy(event, openDrawOffer = null, result = null)
+            }
+            is TimeoutClaim -> {
+                if (event.side == toMove) invalid("only the side not to move can claim on time")
+                val loneKing = position.pieces.all { (_, piece) -> piece.side != event.side || piece.type == PieceType.KING }
+                val result = if (loneKing) Result.Draw(DrawReason.INSUFFICIENT_MATERIAL) else Result.Win(event.side, WinReason.TIME)
+                copy(event, openDrawOffer = null, result = result)
             }
         }
     }

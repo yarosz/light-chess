@@ -5,8 +5,8 @@ import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-/** The Tool's two modes (D6): Puzzles (v1) and playing the computer (v2). */
-enum class Mode { PUZZLES, GAME }
+/** The Tool's modes (D6): Puzzles (v1), playing the computer (v2) and playing a friend (v3, W10: "friend" in mode.txt). */
+enum class Mode { PUZZLES, GAME, FRIEND }
 
 /**
  * Which mode the Tool opens on: the one LAST USED (D6). Kept in `mode.txt` in filesDir, one word, and

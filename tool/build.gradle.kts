@@ -26,11 +26,22 @@ android {
         targetSdk = rootProject.ext["targetSdk"] as Int
 
         manifestPlaceholders["sdkVersion"] = property("sdkVersion") as String
+        // The Relay's URL is RelayConfig.URL, committed (W8). Only a debug build may point elsewhere.
+        buildConfigField("String", "RELAY_URL", "\"\"")
     }
 
     buildTypes {
         debug {
             signingConfig = signingConfigs.getByName("lightsdkDev")
+            // -Prelay.url=<url> points a debug build at another Relay, such as a local `wrangler dev`
+            // Worker reached from the emulator as http://10.0.2.2:8787 (W8). It goes into the debug
+            // variant's generated BuildConfig only; release, the build Light makes, never reads it.
+            // src/debug's network security config allows the cleartext for the local addresses.
+            val relayUrl = providers.gradleProperty("relay.url").orNull?.trimEnd('/') ?: ""
+            require(relayUrl.isEmpty() || relayUrl.matches(Regex("""https://[A-Za-z0-9.:/_-]+|http://(127\.0\.0\.1|localhost|10\.0\.2\.2)(:\d+)?"""))) {
+                "relay.url must be https://..., or http:// to 127.0.0.1, localhost or 10.0.2.2, got $relayUrl"
+            }
+            buildConfigField("String", "RELAY_URL", "\"$relayUrl\"")
         }
         release {
             isMinifyEnabled = true
@@ -76,7 +87,10 @@ android {
             // -Dbench.runs=<n> runs the engine benchmark suite on this JVM (BenchSuiteJvmTest).
             providers.systemProperty("bench.runs").orNull?.let { runs -> it.systemProperty("bench.runs", runs) }
             // -Dcalibrate=<modes> runs the Level calibration (LevelCalibrationTest, docs/levels.md).
-            for (key in listOf("calibrate", "calibrate.threads", "calibrate.rounds", "calibrate.karballo", "calibrate.karballo.nodes", "calibrate.levels", "calibrate.set", "calibrate.seeds", "calibrate.elos")) {
+            // -Dcorrespondence.seeds=<n> runs more seeds of CorrespondencePropertyTest; -Drelay.e2e=<url>
+            // runs RelayEndToEndTest against a local Worker (relay/README.md); -Drelay.phone=<url> with
+            // relay.phone.dir and relay.phone.cmd runs SecondPhoneTest, a second phone against the emulator.
+            for (key in listOf("correspondence.seeds", "relay.e2e", "relay.phone", "relay.phone.dir", "relay.phone.cmd", "calibrate","calibrate.threads", "calibrate.rounds", "calibrate.karballo", "calibrate.karballo.nodes", "calibrate.levels", "calibrate.set", "calibrate.seeds", "calibrate.elos")) {
                 providers.systemProperty(key).orNull?.let { value -> it.systemProperty(key, value) }
             }
         }

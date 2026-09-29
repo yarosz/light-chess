@@ -2,12 +2,15 @@ package com.yarosz.chess
 
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
 import com.yarosz.chess.board.StripLayout
+import com.yarosz.chess.correspondence.HaltReason
+import com.yarosz.chess.correspondence.Refusal
 import com.yarosz.chess.games.GameChoices
 import com.yarosz.chess.games.GameData
 import com.yarosz.chess.games.GameFlow
 import com.yarosz.chess.games.GameRecord
 import com.yarosz.chess.games.GameState
 import com.yarosz.chess.games.SideChoice
+import com.yarosz.chess.relay.Protocol
 import com.yarosz.chess.puzzles.AttemptState
 import com.yarosz.chess.rules.DrawAcceptance
 import com.yarosz.chess.rules.DrawOffer
@@ -17,6 +20,7 @@ import com.yarosz.chess.rules.Position
 import com.yarosz.chess.rules.Resignation
 import com.yarosz.chess.rules.Result
 import com.yarosz.chess.rules.Side
+import com.yarosz.chess.rules.TimeoutClaim
 import com.yarosz.chess.rules.WinReason
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -44,7 +48,9 @@ class StripFitTest {
     private data class Case(val status: String, val buttons: List<String>, val lines: Int = StripLayout.STATUS_MAX_LINES)
 
     /** Every state in DESIGN.md's "Buttons by context" tables, with the widest numbers. */
-    private val strips: List<Case> = buildList {
+    private val strips: List<Case> by lazy { stripCases() }
+
+    private fun stripCases(): List<Case> = buildList {
         for (side in Side.entries) add(Case(UiCopy.toMove(side), solving))
         add(Case(UiCopy.TRY_AGAIN, solving))
         add(Case(UiCopy.CORRECT, solving))
@@ -57,6 +63,72 @@ class StripFitTest {
         add(Case(UiCopy.review(99, 99), listOf(UiCopy.LATEST, menu)))
         add(Case(UiCopy.PACK_FINISHED, listOf(menu)))
         for (strip in gameStrips()) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines))
+        for (strip in friendStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines))
+        // The Play a friend page's buttons (W6), which leave no room for a status or for Menu.
+        add(Case("", listOf(UiCopy.NEW_GAME, UiCopy.ENTER_CODE), 1))
+    }
+
+    /**
+     * Every strip a Correspondence Game and its invite can show (W4, W10), from [FriendStrip] itself on
+     * Games played against the fake Relay, then with the widest values: Time Left in each unit, the
+     * widest SAN, every Result for both Sides, every notice and every Refusal's copy.
+     */
+    private val friendStrips: List<FriendStrip> by lazy {
+        val scenes = FriendScenes()
+        try {
+            val now = scenes.now
+            buildList {
+                val yours = scenes.yourMove()
+                val theirs = scenes.theirMove()
+                add(FriendStrip.of(yours, now))
+                add(FriendStrip.of(theirs, now))
+                add(FriendStrip.of(theirs, now, reviewPly = 0))
+                add(FriendStrip.of(yours, now, sending = true))
+                add(FriendStrip.of(scenes.notSent(), now))
+                add(FriendStrip.of(scenes.drawOffered(), now))
+                add(FriendStrip.of(scenes.timeUp(), scenes.now))
+                for (reason in HaltReason.entries) add(FriendStrip.of(scenes.stopped(reason), now))
+                add(FriendStrip.of(scenes.over(), now))
+                val (sent, offered) = scenes.rematch()
+                add(FriendStrip.of(sent, now))
+                add(FriendStrip.of(offered, now))
+                val invite = scenes.waiting()
+                add(FriendStrip.invite(invite, scenes.now))
+                add(FriendStrip.invite(invite, scenes.now, confirming = true))
+                add(FriendStrip.invite(invite.copy(invite = invite.invite?.copy(cancelling = true)), scenes.now))
+                add(FriendStrip.of(invite, scenes.now))
+                // A chosen Move: its SAN with Send and Undo (F11), for the widest SANs.
+                val chosen = FriendStrip.of(yours, now, chosen = yours.log!!.game.position.moveFromUci("e2e4"))
+                add(chosen)
+                for (san in listOf("Qa1xh8#", "exd8=Q#", "Nbxd7+", "O-O-O+")) add(chosen.copy(status = san))
+                val menu = listOf(FriendButton.MENU)
+                // Time Left at its widest in each unit (W4: one unit, rounded down).
+                for (left in listOf(59 * 60_000L + 59_999, 23 * 3_600_000L + 3_599_999, 7 * Protocol.DAY_MS)) {
+                    add(FriendStrip(UiCopy.yourMoveLeft(left), menu))
+                    add(FriendStrip(UiCopy.theirMoveLeft(left), menu))
+                    if (left <= 48 * 3_600_000L) add(FriendStrip(UiCopy.expiresIn(left), listOf(FriendButton.CANCEL, FriendButton.MENU)))
+                }
+                add(FriendStrip(UiCopy.expiresIn(48 * 3_600_000L), listOf(FriendButton.CANCEL, FriendButton.MENU)))
+                for (side in Side.entries) for (result in results) {
+                    add(FriendStrip(UiCopy.friendResult(result, side), listOf(FriendButton.REMATCH, FriendButton.MENU), StripLayout.STATUS_MAX_LINES))
+                }
+                for (text in listOf(UiCopy.NOT_YET, UiCopy.OFFER_NOT_SENT) + Refusal.entries.map(UiCopy::refusal)) {
+                    add(FriendStrip.of(yours, now, notice = text))
+                }
+            }
+        } finally {
+            scenes.clean()
+        }
+    }
+
+    /** W4: every Correspondence Game strip holds one line, but a Result (R4.16). */
+    @Test
+    fun friendStripsHoldOneLineButForAResult() {
+        val resultCopy = results.flatMap { r -> Side.entries.map { UiCopy.friendResult(r, it) } }.toSet()
+        for (strip in friendStrips) {
+            assertEquals(if (strip.status in resultCopy) StripLayout.STATUS_MAX_LINES else 1, strip.statusLines, "\"${strip.status}\"")
+        }
+        assertTrue(friendStrips.none { s -> s.buttons.any { it.label == UiCopy.HINT || it.label == UiCopy.TAKEBACK } }, "no Game Hint or Takeback (W10)")
     }
 
     /** The game strips must hold one line wherever [GameStrip] says so: all but the Results. */
@@ -115,6 +187,8 @@ class StripFitTest {
     private fun endedBy(result: Result): Game = when (result) {
         is Result.Win -> when (result.by) {
             WinReason.RESIGNATION -> Game.of() + Resignation(result.winner.opponent)
+            // The side not to move claims: after one Move for White, after two for Black.
+            WinReason.TIME -> (if (result.winner == Side.WHITE) play(null, "e2e4") else play(null, "e2e4", "e7e5")) + TimeoutClaim(result.winner)
             WinReason.CHECKMATE -> if (result.winner == Side.BLACK) play(null, "f2f3", "e7e5", "g2g4", "d8h4")
             else play(null, "e2e4", "e7e5", "f1c4", "b8c6", "d1h5", "g8f6", "h5f7")
         }
@@ -167,7 +241,15 @@ class StripFitTest {
             UiCopy.UNRATED_SOLVED, UiCopy.UNRATED_HINTED, UiCopy.UNRATED_FAILED, UiCopy.PACK_FINISHED,
             UiCopy.YOUR_MOVE, UiCopy.THINKING, UiCopy.FINDING_HINT, UiCopy.MOVE_NOW,
             UiCopy.BACK, UiCopy.DRAW_AGREED, UiCopy.UNFINISHED, UiCopy.NEW_GAME,
+            UiCopy.ENTER_CODE, UiCopy.SEND, UiCopy.UNDO, UiCopy.SENDING, UiCopy.NOT_SENT, UiCopy.RETRY, UiCopy.DRAW_OFFERED,
+            UiCopy.ACCEPT, UiCopy.DECLINE, UiCopy.TIME_IS_UP, UiCopy.CLAIM_WIN, UiCopy.OUT_OF_SYNC, UiCopy.UPDATE_CHESS,
+            UiCopy.GAME_DELETED, UiCopy.SEAT_LOST, UiCopy.CANCEL, UiCopy.CANCEL_CONFIRM, UiCopy.REMATCH, UiCopy.REMATCH_SENT,
+            UiCopy.REMATCH_OFFERED, UiCopy.NOT_YET, UiCopy.OFFER_NOT_SENT,
         )) assertTrue(copy in used, "\"$copy\" is not checked")
+        for (reason in Refusal.entries) assertTrue(UiCopy.refusal(reason) in used, "\"${UiCopy.refusal(reason)}\" is not checked")
+        for (result in results) for (side in Side.entries) {
+            assertTrue(UiCopy.friendResult(result, side) in used, "\"${UiCopy.friendResult(result, side)}\" is not checked")
+        }
         for (result in results) for (side in Side.entries) {
             assertTrue(UiCopy.gameResult(result, side) in used, "\"${UiCopy.gameResult(result, side)}\" is not checked")
         }
@@ -280,7 +362,7 @@ object AkkuratProxy {
         }
         for (d in '0'..'9') put(d, 556)
         put(' ', 278); put(',', 278); put('.', 278); put(':', 278); put('\'', 191); put('’', 222); put('?', 556)
-        put('·', 278); put('+', 584); put('−', 584); put('-', 333); put('…', 1000)
+        put('·', 278); put('+', 584); put('−', 584); put('-', 333); put('…', 1000); put('=', 584); put('#', 556)
         putAll(NARROW)
     }
 

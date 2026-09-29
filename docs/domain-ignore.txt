@@ -157,3 +157,140 @@ GameReviewViewModel
 # the Puzzle word).
 Flip board
 You lost by checkmate
+
+# Relay wire protocol (docs/protocol.md): transport vocabulary for a Seat's credential, the rules
+# core's Position.digest as sent on the wire, and a presence state inside Live. Candidates for the
+# glossary at the v3 domain pass.
+seat secret
+digest
+here
+
+# v3 PR 1, the correspondence client: the Relay's wire protocol (docs/protocol.md) as Kotlin types.
+# Transport and wire vocabulary; the domain words they carry (Relay, Seat, Invite Code, Rematch) are
+# in CONTEXT.md. An "entry" is one Game Event (or rematch entry) as the Relay stores it in a log.
+Protocol
+WireSide
+EntryKind
+LogEntry
+Append
+AppendReply
+CreateRequest
+Created
+RedeemRequest
+JoinRequest
+Redeemed
+Cancelled
+RematchRef
+RematchStatus
+GameView
+SyncItem
+SyncRequest
+SyncResult
+SyncReply
+Health
+ErrorBody
+ErrorDetail
+ErrorCode
+RelayError
+InviteKind
+RelayTransport
+RelayRequest
+RelayResponse
+OkHttpTransport
+RelayClient
+RelayReply
+$method $path
+Bearer $it
+no response: ${e.message ?:
+status ${response.status}
+status ${response.status} with a body that isn't protocol ${Protocol.VERSION}
+a reply that isn't protocol ${Protocol.VERSION}
+# The sync engine around the glossary's Correspondence Game: its one-per-process owner, its save file,
+# the checked log, and what happened to a request. A Halt is how the code records Out of Sync, "Update
+# Chess" and a Game the Relay no longer has.
+Correspondence
+CorrespondenceData
+CorrespondenceStore
+OpenInvite
+GameLog
+Verdict
+Halt
+HaltReason
+Delivery
+Refusal
+SyncReport
+# Diagnostic detail kept with a stopped Game (Halt.detail), for debugging; never UI copy
+a started Game without a start
+entry ${entry.seq}
+entry ${entry.seq} changed on the Relay
+entry ${entry.seq} is a ${verdict.kind}
+the deadline differs
+the Game is over here (${log.game.result}), but the Relay's log is open
+the Game uses protocol ${view.v}
+the open draw offer differs
+the Relay closed the log, but the Game goes on here
+the Relay describes another Game or Seat
+the Relay has ${view.latestSeq} entries, this phone ${log.latestSeq}
+the Relay is at ply ${view.latestPly}, this phone at ${log.game.ply}
+the Relay stored another entry ${entry.seq}
+the rematch answer differs
+the rematch offer differs
+the saved log doesn't replay
+# PGN text: the Timeout Claim's comment command and Termination sentence (Pgn's KDoc)
+{[%claim ${event.side.name.lowercase()}]}
+$winner wins on time
+# The strip's Result on time; "lost" as chess players say (see "You lost by checkmate" above)
+You won on time
+You lost on time
+
+# Play a friend (v3 PR 2): UI vocabulary and implementation types, not domain terms (decision log W6)
+Play a friend
+Enter code
+Forget game
+FriendOwner
+FriendState
+FriendStrip
+FriendButton
+FriendRow
+FriendRows
+FriendScreen
+FriendPage
+FriendConfirm
+FriendViewModel
+FriendGameScreen
+FriendGameViewModel
+FriendExit
+FriendJobs
+FinishedGames
+FinishedRow
+Notice
+SyncJobs
+LightSyncJobs
+RelayConfig
+PendingSeat
+SeatSecrets
+Rows
+# Play a friend copy built from parts, or split across source lines (DESIGN.md "Play a friend" quotes it whole)
+${maxOf(0L, ms / MINUTE_MS)}m
+${ms / DAY_MS}d
+${ms / HOUR_MS}h
+$label · $state
+$PLAY_FRIEND · Your move: $yourMove
+$THEIR_MOVE · ${timeLeft(ms)}
+$YOUR_MOVE · ${timeLeft(ms)}
+Expires in 
+Their move
+Chess uses the network only for Games with a friend: it sends their Moves to its Relay, 
+Puzzles and Games against the computer never leave this phone.
+PendingSeat(${code ?: gameId})
+# Plain English in UI copy, not the avoided domain words: "Claim win" is the Timeout Claim's button (W4),
+# "Seat lost" says the Seat is lost (CONTEXT.md Seat), "Try again" is the rate limit's advice, and
+# "account" is what Chess doesn't have (W1).
+Claim win
+Claim win on time
+Seat lost
+Try again in a minute
+with no name or account, and the Relay deletes each Game within 30 days of the last thing either phone sent it. 
+
+# docs/privacy.md (reader-facing copy, 2026-09-28)
+Games with a friend

@@ -6,7 +6,10 @@ accepted: LP3 non-debuggable 558K nps P50, depth 18 in 3 s). feat/v2-play merges
 feat/v2-bench as v2's base, and now also merges the Levels (PR 3), the game record (PR 5 core) and
 the Book (PR 6), and the game screen (PR 4, with R4.16/R4.17), reviewed and checked on the LP3: the
 computer is playable at every Level. Next is the v3 client.
-v3: the Relay is done on feat/v3-relay (protocol 1.0, not deployed); the client comes after v2.
+v3: the Relay is done on feat/v3-relay (protocol 1.0, not deployed). v3 PR 1, the Kotlin client core
+(protocol types, RelayClient, the sync engine; no UI, no permission, nothing calls it), is on
+feat/v3-client. v3 PR 2 (screens + network, Play a friend) is on feat/v3-play; next is v3 PR 3 (the
+live WebSocket).
 LAST SESSION: 2026-09-28
 
 ## HANDOFF (read first when resuming)
@@ -44,21 +47,54 @@ LAST SESSION: 2026-09-28
   Hint + Menu, "Thinking" + Move now + Menu and "Review · n of m" + Latest each on one line in
   Akkurat. Not yet seen on the phone: "White to move" next to Hint, Solution and Menu (two lines
   expected), a Result's two lines, the 200 ms slide, and the Games page's Review.
-- Next: the v3 Kotlin client against the Relay's `docs/protocol.md` (feat/v3-relay), from feat/v2-play.
+- feat/v3-client (from feat/v2-play, merges feat/v3-relay): v3 PR 1, the correspondence client core.
+  365 JVM tests (4 skipped: calibration, and the opt-in end-to-end test), relay 93. Rulings: decision
+  log "v3 PR 1" (V1-V15). `relay/` protocol types + `RelayClient` over a `RelayTransport` seam
+  (`OkHttpTransport`, OkHttp already in the SDK's dependencies); `correspondence/` `GameLog` (every
+  entry checked by the rules core), `Correspondence` (invites, entries, conflicts, rematch, `syncAll`
+  for the LightWork job), `CorrespondenceStore` (`no_backup/correspondence.json`). The rules core
+  gained `TimeoutClaim` / `WinReason.TIME`. Tests: a fake Relay mirroring relay/src, error-code tables,
+  a two-phone property test in bad weather (`-Dcorrespondence.seeds=`), and `RelayEndToEndTest`
+  against `wrangler dev --local` (`-Drelay.e2e=`; run once, green). Nothing in the Tool constructs
+  the client (`NoNetworkYetTest`).
+- feat/v3-play (from feat/v3-client): v3 PR 2, Play a friend: the screens and the network. Rulings:
+  decision log "v3 PR 2 (expert rulings)" (W1-W10) and "v3 PR 2 (implementation)" (Y1-Y14); the
+  screens: DESIGN.md "Play a friend". 392 JVM tests (5 skipped: calibration and the opt-in e2e and
+  second-phone tests), relay 101. Built:
+  - W9 in protocol 1.0: the phone chooses its seat secret on redeem and join (docs/protocol.md,
+    relay/, the client, FakeRelay), saved first as a `PendingSeat` and sent again until answered.
+  - W8: `RelayConfig.URL`, committed empty (Play a friend doesn't exist then); `-Prelay.url` for a
+    debug build only (its BuildConfig), cleartext to 10.0.2.2/127.0.0.1 in debug only;
+    `scripts/release-check.sh relay` refuses a release declaring INTERNET with no URL.
+  - W1: ADR 0004, lighttool.toml declares INTERNET, the privacy line once the URL is set, BoundaryTest
+    in place of NoNetworkYetTest, FriendOwnerTest's empty-store and empty-URL tests.
+  - W4/W6/W5/W2/W10: `FriendOwner`, the Play a friend page, New game + invite, Enter code (LP3
+    keyboard), the board with Send/Undo, the game Menu (Send and offer draw, Offer draw, Resign, Moves,
+    Rename, Forget game), Rematch, finished Games in the Games list, mode.txt `FRIEND`.
+  - W7: LightWork `friend-sync` (hourly, only while a Game waits on the opponent) and `friend-send`
+    (one-off, Retry); syncAll when the Tool opens and when a friend screen shows.
+  - Checked on the emulator against `wrangler dev --local` and a JVM second phone
+    (`SecondPhoneTest`, `-Drelay.phone=`): create code, enter code, Moves both ways, Send/Undo, a
+    declined draw offer, Send and offer draw, the Worker stopped mid-send (Not sent, then Retry), a
+    force-stop with a Pending Entry then relaunch (sent on open), the one-minute board sync, Resign,
+    Rematch accepted, the Result in Games, "Not a code" / "No such code".
+- Next: v3 PR 3, the live WebSocket (`/live`, G3: ping every 5 s while the board shows, closed in
+  onAppPause, "Live · Your move" / "Live · Their move"), which replaces Y12's one-minute board sync.
+  Before PR 2 merges: the LP3 check of LightWork in Doze (orchestrator, under the lease).
+- For the maintainer (PR 2):
+  - Done 2026-09-28: the privacy wording is approved (UiCopy.PRIVACY_FRIENDS, docs/privacy.md, ADR
+    0004). Still ask Light whether a privacy statement is needed.
+  - A deploy of the Relay (relay/README.md) and a commit that gives `RelayConfig.URL` its HTTPS URL:
+    until then `release-check.sh relay` refuses a release, and no release build has Play a friend.
 - Deferred from PR 4: "Play from here" (F7) from a Puzzle's start (R4.15: its own entry on the puzzle
   screen, a decided-Position test, "Ends your current game"); a draw offer while the computer thinks
   (R4.5: on the user's Move only); exact replay at Level 8 (clock-bound). Not measured: the strength
   effect of clearing the engine's table before each Move at Levels 1-7 (R4.8), so a rerun of
   LevelCalibrationTest with the same clearing would confirm the Level gaps.
-- Slated for a follow-up, not scheduled (maintainer, 2026-09-28):
-  - "Play a stranger", v3.x after friend play ships. It is anonymous matchmaking with no accounts and
-    no visible lobby: the Relay's matchmaker hands a waiting ticket to the next phone that asks, and
-    both get seats as if a code were redeemed. It reopens C6 ("friends only"), so it gets an ADR.
-    Open: ticket expiry (about 7 days), matching on Days per Move only, an optional coarse strength
-    band, one ticket per phone, and the brief IP rate limit. No chat keeps harassment out; timeouts
-    handle stalling.
-  - LP3-only play can only be an honour rule, because the Relay can't tell an LP3 from a sideloaded
-    APK.
+- Parked (2026-09-28): a standalone CC0 Polyglot book repo. A CC0 book already exists (the jja
+  books, CC0 by their author, built from the Lichess database; no checksums, 50 KB-339 MB). Ours
+  would add a small reproducible book with a published checksum, but its builder compiles the rules
+  core and Book reader, so publishing it means relicensing those to MIT. Revisit only if asked.
 - Working rules learned:
   - Builders run with `isolation: worktree`. The orchestrator must not EnterWorktree while a
     non-isolated agent works in its worktree: that moves the harness pin and blocks the agent.
@@ -150,6 +186,12 @@ LAST SESSION: 2026-09-28
   AVD name (`scripts/chess-emu.sh`, `CHESS_AVD`). Never use emulator-5554, which belongs to the Reader.
   On a fresh boot, dismiss the ImmersiveModeConfirmation dialog (`mise run ui tap "GOT IT"`). The LP3 is
   shared through `~/.cache/lp3-lease`; the protocol is in the umbrella PLATFORM.md.
+- Correspondence client (v3 PR 1, feat/v3-client): `tool/src/main/kotlin/com/yarosz/chess/relay/`
+  and `correspondence/`; tests in the same packages under `tool/src/test/` (`FakeRelay`,
+  `FlakyTransport`, `Phones.kt`). Decision log "v3 PR 1".
+- Relay (v3, branch feat/v3-relay): `docs/protocol.md` v1.0 is the wire contract; `relay/` is the
+  Worker + `CorrespondenceGame` Durable Object, tested locally only (`cd relay && npm test`, Node
+  >= 22). NOT deployed: deploying needs the maintainer's account choice (`relay/README.md`).
 
 ## Next
 1. Checked on the LP3 (2026-09-28): the wheel's Review in free play and in a Puzzle, the wheel

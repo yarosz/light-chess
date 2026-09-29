@@ -605,3 +605,309 @@ Implementation:
   at once in onAppPause, which also stops the search; onScreenShow re-runs the computer's turn.
 - `GameStrip` (pure) picks the strip; StripFitTest measures every state it returns, every Result for
   both Sides, and the Games Review strips.
+
+## Relay build decisions (2026-09-28)
+Taken while building relay/ (docs/protocol.md v1.0), then checked against the code by review.
+- H1 `seq` (the entry's place in the log, from 1) is the compare-and-swap key and the sync cursor
+  (refines C4's "CAS on ply"). `ply` is still sent and checked: +1 for a `move`, unchanged for
+  every other kind, because draw, resign, claim and rematch entries don't advance the Ply. Ply
+  parity is checked for `move` and `claim` only.
+- H2 The Relay stamps `side` from the seat secret; the phone never sends it.
+- H3 The Relay checks timeout claims: only the side not to move may claim, and only once
+  `now >= T + daysPerMove × 24 h`, where T is the latest `move`'s serverTime (the Game's
+  `startedAt` before the first Move). A claim at the deadline itself is accepted. The Relay does
+  not refuse a `move` sent after its own deadline; once it is stored, the claim is gone.
+  (Stands; confirmed and refined by R3: which late kinds stay valid, and when the window closes.)
+- H4 (superseded by R2: a `rematchOffer` now needs a closed log, and a `move` with `end: true`
+  closes it.) The Relay can't see checkmate, stalemate or an automatic draw, so it accepts a
+  `rematchOffer` on an open log, and the offer closes the log. The phone sends one only after its
+  rules core has derived a Result.
+- H5 Rematch join tokens are 256-bit (43 base64url characters) and not rate-limited; they expire
+  48 h after the new Game is created (E8). Only the Seat that did not offer may answer, once
+  (`rematchAccept` or `rematchDecline`). `/join` refuses any `joinToken` that isn't 43 base64url
+  characters, so an Invite Code can't be redeemed there around the rate limit.
+- H6 A Game created with an Invite Code lives in the Durable Object named `invite:<code>`, and its
+  `gameId` is that object's id, so cancel and redeem of one code are serialised by one object.
+  The object's operations don't await between reading and writing the Game, so exactly one of a
+  cancel and a redeem wins. A code (and so its `gameId`) can be issued again only after its Game
+  is deleted. A rematch Game gets a fresh unique id.
+- H7 GET events returns `status` `waiting`, `active` or `closed`. Appended entries are pushed over
+  the WebSocket to both Seats. One socket per Seat: a new socket closes the old one with 4001, and
+  deleting the Game closes its sockets with 4004. A Game holds at most 2,000 entries (`log_full`,
+  for every kind, terminal and rematch kinds included; superseded by R4: only `move`, `drawOffer`
+  and `drawDecline` are capped). `daysPerMove` is 1, 3 or 7. Redemption by
+  Invite Code is limited to 10 per 60 s per client IP (F11), counted before the body and the code
+  are parsed.
+- H8 Wrangler's `send_metrics` is false and Workers observability is off (C6). The Relay stores
+  game ids, seat secret hashes, the invite's hash (kept after redemption only to tell a used token
+  from a wrong one), times and the Game Events, including a rematch offer's join token. It stores
+  no IP address and no name.
+
+## Relay edge-case rulings (2026-09-28)
+Expert rulings on the Relay's edge cases, with the facilitator's defaults for the follow-up
+questions. Applied in relay/ and docs/protocol.md.
+- R1 Draw offers. The Relay tracks `openDrawBy` (null, white or black) from kinds alone. A
+  `drawOffer` comes only from the side not to move (it has just moved; G3 "offer with your move"),
+  only at ply >= 1 and only while no offer is open; otherwise `403 not_your_turn` or
+  `409 draw_already_offered`. `drawAccept` and `drawDecline` come only from the side to move, and
+  only while the other side's offer is open; otherwise `409 no_draw_offer`. A `move` or a
+  `drawDecline` clears the offer. GET events returns `openDrawBy`.
+- R2 No `rematchOffer` on an open log (supersedes H4). A `move` carries an optional `"end": true`,
+  set by the mover's rules core when that Move ends the Game (checkmate, stalemate, threefold, the
+  50-move rule, a dead position). It closes the log and is part of the idempotent-retry
+  comparison. A `rematchOffer` on an open log gets `409 game_not_over`.
+- R3 Late Moves are accepted (H3 stands): a Game is lost on time only through a claim. The claim
+  window opens at the deadline and closes when any `move` from the late side is stored; the
+  opponent's clock then runs from that Move's serverTime. `resign`, `drawAccept`, `drawDecline` and
+  a late `move` with `end` stay valid after the deadline.
+- R4 The 2,000-entry cap applies only to `move`, `drawOffer` and `drawDecline` (supersedes H7's
+  "for every kind"). `resign`, `drawAccept`, `claim` and the rematch kinds are exempt. The Relay has
+  no N-ply draw rule.
+- R5 Request bodies are capped at 4,096 bytes (`413 body_too_large`), checked on Content-Length and
+  on the bytes read, so chunked bodies are capped too. WebSocket messages are capped at 256 bytes;
+  a larger one gets `{type: "error", code: "bad_request"}`.
+- R6 The version check on GET events, sync, join and live is enforced from the second major; the
+  per-Game pin is stored now. The Kotlin client handles `400 unsupported_version` and
+  `409 version_mismatch` on every endpoint.
+- Default: a timeout claim is a one-tap "Claim win on time" button, never automatic (client).
+- Default: an `end` flag that doesn't match the phone's own derived Result freezes the Game as
+  "Out of sync" (C5), as for any other disagreement.
+- Default: GET events returns `deadline`, the serverTime at which the side to move's time runs out
+  (null while waiting or closed), so both phones show the same time left.
+- Implementation reading: a closed log has no open offer, so `openDrawBy` is null once the log
+  closes (by `drawAccept`, `resign`, `claim` or an ending `move`). A `drawOffer` at ply 0 gets
+  `not_your_turn` (nobody has moved yet). `end` is either `true` or absent; `false` is a
+  `bad_request`.
+
+## v3 PR 1: the correspondence client core (rulings and implementation choices, 2026-09-28)
+Code: `tool/src/main/kotlin/com/yarosz/chess/relay/` (protocol 1.0 types, `RelayClient`, the
+`RelayTransport` seam, `OkHttpTransport`) and `correspondence/` (`GameLog`, `CorrespondenceGame`,
+`CorrespondenceStore`, `Correspondence`, the sync engine). Pure Kotlin, no UI; tests on the JVM against
+a fake Relay that mirrors `relay/src`.
+- V1 The split. PR 1 compiles the client into the Tool and nothing calls it: no INTERNET in
+  `lighttool.toml`, ToolMetadataTest, the privacy line ("Chess never uses the network. Nothing leaves
+  this phone.") and ADR 0003 unchanged (D5 holds for v1/v2 as shipped). `NoNetworkYetTest` fails if
+  Tool code outside the client constructs `OkHttpTransport`, `RelayClient` or `Correspondence`. PR 2
+  brings together the permission, the new privacy copy and its ADR, the Relay's URL, the screens, the
+  LightWork job and the live WebSocket.
+- V2 HTTP library: OkHttp (5.3.2), used directly. It is already in the APK through the SDK's
+  `ktor-client-okhttp`, so no dependency is added and the APK's contents and permissions don't change;
+  C1 names OkHttp for the live WebSocket, so one library serves HTTPS and WSS; a blocking call on
+  `Dispatchers.IO` fits a suspend LightWork job. Ktor would be a second layer over the same OkHttp.
+  `RelayTransport` is the seam, so the choice is cheap to reverse. Plain HTTP only to 127.0.0.1 or
+  localhost (the opt-in end-to-end test); the manifest allows no cleartext anyway.
+- V3 Seat secrets (C3, F10): the generated manifest leaves `allowBackup` at Android's default (true),
+  so anything in filesDir can be backed up. Every Correspondence Game, secrets included, lives in one
+  file, `correspondence.json`, in the app's `no_backup` directory beside filesDir (what
+  getNoBackupFilesDir returns; Auto Backup and device transfer never copy it), reached from filesDir
+  because `android.content.Context` is blocked. One file keeps a pending entry and the Games it touches
+  (a rematch and its offer) in one atomic `SaveFile` save. A restored phone has no Games (E6).
+- V4 Timeout Claim in the rules core: `TimeoutClaim(side)` Game Event and `WinReason.TIME`. Only the
+  side not to move may claim; the core has no clock, so `GameLog` checks the entry's serverTime against
+  the Deadline (the latest Move's serverTime, or startedAt, plus days per Move). FIDE 6.9, exact case
+  only: a claimant with a lone king draws (`DrawReason.INSUFFICIENT_MATERIAL`); no helpmate search for
+  king-and-minor cases. PGN writes `{[%claim white]}` and "White wins on time"; UiCopy gains "You won on
+  time" / "You lost on time" (unreachable against the computer; PR 2 owns the correspondence copy).
+- V5 What the phone checks on every entry, its own included (`GameLog.check`): gameId, seq contiguity,
+  the major of `v`, the digest's format, which fields a kind may carry, R1's draw parity, the side to
+  move for a Move, the claim's Deadline, the rematch bookkeeping, then the rules core: the Move legal
+  in its canonical UCI (castling only as the king's step; `e1h1` is refused on the wire), `ply`, the
+  digest equal to Position.digest, and `end` equal to the core's Result. After each read it also
+  compares the Relay's bookkeeping (latestSeq, latestPly, status, openDrawBy, deadline, rematch) with
+  its own. Any refusal or disagreement stops the Game Out of Sync (C5); the refused entry never joins
+  the log. An entry the phone already has must come back identical.
+- V6 Versions (E9, R6): `unsupported_version` or `version_mismatch` from any endpoint, a Game view
+  whose `v` has another major, or an entry of a kind 1.0 doesn't know, stops the Game as "Update Chess
+  to continue this game" (not Out of Sync); its pending entry is kept for the updated Tool. Unknown
+  fields are ignored; an unknown error code is treated like any other refusal.
+- V7 Conflict recovery (C8): after `seq_conflict`, or a refusal that a fresh read explains, the phone
+  checks the new entries and drafts the pending entry again at the new place if it still makes sense,
+  else rolls it back (`rolledBack`, for the screen to say so). Exception: a pending Move displaced by
+  the other Seat's draw offer is rolled back even though it is still legal, so the user sees the offer
+  before their Move declines it. A refusal the fresh read doesn't explain (the log didn't move) rolls
+  the entry back; `claim_too_early` rolls the claim back. A pending entry the read shows stored (a lost
+  response) is simply confirmed.
+- V8 One pending entry per Game (C8) means a draw offer is its own entry, sent once the Move is stored
+  and before the reply, and nothing (not even a resignation) can be queued behind a Move waiting to
+  send. PR 2 may present "Send and offer a draw" as the two steps.
+- V9 Lost responses that protocol 1.0 can't recover: a lost redeem or join response loses the Seat
+  (the secret is returned once); a lost create response leaves an invite nobody holds, which expires in
+  48 h. Open for protocol 1.1: a seat secret chosen by the phone, or an idempotency key on redeem/join.
+- V10 Background sync (`Correspondence.syncAll`, the LightWork job's body, wired in PR 2): sends queued
+  cancels and pending entries, then reads, five per `/v1/sync`, every open invite, every Game being
+  played, and a Game that is over while its rematch can still come (our offer unanswered, or 48 h after
+  the Result for the other Seat's offer). Stopped Games aren't read. `SyncReport.retry` maps to
+  `LightJobResult.Retry`; the periodic job stays scheduled only while `waitingOnOpponent` (C2);
+  `yourMove` feeds "Your move: N". It never throws. One `Correspondence` per process (a Mutex serialises
+  the screen and the job).
+- V11 Rematch (E8, F9): the offerer takes the other Side, same days per Move. The new Game is created
+  with a join token first (online), then the offer is appended to the old log (may wait to send). The
+  new Game's invite is cancelled by itself when the offer is rolled back (the other Seat offered
+  first), declined, or its old Game forgotten. Accepting joins first, then appends `rematchAccept`.
+- V12 Invite cancel (G2): queued while offline; the row and its slot go only once the Relay confirms;
+  `invite_redeemed` turns the row into the Game; `game_not_found` drops it.
+- V13 The cap of five (E7, F9) counts open invites (a rematch's included) and Games being played; a
+  stopped Game counts until the user forgets it (`forget`, allowed once a Game is over or stopped).
+  Finished Games stay on the phone, the newest 50 by when they closed.
+- V14 Time: the phone estimates the Relay's clock from the offset at its last response, only for the
+  claim button and time left; the Relay's stamps decide (C2). A claim the estimate allows but the Relay
+  refuses is rolled back as too early.
+- V15 Tests: the fake Relay (`FakeRelay`, test sources) follows `relay/src` route by route; bad weather
+  (`FlakyTransport`: offline, lost response, duplicate, 503 restart) and interleavings are injected
+  per request. The property test's defaults are 40 seeds × 250 steps (`-Dcorrespondence.seeds=`).
+  `RelayEndToEndTest` runs only with `-Drelay.e2e=<local Worker URL>` (relay/README.md).
+
+## v3 PR 2 (expert rulings, 2026-09-28)
+A fresh chess-expert agent's rulings on v3 PR 1's open questions (LEDGER.md "Open questions for PR
+2"), recorded before building.
+- W1 Privacy. Once the Relay URL is set, the About line (UiCopy.PRIVACY, README) becomes: "Chess uses
+  the network only for Games with a friend: it sends their Moves to its Relay, with no name or
+  account, and the Relay deletes them 30 days after the last Move. Puzzles and Games against the
+  computer never leave this phone." The retention clause must match what relay/ does; the maintainer
+  approves the final wording (a LEDGER item). ADR 0004 "The Relay is Chess's only network, and only
+  for Correspondence Games" supersedes ADR 0003's no-INTERNET sentence and its last paragraph:
+  (1) Chess declares INTERNET and talks to one host, the Relay, over HTTPS/WSS only. (2) It sends a
+  request only while this phone holds a Correspondence Game or an open invite, or when the user
+  creates or redeems a code. (3) It sends no names, accounts or telemetry, and the Relay keeps no IP
+  logs (C6, H8); Puzzles and the computer stay fully offline. NoNetworkYetTest is replaced by a test
+  that a Tool with an empty correspondence store makes no transport call and schedules no LightWork
+  job.
+- W2 One action, two entries. While a Move waits for confirmation (F11), the Menu offers "Send and
+  offer draw". The phone holds the offer locally (not a second pending entry, V8), sends the Move,
+  then sends the drawOffer once the Move is stored. Until the opponent moves, the Menu also offers
+  "Offer draw" on its own. An offer refused because the opponent already moved: "Offer not sent".
+- W3 No clock warning (V14, C2).
+- W4 Strip copy, one line each (R4.16; every string in StripFitTest):
+  - your move: "Your move · 2d" + Menu (one unit, rounded down: 2d / 5h / 40m);
+  - a Move chosen, not confirmed: its SAN + Send + Undo;
+  - "Sending" + Menu, with the board locked;
+  - "Not sent" + Retry + Menu;
+  - "Their move · 2d" + Menu;
+  - "Live · Your move" / "Live · Their move" + Menu (PR 3);
+  - "Draw offered" + Accept + Decline (a Move also declines);
+  - "Time is up" + "Claim win" + Menu (semantics label "Claim win on time"; the full label if it fits);
+  - "Out of sync" + Menu, the Menu's first row "This game stopped: the two phones disagree.";
+  - "Update Chess" + Menu, the Menu row "Update Chess to continue this game";
+  - "Game deleted" + Menu; "Seat lost" + Menu;
+  - the invite page: "Expires in 47h" + Cancel (second tap "Tap again to cancel") + Menu;
+  - a Result: R4.13's copy plus "You won on time" / "You lost on time", with Rematch + Menu;
+  - "Rematch sent" + Menu; "Rematch?" + Accept + Decline;
+  - a rolled-back claim shows "Not yet" for 5 s.
+- W5 Keep 50 finished (V13). They show in the existing Games list, merged newest first, with the
+  Opponent Label where the Level goes ("2026.09.28 · ABCD · Won"). Each kind keeps its own cap of 50
+  in its own file. A finished Game stays in the Play a friend list only during V10's rematch window.
+- W6 Screens:
+  - The Menu entry "Play a friend", or "Play a friend · Your move: 2" when that count is above 0.
+  - The Play a friend page lists, in E7's order: your Move first, soonest time left first; then their
+    move; then invites; then stopped Games. Rows look like "ABCD · Your move · 2d". The bottom buttons
+    are "New game" and "Enter code".
+  - At 5 slots (V13, F9), both buttons show lightened, with "Finish a game first".
+  - New game: "Play as" White / Black / Random, "Days per move" 1 / 3 / 7 (default 3, C2), then
+    "Create code".
+  - The code shows as 8 Crockford characters, ABCD-EFGH, the largest text on the page and alone on
+    its line. Below it: "Tell your friend this code. It works once, for 48 hours."
+  - Enter code: one field on the LP3 keyboard, then "Join" (InviteCodes.normalize). Errors: "Not a
+    code" / "No such code" / "Code already used" / "Try again in a minute" / "No connection".
+  - The Opponent Label defaults to the first four characters (F11). The game's Menu adds "Rename",
+    local and never sent.
+  - Rematch is at the Result (V11). When the cap is full: "Finish a game first".
+  - "Forget game", with the second tap "Tap again to forget", once the Game is over or stopped.
+- W7 Background sync:
+  - A periodic LightWork job every 1 h, only while some Game waits on the opponent (C2, V10).
+  - A one-off C8 job for a pending entry, with Retry backoff.
+  - syncAll also runs when the Tool opens and when Play a friend or a Correspondence Game comes on
+    screen.
+  - The WebSocket only while that Game's board is on screen, pinging every 5 s, closed in onAppPause:
+    DEFERRED to v3 PR 3.
+  - Nothing appears on the LightOS side. No push (F1).
+- W8 The Relay URL is a committed constant, RelayConfig.URL, empty until the maintainer deploys (Light
+  builds from the public commit).
+  - Debug and emulator builds may override it with -Prelay.url, through generated source in the debug
+    source set only.
+  - While it is empty: no "Play a friend" entry, no LightWork job, and About keeps the old line.
+  - Tests: the URL is empty or https:// (cleartext only to 127.0.0.1 in debug).
+  - release-check.sh refuses a release that declares Chess's own INTERNET while the URL is empty.
+    INTERNET is already merged in from the SDK, so the check keys on lighttool.toml's declared
+    permissions.
+- W9 Fix V9 now, before any deploy: the phone chooses its own seat secret (32 random bytes,
+  base64url), sends it on redeem and join, and the Relay stores its SHA-256 (C3). A retry with the
+  same secret is idempotent. Folded into protocol 1.0, since nothing is deployed and no Game pins a
+  version: docs/protocol.md, relay/ with its tests, and the Kotlin client with its fake Relay. A lost
+  create response is still accepted (the code expires in 48 h).
+- W10 Also in PR 2:
+  - A Game against the computer and Correspondence Games coexist, in separate files and owners.
+  - The engine never touches a Correspondence Game: no Game Hint, no Book, no evals, and no Takeback
+    (contradiction 6), enforced in code with a test.
+  - mode.txt gains "friend" (D6, R4.10).
+  - The user's Side at the bottom, no flip (G3). The screen-on rule is contradiction 4. The Moves
+    page is allowed.
+  - Back mid-send is safe (C8).
+  - Copy for every Refusal in UiCopy + StripFitTest: CAP_REACHED "Finish a game first", NOT_SAVED
+    "Couldn't save", NO_SUCH_GAME "Game deleted".
+  - The Menu's "Your move: N" counts only Games that are the user's Move and not Stopped.
+  - Before merge: a device check of LightWork in Doze on the LP3 (orchestrator, under the lease), and
+    one two-phone Game in bad weather on the emulator plus a JVM fake phone.
+- New CONTEXT.md terms: Days per Move (avoid: time control, clock); Time Left; Opponent Label;
+  Pending Entry (avoid: queued move, outbox); Stopped (Out of Sync, Update Chess, deleted, Seat lost;
+  avoid: frozen, broken). UI vocabulary for docs/domain-ignore.txt: Play a friend, Enter code, Forget
+  game.
+
+## v3 PR 2 (implementation, 2026-09-28)
+Rulings the log didn't make, each the one most consistent with it, taken while building W1-W10.
+- Y1 W9 on the wire: redeem sends `{ v, seatSecret }`, join `{ v, seatSecret, joinToken }`; the reply
+  no longer carries the secret. The same code or token with the same secret answers `200` with the
+  same Seat and `startedAt` however far the Game has gone; another secret gets `409 invite_used`; a
+  missing or malformed secret, or the creator's own, `400 bad_request`. Create is unchanged (V9's lost
+  create response stays accepted). SUPERSEDES V9's "open for protocol 1.1".
+- Y2 The phone saves its chosen secret as a `PendingSeat` (in `correspondence.json`, `seats`) before
+  sending; a Seat being taken holds a slot of the five, is shown on the page as "ABCD-EFGH · Not
+  sent" (a tap sends it again), and is sent again by syncAll. A refusal drops it (but
+  `rate_limited`); no answer keeps it. A rematch's join works the same, then appends rematchAccept.
+- Y3 W8's override: `-Prelay.url` goes into the debug build type's generated BuildConfig
+  (`RELAY_URL`); every other build type's is `""`, set in defaultConfig, and `RelayConfig.url` reads
+  `BuildConfig.RELAY_URL.ifEmpty { URL }`. Chosen over a debug-only Kotlin class or @EntryPoint: main
+  code can't name a class that release lacks, and an @EntryPoint runs after the first screen is made
+  (LightSdkApplication launches it on Dispatchers.Main), so the first screen could miss the override.
+  Cleartext: `src/debug/AndroidManifest.xml` merges a network security config allowing 10.0.2.2 and
+  127.0.0.1 only; `OkHttpTransport` accepts http:// only to those and localhost (`RelayConfig.allowed`).
+- Y4 W8's release check is its own step, `scripts/release-check.sh relay` (in `all`), not part of
+  `apk`: lighttool.toml declares INTERNET now (W1) while the URL stays empty until the deploy, so
+  `apk` (which pins INTERNET as declared) passes and `relay` refuses the release until the URL is set.
+  The public-content scan allows `10.0.2.2`, the emulator's fixed host alias.
+- Y5 W1's retention clause: relay/ moves a Game's deletion to 30 days after every append (any kind)
+  and deletes an unredeemed invite at 48 h, so "30 days after the last Move" isn't exact. The line
+  reads "the Relay deletes each Game within 30 days of the last thing either phone sent it." ADR 0003's
+  "last paragraph" W1 names is read as its privacy sentence; its other paragraphs stand.
+- Y6 The friend mode (mode.txt `FRIEND`, the enum's name as the other modes are written) makes the
+  Play a friend page the Tool's first screen, as the game mode makes the Game's board. With the URL
+  empty the friend mode shows Puzzles. The page's Menu is in the top bar: New game and Enter code
+  leave the strip no room for it; that Menu offers Puzzles, Play the computer, Games and About.
+- Y7 A chosen Move's strip has four buttons (SAN, Send, Undo, Menu): W4 names Send and Undo, W2 puts
+  "Send and offer draw" in the Menu while the Move waits, and StripFitTest holds it to one line. It is
+  the only strip past contradiction 2's three.
+- Y8 Second taps (Cancel, Forget game, Resign) stand until the second tap or another page, as Resign
+  does against the computer. "Tap again to cancel" shows next to Cancel alone: next to Cancel and
+  Menu it needs two lines.
+- Y9 "Draw: dead position" is a Correspondence Game's copy for `DrawReason.INSUFFICIENT_MATERIAL`
+  (a dead position, or FIDE 6.9's claimant with a lone king): "Draw: insufficient material" needs
+  three lines next to Rematch and Menu. The Games page's Review keeps R4.13's copy (next to Back it fits).
+- Y10 Notices (5 s, W4): "Not yet" for a claim rolled back, "Offer not sent" for a held or pending draw
+  offer the opponent's Move overtook (W2), and the Refusal's copy for any other refusal the Game's own
+  state doesn't show. Refusal copy beyond W10's three: "Not allowed now", "This game stopped", "Not a
+  code", "No such code", "Code already used", "Your friend joined", "Try again in a minute", "Update
+  Chess", "No connection", "The game moved on", "Not yet".
+- Y11 W7's jobs: `friend-sync` (periodic, 1 h) and `friend-send` (one-off). The periodic job is
+  enqueued when some Game starts waiting on the opponent and cancelled when none does (the job itself
+  cancels it when it finds nothing waiting). The one-off job is enqueued only after the user's own
+  action leaves something unsent, never by a job (LightWork's REPLACE would cancel the running one); it
+  returns Retry while something waits. No job is scheduled, and no request sent, while the store holds
+  nothing to send or read (`Correspondence.hasWork`).
+- Y12 Until v3 PR 3's live socket, a Correspondence Game's board syncs once a minute while it is on
+  screen, the screen awake (contradiction 4) and the Game waiting on the opponent, so a reply shows
+  without leaving the board. It stops with the screen timeout, on pause and off screen.
+- Y13 W5's merge: Games against the computer carry only a date, so the Games page merges by date,
+  newest first, and on the same date the Games against the computer come first.
+- Y14 W10's engine boundary is held by BoundaryTest on the source: no `correspondence/` or `Friend*`
+  file names the engine, the Book, the Level player, GameOwner, GameFlow, evals, Hints or Takeback,
+  and `FriendButton` has no Hint, Takeback or Move now. The same test replaces NoNetworkYetTest: only
+  FriendOwner constructs the client, after the URL check, and no Puzzle or computer code names it.

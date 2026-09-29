@@ -55,8 +55,14 @@ A plain `assembleDebug` builds for LightOS on a Light Phone III. For the emulato
 ## Privacy
 
 Chess never uses the network. Nothing leaves this phone. The Puzzles ship inside the Tool, and your
-rating and history stay in the Tool's own storage. Chess declares no permissions of its own; the
-Android permissions its package lists come from Light's SDK. See `SECURITY.md`.
+rating and history stay in the Tool's own storage. The Android permissions its package lists come
+from Light's SDK, but for INTERNET, which Chess declares for playing a friend (ADR 0004). See
+`SECURITY.md`.
+
+Once Chess ships with a Relay (not yet: the Relay isn't deployed), playing a friend changes this
+line to: "Chess uses the network only for Games with a friend: it sends their Moves to its Relay,
+with no name or account, and the Relay deletes each Game within 30 days of the last thing either
+phone sent it. Puzzles and Games against the computer never leave this phone."
 
 ## Credits
 

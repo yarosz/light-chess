@@ -1,5 +1,6 @@
 package com.yarosz.chess
 
+import com.yarosz.chess.correspondence.Refusal
 import com.yarosz.chess.puzzles.AttemptState
 import com.yarosz.chess.rules.DrawReason
 import com.yarosz.chess.rules.Result
@@ -97,8 +98,9 @@ object UiCopy {
     const val SOURCE = "github.com/yarosz/light-chess"
 
     /**
-     * The one-line privacy statement (D9). Not "no network permission": the Tool declares none, but
-     * Light's SDK libraries merge INTERNET into every Tool's manifest (`scripts/release-check.sh apk`).
+     * The one-line privacy statement (D9) while the Relay URL is empty (W8): no Correspondence Game can
+     * start, so nothing leaves the phone. Not "no network permission": Light's SDK libraries merge
+     * INTERNET into every Tool's manifest, and Chess declares it too for the Relay (ADR 0004).
      */
     const val PRIVACY = "Chess never uses the network. Nothing leaves this phone."
 
@@ -118,18 +120,124 @@ object UiCopy {
      * The About page (D7), one plain-text paragraph per entry. [packDate] is the Lichess dump the Pack
      * was built from (`source.date` in the Pack manifest); [notices] is [NOTICES_ASSET]'s text, whose
      * paragraphs (split at blank lines) follow: the cburnett licence and the release APK's libraries.
+     * [friends] is whether Play a friend is on (the Relay URL is set, W1/W8), which changes the privacy line.
      */
-    fun about(packDate: String?, notices: String): List<String> = listOf(
+    fun about(packDate: String?, notices: String, friends: Boolean = false): List<String> = listOf(
         "Chess $VERSION",
         ABOUT_COPYRIGHT,
         ABOUT_LICENCE,
         "Source: $SOURCE",
-        PRIVACY,
+        if (friends) PRIVACY_FRIENDS else PRIVACY,
         if (packDate == null) "Puzzles: the Lichess puzzle database (lichess.org), CC0."
         else "Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate.",
         ABOUT_ENGINE,
         ABOUT_BOOK,
     ) + notices.split(Regex("\\n\\s*\\n")).map { it.trim().replace(Regex("\\s*\\n\\s*"), " ") }.filter { it.isNotEmpty() }
+
+    // Playing a friend (v3 PR 2: W1, W2, W4, W6, W10). Shown only once the Relay URL is set (W8).
+
+    /** The privacy line once the Relay URL is set (W1, ADR 0004; approved 2026-09-28, docs/privacy.md). */
+    const val PRIVACY_FRIENDS = "Chess uses the network only for Games with a friend: it sends their Moves to its Relay, " +
+        "with no name or account, and the Relay deletes each Game within 30 days of the last thing either phone sent it. " +
+        "Puzzles and Games against the computer never leave this phone."
+    const val PLAY_FRIEND = "Play a friend"
+    const val ENTER_CODE = "Enter code"
+    const val DAYS_PER_MOVE = "Days per move"
+    const val CREATE_CODE = "Create code"
+    const val CODE_NOTE = "Tell your friend this code. It works once, for 48 hours."
+    const val JOIN = "Join"
+    const val NO_FRIEND_GAMES = "No games yet. Create a code for a friend, or enter theirs."
+    const val SEND = "Send"
+    const val SEND_DESCRIPTION = "Send this Move"
+    const val UNDO = "Undo"
+    const val UNDO_DESCRIPTION = "Take this Move back before it is sent"
+    const val SENDING = "Sending"
+    const val NOT_SENT = "Not sent"
+    const val RETRY = "Retry"
+    const val RETRY_DESCRIPTION = "Send it again"
+    const val DRAW_OFFERED = "Draw offered"
+    const val ACCEPT = "Accept"
+    const val DECLINE = "Decline"
+    const val TIME_IS_UP = "Time is up"
+    const val CLAIM_WIN = "Claim win"
+    const val CLAIM_WIN_DESCRIPTION = "Claim win on time"
+    const val OUT_OF_SYNC = "Out of sync"
+    const val OUT_OF_SYNC_ROW = "This game stopped: the two phones disagree."
+    const val UPDATE_CHESS = "Update Chess"
+    const val UPDATE_CHESS_ROW = "Update Chess to continue this game"
+    const val GAME_DELETED = "Game deleted"
+    const val SEAT_LOST = "Seat lost"
+    const val CANCEL = "Cancel"
+    const val CANCEL_DESCRIPTION = "Cancel this invite"
+    const val CANCEL_CONFIRM = "Tap again to cancel"
+    const val REMATCH = "Rematch"
+    const val REMATCH_DESCRIPTION = "Offer a rematch, Sides swapped"
+    const val REMATCH_SENT = "Rematch sent"
+    const val REMATCH_OFFERED = "Rematch?"
+    const val NOT_YET = "Not yet"
+    const val OFFER_NOT_SENT = "Offer not sent"
+    const val SEND_AND_OFFER_DRAW = "Send and offer draw"
+    const val OFFER_DRAW_AFTER_MOVE = "Offer draw after your move"
+    const val RENAME = "Rename"
+    const val FORGET_GAME = "Forget game"
+    const val FORGET_CONFIRM = "Tap again to forget"
+    const val INVITE = "Invite"
+    const val SAVE = "Save"
+
+    /** W4: a Result's copy in a Correspondence Game. Next to Rematch and Menu, "Draw: insufficient material" needs three lines. */
+    fun friendResult(result: Result?, userSide: Side): String =
+        if (result is Result.Draw && result.by == DrawReason.INSUFFICIENT_MATERIAL) "Draw: dead position" else gameResult(result, userSide)
+
+    /** Time Left in one unit, rounded down (W4): "2d", "5h", "40m". */
+    fun timeLeft(ms: Long): String = when {
+        ms >= DAY_MS -> "${ms / DAY_MS}d"
+        ms >= HOUR_MS -> "${ms / HOUR_MS}h"
+        else -> "${maxOf(0L, ms / MINUTE_MS)}m"
+    }
+
+    fun yourMoveLeft(ms: Long) = "$YOUR_MOVE · ${timeLeft(ms)}"
+
+    fun theirMoveLeft(ms: Long) = "$THEIR_MOVE · ${timeLeft(ms)}"
+
+    const val THEIR_MOVE = "Their move"
+
+    /** The invite's strip (W4): "Expires in 47h", in hours (an invite lasts 48), then minutes. */
+    fun expiresIn(ms: Long) = "Expires in " + if (ms >= HOUR_MS) "${ms / HOUR_MS}h" else timeLeft(ms)
+
+    /** The Menu entry (W6): "Play a friend", or "Play a friend · Your move: 2" when that count is above 0. */
+    fun playFriend(yourMove: Int) = if (yourMove > 0) "$PLAY_FRIEND · Your move: $yourMove" else PLAY_FRIEND
+
+    /** A Play a friend row (W6): "ABCD · Your move · 2d". */
+    fun friendRow(label: String, state: String) = "$label · $state"
+
+    /** A Games row for a Correspondence Game (W5): "2026.09.28 · ABCD · Won". */
+    fun friendGamesRow(date: String, label: String, result: Result?, userSide: Side): String =
+        listOf(date, label, outcome(result, userSide)).joinToString(" · ")
+
+    /**
+     * What each [com.yarosz.chess.correspondence.Refusal] says (W10), in the strip for 5 s or on the page
+     * that asked. Enter code's errors are W6's.
+     */
+    fun refusal(reason: Refusal): String = when (reason) {
+        Refusal.NOT_ALLOWED -> "Not allowed now"
+        Refusal.CAP_REACHED -> "Finish a game first"
+        Refusal.NO_SUCH_GAME -> GAME_DELETED
+        Refusal.HALTED -> "This game stopped"
+        Refusal.BAD_CODE -> "Not a code"
+        Refusal.INVITE_NOT_FOUND -> "No such code"
+        Refusal.INVITE_USED -> "Code already used"
+        Refusal.ALREADY_REDEEMED -> "Your friend joined"
+        Refusal.RATE_LIMITED -> "Try again in a minute"
+        Refusal.NEEDS_UPDATE -> UPDATE_CHESS
+        Refusal.OFFLINE -> "No connection"
+        Refusal.ROLLED_BACK -> "The game moved on"
+        Refusal.TOO_EARLY -> NOT_YET
+        Refusal.NOT_SAVED -> "Couldn't save"
+    }
+
+    private const val MINUTE_MS = 60_000L
+    private const val HOUR_MS = 3_600_000L
+    private const val DAY_MS = 86_400_000L
 
     fun toMove(side: Side) = if (side == Side.WHITE) WHITE_TO_MOVE else BLACK_TO_MOVE
 
@@ -160,6 +268,8 @@ object UiCopy {
         null -> UNFINISHED
         is Result.Win -> when {
             result.by == WinReason.RESIGNATION -> if (result.winner == userSide) "You won by resignation" else "You resigned"
+            // A Game against the computer has no clock; a Correspondence Game's timeout (v3) gets its copy in v3 PR 2.
+            result.by == WinReason.TIME -> if (result.winner == userSide) "You won on time" else "You lost on time"
             result.winner == userSide -> "You won by checkmate"
             else -> "You lost by checkmate"
         }
@@ -173,13 +283,14 @@ object UiCopy {
     }
 
     /** A Games row (F11): "2026.09.28 · Level 3 · Won". */
-    fun gamesRow(date: String, level: Int?, result: Result?, userSide: Side): String {
-        val outcome = when (result) {
-            null -> UNFINISHED
-            is Result.Draw -> "Draw"
-            is Result.Win -> if (result.winner == userSide) "Won" else "Lost"
-        }
-        return listOfNotNull(date, level?.let { "$LEVEL $it" }, outcome).joinToString(" · ")
+    fun gamesRow(date: String, level: Int?, result: Result?, userSide: Side): String =
+        listOfNotNull(date, level?.let { "$LEVEL $it" }, outcome(result, userSide)).joinToString(" · ")
+
+    /** Won, Lost, Draw or Unfinished, from the user's view. */
+    fun outcome(result: Result?, userSide: Side): String = when (result) {
+        null -> UNFINISHED
+        is Result.Draw -> "Draw"
+        is Result.Win -> if (result.winner == userSide) "Won" else "Lost"
     }
 
     /** Level 8's Think Time: "3 s". */

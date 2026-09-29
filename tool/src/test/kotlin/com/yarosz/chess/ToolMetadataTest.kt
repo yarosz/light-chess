@@ -35,9 +35,10 @@ class ToolMetadataTest {
     }
 
     @Test
-    fun `v1 declares no permissions of its own (D5)`() {
-        // Light's SDK still merges INTERNET and others into the APK; scripts/release-check.sh apk pins them.
-        assertEquals("[]", value("permissions"))
+    fun `Chess declares INTERNET for the Relay, and nothing else (ADR 0004, W1)`() {
+        // Light's SDK merges INTERNET and others into the APK anyway; scripts/release-check.sh apk pins the set,
+        // and scripts/release-check.sh relay refuses a release that declares INTERNET with no Relay URL (W8).
+        assertEquals("[\"android.permission.INTERNET\"]", value("permissions"))
     }
 
     private val notices = File("src/main/assets/${UiCopy.NOTICES_ASSET}").readText()
@@ -56,6 +57,8 @@ class ToolMetadataTest {
         assertTrue("GNU General Public License, version 3 or later" in about)
         assertTrue("Source: github.com/yarosz/light-chess" in about)
         assertTrue(UiCopy.PRIVACY in about)
+        val friends = UiCopy.about("2026-09-09", notices, friends = true).joinToString("\n")
+        assertTrue(UiCopy.PRIVACY_FRIENDS in friends && UiCopy.PRIVACY !in friends)
         assertTrue("(lichess.org), CC0, from the dump of 2026-09-09." in about)
         assertTrue("Opening book: games from the Lichess database (lichess.org), CC0" in about)
         assertTrue("cburnett" in about && "Apache License, Version 2.0" in about)
