@@ -1,5 +1,6 @@
 package com.yarosz.chess.puzzles
 
+import com.yarosz.chess.board.PieceSet
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -199,6 +200,20 @@ class PuzzleFlowTest {
         assertEquals(failed.current, flow.resetRating(failed).current, "a scored Attempt in Try Mode stays")
         val done = solve(flow, failed)
         assertNull(flow.resetRating(done).current, "one at its result gives way to a Puzzle for the new rating")
+    }
+
+    @Test
+    fun `the Pieces row cycles the Piece Set, saves it at once, and Reset rating keeps it (P2)`() {
+        val start = ready(seeded())
+        assertEquals(PieceSet.GEOMETRIC, start.data.pieceSet)
+        val rounded = flow.nextPieceSet(start)
+        assertEquals(PieceSet.ROUNDED, rounded.data.pieceSet)
+        assertEquals(start.current, rounded.current, "the Attempt on screen is untouched")
+        assertNotEquals(start.kept, rounded.kept, "the change reaches the file at once")
+        assertEquals(PieceSet.GEOMETRIC, flow.nextPieceSet(rounded).data.pieceSet, "the last set wraps to the first")
+
+        assertEquals(PieceSet.ROUNDED, flow.open(PuzzleData.decode(rounded.toData().encode())).data.pieceSet, "a relaunch keeps it")
+        assertEquals(PieceSet.ROUNDED, flow.resetRating(rounded).data.pieceSet)
     }
 
     @Test

@@ -1,5 +1,5 @@
-Light chess pieces
+Chess pieces
 
-To the extent possible under law, the author has waived all copyright and related or neighboring rights to these piece drawings (wK wQ wR wB wN wP bK bQ bR bB bN bP .svg). Released under CC0 1.0 Universal: https://creativecommons.org/publicdomain/zero/1.0/
+To the extent possible under law, the author has waived all copyright and related or neighboring rights to these piece drawings: the two sets in geometric/ and rounded/ (wK wQ wR wB wN wP bK bQ bR bB bN bP .svg in each) and the scripts in rounded/tools/ that generate the rounded set. Released under CC0 1.0 Universal: https://creativecommons.org/publicdomain/zero/1.0/
 
 Original drawings. Not derived from cburnett or any other set.

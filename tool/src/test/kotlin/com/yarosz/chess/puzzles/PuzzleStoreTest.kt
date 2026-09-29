@@ -1,5 +1,6 @@
 package com.yarosz.chess.puzzles
 
+import com.yarosz.chess.board.PieceSet
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -93,6 +94,25 @@ class PuzzleStoreTest {
         assertEquals(AttemptState.OPEN, data.current!!.state)
         assertEquals(listOf(MissedEntry("b", 1500, AttemptState.FAILED), MissedEntry("a", 1400, AttemptState.HINTED)), data.missed)
         assertEquals(listOf(HistoryEntry("b", 1500, AttemptState.FAILED, 0), HistoryEntry("a", 1400, AttemptState.HINTED, 0)), data.history)
+    }
+
+    @Test
+    fun `the Piece Set is saved by name, geometric by default, and an unknown one reads as geometric (P2)`() {
+        assertEquals(PieceSet.GEOMETRIC, PuzzleData().pieceSet)
+        PuzzleStore(dir).save(sample)
+        assertTrue(main.readText().contains("\"pieceSet\":\"geometric\""), "a file written today names the default")
+
+        PuzzleStore(dir).save(sample.copy(pieceSet = PieceSet.ROUNDED))
+        assertTrue(main.readText().contains("\"pieceSet\":\"rounded\""))
+        assertEquals(sample.copy(pieceSet = PieceSet.ROUNDED), PuzzleStore(dir).load())
+
+        main.writeText("""{"rating":1650.5,"seeded":true,"pieceSet":"marble"}""")
+        val unknown = PuzzleStore(dir).load()!!
+        assertEquals(PieceSet.GEOMETRIC, unknown.pieceSet)
+        assertEquals(1650.5, unknown.rating, "the rest of the file is read")
+
+        main.writeText("""{"rating":1650.5,"seeded":true}""")
+        assertEquals(PieceSet.GEOMETRIC, PuzzleStore(dir).load()!!.pieceSet, "a file from before P2")
     }
 
     @Test

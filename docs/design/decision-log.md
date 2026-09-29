@@ -12,6 +12,7 @@
   getResourceAsStream, uses threads, rated 2651. Check whether `SearchOptions.stop` needs @Volatile.
 - R1.3 Licence: GPLv3-or-later; NOTICE credits for Pirarucu, cburnett and Lichess. OPEN: the maintainer asks
   Light whether a GPLv3 Tool is acceptable.
+  (cburnett's NOTICE credit SUPERSEDED by P1: NOTICE credits Chess's own CC0 pieces instead.)
 - R1.4 Puzzles: Lichess CC0 (6,100,952 puzzles; csv.zst 304 MB, 2026-09-09). Filter Popularity >= 85,
   NbPlays >= 500, RD <= 90; stratify by rating and theme; 100K-200K puzzles; fixed binary layout at
   ~40-60 B/puzzle; one .bin per rating band, each < 5 MB. Reproducible script, pinned dump date, dump not
@@ -185,6 +186,7 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
   LAST USED; the v3 menu entry shows "Your move: N".
 - D7 About: GPLv3-or-later + source URL as text; Lichess CC0 + dump date; cburnett; Apache-2.0
   notices for bundled libraries; later Pirarucu (ratosh, GPLv3) and the book's provenance.
+  (The cburnett credit SUPERSEDED by P1: one line crediting Chess's own CC0 pieces, reworded by P2.)
 - D8 Glossary (Reader format, grouped Platform/Board/Puzzles/Games/Network): Puzzle Rating = the
   puzzle's difficulty; Player Rating = the user's; Attempt states Open/Failed/Hinted/Solved; add
   Ply, Try Mode, Review, Missed, Result, Tool; Live is a state of a Correspondence Game.
@@ -233,6 +235,9 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
   list of the last 50. Deferred: sound, premoves, eval bar, analysis, PGN export, Chess960,
   pass-and-play. Takeback while thinking = stop, then undo 2 plies. Icon: gray cburnett knight. No
   telemetry.
+  ("cburnett only" and "Icon: gray cburnett knight" SUPERSEDED by P1: Chess's own CC0 set, and its
+  knight for an icon; "cburnett only" then "one set" SUPERSEDED by P2: two sets, and the Piece Set is
+  v1's one setting, so "no v1 settings" is SUPERSEDED by P2 for it alone.)
 Contradictions resolved:
  1 No theme filter in v1 (R1.5's filter moves to v1.x).
  2 The strip shows <= 3 buttons chosen by context: your turn = Takeback, Game Hint, Menu; engine
@@ -358,7 +363,8 @@ default Think time).
     dark one. The converter keeps each file's path order for this; `PieceVectorsTest` pins it.
   - Credit: one line, "Pieces: original drawings made for Chess, released under CC0 1.0 (no rights
     reserved).", in NOTICE, the README and About (`assets/about/notices.txt`). With cburnett gone,
-    About no longer reproduces a BSD licence.
+    About no longer reproduces a BSD licence. (Wording SUPERSEDED by P2, for two sets; this set now
+    lives in `art/pieces/geometric/`.)
   - The Tool icon is unchanged: Light's plugin generates the manifest with no `android:icon`,
     `lighttool.toml` has no icon field, a hand-written manifest fails the build, and LightOS lists
     Tools by label. When Light offers a way to set one, it is this set's knight (the owner has a
@@ -387,3 +393,31 @@ default Think time).
   real fix needs an application-level asset reader in Light's SDK (a question for Light).
 - V5 The stage clock restarts only when the Attempt on screen changed, and a slide is cleared once
   it has played or once its Move is no longer the latest (`slideAfter`, `restartsClock`).
+
+## Pieces: two sets, the player's choice (owner, 2026-09-29)
+- P2 EXTENDS P1 to two sets and SUPERSEDES F11's "no v1 settings" for this one choice. RULING: the
+  player chooses the Piece Set (CONTEXT.md) from two, both Chess's own drawings under CC0 1.0 in
+  `art/pieces/` (one `LICENSE.txt` for both): geometric (`geometric/`, P1's set) and rounded
+  (`rounded/`, drawn from circles, capsules and rounded rectangles; `rounded/tools/` generates its
+  SVGs). The owner approved both as drawn; P1's design rules hold for both, and a change to either
+  goes back to the owner.
+  - Geometric is the default, for a new player and for an existing save.
+  - The Menu shows the choice as a row, "Pieces · Geometric", between Missed and About; a tap moves to
+    the next set ("Pieces · Rounded", then back) and stays on the Menu. The Puzzle id row stays the
+    Menu's last row (S1). The Menu page doesn't scroll, so the row takes no wheel key (R4.17).
+  - The board and the promotion picker draw the chosen set. It changes nothing about play.
+  - Saved: `pieceSet` in `puzzles.json`, v1's only save file, written at once like every other kept
+    change (S2). It outlasts a relaunch and Reset rating (F5 resets only the Player Rating). A file
+    without it, or with a set this build doesn't know, reads as geometric (coerceInputValues, as V2).
+    No schemaVersion bump: the field is only added, and no field an earlier schema knows changes
+    meaning. An older build ignores it and, if it rewrites the file, drops it, so the player sees
+    geometric again: a lost look, never a wrong result. V2's reason for a bump (an older build
+    writing a different meaning back) doesn't arise. When v2 adds its own save file (D6), the Piece
+    Set may move to a Tool-wide one, with a migration.
+  - Credit: P1's line, reworded for two sets and identical in NOTICE, the README and About
+    (`assets/about/notices.txt`): "Pieces: original drawings made for Chess (two sets), released
+    under CC0 1.0 (no rights reserved)." `ToolMetadataTest` checks all three. `LICENSE.txt` is titled
+    "Chess pieces", so it doesn't read as a work of Light's.
+  - `scripts/build-pieces.py` converts both sets into `PieceVectors` and now fails loudly on numbers
+    after Z (it looped forever) and on any attribute it doesn't understand (it dropped them);
+    `--self-test`, which `--check` runs in CI, covers both.

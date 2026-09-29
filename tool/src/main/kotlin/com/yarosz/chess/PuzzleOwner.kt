@@ -99,6 +99,8 @@ class PuzzleOwner(filesDir: File, @Volatile private var readAsset: (String) -> B
 
     fun resetRating() = act(flow::resetRating)
 
+    fun nextPieceSet() = act(flow::nextPieceSet)
+
     /** The Missed page is open: read its Puzzles ahead, so a tap on one reads no file (D2). */
     fun prefetchMissed() {
         val session = sessions.value ?: return

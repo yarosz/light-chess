@@ -1,5 +1,6 @@
 package com.yarosz.chess.puzzles
 
+import com.yarosz.chess.board.PieceSet
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -26,6 +27,13 @@ data class PuzzleData(
     val missed: List<MissedEntry> = emptyList(),
     /** Newest first, at most [HISTORY_CAP] (F11). */
     val history: List<HistoryEntry> = emptyList(),
+    /**
+     * The Piece Set the board draws (P2). A Tool-wide choice kept here because this is v1's only save
+     * file; Reset rating leaves it alone. A file without it, or with a set this build doesn't know,
+     * reads as the default (coerceInputValues). Added without a schemaVersion bump: it only adds a
+     * field, and an older build that drops it loses a look, never a meaning.
+     */
+    val pieceSet: PieceSet = PieceSet.DEFAULT,
 ) {
     val player: Glicko get() = Glicko(rating, deviation, volatility)
 

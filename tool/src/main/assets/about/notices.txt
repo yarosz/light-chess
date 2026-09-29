@@ -1,4 +1,4 @@
-Pieces: original drawings made for Chess, released under CC0 1.0 (no rights reserved).
+Pieces: original drawings made for Chess (two sets), released under CC0 1.0 (no rights reserved).
 
 Built on Light's SDK (MIT licence, Copyright (c) 2026 The Light Phone), with these libraries under
 the Apache License 2.0: the Kotlin standard library, kotlinx.coroutines, kotlinx.serialization,

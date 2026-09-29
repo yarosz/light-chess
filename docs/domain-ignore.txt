@@ -67,6 +67,8 @@ MenuPage
 # Copy templates: DESIGN.md "Copy" quotes what they print
 $MISSED · $count
 $PLAYER_RATING · $text
+# The Menu's Pieces row (decision log P2): "Pieces · Geometric", the Piece Set by its UI name
+$PIECES · ${pieceSetName(set)}
 Failed ${delta(delta ?: 0)}
 Solved ${delta(delta ?: 0)}
 # The Menu's Puzzle row (decision log S1): the Lichess id and its lichess.org address, two lines

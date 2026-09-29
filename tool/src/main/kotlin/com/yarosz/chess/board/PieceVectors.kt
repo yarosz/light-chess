@@ -14,27 +14,45 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 import com.yarosz.chess.rules.Piece
 
-/** The piece set (P1) as ImageVectors on a 45 × 45 viewport, built once per piece on first use. */
+/** Both Piece Sets (P1, P2) as ImageVectors on a 45 × 45 viewport, each piece built once on first use. */
 internal object PieceVectors {
 
-    private val cache = arrayOfNulls<ImageVector>(Piece.entries.size)
+    private val cache = arrayOfNulls<ImageVector>(PieceSet.entries.size * Piece.entries.size)
 
-    fun vector(piece: Piece): ImageVector =
-        cache[piece.ordinal] ?: build(piece).also { cache[piece.ordinal] = it }
+    fun vector(set: PieceSet, piece: Piece): ImageVector {
+        val i = set.ordinal * Piece.entries.size + piece.ordinal
+        return cache[i] ?: build(set, piece).also { cache[i] = it }
+    }
 
-    private fun build(piece: Piece): ImageVector = when (piece) {
-        Piece.WHITE_PAWN -> whitePawn()
-        Piece.WHITE_KNIGHT -> whiteKnight()
-        Piece.WHITE_BISHOP -> whiteBishop()
-        Piece.WHITE_ROOK -> whiteRook()
-        Piece.WHITE_QUEEN -> whiteQueen()
-        Piece.WHITE_KING -> whiteKing()
-        Piece.BLACK_PAWN -> blackPawn()
-        Piece.BLACK_KNIGHT -> blackKnight()
-        Piece.BLACK_BISHOP -> blackBishop()
-        Piece.BLACK_ROOK -> blackRook()
-        Piece.BLACK_QUEEN -> blackQueen()
-        Piece.BLACK_KING -> blackKing()
+    private fun build(set: PieceSet, piece: Piece): ImageVector = when (set) {
+        PieceSet.GEOMETRIC -> when (piece) {
+            Piece.WHITE_PAWN -> geometricWhitePawn()
+            Piece.WHITE_KNIGHT -> geometricWhiteKnight()
+            Piece.WHITE_BISHOP -> geometricWhiteBishop()
+            Piece.WHITE_ROOK -> geometricWhiteRook()
+            Piece.WHITE_QUEEN -> geometricWhiteQueen()
+            Piece.WHITE_KING -> geometricWhiteKing()
+            Piece.BLACK_PAWN -> geometricBlackPawn()
+            Piece.BLACK_KNIGHT -> geometricBlackKnight()
+            Piece.BLACK_BISHOP -> geometricBlackBishop()
+            Piece.BLACK_ROOK -> geometricBlackRook()
+            Piece.BLACK_QUEEN -> geometricBlackQueen()
+            Piece.BLACK_KING -> geometricBlackKing()
+        }
+        PieceSet.ROUNDED -> when (piece) {
+            Piece.WHITE_PAWN -> roundedWhitePawn()
+            Piece.WHITE_KNIGHT -> roundedWhiteKnight()
+            Piece.WHITE_BISHOP -> roundedWhiteBishop()
+            Piece.WHITE_ROOK -> roundedWhiteRook()
+            Piece.WHITE_QUEEN -> roundedWhiteQueen()
+            Piece.WHITE_KING -> roundedWhiteKing()
+            Piece.BLACK_PAWN -> roundedBlackPawn()
+            Piece.BLACK_KNIGHT -> roundedBlackKnight()
+            Piece.BLACK_BISHOP -> roundedBlackBishop()
+            Piece.BLACK_ROOK -> roundedBlackRook()
+            Piece.BLACK_QUEEN -> roundedBlackQueen()
+            Piece.BLACK_KING -> roundedBlackKing()
+        }
     }
 
     private inline fun piece(name: String, paths: ImageVector.Builder.() -> Unit): ImageVector =
@@ -42,8 +60,8 @@ internal object PieceVectors {
             .apply(paths)
             .build()
 
-    private fun whitePawn(): ImageVector = piece("WHITE_PAWN") {
-        // wP.svg
+    private fun geometricWhitePawn(): ImageVector = piece("GEOMETRIC_WHITE_PAWN") {
+        // geometric/wP.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(19.35f, 22.45f)
             curveTo(17.445f, 21.082f, 16.641f, 18.641f, 17.36f, 16.409f)
@@ -66,8 +84,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun whiteKnight(): ImageVector = piece("WHITE_KNIGHT") {
-        // wN.svg
+    private fun geometricWhiteKnight(): ImageVector = piece("GEOMETRIC_WHITE_KNIGHT") {
+        // geometric/wN.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(15.75f, 35.17f)
             lineTo(19.8f, 26.17f)
@@ -106,8 +124,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun whiteBishop(): ImageVector = piece("WHITE_BISHOP") {
-        // wB.svg
+    private fun geometricWhiteBishop(): ImageVector = piece("GEOMETRIC_WHITE_BISHOP") {
+        // geometric/wB.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(22.5f, 8.17f)
             lineTo(27.9f, 16.27f)
@@ -134,8 +152,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun whiteRook(): ImageVector = piece("WHITE_ROOK") {
-        // wR.svg
+    private fun geometricWhiteRook(): ImageVector = piece("GEOMETRIC_WHITE_ROOK") {
+        // geometric/wR.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(13.05f, 35.17f)
             lineTo(13.05f, 12.67f)
@@ -168,8 +186,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun whiteQueen(): ImageVector = piece("WHITE_QUEEN") {
-        // wQ.svg
+    private fun geometricWhiteQueen(): ImageVector = piece("GEOMETRIC_WHITE_QUEEN") {
+        // geometric/wQ.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(15.3f, 35.17f)
             lineTo(12.6f, 10.87f)
@@ -192,8 +210,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun whiteKing(): ImageVector = piece("WHITE_KING") {
-        // wK.svg
+    private fun geometricWhiteKing(): ImageVector = piece("GEOMETRIC_WHITE_KING") {
+        // geometric/wK.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(14.4f, 35.17f)
             lineTo(15.75f, 17.62f)
@@ -226,8 +244,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun blackPawn(): ImageVector = piece("BLACK_PAWN") {
-        // bP.svg
+    private fun geometricBlackPawn(): ImageVector = piece("GEOMETRIC_BLACK_PAWN") {
+        // geometric/bP.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(19f, 22.87f)
             curveTo(16.884f, 21.35f, 15.99f, 18.638f, 16.789f, 16.158f)
@@ -240,8 +258,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun blackKnight(): ImageVector = piece("BLACK_KNIGHT") {
-        // bN.svg
+    private fun geometricBlackKnight(): ImageVector = piece("GEOMETRIC_BLACK_KNIGHT") {
+        // geometric/bN.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(15f, 37f)
             lineTo(19.5f, 27f)
@@ -265,8 +283,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun blackBishop(): ImageVector = piece("BLACK_BISHOP") {
-        // bB.svg
+    private fun geometricBlackBishop(): ImageVector = piece("GEOMETRIC_BLACK_BISHOP") {
+        // geometric/bB.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(22.5f, 7f)
             lineTo(28.5f, 16f)
@@ -283,8 +301,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun blackRook(): ImageVector = piece("BLACK_ROOK") {
-        // bR.svg
+    private fun geometricBlackRook(): ImageVector = piece("GEOMETRIC_BLACK_ROOK") {
+        // geometric/bR.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(12f, 37f)
             lineTo(12f, 12f)
@@ -302,8 +320,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun blackQueen(): ImageVector = piece("BLACK_QUEEN") {
-        // bQ.svg
+    private fun geometricBlackQueen(): ImageVector = piece("GEOMETRIC_BLACK_QUEEN") {
+        // geometric/bQ.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(14.5f, 37f)
             lineTo(11.5f, 10f)
@@ -316,8 +334,8 @@ internal object PieceVectors {
         }
     }
 
-    private fun blackKing(): ImageVector = piece("BLACK_KING") {
-        // bK.svg
+    private fun geometricBlackKing(): ImageVector = piece("GEOMETRIC_BLACK_KING") {
+        // geometric/bK.svg
         path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
             moveTo(13.5f, 37f)
             lineTo(15f, 17.5f)
@@ -332,6 +350,632 @@ internal object PieceVectors {
         path(fill = null, stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Miter, pathFillType = PathFillType.NonZero) {
             moveTo(16f, 7.5f)
             lineTo(29f, 7.5f)
+        }
+    }
+
+    private fun roundedWhitePawn(): ImageVector = piece("ROUNDED_WHITE_PAWN") {
+        // rounded/wP.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(18.45f, 15.37f)
+            curveTo(18.45f, 17.607f, 20.263f, 19.42f, 22.5f, 19.42f)
+            curveTo(24.737f, 19.42f, 26.55f, 17.607f, 26.55f, 15.37f)
+            curveTo(26.55f, 13.133f, 24.737f, 11.32f, 22.5f, 11.32f)
+            curveTo(20.263f, 11.32f, 18.45f, 13.133f, 18.45f, 15.37f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(20.7f, 18.07f)
+            lineTo(24.3f, 18.07f)
+            lineTo(24.3f, 24.37f)
+            lineTo(20.7f, 24.37f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(15.75f, 35.17f)
+            lineTo(15.75f, 29.77f)
+            curveTo(15.75f, 26.042f, 18.772f, 23.02f, 22.5f, 23.02f)
+            curveTo(26.228f, 23.02f, 29.25f, 26.042f, 29.25f, 29.77f)
+            lineTo(29.25f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(18.45f, 15.37f)
+            curveTo(18.45f, 17.607f, 20.263f, 19.42f, 22.5f, 19.42f)
+            curveTo(24.737f, 19.42f, 26.55f, 17.607f, 26.55f, 15.37f)
+            curveTo(26.55f, 13.133f, 24.737f, 11.32f, 22.5f, 11.32f)
+            curveTo(20.263f, 11.32f, 18.45f, 13.133f, 18.45f, 15.37f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(20.7f, 18.07f)
+            lineTo(24.3f, 18.07f)
+            lineTo(24.3f, 24.37f)
+            lineTo(20.7f, 24.37f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(15.75f, 35.17f)
+            lineTo(15.75f, 29.77f)
+            curveTo(15.75f, 26.042f, 18.772f, 23.02f, 22.5f, 23.02f)
+            curveTo(26.228f, 23.02f, 29.25f, 26.042f, 29.25f, 29.77f)
+            lineTo(29.25f, 35.17f)
+            close()
+        }
+    }
+
+    private fun roundedWhiteKnight(): ImageVector = piece("ROUNDED_WHITE_KNIGHT") {
+        // rounded/wN.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 33.37f)
+            curveTo(13.95f, 32.376f, 14.756f, 31.57f, 15.75f, 31.57f)
+            lineTo(29.25f, 31.57f)
+            curveTo(30.244f, 31.57f, 31.05f, 32.376f, 31.05f, 33.37f)
+            lineTo(31.05f, 35.17f)
+            lineTo(13.95f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(16.65f, 32.47f)
+            curveTo(17.1f, 28.42f, 19.8f, 26.17f, 22.05f, 24.82f)
+            lineTo(22.95f, 11.77f)
+            curveTo(28.35f, 12.67f, 31.5f, 18.97f, 31.5f, 25.27f)
+            lineTo(31.5f, 32.47f)
+            close()
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 13.36f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 20.77f)
+            lineTo(22.05f, 14.47f)
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 8.86f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(22.5f, 12.22f)
+            lineTo(23.85f, 6.82f)
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 33.37f)
+            curveTo(13.95f, 32.376f, 14.756f, 31.57f, 15.75f, 31.57f)
+            lineTo(29.25f, 31.57f)
+            curveTo(30.244f, 31.57f, 31.05f, 32.376f, 31.05f, 33.37f)
+            lineTo(31.05f, 35.17f)
+            lineTo(13.95f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(16.65f, 32.47f)
+            curveTo(17.1f, 28.42f, 19.8f, 26.17f, 22.05f, 24.82f)
+            lineTo(22.95f, 11.77f)
+            curveTo(28.35f, 12.67f, 31.5f, 18.97f, 31.5f, 25.27f)
+            lineTo(31.5f, 32.47f)
+            close()
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 9.36f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 20.77f)
+            lineTo(22.05f, 14.47f)
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 4.86f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(22.5f, 12.22f)
+            lineTo(23.85f, 6.82f)
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = null, strokeLineWidth = 1f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Miter, pathFillType = PathFillType.NonZero) {
+            moveTo(18.36f, 15.73f)
+            curveTo(18.36f, 16.212f, 18.617f, 16.658f, 19.035f, 16.899f)
+            curveTo(19.453f, 17.14f, 19.967f, 17.14f, 20.385f, 16.899f)
+            curveTo(20.803f, 16.658f, 21.06f, 16.212f, 21.06f, 15.73f)
+            curveTo(21.06f, 15.248f, 20.803f, 14.802f, 20.385f, 14.561f)
+            curveTo(19.967f, 14.32f, 19.453f, 14.32f, 19.035f, 14.561f)
+            curveTo(18.617f, 14.802f, 18.36f, 15.248f, 18.36f, 15.73f)
+            close()
+        }
+    }
+
+    private fun roundedWhiteBishop(): ImageVector = piece("ROUNDED_WHITE_BISHOP") {
+        // rounded/wB.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 33.37f)
+            curveTo(13.95f, 32.376f, 14.756f, 31.57f, 15.75f, 31.57f)
+            lineTo(29.25f, 31.57f)
+            curveTo(30.244f, 31.57f, 31.05f, 32.376f, 31.05f, 33.37f)
+            lineTo(31.05f, 35.17f)
+            lineTo(13.95f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(20.88f, 8.17f)
+            curveTo(20.88f, 9.065f, 21.605f, 9.79f, 22.5f, 9.79f)
+            curveTo(23.395f, 9.79f, 24.12f, 9.065f, 24.12f, 8.17f)
+            curveTo(24.12f, 7.275f, 23.395f, 6.55f, 22.5f, 6.55f)
+            curveTo(21.605f, 6.55f, 20.88f, 7.275f, 20.88f, 8.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(22.5f, 10.87f)
+            curveTo(26.1f, 13.57f, 28.35f, 17.17f, 28.35f, 20.32f)
+            curveTo(28.35f, 23.47f, 26.1f, 25.72f, 22.5f, 25.72f)
+            curveTo(18.9f, 25.72f, 16.65f, 23.47f, 16.65f, 20.32f)
+            curveTo(16.65f, 17.17f, 18.9f, 13.57f, 22.5f, 10.87f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(19.8f, 25.27f)
+            lineTo(25.2f, 25.27f)
+            lineTo(26.55f, 32.47f)
+            lineTo(18.45f, 32.47f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 33.37f)
+            curveTo(13.95f, 32.376f, 14.756f, 31.57f, 15.75f, 31.57f)
+            lineTo(29.25f, 31.57f)
+            curveTo(30.244f, 31.57f, 31.05f, 32.376f, 31.05f, 33.37f)
+            lineTo(31.05f, 35.17f)
+            lineTo(13.95f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(20.88f, 8.17f)
+            curveTo(20.88f, 9.065f, 21.605f, 9.79f, 22.5f, 9.79f)
+            curveTo(23.395f, 9.79f, 24.12f, 9.065f, 24.12f, 8.17f)
+            curveTo(24.12f, 7.275f, 23.395f, 6.55f, 22.5f, 6.55f)
+            curveTo(21.605f, 6.55f, 20.88f, 7.275f, 20.88f, 8.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(22.5f, 10.87f)
+            curveTo(26.1f, 13.57f, 28.35f, 17.17f, 28.35f, 20.32f)
+            curveTo(28.35f, 23.47f, 26.1f, 25.72f, 22.5f, 25.72f)
+            curveTo(18.9f, 25.72f, 16.65f, 23.47f, 16.65f, 20.32f)
+            curveTo(16.65f, 17.17f, 18.9f, 13.57f, 22.5f, 10.87f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(19.8f, 25.27f)
+            lineTo(25.2f, 25.27f)
+            lineTo(26.55f, 32.47f)
+            lineTo(18.45f, 32.47f)
+            close()
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 2.16f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(24.75f, 15.82f)
+            lineTo(21.6f, 19.87f)
+        }
+    }
+
+    private fun roundedWhiteRook(): ImageVector = piece("ROUNDED_WHITE_ROOK") {
+        // rounded/wR.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 33.37f)
+            curveTo(13.95f, 32.376f, 14.756f, 31.57f, 15.75f, 31.57f)
+            lineTo(29.25f, 31.57f)
+            curveTo(30.244f, 31.57f, 31.05f, 32.376f, 31.05f, 33.37f)
+            lineTo(31.05f, 35.17f)
+            lineTo(13.95f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.05f, 19.87f)
+            lineTo(13.05f, 11.77f)
+            lineTo(14.67f, 11.77f)
+            lineTo(14.67f, 14.02f)
+            curveTo(14.67f, 15.959f, 16.241f, 17.53f, 18.18f, 17.53f)
+            curveTo(20.119f, 17.53f, 21.69f, 15.959f, 21.69f, 14.02f)
+            lineTo(21.69f, 11.77f)
+            lineTo(23.31f, 11.77f)
+            lineTo(23.31f, 14.02f)
+            curveTo(23.31f, 15.959f, 24.881f, 17.53f, 26.82f, 17.53f)
+            curveTo(28.759f, 17.53f, 30.33f, 15.959f, 30.33f, 14.02f)
+            lineTo(30.33f, 11.77f)
+            lineTo(31.95f, 11.77f)
+            lineTo(31.95f, 19.87f)
+            curveTo(30.45f, 19.87f, 29.7f, 20.62f, 29.7f, 22.12f)
+            lineTo(29.7f, 32.47f)
+            lineTo(15.3f, 32.47f)
+            lineTo(15.3f, 22.12f)
+            curveTo(15.3f, 20.62f, 14.55f, 19.87f, 13.05f, 19.87f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 33.37f)
+            curveTo(13.95f, 32.376f, 14.756f, 31.57f, 15.75f, 31.57f)
+            lineTo(29.25f, 31.57f)
+            curveTo(30.244f, 31.57f, 31.05f, 32.376f, 31.05f, 33.37f)
+            lineTo(31.05f, 35.17f)
+            lineTo(13.95f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.05f, 19.87f)
+            lineTo(13.05f, 11.77f)
+            lineTo(14.67f, 11.77f)
+            lineTo(14.67f, 14.02f)
+            curveTo(14.67f, 15.959f, 16.241f, 17.53f, 18.18f, 17.53f)
+            curveTo(20.119f, 17.53f, 21.69f, 15.959f, 21.69f, 14.02f)
+            lineTo(21.69f, 11.77f)
+            lineTo(23.31f, 11.77f)
+            lineTo(23.31f, 14.02f)
+            curveTo(23.31f, 15.959f, 24.881f, 17.53f, 26.82f, 17.53f)
+            curveTo(28.759f, 17.53f, 30.33f, 15.959f, 30.33f, 14.02f)
+            lineTo(30.33f, 11.77f)
+            lineTo(31.95f, 11.77f)
+            lineTo(31.95f, 19.87f)
+            curveTo(30.45f, 19.87f, 29.7f, 20.62f, 29.7f, 22.12f)
+            lineTo(29.7f, 32.47f)
+            lineTo(15.3f, 32.47f)
+            lineTo(15.3f, 22.12f)
+            curveTo(15.3f, 20.62f, 14.55f, 19.87f, 13.05f, 19.87f)
+            close()
+        }
+    }
+
+    private fun roundedWhiteQueen(): ImageVector = piece("ROUNDED_WHITE_QUEEN") {
+        // rounded/wQ.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 33.37f)
+            curveTo(13.95f, 32.376f, 14.756f, 31.57f, 15.75f, 31.57f)
+            lineTo(29.25f, 31.57f)
+            curveTo(30.244f, 31.57f, 31.05f, 32.376f, 31.05f, 33.37f)
+            lineTo(31.05f, 35.17f)
+            lineTo(13.95f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(16.65f, 32.47f)
+            lineTo(14.4f, 16.27f)
+            lineTo(18.9f, 22.57f)
+            lineTo(22.5f, 11.77f)
+            lineTo(26.1f, 22.57f)
+            lineTo(30.6f, 16.27f)
+            lineTo(28.35f, 32.47f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(12.42f, 14.92f)
+            curveTo(12.42f, 15.627f, 12.797f, 16.281f, 13.41f, 16.635f)
+            curveTo(14.023f, 16.988f, 14.777f, 16.988f, 15.39f, 16.635f)
+            curveTo(16.003f, 16.281f, 16.38f, 15.627f, 16.38f, 14.92f)
+            curveTo(16.38f, 14.213f, 16.003f, 13.559f, 15.39f, 13.205f)
+            curveTo(14.777f, 12.852f, 14.023f, 12.852f, 13.41f, 13.205f)
+            curveTo(12.797f, 13.559f, 12.42f, 14.213f, 12.42f, 14.92f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(20.52f, 10.42f)
+            curveTo(20.52f, 11.514f, 21.406f, 12.4f, 22.5f, 12.4f)
+            curveTo(23.594f, 12.4f, 24.48f, 11.514f, 24.48f, 10.42f)
+            curveTo(24.48f, 9.326f, 23.594f, 8.44f, 22.5f, 8.44f)
+            curveTo(21.406f, 8.44f, 20.52f, 9.326f, 20.52f, 10.42f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(28.62f, 14.92f)
+            curveTo(28.62f, 15.627f, 28.997f, 16.281f, 29.61f, 16.635f)
+            curveTo(30.223f, 16.988f, 30.977f, 16.988f, 31.59f, 16.635f)
+            curveTo(32.203f, 16.281f, 32.58f, 15.627f, 32.58f, 14.92f)
+            curveTo(32.58f, 14.213f, 32.203f, 13.559f, 31.59f, 13.205f)
+            curveTo(30.977f, 12.852f, 30.223f, 12.852f, 29.61f, 13.205f)
+            curveTo(28.997f, 13.559f, 28.62f, 14.213f, 28.62f, 14.92f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 33.37f)
+            curveTo(13.95f, 32.376f, 14.756f, 31.57f, 15.75f, 31.57f)
+            lineTo(29.25f, 31.57f)
+            curveTo(30.244f, 31.57f, 31.05f, 32.376f, 31.05f, 33.37f)
+            lineTo(31.05f, 35.17f)
+            lineTo(13.95f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(16.65f, 32.47f)
+            lineTo(14.4f, 16.27f)
+            lineTo(18.9f, 22.57f)
+            lineTo(22.5f, 11.77f)
+            lineTo(26.1f, 22.57f)
+            lineTo(30.6f, 16.27f)
+            lineTo(28.35f, 32.47f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(12.42f, 14.92f)
+            curveTo(12.42f, 15.627f, 12.797f, 16.281f, 13.41f, 16.635f)
+            curveTo(14.023f, 16.988f, 14.777f, 16.988f, 15.39f, 16.635f)
+            curveTo(16.003f, 16.281f, 16.38f, 15.627f, 16.38f, 14.92f)
+            curveTo(16.38f, 14.213f, 16.003f, 13.559f, 15.39f, 13.205f)
+            curveTo(14.777f, 12.852f, 14.023f, 12.852f, 13.41f, 13.205f)
+            curveTo(12.797f, 13.559f, 12.42f, 14.213f, 12.42f, 14.92f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(20.52f, 10.42f)
+            curveTo(20.52f, 11.514f, 21.406f, 12.4f, 22.5f, 12.4f)
+            curveTo(23.594f, 12.4f, 24.48f, 11.514f, 24.48f, 10.42f)
+            curveTo(24.48f, 9.326f, 23.594f, 8.44f, 22.5f, 8.44f)
+            curveTo(21.406f, 8.44f, 20.52f, 9.326f, 20.52f, 10.42f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(28.62f, 14.92f)
+            curveTo(28.62f, 15.627f, 28.997f, 16.281f, 29.61f, 16.635f)
+            curveTo(30.223f, 16.988f, 30.977f, 16.988f, 31.59f, 16.635f)
+            curveTo(32.203f, 16.281f, 32.58f, 15.627f, 32.58f, 14.92f)
+            curveTo(32.58f, 14.213f, 32.203f, 13.559f, 31.59f, 13.205f)
+            curveTo(30.977f, 12.852f, 30.223f, 12.852f, 29.61f, 13.205f)
+            curveTo(28.997f, 13.559f, 28.62f, 14.213f, 28.62f, 14.92f)
+            close()
+        }
+    }
+
+    private fun roundedWhiteKing(): ImageVector = piece("ROUNDED_WHITE_KING") {
+        // rounded/wK.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 33.37f)
+            curveTo(13.95f, 32.376f, 14.756f, 31.57f, 15.75f, 31.57f)
+            lineTo(29.25f, 31.57f)
+            curveTo(30.244f, 31.57f, 31.05f, 32.376f, 31.05f, 33.37f)
+            lineTo(31.05f, 35.17f)
+            lineTo(13.95f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 7.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(16.2f, 32.47f)
+            lineTo(14.4f, 18.97f)
+            curveTo(14.4f, 18.224f, 15.004f, 17.62f, 15.75f, 17.62f)
+            curveTo(20.25f, 16.42f, 24.75f, 16.42f, 29.25f, 17.62f)
+            curveTo(29.996f, 17.62f, 30.6f, 18.224f, 30.6f, 18.97f)
+            lineTo(28.8f, 32.47f)
+            close()
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 8.68f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(22.5f, 5.47f)
+            lineTo(22.5f, 15.37f)
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 8.68f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(18f, 9.52f)
+            lineTo(27f, 9.52f)
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13.95f, 33.37f)
+            curveTo(13.95f, 32.376f, 14.756f, 31.57f, 15.75f, 31.57f)
+            lineTo(29.25f, 31.57f)
+            curveTo(30.244f, 31.57f, 31.05f, 32.376f, 31.05f, 33.37f)
+            lineTo(31.05f, 35.17f)
+            lineTo(13.95f, 35.17f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 3.06f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(16.2f, 32.47f)
+            lineTo(14.4f, 18.97f)
+            curveTo(14.4f, 18.224f, 15.004f, 17.62f, 15.75f, 17.62f)
+            curveTo(20.25f, 16.42f, 24.75f, 16.42f, 29.25f, 17.62f)
+            curveTo(29.996f, 17.62f, 30.6f, 18.224f, 30.6f, 18.97f)
+            lineTo(28.8f, 32.47f)
+            close()
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 4.68f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(22.5f, 5.47f)
+            lineTo(22.5f, 15.37f)
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 4.68f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(18f, 9.52f)
+            lineTo(27f, 9.52f)
+        }
+    }
+
+    private fun roundedBlackPawn(): ImageVector = piece("ROUNDED_BLACK_PAWN") {
+        // rounded/bP.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(18f, 15f)
+            curveTo(18f, 17.485f, 20.015f, 19.5f, 22.5f, 19.5f)
+            curveTo(24.985f, 19.5f, 27f, 17.485f, 27f, 15f)
+            curveTo(27f, 12.515f, 24.985f, 10.5f, 22.5f, 10.5f)
+            curveTo(20.015f, 10.5f, 18f, 12.515f, 18f, 15f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(20.5f, 18f)
+            lineTo(24.5f, 18f)
+            lineTo(24.5f, 25f)
+            lineTo(20.5f, 25f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(15f, 37f)
+            lineTo(15f, 31f)
+            curveTo(15f, 26.858f, 18.358f, 23.5f, 22.5f, 23.5f)
+            curveTo(26.642f, 23.5f, 30f, 26.858f, 30f, 31f)
+            lineTo(30f, 37f)
+            close()
+        }
+    }
+
+    private fun roundedBlackKnight(): ImageVector = piece("ROUNDED_BLACK_KNIGHT") {
+        // rounded/bN.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13f, 35f)
+            curveTo(13f, 33.895f, 13.895f, 33f, 15f, 33f)
+            lineTo(30f, 33f)
+            curveTo(31.105f, 33f, 32f, 33.895f, 32f, 35f)
+            lineTo(32f, 37f)
+            lineTo(13f, 37f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(16f, 34f)
+            curveTo(16.5f, 29.5f, 19.5f, 27f, 22f, 25.5f)
+            lineTo(23f, 11f)
+            curveTo(29f, 12f, 32.5f, 19f, 32.5f, 26f)
+            lineTo(32.5f, 34f)
+            close()
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 10.4f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13f, 21f)
+            lineTo(22f, 14f)
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 5.4f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(22.5f, 11.5f)
+            lineTo(24f, 5.5f)
+        }
+        path(fill = SolidColor(Color(0xFFFFFFFF)), stroke = null, strokeLineWidth = 1f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Miter, pathFillType = PathFillType.NonZero) {
+            moveTo(17.9f, 15.4f)
+            curveTo(17.9f, 16.228f, 18.572f, 16.9f, 19.4f, 16.9f)
+            curveTo(20.228f, 16.9f, 20.9f, 16.228f, 20.9f, 15.4f)
+            curveTo(20.9f, 14.572f, 20.228f, 13.9f, 19.4f, 13.9f)
+            curveTo(18.572f, 13.9f, 17.9f, 14.572f, 17.9f, 15.4f)
+            close()
+        }
+    }
+
+    private fun roundedBlackBishop(): ImageVector = piece("ROUNDED_BLACK_BISHOP") {
+        // rounded/bB.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13f, 35f)
+            curveTo(13f, 33.895f, 13.895f, 33f, 15f, 33f)
+            lineTo(30f, 33f)
+            curveTo(31.105f, 33f, 32f, 33.895f, 32f, 35f)
+            lineTo(32f, 37f)
+            lineTo(13f, 37f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(20.7f, 7f)
+            curveTo(20.7f, 7.994f, 21.506f, 8.8f, 22.5f, 8.8f)
+            curveTo(23.494f, 8.8f, 24.3f, 7.994f, 24.3f, 7f)
+            curveTo(24.3f, 6.006f, 23.494f, 5.2f, 22.5f, 5.2f)
+            curveTo(21.506f, 5.2f, 20.7f, 6.006f, 20.7f, 7f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(22.5f, 10f)
+            curveTo(26.5f, 13f, 29f, 17f, 29f, 20.5f)
+            curveTo(29f, 24f, 26.5f, 26.5f, 22.5f, 26.5f)
+            curveTo(18.5f, 26.5f, 16f, 24f, 16f, 20.5f)
+            curveTo(16f, 17f, 18.5f, 13f, 22.5f, 10f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(19.5f, 26f)
+            lineTo(25.5f, 26f)
+            lineTo(27f, 34f)
+            lineTo(18f, 34f)
+            close()
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFFFFFFFF)), strokeLineWidth = 2.4f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(25f, 15.5f)
+            lineTo(21.5f, 20f)
+        }
+    }
+
+    private fun roundedBlackRook(): ImageVector = piece("ROUNDED_BLACK_ROOK") {
+        // rounded/bR.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13f, 35f)
+            curveTo(13f, 33.895f, 13.895f, 33f, 15f, 33f)
+            lineTo(30f, 33f)
+            curveTo(31.105f, 33f, 32f, 33.895f, 32f, 35f)
+            lineTo(32f, 37f)
+            lineTo(13f, 37f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(12f, 20f)
+            lineTo(12f, 11f)
+            lineTo(13.8f, 11f)
+            lineTo(13.8f, 13.5f)
+            curveTo(13.8f, 15.654f, 15.546f, 17.4f, 17.7f, 17.4f)
+            curveTo(19.854f, 17.4f, 21.6f, 15.654f, 21.6f, 13.5f)
+            lineTo(21.6f, 11f)
+            lineTo(23.4f, 11f)
+            lineTo(23.4f, 13.5f)
+            curveTo(23.4f, 15.654f, 25.146f, 17.4f, 27.3f, 17.4f)
+            curveTo(29.454f, 17.4f, 31.2f, 15.654f, 31.2f, 13.5f)
+            lineTo(31.2f, 11f)
+            lineTo(33f, 11f)
+            lineTo(33f, 20f)
+            curveTo(31.333f, 20f, 30.5f, 20.833f, 30.5f, 22.5f)
+            lineTo(30.5f, 34f)
+            lineTo(14.5f, 34f)
+            lineTo(14.5f, 22.5f)
+            curveTo(14.5f, 20.833f, 13.667f, 20f, 12f, 20f)
+            close()
+        }
+    }
+
+    private fun roundedBlackQueen(): ImageVector = piece("ROUNDED_BLACK_QUEEN") {
+        // rounded/bQ.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13f, 35f)
+            curveTo(13f, 33.895f, 13.895f, 33f, 15f, 33f)
+            lineTo(30f, 33f)
+            curveTo(31.105f, 33f, 32f, 33.895f, 32f, 35f)
+            lineTo(32f, 37f)
+            lineTo(13f, 37f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(16f, 34f)
+            lineTo(13.5f, 16f)
+            lineTo(18.5f, 23f)
+            lineTo(22.5f, 11f)
+            lineTo(26.5f, 23f)
+            lineTo(31.5f, 16f)
+            lineTo(29f, 34f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(11.3f, 14.5f)
+            curveTo(11.3f, 15.286f, 11.719f, 16.012f, 12.4f, 16.405f)
+            curveTo(13.081f, 16.798f, 13.919f, 16.798f, 14.6f, 16.405f)
+            curveTo(15.281f, 16.012f, 15.7f, 15.286f, 15.7f, 14.5f)
+            curveTo(15.7f, 13.714f, 15.281f, 12.988f, 14.6f, 12.595f)
+            curveTo(13.919f, 12.202f, 13.081f, 12.202f, 12.4f, 12.595f)
+            curveTo(11.719f, 12.988f, 11.3f, 13.714f, 11.3f, 14.5f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(20.3f, 9.5f)
+            curveTo(20.3f, 10.286f, 20.719f, 11.012f, 21.4f, 11.405f)
+            curveTo(22.081f, 11.798f, 22.919f, 11.798f, 23.6f, 11.405f)
+            curveTo(24.281f, 11.012f, 24.7f, 10.286f, 24.7f, 9.5f)
+            curveTo(24.7f, 8.714f, 24.281f, 7.988f, 23.6f, 7.595f)
+            curveTo(22.919f, 7.202f, 22.081f, 7.202f, 21.4f, 7.595f)
+            curveTo(20.719f, 7.988f, 20.3f, 8.714f, 20.3f, 9.5f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(29.3f, 14.5f)
+            curveTo(29.3f, 15.715f, 30.285f, 16.7f, 31.5f, 16.7f)
+            curveTo(32.715f, 16.7f, 33.7f, 15.715f, 33.7f, 14.5f)
+            curveTo(33.7f, 13.285f, 32.715f, 12.3f, 31.5f, 12.3f)
+            curveTo(30.285f, 12.3f, 29.3f, 13.285f, 29.3f, 14.5f)
+            close()
+        }
+    }
+
+    private fun roundedBlackKing(): ImageVector = piece("ROUNDED_BLACK_KING") {
+        // rounded/bK.svg
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(13f, 35f)
+            curveTo(13f, 33.895f, 13.895f, 33f, 15f, 33f)
+            lineTo(30f, 33f)
+            curveTo(31.105f, 33f, 32f, 33.895f, 32f, 35f)
+            lineTo(32f, 37f)
+            lineTo(13f, 37f)
+            close()
+        }
+        path(fill = SolidColor(Color(0xFF000000)), stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 3.4f, strokeLineCap = StrokeCap.Butt, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(15.5f, 34f)
+            lineTo(13.5f, 19f)
+            curveTo(13.5f, 18.172f, 14.172f, 17.5f, 15f, 17.5f)
+            curveTo(20f, 16.167f, 25f, 16.167f, 30f, 17.5f)
+            curveTo(30.828f, 17.5f, 31.5f, 18.172f, 31.5f, 19f)
+            lineTo(29.5f, 34f)
+            close()
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 5.2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(22.5f, 4f)
+            lineTo(22.5f, 15f)
+        }
+        path(fill = null, stroke = SolidColor(Color(0xFF000000)), strokeLineWidth = 5.2f, strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round, pathFillType = PathFillType.NonZero) {
+            moveTo(17.5f, 8.5f)
+            lineTo(27.5f, 8.5f)
         }
     }
 }

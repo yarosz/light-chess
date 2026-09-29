@@ -141,6 +141,8 @@ class MenuScreen(
                         MenuPage.MENU -> {
                             Row(UiCopy.ratingRow(data.player.text)) { open(MenuPage.RATING) }
                             Row(UiCopy.missedCount(data.missed.size)) { open(MenuPage.MISSED) }
+                            // P2: a tap moves to the next Piece Set, here on the Menu; the board draws it.
+                            Row(UiCopy.piecesRow(data.pieceSet)) { owner.nextPieceSet() }
                             Row(UiCopy.ABOUT) { open(MenuPage.ABOUT) }
                             // A9 with D7: the Puzzle on screen, by its Lichess id, as text (v1 smoke fixes).
                             session?.attempt?.let { Line(UiCopy.puzzleRow(it.puzzle.id), lighten = true) }
