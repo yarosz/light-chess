@@ -1,0 +1,608 @@
+AaweX;3rQ2k/6pp/1p6/5p2/3r4/P5P1/5P1P/2qBR1K1 b - - 4 32;d8e8 e1e8;399;90;backRankMate endgame mate mateIn1 oneMove
+BciRz;3r3k/p3b1pp/1p2p3/2p1P2q/2P2P2/3rP2P/P3R1QK/4N1R1 b - - 0 29;d3d1 g2g7;399;88;kingsideAttack master mate mateIn1 middlegame oneMove
+FaGVC;5Qk1/p4ppp/2p5/b2P4/6P1/2P1R3/4R1K1/2q5 b - - 0 29;g8f8 e3e8;399;87;endgame mate mateIn1 oneMove
+Kgs7X;2r3k1/pq2nppp/1pP1p3/3p4/3N4/4P3/PP3PPP/2R3K1 w - - 0 23;c6b7 c8c1;399;87;backRankMate endgame hangingPiece mate mateIn1 oneMove
+P4SqX;1k3r2/bP6/4P2p/8/2Q1R3/7B/6PP/5q1K w - - 1 45;c4f1 f8f1;399;90;backRankMate endgame mate mateIn1 oneMove
+T8T6E;1k1Q3r/ppp3pp/5P2/4p3/8/4B2P/qPP2P2/2KR4 b - - 3 21;h8d8 d1d8;399;88;endgame mate mateIn1 oneMove
+U8S6x;5rk1/pp1n2p1/2p3p1/6Q1/4p3/4N1pP/PPP3P1/3q3K w - - 0 27;e3d1 f8f1;399;89;endgame mate mateIn1 oneMove
+WIT8Y;n1Q2rk1/q2r1ppp/p3p3/1p6/4PB2/1P4P1/P4PBP/2R2RK1 b - - 0 22;f8c8 c1c8 d7d8 c8d8;399;89;backRankMate mate mateIn2 middlegame short
+YYKUh;3r4/1p3pk1/pNn1Bbpp/8/4p2N/2P3Q1/PP3PPP/R2q2K1 w - - 1 26;a1d1 d8d1;399;90;backRankMate mate mateIn1 middlegame oneMove
+cfxZa;r4b1r/2k3pp/1nP5/1P1pR3/p3bB2/2P2N2/P4PPP/R5K1 b - - 2 22;c7c8 e5e8;399;90;mate mateIn1 middlegame oneMove pillsburysMate
+iR2jr;1k5r/ppp4r/3pN1p1/1P3p2/2PqP3/Q2P1pP1/P4R2/5RK1 w - - 0 31;e6d4 h7h1;399;90;endgame mate mateIn1 oneMove
+lAjAX;r1bq1Nk1/pp3ppB/2p1p2p/8/8/1Pb5/P1P2PPP/3Q1RK1 b - - 2 15;g8f8 d1d8;399;90;hangingPiece mate mateIn1 middlegame oneMove
+ncUH2;8/6k1/p2p3p/3B1p2/2P4R/6PK/P4NP1/1r5r w - - 2 40;f2h1 b1h1;399;86;endgame mate mateIn1 oneMove
+o4D09;5k2/pp1r1ppp/8/N1P5/4nP2/1R6/P5PP/6K1 w - - 3 29;a5b7 d7d1;399;89;endgame master mate mateIn1 oneMove
+pxsDf;2r2rk1/pp1b2pp/1q1pN3/3P1p2/5P2/1B2p1Q1/PP3nPP/R2R2K1 b - - 3 21;f2d1 g3g7;399;90;kingsideAttack master mate mateIn1 middlegame oneMove
+tFTZC;5rk1/1p3p2/p2p2N1/2r4p/2PqP2P/1P3Q2/P5P1/5R1K b - - 0 28;f8e8 f3f7;399;88;endgame mate mateIn1 oneMove
+DBUT9;8/p3k1p1/1p5p/2pnP3/4R3/B4PQb/P4P1P/3q2K1 w - - 5 35;e4e1 d1e1;400;90;endgame hangingPiece mate mateIn1 oneMove
+Mgguk;1r5k/p3p2p/4Nbp1/8/8/5P1P/P1Qq2P1/2R4K b - - 0 30;d2e3 c2c8 b8c8 c1c8;400;90;endgame mate mateIn2 sacrifice short
+PBtfT;r4rk1/2qn1pp1/b2Np2p/pp2P3/3pN3/P4RQ1/1P3PPP/3R2K1 w - - 0 30;d1d4 c7c1 d4d1 c1d1;400;89;backRankMate mate mateIn2 middlegame short
+c34nW;1k6/p1r2p2/BpqRp3/1N3p2/8/2P2QP1/1P6/1K6 b - - 0 37;c6f3 d6d8 c7c8 d8c8;400;88;endgame mate mateIn2 operaMate short
+liMHw;3Q2k1/pr3ppp/8/3p4/5P2/1PP1r1P1/P2KN1q1/4R3 b - - 1 37;e3e8 d8e8;400;87;endgame hangingPiece master mate mateIn1 oneMove
+mh7mt;8/pR5p/6nk/8/2P5/5p2/P4P1P/3rRKr1 w - - 3 34;f1g1 d1e1;400;89;endgame hangingPiece mate mateIn1 oneMove
+ngBDn;6k1/p4p1p/1p1nr2B/4p1P1/5p2/P1R5/5P1P/6K1 b - - 1 30;d6f5 c3c8 e6e8 c8e8;400;88;endgame master mate mateIn2 pillsburysMate short
+pzBXs;r4Q1k/p1p3pp/4p3/8/8/1P5P/q3BRPK/8 b - - 3 31;a8f8 f2f8;400;90;backRankMate endgame mate mateIn1 oneMove
+u475N;5rk1/6p1/p2pp2p/1pp5/3pP1P1/3PP2P/PPP1Q3/1K3r2 w - - 0 26;e2f1 f8f1;400;89;backRankMate endgame hangingPiece mate mateIn1 oneMove
+wc5Uk;r4rk1/2b2ppp/p1pqpn2/3p4/1P1P4/PNPQ1b2/1B3PPP/R4RK1 w - - 0 15;d3f3 d6h2;400;89;kingsideAttack mate mateIn1 middlegame oneMove
+ys7p8;3R1bk1/p4p2/6p1/4p2p/Q7/5P2/PPP5/1K4q1 w - - 1 25;d8d1 g1d1;400;90;endgame hangingPiece mate mateIn1 oneMove
+zGQ5E;5b1k/6p1/p1Q4p/8/Pp6/1P3P2/2p3PP/4rN1K w - - 1 37;c6c2 e1f1;400;89;backRankMate endgame hangingPiece mate mateIn1 oneMove
+7JMRs;6k1/p3Qpb1/5r2/6pp/2pP4/2P1B1Pb/PP2R2P/R4qK1 w - - 8 26;a1f1 f6f1;401;89;kingsideAttack mate mateIn1 middlegame oneMove operaMate
+w3gJ7;r3R1k1/pp3pp1/2p4p/3p4/3P1q2/2PB2Nb/PP2QP2/6K1 b - - 8 24;a8e8 e2e8;401;86;endgame kingsideAttack mate mateIn1 oneMove
+NPKNo;3k4/pp2R3/3PB3/4r1b1/2R5/2PK4/PP4P1/7r b - - 16 36;g5e7 c4c8;402;89;endgame master mate mateIn1 oneMove operaMate
+NWzyK;rn1R3k/pp5p/2p2rpP/5p2/6q1/P1P5/1PB2PP1/2B2RK1 b - - 1 22;f6f8 d8f8;402;89;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+NYGbp;8/pQ2nk2/2p1b2p/6p1/5b2/8/PP3RPP/3r3K w - - 1 25;f2f1 d1f1;402;90;endgame hangingPiece mate mateIn1 oneMove
+2Z0BU;4r1k1/5p2/5P2/1p4P1/7p/1pr5/3R2K1/1B6 b - - 1 44;e8e3 d2d8 e3e8 d8e8;403;88;endgame mate mateIn2 pillsburysMate short
+OEHKJ;Q2B1rk1/5p1p/3Qb1p1/8/4p3/8/5PPP/2q3K1 w - - 0 31;d6d1 c1d1;403;85;backRankMate endgame hangingPiece master mate mateIn1 oneMove
+bIl95;4r1k1/5p1p/3p2p1/1b1P4/pP1q4/5B2/P4PPP/3R2K1 w - - 0 27;d1d4 e8e1;403;90;backRankMate endgame mate mateIn1 oneMove
+0PPPx;r1b2r2/4bppk/ppp4p/5P2/2q1P1n1/2N3Q1/PPP3PP/R1B2R1K w - - 0 17;g3g4 c4f1;404;87;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+jSm7q;1Qq1R1k1/1b3p1p/6p1/1ppr4/8/2B4P/1P3PP1/6K1 b - - 5 31;c8e8 b8e8;404;90;endgame hangingPiece master mate mateIn1 oneMove
+EOdVk;r2r2k1/pb4pp/5p2/2p5/2P1PQ1N/8/P1P1qPPP/4R1K1 w - - 0 24;e1e2 d8d1 e2e1 d1e1;405;89;backRankMate endgame mate mateIn2 short
+52wd8;r5k1/ppq2p1p/2p3pB/3n4/3PQ3/P7/1P3PPP/R5K1 b - - 0 21;a8e8 e4e8;406;88;endgame hangingPiece kingsideAttack mate mateIn1 oneMove
+7kMmo;3r3k/p4ppp/1p3b2/8/6Q1/7R/1P4PP/2Br3K w - - 1 28;g4d1 d8d1;406;86;backRankMate endgame hangingPiece master mate mateIn1 oneMove
+vaw5P;r1b1kbr1/2pn1pq1/1p1p4/pP1Pp2p/P3PpN1/3B3P/1BP2PP1/R2QR1K1 w q - 0 18;g4h2 g7g2;406;88;kingsideAttack mate mateIn1 middlegame oneMove
+E0HJa;2R3k1/4rppp/pp4b1/3r4/8/4P3/5PPP/R5K1 b - - 1 24;e7e8 c8e8;407;89;backRankMate endgame hangingPiece mate mateIn1 oneMove
+oAIMh;2kr3r/4qp2/p5p1/2p4p/6n1/2P5/PP3PP1/R1B1R1K1 w - - 0 21;e1e7 d8d1 e7e1 d1e1;407;89;endgame master mate mateIn2 short
+r13KL;4qr1k/1pp3pp/1bb5/4N3/1Q2Pp2/2P2B1P/5PP1/B3R1K1 b - - 0 29;e8e5 b4f8;407;90;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+5cj3n;7R/8/8/8/r7/k1K5/8/8 b - - 47 79;a4a8 h8a8;408;89;endgame hangingPiece mate mateIn1 oneMove rookEndgame
+IOYuH;4rb1k/p2R3p/bp4p1/2p5/8/1Q5N/PP3PPP/3Rq1K1 w - - 1 26;d1e1 e8e1;409;89;backRankMate mate mateIn1 middlegame oneMove
+fAZYz;r2qk2r/p2n1ppp/1pnNp3/3bP3/5Q2/1Pb2P2/P4KPP/R1B2BNR b kq - 6 13;e8f8 f4f7;409;88;mate mateIn1 oneMove opening
+o8wo0;5rk1/1pp3pp/pb3R1q/8/2B3b1/2Nr1N2/PP3PPP/R5K1 b - - 0 20;g8h8 f6f8;410;89;backRankMate hangingPiece master mate mateIn1 middlegame oneMove
+5PHyk;5k2/5p2/3R3p/5N2/1n6/7P/1P2r1P1/6K1 b - - 2 36;e2b2 d6d8;411;87;endgame mate mateIn1 oneMove
+fp1UN;4r1k1/1b6/p3p1BR/1p2R3/2p5/2P3P1/PP3P1P/3r2K1 w - - 3 29;e5e1 d1e1;411;87;endgame hangingPiece mate mateIn1 oneMove pillsburysMate
+g7QPv;2kr1bnr/ppp2ppp/1q6/8/1Pp3B1/P7/5PPP/R1BQ1RK1 b - - 1 14;c8b8 d1d8;411;90;hangingPiece mate mateIn1 middlegame oneMove queensideAttack
+n5R7t;4R1k1/5bpp/8/1Q6/1KpP1P2/P1P5/1P4q1/8 b - - 10 39;f7e8 b5e8;411;88;endgame mate mateIn1 oneMove
+gSApx;r7/3rQp1k/6pp/8/p2R4/P7/5PPP/3R2K1 w - - 0 36;d4f4 d7d1 e7e1 d1e1;412;90;backRankMate endgame hangingPiece mate mateIn2 queenRookEndgame short
+4PV8j;4r2k/pp4p1/2p4p/6q1/2PP1r2/3QpPP1/PPB3K1/5R2 b - - 1 27;e3e2 d3h7;413;88;endgame master mate mateIn1 oneMove
+6TBfT;3R2k1/pp2r1pp/8/6N1/8/4P3/Pb4PP/6K1 b - - 1 28;e7e8 d8e8;413;88;endgame hangingPiece mate mateIn1 oneMove
+8mEDw;3Q3k/p5pp/5b2/2N2p2/3P4/P3R1P1/5PKP/1q6 b - - 0 34;f6d8 e3e8;413;90;backRankMate endgame mate mateIn1 oneMove
+RUihY;6kn/5ppp/2r5/1p3PP1/p7/3q4/PP5P/K1RR4 w - - 0 34;d1d3 c6c1;413;90;backRankMate endgame hangingPiece mate mateIn1 oneMove
+ARlZA;rn1N2k1/p5pp/8/1p6/2b5/6P1/PB3P1P/4R1K1 b - - 1 19;c4a2 e1e8;414;88;endgame master mate mateIn1 oneMove
+PadGJ;2b1R1k1/3q2r1/p1p5/2p3N1/3pQ1p1/1P1P3P/P1P5/6K1 b - - 1 35;d7e8 e4e8;414;89;endgame hangingPiece mate mateIn1 oneMove
+cAm5X;8/R6p/8/1r6/2p5/k1Kb4/6PP/8 b - - 1 41;b5a5 a7a5;414;87;endgame hangingPiece mate mateIn1 oneMove
+tBjj4;2R1n3/pp2qppk/7p/3n4/3N4/P4P2/1B4PP/2R3K1 w - - 0 25;c1e1 e7e1;414;88;hangingPiece mate mateIn1 middlegame oneMove
+2cAVm;4R2k/p1R4p/8/P2r4/5rp1/5P1b/1P5P/6K1 b - - 1 33;f4f8 e8f8;415;90;endgame hangingPiece mate mateIn1 oneMove
+Lolht;2kr1b1r/pp4pp/2p2n2/4q3/3P2p1/2P5/PP3PPP/RNBQ2K1 w - - 0 13;d4e5 d8d1;416;87;backRankMate hangingPiece mate mateIn1 middlegame oneMove
+YEcR1;6k1/ppq3pp/2p4r/4pp2/1P1R1NP1/2N5/P1P3P1/4Q1K1 b - - 0 27;e5d4 e1e8;416;89;endgame mate mateIn1 oneMove
+xAjZA;6k1/p3pp1p/5npB/br6/8/5P2/P1R1K1PP/8 b - - 12 26;f6d5 c2c8 a5d8 c8d8;416;90;endgame mate mateIn2 pillsburysMate short
+ycBHK;2rqkb1r/pp1n1ppp/4p3/2ppP3/3P4/2P1PQ2/PP4PP/RNB2RK1 b k - 2 11;f8e7 f3f7;416;89;attackingF2F7 mate mateIn1 middlegame oneMove
+wUvEg;5k2/p4p2/1p2n3/2p2N2/2P1K2R/Pr6/8/8 b - - 3 41;b3a3 h4h8;417;89;endgame master mate mateIn1 oneMove
+zQTLA;3b3k/1p1q2p1/7p/p1Q5/4BB2/6P1/4PPKP/3r4 b - - 5 47;a5a4 c5f8;417;88;endgame mate mateIn1 oneMove
+0vTpF;3r2k1/6p1/2b4p/b3p3/P7/1P2B3/5PPP/2R3K1 w - - 0 44;c1c6 d8d1;418;90;backRankMate endgame mate mateIn1 oneMove
+6WaHS;4r1k1/p4ppp/1pp2n2/6B1/2P5/1P6/P4PPP/1b1BR1K1 w - - 1 22;a2a3 e8e1;418;88;backRankMate endgame hangingPiece mate mateIn1 oneMove
+p3AAH;8/p1r1k1bp/1p2p1p1/5p2/8/2PR4/PP3PPP/3R2K1 w - - 5 27;d3d7 c7d7 d1d7 e7d7;418;89;advantage endgame short
+2Gpr7;r3rk2/5bR1/pp1b1p1P/3p1P2/2p4P/2P5/PPP2B2/1K3B1R w - - 0 25;f2d4 e8e1;419;90;backRankMate mate mateIn1 middlegame oneMove
+GbYtl;4r1k1/pp3p1p/2p2ppP/6b1/2P1Q3/1NP5/PPK2PP1/3R4 b - - 0 20;e8e4 d1d8 e4e8 d8e8;419;89;endgame kingsideAttack mate mateIn2 short
+oJg0F;5rk1/1b4pp/p7/8/1QPpq3/1B4P1/PP4PK/8 b - - 1 34;g8h8 b4f8;419;89;endgame hangingPiece mate mateIn1 oneMove
+cAQyy;3rk3/1pp2pp1/8/3PP3/1Q2P3/5q2/PP6/1K1R4 w - - 5 31;b1a1 f3d1;420;90;backRankMate endgame hangingPiece mate mateIn1 oneMove
+mTL4Q;1k1r3r/1Pp2ppp/1b6/1P6/6b1/1Pq1P1P1/5PBP/R4RK1 b - - 0 24;c3b3 a1a8;420;86;mate mateIn1 middlegame oneMove
+osJYp;2r1k2r/2q1bpp1/p3p1p1/1p1pP1P1/7P/P3BPn1/1PP5/1NKRQ2R w k - 3 21;e1g3 c7c2;420;88;epauletteMate master mate mateIn1 middlegame oneMove queensideAttack
+KUJ4Z;r1b1r1k1/pp3ppp/8/2p5/8/8/PPP1QPPP/2KR3R b - - 0 16;e8e2 d1d8 e2e8 d8e8;421;88;backRankMate endgame mate mateIn2 short
+Y3Q2D;5Q1k/p2n2pp/2p5/1p6/3P3P/1rP5/P5q1/K2R1R2 b - - 0 25;d7f8 f1f8;421;88;backRankMate endgame mate mateIn1 oneMove
+YEOFU;r2n2k1/bp4pp/p3R3/8/4p3/1N6/PPP2rPP/R1B4K w - - 0 17;e6e4 f2f1;421;89;backRankMate mate mateIn1 middlegame oneMove
+ZXher;r1brQ1k1/1pp2ppp/pb6/3q4/1P6/P4N1P/1B3PP1/R3R1K1 b - - 1 20;d8e8 e1e8;421;90;kingsideAttack mate mateIn1 middlegame oneMove
+f6Xty;1q1rn3/1p2n1k1/1P1pP2b/1N2p3/4PrB1/B6Q/6PP/R4R1K w - - 5 31;a3c1 f4f1;421;89;backRankMate hangingPiece mate mateIn1 middlegame oneMove
+1neAu;2Q4k/3r2pp/8/5p2/3bpP2/Pp2P1P1/1B3K1P/3r4 b - - 1 30;d7d8 c8d8;422;90;backRankMate endgame hangingPiece mate mateIn1 oneMove
+8OPzT;2kr1r2/p1p4p/1pnq2p1/1Q1Ppp2/2P5/2B2B2/P4PPP/3R2K1 w - - 0 24;d5c6 d6d1 f3d1 d8d1 c3e1 d1e1;422;88;backRankMate long mate mateIn3 middlegame
+d0rkM;6k1/1p2rp2/7K/3R4/Pr6/6P1/2P2n1P/8 b - - 0 31;b4a4 d5d8 e7e8 d8e8;422;90;endgame mate mateIn2 short
+gQd1K;6k1/pRp2ppp/3p4/q1pP4/8/8/2P2PPP/1Q2r1K1 w - - 4 20;b1e1 a5e1;422;86;endgame hangingPiece mate mateIn1 oneMove
+hsUaa;5r2/2p3p1/p2b2kp/1p6/3P4/2P4P/PP2r1P1/R1B2R1K w - - 0 28;f1f8 e2e1 f8f1 e1f1;422;89;endgame mate mateIn2 pillsburysMate short
+rq0Rc;r4rk1/pb3ppp/1p2pn2/3qn3/3P4/P1PQ1N2/2B2PPP/R4RK1 w - - 0 17;f3e5 d5g2;422;88;kingsideAttack mate mateIn1 middlegame oneMove
+tLVuF;6k1/5pp1/p6p/3pq3/1Pb5/P3Q2P/5PP1/1B4K1 b - - 1 35;e5a1 e3e8;422;89;endgame mate mateIn1 oneMove
+3jO3V;2kr3r/pp2b1pp/7n/2p3B1/4R3/8/PPP2PPP/RN4K1 w - - 3 17;e4e7 d8d1 e7e1 d1e1;423;90;backRankMate mate mateIn2 middlegame short
+D58I8;r3r1k1/p1p2pp1/2pp3p/8/1PP1P3/P1QP1pPb/qB3K1P/3R4 b - - 3 18;d6d5 c3g7;423;90;kingsideAttack mate mateIn1 middlegame oneMove
+xcyqg;4R3/Nbp2pkp/1p2p1p1/6N1/6qP/8/PPP5/1K1R4 w - - 0 25;e8e7 g4d1;423;87;endgame hangingPiece mate mateIn1 oneMove queensideAttack
+1UDCT;8/p1r4k/1p1R2p1/7p/2N2n2/1P6/P4PP1/5K2 w - - 0 35;c4e5 c7c1 d6d1 c1d1;424;88;endgame mate mateIn2 short
+2ipSJ;3r2k1/ppprn1pp/2n5/1B3p1b/3Np3/P1P1P1BP/2P2PP1/R3K2R w KQ - 5 16;d4e6 d7d1 a1d1 d8d1;424;86;mate mateIn2 middlegame operaMate short
+OXRlH;8/1kbQ4/1r4p1/2rN3p/8/7P/5PP1/6K1 w - - 1 47;d5b6 c5c1 d7d1 c1d1;424;89;endgame mate mateIn2 pillsburysMate short
+aHClZ;3rr2k/5Q2/6R1/8/1p2p2P/pPn5/P1P5/K2q1R2 w - - 1 35;f1d1 d8d1;424;90;endgame mate mateIn1 oneMove
+BYWsV;2k2br1/pppN1p2/3p2q1/3Pn1p1/5P2/8/PP2Q1PP/R4RK1 b - - 0 21;e5d7 e2e8;425;89;mate mateIn1 middlegame oneMove
+JwpW8;r1b1nbk1/pp3p1p/2p3p1/3q4/2B2Q1P/6P1/PBPP1P2/5RK1 b - - 1 20;d5c5 f4f7;425;90;kingsideAttack mate mateIn1 middlegame oneMove
+S9vyh;r7/pp1kq1bp/n1p3p1/5pQ1/3P1B2/2N5/PP3PPP/R5K1 w - - 0 20;a1e1 e7e1;425;87;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+kAGTJ;r3k1r1/ppp1ppbp/8/3P1q2/2P2p2/N3pN2/PP2Q1PP/1R1K3R w q - 3 19;a3b5 f5b1;425;90;hangingPiece master mate mateIn1 middlegame oneMove
+leBYF;r2Q2k1/pp3ppp/2p3q1/8/2P5/1P2PPN1/Pb5P/3R2K1 b - - 1 23;a8d8 d1d8;425;89;backRankMate endgame mate mateIn1 oneMove
+tsg1W;1r2r1k1/p1p2ppp/2Q5/3p4/6Pq/4nP2/PPPKN2P/4R2R b - - 4 18;b8b2 c6e8;425;88;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+vxqeh;4kb1r/1p3ppp/p3pB2/1Np2b2/2P5/8/PP2BPPP/3R2K1 b k - 0 15;a6b5 d1d8;425;90;endgame mate mateIn1 oneMove operaMate
+8eOV9;2rq1rk1/3nnppp/p3N1b1/1pbp4/4p1P1/PPQ1P2P/1BP2P2/1NKR1B1R b - - 5 16;f7e6 c3g7;426;89;kingsideAttack mate mateIn1 middlegame oneMove
+JRWT9;2b3k1/r3nppp/p1nRp3/1p2N3/1P2P3/PBN5/5PPP/6K1 b - - 2 18;c6e5 d6d8;426;89;backRankMate mate mateIn1 middlegame oneMove
+Wk6VF;5k2/1b3p1p/6p1/8/1R6/8/5PPP/3rN1K1 w - - 2 29;b4b7 d1e1;426;90;backRankMate endgame hangingPiece mate mateIn1 oneMove
+YY8hi;5k2/2R5/5K2/1N1r4/8/P1p5/8/8 b - - 2 61;d5b5 c7c8;426;89;endgame mate mateIn1 oneMove rookEndgame
+ZshZh;8/1b3p1k/4pBp1/pp2P1Pp/3R4/8/PP3P1P/2r3K1 w - - 1 37;d4d1 c1d1;426;89;endgame hangingPiece master mate mateIn1 oneMove pillsburysMate
+zP3hX;1nk5/bp2r3/2p1q1p1/Q4p1p/P1N1pP1P/2P3B1/5PK1/3R4 b - - 1 27;e6c4 a5d8;426;89;mate mateIn1 middlegame oneMove
+5EUm6;r2br1k1/1p3ppp/2p1b3/2P2P2/1p6/P2B2B1/6PP/3RR1K1 b - - 0 23;e6d5 e1e8;428;89;backRankMate hangingPiece mate mateIn1 middlegame oneMove
+Bz8fh;r6r/b1pq1pk1/p1np1P2/1p1Bp3/4P2Q/3P4/PPP3PP/R4R1K b - - 0 21;g7f8 h4h8;428;89;hangingPiece mate mateIn1 middlegame oneMove
+QOLOD;2kr3r/pp2b2p/4p1np/1q1pP3/1P1P4/P7/3Q2PP/RN2NR1K w - - 0 18;b1c3 b5f1;428;89;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+bJtbk;2k5/pp1r2p1/4pn1p/8/8/B7/P4PPP/4R1K1 w - - 0 23;e1e6 d7d1 e6e1 d1e1;428;88;backRankMate endgame mate mateIn2 short
+v5SoY;2b1k2r/1p3pp1/p3B3/4P1Bp/1P5P/P7/5P2/3R2K1 b k - 0 29;c8e6 d1d8;428;88;endgame master mate mateIn1 oneMove operaMate
+4cFTA;2r2rk1/pb1qnp1p/1p2p1p1/4P1B1/2P5/2R2N2/Pb2QPPP/RB4K1 w - - 3 23;e2b2 d7d1 f3e1 d1e1;429;88;kingsideAttack mate mateIn2 middlegame short
+6Mgy0;5rk1/1p4pp/p2n4/3P4/8/3Q4/P1q3PP/7K w - - 0 30;d3c2 f8f1;429;89;backRankMate endgame mate mateIn1 oneMove
+Bjrlp;6k1/5ppp/p4r2/2N5/2P3K1/1P1R2P1/7r/6B1 b - - 6 34;h2e2 d3d8 e2e8 d8e8;429;88;backRankMate endgame mate mateIn2 short
+MGjER;r1b1r1k1/ppp2ppp/5q2/1Q6/8/2b1B3/P1P1KPPP/1R3B1R b - - 7 15;a7a6 b5e8;429;90;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+RZFCS;r4rk1/2b2pp1/p2qp2p/1pp5/3P4/P1P2b1P/BP3PP1/R2Q1RK1 w - - 0 18;d1f3 d6h2;429;86;mate mateIn1 middlegame oneMove
+nUCgB;r1bb3k/ppp3pp/8/4P3/8/1BN2R2/PPn3PP/6K1 b - - 1 18;c2d4 f3f8;429;86;backRankMate mate mateIn1 middlegame oneMove
+sBest;4k2r/2q2p1p/p3pP2/5bQ1/Np5P/4b3/PPP5/2K1R3 w k - 2 30;e1e3 c7c2;429;90;endgame mate mateIn1 oneMove queensideAttack
+w3N2m;r3r1k1/p1pp1pp1/Bp2q2p/8/8/2Nn2Q1/PPP2RPP/R1B1K3 w - - 1 18;e1f1 e6e1;429;90;mate mateIn1 middlegame oneMove
+wr9DD;rn3r1k/1p4pp/p7/6P1/8/5Q2/P4P1P/3R1K1R b - - 0 22;f8f3 d1d8 f3f8 d8f8;429;90;backRankMate endgame mate mateIn2 short
+Kmmvj;r1b1r1k1/3nq2p/p4ppQ/1p1pP1N1/2pP4/8/PP3PPP/1BR1R1K1 w - - 0 20;e5f6 e7e1 c1e1 e8e1;430;86;backRankMate mate mateIn2 middlegame short
+iYi7f;r2q3k/4p1b1/p2pB1PR/1p4Q1/4P3/P1N5/1PP2r2/2KR4 b - - 0 21;g7h6 g5h6;430;88;mate mateIn1 middlegame oneMove
+fPfcC;r4r1k/pbb1n1p1/1pn1B3/2p2P2/3q4/2NpB2Q/PPP3PP/R4RK1 b - - 2 17;d4h4 h3h4;431;90;hangingPiece mate mateIn1 middlegame oneMove
+zE7fK;3r1rk1/R4pp1/3p3p/8/2qn1PQN/8/P5PP/5R1K w - - 0 27;f4f5 c4f1;431;88;hangingPiece mate mateIn1 middlegame oneMove
+6n1Nt;2rq1rk1/1p2bpp1/p1b1p2p/2PpB3/1P2n3/P1NQP1P1/2B2P1P/R3K2R b KQ - 6 18;e4c3 d3h7;432;90;mate mateIn1 middlegame oneMove
+BOchS;1k2r3/pp6/8/5Q2/1P4nP/8/P5P1/2R1q2K w - - 1 40;c1e1 e8e1 f5f1 e1f1;432;90;endgame master mate mateIn2 short
+DW6hD;7k/p5R1/1p2NN1p/3p4/P1nP4/5PK1/b3r1PP/8 b - - 0 38;e2e6 g7h7;432;88;arabianMate endgame mate mateIn1 oneMove
+PS2YU;5rk1/2n1Qpp1/2P4p/q7/3N4/8/5PPP/4R1K1 w - - 3 27;e7h4 a5e1;432;87;endgame hangingPiece mate mateIn1 oneMove
+T5fFf;1r4k1/5ppp/4p3/8/5N2/1Q4PP/PPR2P1K/3q4 b - - 6 36;b8b3 c2c8 d1d8 c8d8;432;89;backRankMate endgame mate mateIn2 short
+hxBIV;k3r3/pp4pp/2rB1n2/8/2R5/P3PP2/5KPP/2R5 b - - 0 27;c6d6 c4c8 e8c8 c1c8;432;90;backRankMate endgame mate mateIn2 short
+ny0tc;2N4k/5pp1/p1B3bp/1Pn5/P7/4R3/5PPP/3r2K1 w - - 1 29;e3e1 d1e1;432;88;backRankMate endgame hangingPiece mate mateIn1 oneMove
+AlJkQ;8/5p1k/2N1b1pp/6q1/pQR5/P7/1P4PP/K7 w - - 14 63;c4c1 g5c1;433;87;endgame hangingPiece mate mateIn1 oneMove
+EYoFi;2kr3r/1pp2ppp/p1p2B2/2b5/8/1P3Q2/P2P1PPP/RNq3KR w - - 1 16;f3d1 c1d1;433;86;hangingPiece mate mateIn1 middlegame oneMove
+Io42j;3r2k1/3r1p2/p2N2pp/1p2Pq2/8/8/PPP3RP/1K4R1 w - - 0 29;d6f5 d7d1 g1d1 d8d1;433;89;backRankMate endgame mate mateIn2 short
+7MrKM;3q1r2/4bpk1/2R2np1/4p1Bp/1p2P3/1B3Q1R/1PP2PPP/3r2K1 w - - 1 24;f3d1 d8d1;434;89;backRankMate hangingPiece mate mateIn1 middlegame oneMove
+bnHE4;4n1k1/4P3/6pp/2R5/3b4/8/6PP/3q1QK1 w - - 2 38;g1h1 d1f1;434;88;endgame hangingPiece mate mateIn1 oneMove
+p9fvY;2rr2k1/2b3pp/p1p2p2/2B5/4R3/7P/PPR2PP1/6K1 w - - 4 27;e4e7 d8d1 e7e1 d1e1;434;87;endgame mate mateIn2 pillsburysMate short
+sggKC;5r1k/pr1b2pp/3Q1b2/3p1pq1/3B4/8/P2N1PPP/R4RK1 b - - 5 26;f6d4 d6f8;434;89;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+Bd0T9;1k1rR3/ppp2n1p/3p4/3P1Bp1/P1P2P2/8/P1Q3PP/q5K1 w - - 0 24;e8e1 a1e1;435;87;endgame hangingPiece kingsideAttack master mate mateIn1 oneMove
+USkWD;5rk1/p5p1/P1b4p/1p6/2pQp3/2P1P3/2B3PP/R4q1K w - - 6 33;a1f1 f8f1;435;88;backRankMate endgame mate mateIn1 oneMove
+fbwYE;2kr1bnr/ppp1p3/5p2/3P3p/3P2q1/5NB1/PP1NKPP1/2Q4R b - - 0 16;d8d5 c1c7;435;89;mate mateIn1 middlegame oneMove queensideAttack
+laF3t;4r1k1/p5pp/b1p3r1/3Q2N1/7q/2P1R3/P1P2PPP/R5K1 b - - 1 20;c6d5 e3e8;435;88;hangingPiece mate mateIn1 middlegame oneMove
+n2i2a;r4rk1/1b2bppp/p3p1n1/3qP3/P2p4/3B2BP/1P3PP1/RN1Q1RK1 w - - 2 18;d3g6 d5g2;435;90;kingsideAttack mate mateIn1 middlegame oneMove
+92bd6;3r2k1/1p3p2/p1n2qpp/4p3/1P2Q3/P3P3/6PP/5R1K w - - 2 28;f1f6 d8d1 f6f1 d1f1;436;85;backRankMate endgame mate mateIn2 short
+ETl6d;2r3k1/5pp1/5b2/R2Q3p/3N4/2qP4/2P2PPP/R3r1K1 w - - 1 29;a1e1 c3e1;436;89;mate mateIn1 middlegame oneMove
+J59WL;2r2Q1k/6pp/2b1p3/8/2P1n1r1/2N5/P6P/3R1R1K b - - 2 25;c8f8 f1f8;436;85;backRankMate mate mateIn1 middlegame oneMove
+Ofwdl;2r1k2r/ppq1bppp/2n1p3/1B1p4/Q2P2n1/2N1P3/PP3PPP/R1B2RK1 w k - 0 12;c1d2 c7h2;436;87;kingsideAttack mate mateIn1 middlegame oneMove
+etnUc;2qnR1k1/5pp1/1p1p1n1p/3P4/1PP3P1/4Q2P/2B3K1/8 b - - 8 38;f6e8 e3e8;436;88;endgame master mate mateIn1 oneMove
+ma3Nr;8/5q1k/6p1/8/6nP/8/2R3P1/2Q4K w - - 0 51;c1d2 f7f1;436;88;endgame master mate mateIn1 oneMove
+SK2SK;2r4k/p4pp1/1p3N1p/3p2n1/1P4Q1/P5P1/1B2qP1P/5RK1 b - - 1 22;e2b2 g4c8;437;85;endgame hangingPiece mate mateIn1 oneMove
+nRdj8;7k/2p3pp/pp6/3P4/3Pp2q/P3P2P/1P1Q1r1K/2R4R w - - 0 32;d2f2 h4f2;437;90;endgame epauletteMate hangingPiece mate mateIn1 oneMove
+rl78z;2r2r1k/p2q2p1/Pp2N2p/3PQ3/4P3/n1p1pPP1/4B2P/2K4R b - - 3 36;d7a4 e5g7;437;87;kingsideAttack master mate mateIn1 middlegame oneMove
+0URgB;3r3k/pq4pp/4Qr2/3R4/2p1p3/8/P1P2PPP/3R2K1 b - - 0 30;f6e6 d5d8 e6e8 d8e8;438;90;backRankMate endgame hangingPiece mate mateIn2 queenRookEndgame short
+3eQ8B;r5k1/1ppbn1pp/3p4/p6q/2PPPQ2/1P5P/P4RP1/5RK1 b - - 0 23;h5g6 f4f8 a8f8 f2f8;438;89;kingsideAttack mate mateIn2 middlegame sacrifice short
+TG6M1;r7/p1ppqpk1/b1p4p/6PQ/8/2P3B1/P1P2RPP/1R2r1K1 w - - 1 19;b1e1 e7e1 f2f1 e1f1;438;89;kingsideAttack mate mateIn2 middlegame short
+gc3rA;1br2rk1/pbqn1ppp/1p2pn2/2pp4/2PP4/1PNBPP2/P1QBN1PP/R4R1K w - - 3 13;c3b5 c7h2;438;88;kingsideAttack mate mateIn1 middlegame oneMove
+hgHrj;r4r1k/pp1nq1B1/3p2Q1/4p3/8/P4P2/4KP1P/6R1 b - - 2 29;e7g7 g6g7;438;86;endgame master mate mateIn1 oneMove
+jIjUi;1r1r2k1/p4ppp/q4b2/2p5/QPR5/2P2N2/P4PPP/3R2K1 w - - 1 20;a4a6 d8d1 f3e1 d1e1;439;90;backRankMate hangingPiece mate mateIn2 middlegame short
+LUUUg;R6k/6pp/5p2/1p1rn3/3P4/4P1P1/5P1P/6K1 b - - 1 30;d5d8 a8d8;440;88;backRankMate endgame hangingPiece mate mateIn1 oneMove
+BHZin;4r2k/p4Rn1/1p2BNpp/1b6/8/8/PP3PPP/6K1 b - - 6 25;e8e6 f7f8;441;89;endgame mate mateIn1 oneMove
+Sj7Fk;r2qk2r/pp1n1ppp/4p3/2ppP3/1bPP4/2NBPQ1P/PP4P1/R4RK1 b kq - 1 12;c5d4 f3f7;441;87;attackingF2F7 mate mateIn1 middlegame oneMove
+mH6lX;2R3k1/p6r/3pP1q1/1r3P1p/3B4/7P/P5P1/6K1 b - - 1 35;g6e8 c8e8;441;90;endgame hangingPiece master mate mateIn1 oneMove pillsburysMate
+GIGT6;r5k1/2q2ppp/2p2r2/p6b/2B3NP/4Q3/5PP1/R3R1K1 b - - 1 25;h5g4 e3e8 a8e8 e1e8;442;90;mate mateIn2 middlegame sacrifice short
+S8pw0;8/8/pp1b4/6k1/2PN1p2/1P2pP2/P3K3/8 b - - 17 55;g5h4 d4f5 h4g5 f5d6;442;90;crushing endgame fork short
+siD8y;8/p5rp/1p6/5R2/1P5k/P4KP1/8/8 b - - 0 44;h4h3 f5h5;442;87;endgame mate mateIn1 oneMove rookEndgame
+9jlec;2r1rbk1/4nppp/3p4/qp1Pp3/p3Q1P1/2PBBP2/PP5P/2KR3R b - - 1 21;b5b4 e4h7;443;85;kingsideAttack mate mateIn1 middlegame oneMove
+KjfL5;6k1/2p3rp/pp1p3B/8/8/1P3R1K/P7/6r1 b - - 1 46;g7g6 f3f8;443;88;endgame mate mateIn1 oneMove operaMate
+is0mF;3Q4/pp3p1k/2qp2rp/5B2/1bP5/3P4/PP4PP/4RR1K w - - 5 32;e1e7 c6g2;443;89;kingsideAttack mate mateIn1 middlegame oneMove
+jgO8X;6k1/5pp1/1B6/2p3p1/2PnB1P1/4bP1P/r7/3R3K b - - 3 32;d4e2 d1d8;443;88;endgame master mate mateIn1 oneMove pillsburysMate
+rOVeT;3R1nk1/p5pp/5p2/8/1p3B2/b1r1PN2/P4PPP/6K1 w - - 4 31;f4d6 c3c1 f3e1 c1e1;443;89;backRankMate endgame mate mateIn2 short
+xxwV7;r2r3k/1pp2ppp/3q4/b3p3/P1B1n1b1/2PPB2P/5QP1/RN2KR2 w Q - 0 18;d3e4 d6d1;443;87;mate mateIn1 middlegame oneMove
+HKPmm;3r2k1/1b4pp/p2ppq2/1p1r4/P2Q1P2/1P4R1/1P4PP/3R3K w - - 0 28;d4f6 d5d1;444;90;endgame hangingPiece mate mateIn1 oneMove
+JDnsw;5r1k/p1p3pp/8/4q3/1Q2p3/2P1p2P/PP4P1/3r2NK b - - 1 26;e3e2 b4f8;444;88;endgame hangingPiece mate mateIn1 oneMove
+SJDrS;3Rr1k1/1p3pp1/p6p/8/8/P1Q3PK/4pr1P/B7 b - - 1 31;e8d8 c3g7;444;87;endgame mate mateIn1 oneMove
+h9Whu;1kr5/pp6/2q2p2/2P1p1pp/3r4/1Q1PR2P/6P1/1R5K b - - 3 30;c6c5 b3b7;444;87;endgame mate mateIn1 oneMove
+o8DWa;6k1/3p3p/2nPp1p1/q1P1P3/5Qn1/B7/1P4PP/4R1K1 w - - 1 36;f4g4 a5e1;444;88;endgame hangingPiece mate mateIn1 oneMove
+GNYgO;2r3k1/5pp1/pB2p2p/3b4/PP4P1/7P/2R2P1Q/q5K1 w - - 0 36;c2c1 c8c1;445;90;endgame hangingPiece mate mateIn1 oneMove pillsburysMate
+MqRqv;3r4/2N2pk1/6pp/p7/4P3/4bP2/PPP3PP/2KR4 w - - 2 22;c1b1 d8d1;445;89;backRankMate endgame hangingPiece mate mateIn1 oneMove
+WzgXo;2q5/QR3r1p/6pk/4p3/4B3/3P4/4PP2/4K3 w - - 0 39;b7f7 c8c1;445;89;endgame master mate mateIn1 oneMove
+f8np6;r1b1k2r/pp3ppp/8/2n3B1/2PR4/1P6/1P3PPP/4KB1R b Kkq - 0 15;c5b3 d4d8;445;88;mate mateIn1 middlegame oneMove operaMate
+kfUcX;1r5k/2p3pp/3p1q2/8/2Bn1P2/3K2P1/7P/1R2R3 b - - 7 28;b8b1 e1e8 f6f8 e8f8;445;85;backRankMate endgame mate mateIn2 short
+kyLxX;5n2/R3N1pk/p3r1p1/1pp5/3p4/P2P4/1PP2PPP/6K1 w - - 14 43;e7d5 e6e1;445;90;backRankMate endgame mate mateIn1 oneMove
+qoeTU;1k1r4/pp1nrppp/3p4/3P4/1PR2PBP/P7/5K2/2R5 b - - 2 29;d7f6 c4c8 d8c8 c1c8;445;85;endgame mate mateIn2 operaMate queensideAttack short
+rNvsh;2r1k3/pQ6/2n1b1pb/8/2q5/2Bp4/PP2NPPP/2KR1B1R w - - 4 17;c1b1 c4a2;445;88;mate mateIn1 middlegame oneMove queensideAttack
+rV55i;2r3k1/R4p1p/4p1p1/P7/8/8/2r2PPP/2R3K1 w - - 0 27;a5a6 c2c1;445;89;backRankMate endgame hangingPiece mate mateIn1 oneMove rookEndgame
+xnoxm;6k1/5p1p/2rpb2B/pp6/6RP/2P1R3/PP4P1/2K5 b - - 1 30;e6g4 e3e8;445;88;endgame mate mateIn1 oneMove pillsburysMate
+XjdJq;2brQ1k1/2q2pp1/p2p3p/3P4/1p6/8/1PB2PPP/1R2R1K1 b - - 4 24;d8e8 e1e8;446;84;endgame mate mateIn1 oneMove pillsburysMate
+cKWum;1r6/k1Nn2pp/p1r1p3/2Pp4/Q2P4/4B3/5PPP/1R4K1 w - - 5 27;a4c6 b8b1 e3c1 b1c1;446;87;backRankMate endgame hangingPiece mate mateIn2 short
+ejl9K;1q4k1/4b3/2p4p/p1Pp4/3Ppp2/P6P/2Q2PPB/6K1 w - - 0 31;c2d2 b8b1 d2c1 b1c1;446;90;backRankMate endgame mate mateIn2 short
+idw0o;1R6/r3k2p/p3p3/5p1Q/8/1P4P1/P5BP/q6K w - - 1 34;g2f1 a1f1;446;88;endgame hangingPiece mate mateIn1 oneMove
+mmTVw;3q3k/p2r2pp/1p6/8/2P1Q3/PP3n1N/5PPP/3R2K1 w - - 6 44;e4f3 d7d1 f3d1 d8d1;446;86;backRankMate endgame mate mateIn2 short
+8ORd3;r4Q1k/6pp/4p3/1P2q3/8/6P1/5R1P/1R4K1 b - - 2 25;a8f8 f2f8;447;90;backRankMate endgame mate mateIn1 oneMove queenRookEndgame
+BG7rb;2kbr3/q7/1p1p3Q/pP1P2p1/R1P5/1N6/6PP/R3r2K w - - 1 31;a1e1 e8e1;447;88;backRankMate mate mateIn1 middlegame oneMove
+JJTHm;r5k1/5pp1/2p4p/2B1qb2/2P5/1P6/5PPP/4R1K1 w - - 0 25;e1e5 a8a1 e5e1 a1e1;448;90;backRankMate endgame mate mateIn2 short
+bUCYl;4r1k1/pp2qppp/2p2n2/3p1B2/3P1b2/2P2N1P/PPQ2PP1/R5K1 w - - 0 20;a1e1 e7e1 f3e1 e8e1;448;86;kingsideAttack mate mateIn2 middlegame pillsburysMate short
+mVpD8;r4rk1/p3qpbp/5np1/1N3b2/Q1P5/3p4/P2PBPPP/R1B1R1K1 w - - 0 18;e2f3 e7e1;448;87;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+pmrmh;4r1k1/ppp2ppp/3pbq2/8/2P2Bn1/6P1/PP2Q3/2RK2R1 b - - 2 21;e6f5 e2e8;448;87;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+gvp3e;r1b1r1k1/2p2pR1/p1p4p/3p1q1n/1b6/1P1PPN1P/PBPNKP2/R5Q1 b - - 0 18;h5g7 g1g7;449;88;kingsideAttack mate mateIn1 middlegame oneMove
+oYXiO;r1b4k/1p4p1/2p2r1p/p7/5P1P/P3b1P1/2B3K1/4R3 b - - 1 29;e3d2 e1e8 f6f8 e8f8;449;89;endgame mate mateIn2 pillsburysMate short
+BYkmo;r5k1/5ppp/4p3/2Qp4/2pPN3/2P5/2R2PPP/1r4K1 w - - 1 27;c2c1 b1c1;450;89;backRankMate endgame hangingPiece mate mateIn1 oneMove
+SyEkQ;2r2rk1/p4pp1/1p2p2p/2q5/1N6/Q4P2/PPn3PP/2KR3R w - - 0 24;b4c2 c5c2;450;89;mate mateIn1 middlegame oneMove queensideAttack
+cBi1T;4r1k1/1p3pp1/8/1N6/1QP1p1p1/1P1RP3/P4PPP/q5K1 w - - 1 28;d3d1 a1d1 b4e1 d1e1;450;87;endgame hangingPiece mate mateIn2 short
+sVONz;5R2/P7/7p/8/4p3/6kP/2r3P1/7K w - - 1 41;a7a8q c2c1 f8f1 c1f1;450;89;endgame mate mateIn2 queenRookEndgame short
+5sPs1;1k4r1/1p6/pP1b1p1p/P1p1pQ2/4P3/4Bq2/2P2PrP/6RK w - - 0 28;f5f3 g2g1;451;90;endgame kingsideAttack mate mateIn1 oneMove
+DvnAZ;7k/pp4pp/2nb4/2p5/3p2P1/1P1BrR1P/PBP3P1/6K1 b - - 3 24;e3e7 f3f8;451;88;endgame mate mateIn1 oneMove
+FHZoT;3Q3k/ppp3pp/1qn5/4p3/2P1P3/2B5/P1P3PP/5R1K b - - 0 26;c6d8 f1f8;451;89;backRankMate endgame mate mateIn1 oneMove
+I0mii;2k4r/ppp1R1p1/8/8/PP4p1/2Pr4/5PP1/RNB3K1 w - - 0 20;c1f4 d3d1 e7e1 d1e1;451;86;endgame mate mateIn2 short
+MgK0X;7k/1R4pp/p5b1/1p1K1P2/3b4/P3r2P/1P3n2/8 b - - 11 37;g6f5 b7b8 f5c8 b8c8 e3e8 c8e8;451;86;backRankMate endgame long mate mateIn3
+UQfIw;3r3k/p3Rrpp/1b2B3/8/8/2P3B1/PP3PPP/3R2K1 w - - 0 28;e7f7 d8d1;451;87;endgame hangingPiece mate mateIn1 oneMove
+W468o;r5rk/pRB3pp/4Qp2/2p1n3/8/2q5/P1P2PPP/4R1K1 w - - 1 27;c7e5 c3e1;451;88;hangingPiece mate mateIn1 middlegame oneMove
+bCqUf;3qk2r/1p1nbppp/2p1p3/r2pPb2/P2P1Q2/2P4N/4B2P/RN3RK1 b k - 2 18;f5h3 f4f7;451;90;attackingF2F7 mate mateIn1 middlegame oneMove
+dYZhi;8/p5k1/2p5/3p2p1/2b1r3/2P3B1/P1P2RPP/6K1 w - - 2 26;a2a3 e4e1 f2f1 e1f1;451;89;endgame mate mateIn2 operaMate short
+ihzcs;6k1/ppR2ppp/5b2/8/4rB2/6P1/PP3PKP/R2r4 b - - 1 25;d1a1 c7c8 f6d8 c8d8 e4e8 d8e8;451;89;backRankMate endgame long mate mateIn3
+s9WEI;6k1/1p3pp1/p2p1n1p/8/1P3p2/Pq3P1P/6PK/1BQ5 b - - 2 32;b7b5 c1c8 f6e8 c8e8;451;87;endgame mate mateIn2 short
+0bG3Z;r1n1kb1r/p2q2pb/2pp3p/4N3/B7/2N5/PPPQ1PPP/2KR3R b kq - 0 15;d6e5 d2d7;452;89;mate mateIn1 middlegame oneMove
+3TPxW;r3k1nr/ppp3pp/1b2p3/4q3/8/B4Q2/P1PP1PPP/RN3RK1 w kq - 0 12;f1e1 e5e1;452;89;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+6BUPs;7k/pp1q3p/1n1p2pP/2pPp3/2P1P1R1/2P2RK1/P1QN4/4n3 b - - 2 34;e1c2 f3f8;452;89;endgame master mate mateIn1 oneMove
+JNp4R;6k1/6pp/p7/1p6/1P1R4/r7/R4PPP/2r3K1 w - - 2 33;d4d1 c1d1;452;90;backRankMate endgame hangingPiece mate mateIn1 oneMove rookEndgame
+crWmu;5r1k/2q4p/1p1r2p1/p1pBbp2/3pP3/P4Q1P/1PP2PP1/3R1R1K b - - 1 31;f5e4 f3f8;452;82;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+91W0T;5r2/pp4pk/6p1/4n3/5P2/P5Q1/1P2q2P/5RK1 w - - 0 39;f4e5 e2f1;453;90;endgame mate mateIn1 oneMove
+Qddat;r1bq1r1k/1pn1bpp1/p2ppn1p/2p5/2P1PP2/PP1P1NQ1/1B4PP/RN1B1RK1 b - - 0 14;f6d7 g3g7;453;88;kingsideAttack mate mateIn1 middlegame oneMove
+UqPql;3k1b2/2B1q1p1/4p3/1B1pP3/P2n2P1/5Q2/1P6/n2K4 b - - 0 28;e7c7 f3f8;453;88;endgame hangingPiece mate mateIn1 oneMove
+jNjSQ;8/8/7P/5p2/K3p3/4k3/8/8 b - - 0 43;e3f3 h6h7 e4e3 h7h8q;453;90;advancedPawn crushing endgame pawnEndgame promotion short
+qyyvn;6k1/r1q1bbr1/pNp1p1n1/P1Pp1p2/Q2P1Nnp/4P3/4BPP1/1RB2RK1 w - - 10 28;f4h3 c7h2;453;86;master mate mateIn1 middlegame oneMove
+w980N;3RQ3/2q3p1/2rkpp2/1p1p1p2/1P1P1P2/6PK/r6P/8 b - - 3 41;c7d8 e8d8;453;90;endgame epauletteMate hangingPiece mate mateIn1 oneMove
+2KqVU;r2q2k1/pbp2rpp/1pn1p1P1/5p2/3PpP2/BP3N1Q/P1P4P/R4RK1 b - - 0 18;f7f6 h3h7;454;88;kingsideAttack mate mateIn1 middlegame oneMove
+jCVf3;5qk1/pp2Q2p/3pB1p1/2pP4/2P4P/1P4PK/P7/2b5 b - - 7 34;g8h8 e7f8;454;88;endgame hangingPiece mate mateIn1 oneMove
+tmIKI;4r1k1/1p3ppp/4p3/bQp5/5P2/2P1K3/r4PPP/1R6 b - - 2 24;a5c3 b5e8;454;86;endgame hangingPiece mate mateIn1 oneMove
+7KnE5;r1bq1rk1/pppp1ppp/5b2/8/8/4R3/PPPPQPPP/RNB3K1 b - - 4 11;f8e8 e3e8 d8e8 e2e8;455;90;fork mate mateIn2 middlegame short
+H7XhD;3r2k1/1bp4p/1p4p1/pP3p2/2P1p3/4P3/Pq3PPP/1Q1B2K1 w - - 3 30;b1b2 d8d1;455;88;backRankMate endgame hangingPiece mate mateIn1 oneMove
+IF05T;b1r2Q1k/6pp/3p4/1p1Pp3/1q2P3/1B6/2P3PP/5R1K b - - 2 26;c8f8 f1f8;455;90;backRankMate endgame mate mateIn1 oneMove
+Seonk;r2qr1k1/1bp2p1p/p5p1/4p3/1p1QP1PP/8/PPP1P3/1K1R1B1R w - - 0 18;d4b4 d8d1;455;89;hangingPiece mate mateIn1 middlegame oneMove queensideAttack
+oVJ7r;r2q1rk1/2p2ppp/p1n1b3/1p1n2N1/1b1PQ3/1B6/PP3PPP/RNB2RK1 b - - 6 13;c6e7 e4h7;455;90;kingsideAttack mate mateIn1 middlegame oneMove
+4B9rU;2r1k2r/p2n1ppp/1p6/4p3/1B2P3/P6P/5PP1/2R2RK1 b k - 1 20;a7a5 c1c8;456;85;endgame hangingPiece mate mateIn1 oneMove pillsburysMate
+DmgUQ;8/4k3/6p1/P1n1p1P1/4P2K/3P4/8/8 b - - 0 55;c5d3 a5a6 e7d6 a6a7;456;90;advancedPawn crushing endgame knightEndgame master short
+EsWXz;4qR1k/6pp/1p5r/2p5/1pPP4/3BP2P/PP4P1/2K2R2 b - - 1 29;e8f8 f1f8;456;87;endgame hangingPiece mate mateIn1 oneMove
+H4FJV;2r2r1k/3QR1pp/p2N4/8/1p6/8/PP3PPP/K1qR4 w - - 2 30;d1c1 c8c1;456;87;backRankMate endgame mate mateIn1 oneMove
+UnMeL;2r5/5k1p/5p2/p4pp1/P2N4/8/1r3PPP/2R3K1 w - - 1 34;c1c8 b2b1 c8c1 b1c1;456;90;backRankMate endgame mate mateIn2 short
+p1exa;r1b3k1/1pq2ppp/p1n5/3p4/5P2/PN6/1bP3PP/R1B1QRK1 b - - 1 19;b2a1 e1e8;456;90;mate mateIn1 middlegame oneMove
+0xOUn;rR4k1/5pp1/p2P3p/4P3/4BP2/2r5/3p3P/1R4K1 b - - 1 31;a8b8 b1b8 c3c8 b8c8;457;88;endgame master mate mateIn2 pillsburysMate short
+2YiXf;2r1k2r/pp3pp1/2n1p2p/1B1pN3/3PbPPq/2P2Q1P/P1P5/R4RK1 w k - 3 16;f3g3 h4g3;457;88;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+IScWN;r5k1/5bp1/p1n1r3/1pBp2p1/3P4/2PB1R2/P6P/5R1K b - - 4 27;f7h5 f3f8 a8f8 f1f8;457;89;mate mateIn2 middlegame short
+UGlI7;r3k1nr/ppp2ppp/8/3pP1q1/2P1p3/2P1P2b/P3BPPP/R1BQ1RK1 w kq - 5 11;f2f4 g5g2;457;83;kingsideAttack mate mateIn1 middlegame oneMove
+tvcUp;3r4/1pp5/1k5p/p3N1b1/4P3/1B6/PPP2PPP/2KR4 w - - 2 20;c1b1 d8d1;457;89;backRankMate endgame hangingPiece mate mateIn1 oneMove
+ZNnSF;4R3/8/2p5/p1kp3q/1p6/3B4/PPP5/1K1R4 w - - 6 43;e8a8 h5d1;458;90;endgame hangingPiece mate mateIn1 oneMove
+ayV4m;6k1/5p1p/Qp1qp1pP/1Pp5/2P5/6P1/5P2/6K1 b - - 0 33;d6c7 a6a8 c7b8 a8b8;458;90;endgame mate mateIn2 queenEndgame short
+eUzKH;r3r1k1/ppp2ppp/3p1b2/3P2B1/8/2N5/PPP2PPP/R2bR1K1 w - - 0 15;g5f6 e8e1;458;88;backRankMate hangingPiece mate mateIn1 middlegame oneMove
+emdJz;r3kb1r/pp1n1ppp/2pN4/6B1/4P3/1P1n3P/q1P2QP1/1R3RK1 b kq - 0 22;f8d6 f2f7;458;89;attackingF2F7 master mate mateIn1 middlegame oneMove
+gtx5q;3rk2r/pp2bppp/4p3/q2n4/3P4/P4bB1/1P3PPP/RB1QR1K1 w k - 0 16;d1f3 a5e1;458;90;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+iY1ct;6rk/5p1Q/3qpPp1/1p6/2p1R3/3p2P1/1P3P1P/6K1 b - - 0 28;h8h7 e4h4;458;88;endgame mate mateIn1 oneMove queenRookEndgame
+kHMOn;r3r1k1/pRq2p1p/5Qp1/3b4/8/6P1/5P1P/4R1K1 w - - 0 23;b7c7 e8e1;458;85;endgame hangingPiece mate mateIn1 oneMove pillsburysMate
+kR1wg;5k2/2r4p/R1p2K2/8/8/8/P1b5/8 b - - 7 42;c2b1 a6a8 c7c8 a8c8;458;85;endgame mate mateIn2 short
+qqDBL;3r3k/5pp1/p2p1b1B/2pP4/1q6/1P3Q2/P4PPP/4R1K1 w - - 1 24;h6e3 b4e1;458;86;endgame hangingPiece mate mateIn1 oneMove
+tNFs0;8/8/p7/5rp1/1P6/P5K1/8/4R2k b - - 1 53;f5f1 e1f1;458;89;endgame hangingPiece master mate mateIn1 oneMove rookEndgame
+60O7S;4r1k1/3n1p1p/p1p5/2pp4/5P2/1P1P2Pb/PQP2R1P/R3q1K1 w - - 0 23;a1e1 e8e1 f2f1 e1f1;459;90;endgame kingsideAttack mate mateIn2 operaMate short
+MP9TI;8/1r3pk1/2Np2pp/3P4/8/8/5PPP/4R1K1 w - - 2 40;e1e7 b7b1 e7e1 b1e1;459;88;backRankMate endgame mate mateIn2 short
+S6kck;4r1k1/1p2bp1p/4b1pB/p1p1P3/2Pr1Q2/5R2/PP3PPP/4R1K1 w - - 3 25;e1e4 d4d1 e4e1 d1e1;459;88;backRankMate mate mateIn2 middlegame short
+U26xH;4r1k1/5pp1/2q5/p1p1nQ2/3p1B2/2P4p/PP3PPP/3R2K1 w - - 0 30;f4e5 c6g2;459;89;endgame mate mateIn1 oneMove
+gkPnC;8/7k/p6p/1p4p1/1P6/P1br4/R2B1PPP/6K1 w - - 4 31;d2c3 d3d1 c3e1 d1e1;459;89;backRankMate endgame mate mateIn2 short
+phDV8;rnb1k2r/pp3ppp/2pb4/3P4/3P4/2N1P1q1/PP1NP2P/R2QKB1R w KQkq - 0 12;h2g3 d6g3;459;90;bodenMate mate mateIn1 oneMove opening
+3ZljU;rb3rk1/1p2nppp/p7/3pn1Nq/8/N1P1B1P1/PPQ2PK1/R4R2 b - - 1 21;h7h6 c2h7;460;88;master mate mateIn1 middlegame oneMove
+FW5yg;3rRk2/5ppn/3r3p/p1pP1P2/BpP2KP1/7P/P7/4R3 b - - 2 33;d8e8 e1e8;460;90;endgame mate mateIn1 oneMove operaMate
+AOKzb;1k1Q1b1r/pp2p1pp/2n1B3/4p3/3P4/4q3/P4NPP/R1R3K1 b - - 0 21;c6d8 c1c8;461;89;mate mateIn1 middlegame oneMove operaMate
+ewiQZ;r4rk1/p2n2bp/4p1p1/6Q1/8/8/PP4PP/RN2Rq1K w - - 2 20;e1f1 f8f1;461;88;backRankMate mate mateIn1 middlegame oneMove
+fvZaE;5r1k/pb1p4/3p2Qp/1p1Pq3/2P5/4P1R1/PP4PP/6K1 b - - 2 25;e5g7 g6g7;461;86;endgame mate mateIn1 oneMove
+oW5Qp;8/7p/5pp1/Q2p1k2/3q4/1P6/P4PP1/5K2 w - - 0 47;b3b4 d4d1;461;89;endgame mate mateIn1 oneMove queenEndgame
+p18Ks;r2qk3/1p1bbp2/p3pn1r/2p1B1pp/P1B1P3/2NP1Q2/1PP2RPP/R5K1 b q - 5 18;f6g4 f3f7;461;90;attackingF2F7 mate mateIn1 middlegame oneMove
+3atb4;1k1R2r1/ppp1Q2p/2b5/1B3p2/4q3/8/P4PPP/1R4K1 b - - 1 23;g8d8 e7d8;462;86;endgame mate mateIn1 oneMove
+7gJ3X;6k1/5ppp/N3p3/1p6/1Pp5/2P3P1/r1n2P1P/3R2K1 b - - 2 31;a2a6 d1d8;462;83;backRankMate endgame mate mateIn1 oneMove
+9H3KC;r6k/pp4pp/3p4/2p1nR2/3pP3/3P4/PPPN2PP/6K1 b - - 0 20;a8f8 f5f8;462;87;backRankMate endgame hangingPiece mate mateIn1 oneMove
+L2b4T;r4rk1/pp5p/2p3p1/3NbPBn/2PpP2q/3P1R2/PP4QP/R5K1 b - - 1 19;h4h2 g2h2 e5h2 g1h2;462;87;advantage master middlegame short
+MoQoi;3q1Q1k/6pp/8/1p2p3/1P1p4/P6P/6P1/5RK1 b - - 3 36;d8f8 f1f8;462;85;backRankMate endgame mate mateIn1 oneMove
+P7tXe;5r1b/pp1bpk2/1q1p3B/8/2r1nQ2/8/PPP1N3/1K1R3R b - - 1 22;f7e8 f4f8;462;86;mate mateIn1 middlegame oneMove
+V4czJ;8/5ppp/8/r2k4/3P4/N1n5/P1P3PP/K1R5 w - - 1 30;a3b1 a5a2;462;88;arabianMate endgame mate mateIn1 oneMove
+YdleF;N1b2k1r/pp3pp1/7p/3Q4/8/8/PP3bPP/R1B1qBK1 w - - 0 17;g1h1 e1f1;462;89;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+I33nx;4r3/p7/3n2R1/1k6/3B3P/2P3p1/PP2r1P1/R5K1 w - - 0 32;g6d6 e2e1 a1e1 e8e1;463;88;endgame mate mateIn2 short
+WCR1o;8/6pk/6bp/1P3p2/P4b2/3PrB1P/2p2PP1/2R3K1 w - - 0 39;c1c2 e3e1;463;87;endgame mate mateIn1 oneMove pillsburysMate
+kSnlv;6k1/1R6/4p3/1p1pb2p/1P5B/r7/5PP1/6K1 w - - 0 32;b7b5 a3a1;463;86;endgame master mate mateIn1 oneMove pillsburysMate
+m1Tbv;r1b1Q1kr/ppNp1ppp/5n2/5q2/2N5/8/P1P2PPP/R3R1K1 b - - 2 18;f6e8 e1e8;463;86;backRankMate mate mateIn1 middlegame oneMove
+5ztTl;6k1/p1Q3pp/b4p2/3p4/3P4/4PN2/5PPP/1r4K1 w - - 1 26;f3e1 b1e1;464;87;backRankMate endgame hangingPiece mate mateIn1 oneMove
+6GQuS;6k1/pp3pb1/7p/6p1/2p1r3/5QB1/P1P3PP/3Bq2K w - - 2 31;g3e1 e4e1 f3f1 e1f1;464;90;backRankMate endgame mate mateIn2 short
+9Ph1U;R7/5Np1/4p1pk/4P3/1nr5/7P/8/6K1 b - - 5 43;h6h5 a8h8;464;86;endgame master mate mateIn1 oneMove
+DbkyF;r1b1r1k1/ppp2ppp/3p2q1/3Pn3/2P5/3PQ1P1/P2B1PBP/R4RK1 b - - 8 16;e5d3 e3e8;464;90;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+GnXDq;2k5/1pp3p1/p6p/4N1q1/2pP2b1/2P1R3/PPK4P/5Q2 b - - 0 33;g5e3 f1f8;464;90;endgame mate mateIn1 oneMove
+KlBiP;6kN/p1p3pp/8/3Pp3/8/2P2rPb/PP1P3P/RNB3KR w - - 0 21;d2d3 f3f1;464;85;mate mateIn1 middlegame oneMove operaMate
+aAMiE;2k5/pppb2q1/8/8/7p/4p2P/2P1N1P1/3RKR2 b - - 3 38;g7g2 f1f8 d7e8 f8e8;464;90;endgame mate mateIn2 short
+alUn6;6k1/p4ppp/1p2r2P/2p3P1/5K2/r7/8/B2R4 b - - 1 38;a3a1 d1d8 e6e8 d8e8;464;89;endgame mate mateIn2 rookEndgame short
+d1myz;r4rk1/pp2bpp1/5n1p/2p1P3/2q3b1/2N3Q1/PPP3PP/R1B2R1K w - - 0 15;e5f6 c4f1;464;88;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+gw1kA;r4rk1/1pp2p1p/p1n1p3/5p2/1qPP4/4QR2/PP2NPPP/4R1K1 w - - 2 18;e3h6 b4e1;464;86;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+tNciU;r1b2rk1/pp4pp/3Qp3/4P1q1/P1B1p3/8/1P3PPP/2R2RK1 b - - 2 17;g8h8 d6f8;464;89;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+FEyhE;r4rk1/pp1qbppp/2p1b3/3n4/3PQP2/P2B1N2/1PP2BPP/2K1R2R b - - 2 15;e7a3 e4h7;465;86;kingsideAttack mate mateIn1 middlegame oneMove
+LVzcS;4r1k1/pbp2p2/1p2rB2/4Np1p/8/8/P4PPP/3RR1K1 w - - 0 30;e5d7 e6e1 d1e1 e8e1;465;87;mate mateIn2 middlegame short
+Rifmz;rb2k2r/1pq2pp1/2p2np1/p2p1p2/P1PP4/1N1BP2P/1PQ2PP1/R4RK1 w kq - 3 16;c4d5 c7h2;465;89;mate mateIn1 middlegame oneMove
+SI5Y2;6k1/pp4p1/1bp5/4pq1p/8/1P1P2NP/1PPQ1r1K/R6R w - - 1 34;d2f2 f5f2;465;89;endgame epauletteMate hangingPiece mate mateIn1 oneMove
+TIUAO;rn2k2r/ppq1pp2/2p2p2/7b/3N3P/2P1Q3/PP3P2/2K1RB1R b kq - 1 16;b8d7 e3e7;465;90;mate mateIn1 middlegame oneMove
+X2DDf;2R3k1/3r1ppp/p2Nb3/1p1pPp2/3P4/P3K3/1P4PP/8 b - - 2 28;d7d8 c8d8;465;90;endgame hangingPiece mate mateIn1 oneMove
+XwtLu;6R1/pk6/1p2p3/6p1/3r1n2/P5bP/1PR3P1/6K1 w - - 0 33;g8g5 d4d1;465;83;endgame mate mateIn1 oneMove pillsburysMate
+YpcAM;rnb1k1nr/ppp2p1p/3b4/8/3N2p1/2N3q1/PPPPP2P/R1BQKB1R w KQkq - 0 9;h2g3 d6g3;465;88;bodenMate mate mateIn1 oneMove opening
+dluYd;r2q1rk1/pb3pp1/1p2pn1p/8/3P4/3Q1N2/PPB2PPP/R4RK1 b - - 0 15;f6d5 d3h7;465;89;mate mateIn1 middlegame oneMove
+vxAK2;r1br1n1k/5pp1/p1p2N1Q/q2pPp1P/6R1/2PB4/PP4P1/R3K3 b Q - 0 22;g7h6 g4g8;465;88;arabianMate mate mateIn1 middlegame oneMove
+CcUba;rn1qk2r/pp3ppp/2p1p3/3n2P1/1b1P4/2NB1Q1P/PPP5/R1B2RK1 b kq - 4 11;b4c3 f3f7;466;88;attackingF2F7 mate mateIn1 middlegame oneMove
+H6UZz;rnbq1rk1/6pp/p3Np2/1p2N3/3P2Q1/8/PP3PPP/R4RK1 b - - 0 17;f6e5 g4g7;466;88;kingsideAttack mate mateIn1 middlegame oneMove
+hDHnU;6k1/pR3p1p/6p1/2p5/7P/2B5/qPP2PPK/3r4 b - - 2 24;a2b1 b7b8 d1d8 b8d8;466;87;endgame mate mateIn2 pillsburysMate short
+oPl8u;3rQk2/2q3p1/2pN1b1p/8/2Pp4/P2P2P1/5P1P/4R1K1 b - - 1 36;d8e8 e1e8;466;86;endgame mate mateIn1 oneMove
+pAgOS;2br4/kB2n1p1/5p2/4p2p/2N5/3r4/1R3PPP/1R4K1 w - - 3 28;b7c8 d3d1 b1d1 d8d1;466;88;backRankMate mate mateIn2 middlegame short
+sPjsg;1k6/ppp4p/2n5/5B2/6p1/PPr5/2P2KPP/4R3 b - - 1 27;c6d4 e1e8;466;89;backRankMate endgame master mate mateIn1 oneMove
+upHFC;2r2rk1/pp3ppp/4p3/2bpP3/2q2P2/2P3Q1/PP4PP/R1B2RK1 w - - 3 18;g1h1 c4f1;466;90;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+Yf8Re;5b1r/3Rpkp1/4N2p/8/p4B2/2P5/R4PPP/1r4K1 w - - 1 31;f4c1 b1c1 d7d1 c1d1;467;88;backRankMate hangingPiece mate mateIn2 middlegame short
+bQhmr;6k1/pp3ppp/2p3r1/8/2PQ4/P7/1P2qP1K/8 b - - 6 41;e2e1 d4d8 e1e8 d8e8;467;83;endgame mate mateIn2 short
+kUzpS;6k1/pp3ppp/8/3pq3/4R3/1Pr4P/P1PQ1PP1/6K1 b - - 0 22;d5e4 d2d8 e5e8 d8e8;467;85;endgame mate mateIn2 short
+BJE8r;1n1r2k1/5ppp/8/p7/P7/7P/5PP1/2R3K1 b - - 0 26;d8d4 c1c8 d4d8 c8d8;468;90;backRankMate endgame fork mate mateIn2 short
+CJZb3;r2qkb1r/pppb1ppp/3P1n2/4p1N1/2Q5/8/PPPP1PPP/RNB1K2R b KQkq - 0 8;f8d6 c4f7;468;90;attackingF2F7 mate mateIn1 oneMove opening
+FXcxK;5q1k/4N1p1/p6p/4p2Q/p2b4/8/6PP/5RK1 w - - 1 36;g1h1 f8f1;468;87;endgame hangingPiece mate mateIn1 oneMove
+I7JQj;3b1r1k/2p3p1/1p1pq2p/1P3p2/8/2Q1P3/5PPP/B1R3K1 b - - 1 29;h8h7 c3g7;468;87;endgame master mate mateIn1 oneMove
+TfRa3;r2q1rk1/pp3ppp/4b3/1Q4b1/8/2B5/PPP2PPP/2KR1B1R w - - 1 16;c1b1 d8d1;468;89;hangingPiece mate mateIn1 middlegame oneMove queensideAttack
+Yx5DG;4rk1b/R6p/3BR3/6p1/3p1p2/3K3P/Pr3PP1/8 b - - 11 41;f8g8 e6e8;468;89;endgame hangingPiece mate mateIn1 oneMove
+kIQPu;3rr1k1/pbp2ppp/2p5/8/2P5/5B2/P1P2PPP/R3R1K1 b - - 0 16;d8d2 e1e8;468;90;backRankMate endgame hangingPiece mate mateIn1 oneMove
+p4rTo;4Q3/ppkr1n2/8/q3p3/3p2P1/8/PPP4B/2KR4 w - - 11 34;d1e1 a5e1;468;86;endgame hangingPiece mate mateIn1 oneMove
+4IIbg;k6r/pp3pp1/7p/5B2/8/1PR1R3/5PPP/qQ1r2K1 w - - 1 25;b1d1 a1d1 e3e1 d1e1;469;88;endgame hangingPiece mate mateIn2 short
+6TJwr;2r2Q1k/4p2p/p2p2pB/1p6/4P3/1P1P2NP/qbP3P1/5R1K b - - 0 28;c8f8 f1f8;469;88;endgame kingsideAttack mate mateIn1 oneMove pillsburysMate
+8VCGN;r4rk1/4bpp1/1p2pn1p/pPp2b2/5P2/PqB1PNQ1/3PB1PP/3R1RK1 b - - 3 18;f6e4 g3g7;469;88;kingsideAttack mate mateIn1 middlegame oneMove
+AkH9E;rk5r/pp3pp1/7p/1N2n3/1n3Nb1/5B2/PP1R2PP/2KR4 b - - 0 22;g4f3 d2d8 h8d8 d1d8;469;88;mate mateIn2 middlegame queensideAttack short
+Czhf3;2rr2k1/4bppp/2q1p3/3nB2P/p2PN1Q1/1pP5/1P3PP1/2R1R1K1 b - - 1 24;f7f5 g4g7;469;83;kingsideAttack mate mateIn1 middlegame oneMove
+LTR3z;rnbqkb1r/pppnp2p/6p1/3p1PPQ/8/8/PPPPBP1P/RNB1K1NR b KQkq - 1 6;g6h5 e2h5;469;90;bodenMate mate mateIn1 oneMove opening
+QKhyI;2k5/1pp2p2/p1qb1B1p/4p3/7p/2N4P/PPP2PP1/3R2K1 b - - 1 21;d6b4 d1d8;469;88;endgame mate mateIn1 oneMove operaMate
+TcRDD;5rk1/ppp3pp/4B3/8/3q4/8/P5PP/1N3Q1K b - - 0 20;g8h8 f1f8;469;89;endgame hangingPiece mate mateIn1 oneMove
+Y7WzD;r3r1k1/pp3ppp/5b2/3R4/8/6B1/PPP2PPP/4R1K1 w - - 1 18;c2c3 e8e1;469;89;backRankMate endgame hangingPiece mate mateIn1 oneMove
+oIimo;8/8/6P1/5r1P/6k1/8/P4pP1/2Q4K w - - 2 44;c1f1 f5h5;469;86;endgame master mate mateIn1 oneMove queenRookEndgame
+x3r9s;r2q1rk1/ppp1bppp/2np1n2/4p1N1/2P5/P1N1P3/1PQPKPPP/R1B4R b - - 0 9;f6g4 c2h7;469;87;kingsideAttack mate mateIn1 middlegame oneMove
+0l7TR;8/8/1p4P1/p4k1K/P3p3/8/1P2R3/5r2 w - - 1 42;e2g2 f1h1 g2h2 h1h2;470;87;endgame mate mateIn2 rookEndgame short
+3lzGn;2r2r1k/5pnQ/p2b1N2/1p5R/3P1P2/7P/2q3P1/5RK1 b - - 0 27;c2h7 h5h7;470;88;arabianMate mate mateIn1 middlegame oneMove
+BTyZF;4R3/P1R5/1P1k4/7p/5P2/4n1P1/r7/1r2K3 w - - 9 57;c7c1 b1c1;470;83;endgame hangingPiece master masterVsMaster mate mateIn1 oneMove
+TNTAS;5k2/8/p2R1K2/1p4pp/4P3/1P6/1Pr3PP/8 b - - 4 42;c2g2 d6d8;470;90;endgame mate mateIn1 oneMove rookEndgame
+Ua7tq;r4rk1/p4ppp/3qp3/2pp4/3P2n1/3Q4/PPPN1PPP/R4RK1 w - - 0 14;d4c5 d6h2;470;87;kingsideAttack mate mateIn1 middlegame oneMove
+UqtMS;r2q1rk1/pp3pp1/2p1pb1p/3nB3/3PQ1P1/2PB4/P1P4P/4RRK1 b - - 4 18;f6e5 e4h7;470;89;mate mateIn1 middlegame oneMove
+btM8X;r2Q2k1/pp3r1p/2p3qB/4p2p/1PP1Pp2/2N4b/P4PPP/3RR1K1 b - - 2 20;a8d8 d1d8 f7f8 d8f8;470;88;kingsideAttack mate mateIn2 middlegame operaMate short
+mbg1C;2r3k1/pp3ppp/5q2/3p1n2/3Pp3/PP2P1PP/3N1n2/1KQ3NR b - - 1 28;f2h1 c1c8 f6d8 c8d8;470;87;backRankMate hangingPiece mate mateIn2 middlegame short
+oP7cX;3r3k/3r2pp/4p3/5p2/P3b1Q1/4B1P1/5P1P/R5K1 w - - 0 35;g4g5 d7d1 a1d1 d8d1;470;89;endgame mate mateIn2 pillsburysMate short
+vtYvw;6k1/1p4rp/1p6/3q1p2/P3n3/5R2/7P/4QR1K b - - 5 33;e4d2 e1e8;470;90;endgame master mate mateIn1 oneMove
+15Fdq;1k4r1/ppp1n3/7r/3P4/5p2/8/PBP1RKP1/4R3 b - - 0 28;e7d5 e2e8 g8e8 e1e8;471;84;backRankMate endgame mate mateIn2 short
+8S9Vx;r3Q1k1/1pqn1p1p/p2p2pB/2pP4/P2b1P2/3B3P/2P3P1/4R2K b - - 4 20;a8e8 e1e8 d7f8 e8f8;471;89;kingsideAttack mate mateIn2 middlegame operaMate short
+QZhVr;3r2k1/1p3pbp/p1p3p1/R2Pp3/1P6/2P1B3/1P3PPP/6K1 w - - 1 23;d5c6 d8d1;471;90;backRankMate endgame master masterVsMaster mate mateIn1 oneMove
+Qm2S7;4r1k1/p1p2ppp/2pb4/3p4/5N2/6Pb/PPP2P1P/R1BQq1K1 w - - 2 18;d1e1 e8e1;471;89;kingsideAttack mate mateIn1 middlegame oneMove pillsburysMate
+k7mzV;5r1k/6pp/3Q4/1p6/p7/P2p3P/1q3PPK/8 b - - 1 38;d3d2 d6f8;471;90;endgame hangingPiece mate mateIn1 oneMove
+lA0Gh;1k1r3r/ppp2ppp/8/2b1P3/6Q1/2Pq4/PP1P2PP/R1B2R1K w - - 3 15;b2b4 d3f1;471;86;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+uX5jD;r5k1/pp1b1p2/4pp1p/q1P5/2P5/8/PPB2PPP/3RR1K1 w - - 0 20;d1d7 a5e1;471;88;endgame hangingPiece kingsideAttack mate mateIn1 oneMove
+2S9Sl;5k1r/ppq2ppp/8/1B6/4Q1n1/1PP1bN2/P7/R4K2 b - - 3 24;h7h5 e4e8;472;90;mate mateIn1 middlegame oneMove
+EEGFC;6k1/5p1p/4p1p1/pR2P3/8/P2p3P/1Pr2PP1/5K2 w - - 0 35;b5b3 c2c1;472;83;endgame mate mateIn1 oneMove rookEndgame
+JJ0wS;4k2r/1r3ppp/pnR2nb1/3p4/3P4/B3PP2/PP4PP/2R3K1 b k - 3 26;f6d7 c6c8 b6c8 c1c8;472;87;mate mateIn2 middlegame pillsburysMate sacrifice short
+K08D4;r3k1r1/pp2bp2/5p1p/2pp3b/3P4/1BP2NPq/PP2QP2/R3R1K1 b q - 0 17;h5f3 e2e7;472;87;mate mateIn1 middlegame oneMove
+Kkxtv;6k1/p2r1p2/4b1p1/6p1/5p2/2N4P/PPP1R1P1/1K6 w - - 0 28;c3e4 d7d1;472;88;endgame master mate mateIn1 oneMove
+WwD2e;r4rk1/1p2b1pp/p1pp4/3P4/2PQ4/1P2P1Pq/PB2Nn1P/R5KR b - - 1 17;f2h1 d4g7;472;89;kingsideAttack mate mateIn1 middlegame oneMove
+nfG8Q;2rqk2r/1b3pp1/p3p3/1pnpP3/5Q2/2P4P/PP1N2P1/1BR2RK1 b k - 0 19;h8h4 f4f7;472;89;attackingF2F7 mate mateIn1 middlegame oneMove
+EDDwe;2k3r1/ppp5/2q5/5B2/3Q4/2P5/PP3PrP/3R3K b - - 2 32;c8b8 d4d8 g8d8 d1d8;473;90;backRankMate endgame mate mateIn2 sacrifice short
+K3Zco;r4rk1/2Q2ppp/p1p3n1/1q6/3P4/2P5/PP4PP/R1B2R1K w - - 1 19;a2a4 b5f1;473;88;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+NZKGy;r1r3k1/4bppn/p1qpb3/7P/Np2P3/1P2QP2/2P1B3/2KR2NR w - - 2 24;f3f4 c6c2;473;86;mate mateIn1 middlegame oneMove queensideAttack
+OAnyD;1r3rk1/1b1n1pb1/2qp1npp/1p2p3/1P6/P1NPBNP1/2Q1PPBP/1R3RK1 w - - 5 18;f3e5 c6g2;473;88;kingsideAttack mate mateIn1 middlegame oneMove
+RipMC;Q4r1k/6pp/1p6/p3PR2/q2P4/2P5/1P5P/5RK1 b - - 0 27;f8a8 f5f8 a8f8 f1f8;473;90;backRankMate endgame mate mateIn2 queenRookEndgame short
+TUNXD;2qR2k1/6r1/2p1p1P1/2n1Np2/1p3P1P/pP6/P7/1K1Q4 b - - 1 41;c8d8 d1d8;473;83;endgame hangingPiece mate mateIn1 oneMove
+VV9SF;1Q6/5pbk/7p/p3n3/2q5/P1P2R2/6PP/5R1K w - - 5 36;f3g3 c4f1;473;90;endgame hangingPiece master masterVsMaster mate mateIn1 oneMove
+XWcl1;3qr1k1/5p1p/5bpB/1QP2b2/3pp3/8/4BPPP/5RK1 b - - 2 26;d8c7 b5e8;473;90;hangingPiece mate mateIn1 middlegame oneMove
+nH8VH;r3k2r/p4ppp/2p1b3/q7/3b4/8/PP3PPP/RN1QR1K1 w kq - 0 15;d1d4 a5e1;473;87;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+qex8G;rk2Qr2/ppp4p/8/2q3b1/3R4/N1P5/PP4PP/4R1K1 b - - 4 22;f8e8 e1e8 g5d8 e8d8;473;88;backRankMate mate mateIn2 middlegame short
+u64FD;2r5/p3R3/k4N2/5p2/3P1P2/4P1rp/PP6/K1R5 w - - 3 46;c1c8 g3g1 c8c1 g1c1;473;90;backRankMate endgame mate mateIn2 short
+4zw1R;8/Q7/5k2/7p/2P2p1P/1P1r2p1/P5P1/6K1 w - - 0 36;a7c5 d3d1;474;88;endgame mate mateIn1 oneMove queenRookEndgame
+DWWkr;4r2k/5p2/3p1n1p/R2P1qp1/8/6P1/6PP/1Q5K w - - 0 33;b1f5 e8e1 f5f1 e1f1;474;89;backRankMate endgame mate mateIn2 short
+GoSsx;5r1k/pp3Npp/n1p5/3p2q1/3P4/P1N5/1PP2PP1/4RRK1 b - - 1 21;f8f7 e1e8 f7f8 e8f8;474;90;backRankMate endgame mate mateIn2 short
+Qquwu;r5r1/1p1k1p1p/4p3/1p2q2b/3p4/1P1P3P/P1PQ1P1B/RN2K1R1 w Q - 3 20;h2e5 g8g1;474;87;hangingPiece mate mateIn1 middlegame oneMove pillsburysMate
+UH27S;4Q2k/p1q2rpp/2p5/1p3pr1/2B5/2P4P/PP3P2/3R1K2 b - - 1 30;f7f8 e8f8;474;89;endgame hangingPiece mate mateIn1 oneMove
+UIO6g;2r3k1/rN2R1p1/8/6Np/p6P/PnPb4/8/3K3R b - - 0 33;c8c3 e7e8;474;83;master mate mateIn1 middlegame oneMove
+VPTmV;r4rk1/5p2/1p4R1/p1pP4/8/2q5/6QP/6RK b - - 0 35;f7g6 g2g6 c3g7 g6g7;474;88;endgame mate mateIn2 short
+Vk06A;2R1n1k1/pp3ppp/8/1Q1p4/8/5PBb/PP3P1P/1q4K1 w - - 3 22;b5f1 b1f1;474;89;endgame mate mateIn1 oneMove
+hDlaJ;rnb2rk1/pp1p1ppp/4p3/2pP2B1/2P1Q3/3BP3/qb3PPP/1R1K2NR b - - 2 11;b8a6 e4h7;474;88;kingsideAttack mate mateIn1 middlegame oneMove
+pz7bU;2r3k1/6p1/p1b1p2p/7P/2P3q1/2B5/PPQ2P1R/K2r4 w - - 0 33;c2d1 g4d1;474;85;backRankMate endgame hangingPiece mate mateIn1 oneMove
+xPDB5;6k1/p6p/1b3p2/4pQ2/2q3p1/6Pb/P4P1P/3RN1K1 w - - 2 29;f5f6 c4f1;474;90;endgame master mate mateIn1 oneMove
+xniwu;3r2k1/2q2pp1/p4b1p/1pp5/8/2P3P1/PP2QP1P/1B2R1K1 b - - 2 31;c5c4 e2e8 d8e8 e1e8;474;87;endgame kingsideAttack mate mateIn2 pillsburysMate sacrifice short
+64XGX;5r2/pp4kp/2p3p1/4P3/2bP4/2P5/2B3PP/R5K1 w - - 2 32;a1a7 f8f1;475;88;endgame mate mateIn1 oneMove operaMate
+IQ1sp;5rk1/5r2/pR6/2pPp2p/2P3p1/4RPPb/4B2P/6K1 w - - 0 32;f3g4 f7f1 e2f1 f8f1;475;88;endgame mate mateIn2 operaMate sacrifice short
+IsQh5;3r1r2/pp2q1pk/5N1p/2p1b3/2P5/1P4P1/P3nP1P/1Q3R1K b - - 1 25;h7h8 b1h7;475;87;mate mateIn1 middlegame oneMove
+WRVTe;3rk2r/p2q2pp/5p2/bp1BP3/4b3/1Q6/P3NPPP/B4K1R w k - 0 20;d5e4 d7d1 b3d1 d8d1;475;88;backRankMate fork mate mateIn2 middlegame short
+bR9r6;r4rk1/1pb2ppp/p2qpB2/8/P2P4/2N2b2/1PP1QPPP/R4RK1 w - - 0 14;e2f3 d6h2;475;89;kingsideAttack mate mateIn1 middlegame oneMove
+gqb4Z;7k/6rp/p4Q2/1p6/2p5/4p2P/PPPq2P1/5R1K w - - 1 34;f6e5 d2g2;475;88;endgame mate mateIn1 oneMove
+lH7zI;5B2/5p2/3P1N1R/6pb/8/5k2/PP1r1P1P/6K1 w - - 5 41;f6h5 d2d1;475;86;endgame mate mateIn1 oneMove
+ueaae;r2r2k1/p5pp/1p2p3/2pnN3/2P2P2/P3B3/3R2PP/3R2K1 b - - 0 23;d5e3 d2d8 a8d8 d1d8;475;88;endgame mate mateIn2 short
+vpM3C;r1b2rk1/ppq3pp/4p3/3p4/6Q1/P1B5/1P3PPP/2R2RK1 b - - 0 17;c8d7 g4g7;475;87;kingsideAttack mate mateIn1 middlegame oneMove
+MuSGX;5Qk1/4Rp2/p5q1/1r3b1N/3P3P/8/P5P1/4R1K1 b - - 0 32;g8f8 e7e8;476;87;endgame master mate mateIn1 oneMove
+Vkr4U;r4rk1/4bppp/p3pn2/3p2B1/Nq6/3R1Q2/PPP2PPP/4R1K1 w - - 6 18;b2b3 b4e1;476;83;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+g89Rj;2rq1rk1/1p1nbppp/p1n1p3/3pP1N1/3P1P2/P1NQB3/1P4PP/3R1RK1 b - - 0 16;h7h6 d3h7;476;86;mate mateIn1 middlegame oneMove
+pIzUm;8/8/1R6/1p6/p1pB4/P1P2k1K/8/5r2 w - - 14 61;b6e6 f1h1;476;85;endgame master mate mateIn1 oneMove
+uEQpt;1k6/5R2/1K6/2P5/5p1r/8/8/8 b - - 9 55;h4h1 f7f8;476;87;endgame master mate mateIn1 oneMove rookEndgame
+KRlxT;7r/P7/2R5/2p5/2Pb1P2/5kP1/7K/8 w - - 1 54;c6h6 h8h6;477;89;endgame hangingPiece mate mateIn1 oneMove pillsburysMate
+LVwEr;r5k1/3Rpp1p/p4Pp1/1p4b1/4N1P1/3R4/P3p1PK/2r5 b - - 0 30;e2e1q d7d8 a8d8 d3d8;477;90;mate mateIn2 middlegame short
+Mmh5J;6k1/5p1p/4p1p1/1p2P3/1q3n2/1P3P2/2Q3PP/6RK w - - 3 41;g1e1 b4e1;477;86;endgame hangingPiece mate mateIn1 oneMove
+NnkWu;5rrk/pp4q1/2pNPn1p/8/1PPQ4/P6P/5PP1/4RRK1 w - - 1 27;d6f5 g7g2;477;87;kingsideAttack mate mateIn1 middlegame oneMove
+doGVm;4rbk1/1Q6/2p1p2p/2P1p3/N3P3/5qP1/PP6/1K1R4 w - - 0 28;b7c6 f3d1;477;88;endgame hangingPiece mate mateIn1 oneMove
+glZ7X;1R6/2p2kpp/2b5/2Bp1P2/8/2P3P1/2r4P/6K1 b - - 0 37;c2c3 b8f8;477;82;endgame mate mateIn1 oneMove operaMate
+lNagJ;6k1/5ppp/2p1p3/q3B3/8/4PbP1/1Q5P/2K5 b - - 2 32;a5d5 b2b8 d5d8 b8d8;477;83;endgame mate mateIn2 short
+oskez;rnb2rk1/5ppp/p3pq2/1p6/3PQ3/3B1N2/PP3PPP/R4RK1 b - - 1 15;a8a7 e4h7;477;87;kingsideAttack mate mateIn1 middlegame oneMove
+wDuVB;r1b2rk1/pn5p/2pQ2p1/5p2/1PB1p2q/P1b3N1/2P2PPP/R1B2RK1 b - - 3 18;g8h8 d6f8;477;89;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+08wWv;2k5/ppp2ppp/1r6/8/2P3q1/N3Q1Pb/PP3P1P/R5K1 b - - 0 20;b6b2 e3e8;478;89;endgame mate mateIn1 oneMove
+3SodL;r2r2k1/p3bpp1/5n1B/q6b/8/2NP2Q1/PP3PPP/R4RK1 b - - 0 22;e7d6 g3g7;478;90;kingsideAttack mate mateIn1 middlegame oneMove
+4mIuf;1r1q1r1k/3n1pbP/3pQ3/p1p5/3P1P1N/6P1/PPP5/2KR3R b - - 0 21;f7e6 h4g6;478;88;mate mateIn1 middlegame oneMove
+BfrWx;2kr3r/ppp2ppp/2p5/4Nb2/4n3/2P1R3/PPP2PPP/R1B3K1 w - - 3 12;e5f7 d8d1 e3e1 d1e1;478;90;kingsideAttack mate mateIn2 middlegame short
+KAYjQ;6k1/p3r1pp/1p1Rpn2/2p1N3/5P2/5KPP/PP6/8 b - - 7 28;f6d5 d6d8 e7e8 d8e8;478;89;endgame mate mateIn2 short
+Rq30O;5rk1/1Q3p1p/1p1P2p1/p7/P2R4/4P3/2qn1PPP/5RK1 w - - 0 32;f1d1 c2d1;478;89;backRankMate endgame hangingPiece mate mateIn1 oneMove
+UYg2E;3r2k1/ppp2pp1/2n5/7p/5bP1/2B5/PPP2P2/1K1B3R w - - 0 20;h1h5 d8d1;478;89;backRankMate endgame hangingPiece mate mateIn1 oneMove
+WJmFP;2kr1b1r/ppp2ppp/5n2/3Np3/4P3/8/PPP2PPP/R1BR2K1 w - - 4 13;d5f6 d8d1;478;90;backRankMate hangingPiece mate mateIn1 middlegame oneMove
+dWBCZ;2kr3r/ppbn1ppp/2pq1n2/8/PPBP4/2P2P2/3N1BPP/R2QK2R w KQ - 3 14;e1g1 d6h2;478;86;kingsideAttack mate mateIn1 middlegame oneMove
+hJYre;1qQ1k3/pp1n1p2/4pn2/3p2N1/1B1PP3/P6B/1P3rPr/2R3K1 b - - 1 25;b8c8 c1c8;478;82;mate mateIn1 middlegame oneMove pillsburysMate
+kxRRZ;3Q2k1/4r1pp/p4b2/1p2N3/P1pP1q2/2P4b/5PP1/6K1 b - - 1 35;e7e8 d8e8;478;87;endgame hangingPiece mate mateIn1 oneMove
+p4CRf;2R5/8/8/8/8/5K1k/6pp/8 b - - 1 64;g2g1q c8h8;478;90;endgame mate mateIn1 oneMove queenRookEndgame
+pIIrj;r2qkb1r/1p1n1pp1/2p1p2p/p3N2P/3P1Q2/6N1/PPP2PP1/2KR3R b kq - 0 15;f8e7 f4f7;478;90;attackingF2F7 mate mateIn1 middlegame oneMove
+38Gfc;r2qkb1r/pp1Bpp1p/4b1p1/3pN3/8/5Q2/PPPP1PPP/R1B1K2R b KQkq - 0 10;e6d7 f3f7;479;88;attackingF2F7 mate mateIn1 middlegame oneMove
+3nlQK;4r2k/4Q1pp/3p4/1q2p3/4B1P1/4P2P/1PP5/5RK1 b - - 0 23;e8e7 f1f8;479;89;endgame mate mateIn1 oneMove
+NTNBj;r6k/1p3Q2/p5np/P2PP1p1/2q1N1P1/2P5/1P5P/5R1K w - - 1 38;f7g6 c4f1;479;90;endgame hangingPiece mate mateIn1 oneMove
+Sw5ku;5rk1/pp3p1p/8/6q1/6b1/6R1/PP2PPPP/1Qr1KB1R w K - 7 18;b1c1 g5c1;479;90;hangingPiece mate mateIn1 middlegame oneMove
+dB1TX;6k1/1p2p1b1/3p4/6Rn/1q2P2P/1r6/2P5/1KQ3R1 w - - 0 30;c2b3 b4b3 c1b2 b3b2;479;85;endgame mate mateIn2 short
+kRXUl;r1b2rBk/1ppnq1p1/p3p2p/3pP1N1/3P2pP/2P5/PPQ2P2/R3K2R b KQ - 5 17;h8g8 c2h7;479;89;mate mateIn1 middlegame oneMove
+wajVO;3r2k1/1qp2ppp/p4r2/2P1Q1N1/2p5/8/5PPP/4RBK1 b - - 0 26;h7h6 e5e8 d8e8 e1e8;479;85;mate mateIn2 middlegame sacrifice short
+zN9wp;5R2/8/7k/6pP/4n1B1/6PK/5r2/8 w - - 1 40;f8f2 e4f2 h3h2 f2g4;479;89;crushing endgame short
+8G37Z;5r1r/pp1kb1Np/4ppn1/1q1pP3/3P4/2P5/P1Q3PP/R1B2R1K w - - 0 20;a2a4 b5f1;480;88;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+A8cmA;R5k1/5p2/7p/p4K2/1b1B4/8/5PrP/8 b - - 1 40;g8h7 a8h8;480;89;endgame master mate mateIn1 oneMove operaMate
+I1SVA;r1bq1rk1/p1p2ppp/2pp4/8/1b1QP3/5N2/PB3PPP/R4RK1 b - - 1 12;b4c5 d4g7;480;89;kingsideAttack mate mateIn1 middlegame oneMove
+Lpi5h;4r1k1/p4pp1/7p/3P4/6P1/2B4P/PP1R4/K7 w - - 3 40;d5d6 e8e1 d2d1 e1d1;480;87;backRankMate endgame mate mateIn2 short
+WwDjH;r1bq2k1/ppp2ppp/8/3n1r2/4PP2/1P4P1/P1P3BP/R2Q1RK1 b - - 0 14;d5e3 d1d8;480;89;backRankMate hangingPiece mate mateIn1 middlegame oneMove
+mdZGz;6k1/1b2bppp/p3p3/1p2N3/1P3PP1/P5BP/4Q2K/2r3Rq w - - 4 30;g1h1 c1h1;480;85;master mate mateIn1 middlegame oneMove operaMate
+2uyVT;rn2k2r/ppq1ppb1/1n1p2p1/6Bp/3P2bP/2PB1N2/PP1NQPP1/R3K2R b KQkq - 5 11;b8d7 e2e7;481;87;mate mateIn1 middlegame oneMove
+5nUcm;Q1b3k1/p1q1r1pp/5p1B/1pp5/6R1/1PPP4/2P2PPb/4R1K1 w - - 0 23;g1h1 e7e1;481;90;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+7cUFW;r2Q1k1r/p3ppbp/q1p3p1/8/2p2B2/1P2P3/4KPPP/3R1B1R b - - 5 20;a8d8 d1d8;481;84;backRankMate mate mateIn1 middlegame oneMove
+A7PrR;1r2B2k/2p2rpp/3p2q1/8/QP2n3/5pPP/Pb3P2/2B2RK1 b - - 1 28;b8e8 a4e8 f7f8 e8f8;481;86;hangingPiece kingsideAttack mate mateIn2 middlegame short
+Dk0yJ;5rbk/pp2Q1pp/3N4/8/8/P1q2P2/6PP/4R2K w - - 2 35;e7f8 c3e1;481;83;backRankMate endgame hangingPiece master mate mateIn1 oneMove
+E7R3Q;r2q1rk1/ppp2ppp/1b6/3P4/1n2PPbN/2Q3P1/PB2N1BP/R4K2 b - - 2 19;a7a5 c3g7;481;89;kingsideAttack mate mateIn1 middlegame oneMove
+EgvN5;4r1k1/pp6/8/1q2r1pp/3P3P/5pQ1/P1P2P1B/1R3K2 w - - 2 32;b1b5 e5e1;481;87;endgame mate mateIn1 oneMove
+EqIIh;r3br1k/6p1/3Q2Pp/p1pPp1bP/1p2Pp2/1P3P2/q1P1N3/1NKRB3 b - - 0 28;a5a4 d6f8;481;89;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+YipRQ;k4r2/p6p/2pP1pp1/3p2P1/1n1P1PqP/1Q6/PP6/1K1R4 w - - 2 30;b3b4 g4d1;481;82;endgame hangingPiece master mate mateIn1 oneMove queensideAttack
+re37K;6k1/5pp1/4p2p/p1rp4/P7/3B3P/r4PP1/1R4K1 b - - 1 30;a2a4 b1b8 c5c8 b8c8;481;90;endgame mate mateIn2 pillsburysMate short
+UFCNX;3r1k2/1p2pp1p/p1n4b/5p2/2p2N2/5PQ1/PPP3PP/1K1r3R w - - 4 21;h1d1 d8d1;482;90;backRankMate endgame mate mateIn1 oneMove
+WmR28;r4r2/5pbk/p2ppqp1/1p4R1/4P3/4BP1P/PPP1Q3/1K4R1 w - - 2 21;h3h4 f6b2;482;90;master mate mateIn1 middlegame oneMove queensideAttack
+g7XHI;r3Q1k1/pp3ppp/1bp5/2N2q2/2P5/7P/PP3PP1/4R1K1 b - - 4 26;a8e8 e1e8;482;90;backRankMate endgame mate mateIn1 oneMove
+hEQTt;5rk1/1p3pp1/p3bn1p/3p4/PqNQ1N2/6R1/5PPP/4R1K1 w - - 1 21;d4f6 b4e1;482;84;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+2p0oW;3r3k/p4p1p/1p3Pp1/2p5/7P/1P2Q1P1/P3RK2/2q5 b - - 4 45;c1h1 e3e8 d8e8 e2e8;483;88;endgame mate mateIn2 sacrifice short
+BfQXe;r1bq2kr/pp2b2p/2n2p1B/2pQ4/2B5/8/PPP2PPP/R3K1NR b KQ - 0 14;d8d5 c4d5 c8e6 d5e6;483;90;bodenMate kingsideAttack mate mateIn2 opening short
+KbJui;3Q1nk1/5p1r/3p4/pp1P4/2b2R2/4q1P1/P4NP1/1B1Rr1K1 w - - 13 37;d1e1 e3e1;483;90;mate mateIn1 middlegame oneMove
+Kqw0T;2r1R1k1/3Q1p1p/p5pP/1p6/8/8/P1qB1PP1/6K1 b - - 8 34;c8e8 d7e8;483;88;endgame mate mateIn1 oneMove
+O7tVz;3r2k1/pp3p1p/3rp1p1/2p5/3B4/1PP1RQ2/P4PPP/1b4K1 w - - 0 22;d4c5 d6d1 f3d1 d8d1 e3e1 d1e1;483;89;backRankMate endgame long mate mateIn3
+d4oaN;8/2k5/p1p4r/1p6/4PbB1/8/PPP5/1K3R2 w - - 0 38;f1f4 h6h1 f4f1 h1f1 g4d1 f1d1;483;89;backRankMate endgame long mate mateIn3
+fgPpQ;1rb1r1k1/3nbppp/pp1ppn2/4P3/P1qN1P2/2N2BQ1/1PP3PP/R1B2R1K w - - 1 15;d4c6 c4f1;483;90;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+FokQF;r1b2rk1/1p3ppp/p1nbp3/8/1qPP4/1N1Q1N2/P3nPPP/1B3R1K b - - 1 18;e2f4 d3h7;484;90;kingsideAttack mate mateIn1 middlegame oneMove
+JHvJV;8/p7/3B1R2/4P2p/2Pb2kP/2Nr1p2/1P6/5K2 w - - 3 49;c3e4 d3d1;484;86;endgame master mate mateIn1 oneMove pillsburysMate
+eqHGK;8/1p4k1/1N2p1p1/4P2p/6n1/4Q1Pb/7P/3r2KB w - - 1 41;e3e1 d1e1;484;88;endgame hangingPiece master mate mateIn1 oneMove
+eyuMf;Q6k/3q1rpp/8/4p2P/p7/P2N2b1/2P3K1/8 b - - 1 36;f7f8 a8f8;484;83;endgame hangingPiece mate mateIn1 oneMove
+jwecO;1k6/ppp2ppp/8/8/8/6Q1/PP3PPP/3rrBK1 w - - 2 23;h2h4 e1f1 g1h2 f1h1;484;89;endgame mate mateIn2 short
+32sUU;k4R2/1p6/pBp1q3/8/1P5b/P7/7P/7K b - - 0 39;e6c8 f8c8;485;85;endgame hangingPiece mate mateIn1 oneMove pillsburysMate
+39AOm;2k3r1/7p/p1prpP2/8/5P2/2P2q2/PP5P/R1B2R1K w - - 0 25;f1f3 d6d1 f3f1 d1f1;485;89;endgame mate mateIn2 short
+BqV3T;r3k2r/1ppb1pb1/p1np1q1p/6p1/4P2B/1N3P2/PPPQ2PP/2KR1B1R w kq - 0 15;h4f2 f6b2;485;87;mate mateIn1 middlegame oneMove queensideAttack
+S8AV5;3r2k1/5ppp/6nq/1B2p3/4P2P/1bP1N3/1P1R1PP1/2K5 b - - 0 26;g6f4 d2d8;485;84;backRankMate hangingPiece mate mateIn1 middlegame oneMove
+XwRmU;r2n1rk1/1p3ppp/8/pP6/P3Q3/3B1K2/3q2PP/1R5R b - - 1 24;d8e6 e4h7;485;87;mate mateIn1 middlegame oneMove
+YftQw;2r5/3R4/k4N2/p5pp/P3Pb2/3P3P/1P3PP1/6K1 w - - 1 33;f6h5 c8c1;485;89;endgame mate mateIn1 oneMove pillsburysMate
+ariqG;k2r4/p1R1N3/Kp3p2/1P5p/5Q2/q7/7N/8 w - - 1 39;f4a4 a3a4;485;86;endgame hangingPiece mate mateIn1 oneMove
+yn1PK;4brk1/p5p1/1p2pq2/3pN3/3Pn1PP/2P5/PPR4Q/3R1rK1 w - - 1 29;d1f1 f6f1;485;90;kingsideAttack mate mateIn1 middlegame oneMove
+DIvgz;r2q3k/ppp2B1p/2np1Bb1/2b1p3/8/3P1Q1P/PPP2PP1/R4RK1 b - - 0 17;d8f6 f3f6;486;88;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+DmkYm;r2qk2r/pppnbpp1/2np2p1/4p1B1/2B1P1P1/3P1Q1P/PPPN1P2/R3K2R b KQkq - 1 11;e7g5 f3f7;486;89;attackingF2F7 mate mateIn1 middlegame oneMove
+bHZsQ;4r3/ppp2pkp/6p1/3B1bN1/3b4/P7/1P1R2PP/R3r2K w - - 2 30;a1e1 e8e1;486;90;backRankMate mate mateIn1 middlegame oneMove
+cCAZn;1b2r1k1/8/p3r2p/1p3R2/8/1P5P/PBP2PP1/R5K1 w - - 1 29;f5f6 e6e1 a1e1 e8e1;486;89;endgame mate mateIn2 pillsburysMate short
+lQrag;8/P4Qpk/3p3p/4p3/4n3/1N6/2P2bPP/4qBK1 w - - 0 35;g1h1 e1f1;486;90;endgame hangingPiece mate mateIn1 oneMove
+rOIUs;2n1r2k/1p3qp1/p2bQ2p/2pP4/P1Pp4/1P6/5PPP/2B1R1K1 w - - 0 28;e6f7 e8e1;486;86;endgame hangingPiece kingsideAttack mate mateIn1 oneMove
+v1POm;2qR2k1/pb3pp1/1p2p3/4b1Np/1P6/8/P4PPP/3R2K1 b - - 1 31;c8d8 d1d8;486;87;endgame hangingPiece master mate mateIn1 oneMove
+wPH7h;2r3k1/5pp1/p3p2p/2rpP3/1q1N4/1P6/1B1Q1PPP/6K1 w - - 0 29;d2b4 c5c1 b2c1 c8c1 b4e1 c1e1;486;82;backRankMate endgame long mate mateIn3 sacrifice
+3THwu;1k2q3/ppp3Qp/8/2b2N2/6P1/P7/1PP5/2K5 w - - 0 33;g7h7 e8e1;487;84;endgame mate mateIn1 oneMove
+4RP9y;2k5/2prrp2/1R2p1pp/p7/P2PP3/4K3/7P/2R5 b - - 0 35;c8d8 b6b8;487;90;endgame mate mateIn1 oneMove rookEndgame
+5TLRH;2kr1bnr/p3pp1p/2p3p1/2p5/4P3/5R2/PPP2PPP/RNB3K1 w - - 1 11;f3a3 d8d1;487;90;backRankMate mate mateIn1 middlegame oneMove
+6r9T4;8/8/5kP1/K4P2/7N/1p6/8/8 w - - 0 59;a5a4 b3b2 a4b3 b2b1q;487;87;advancedPawn crushing endgame knightEndgame promotion short
+73KWo;2k1rb1r/pbpp4/1p6/5Np1/4n1P1/2PB2Pp/PPP4B/R3R1K1 b - - 4 24;e4d2 e1e8;487;83;backRankMate hangingPiece mate mateIn1 middlegame oneMove
+JSLDS;2Rn3k/pp1nr1p1/3Qr1B1/6qP/1P4p1/P5P1/5P2/5RK1 b - - 2 31;e6d6 c8d8 e7e8 d8e8 d7f8 e8f8;487;88;hangingPiece long mate mateIn3 middlegame pillsburysMate
+MY0tt;rnb2k2/pp2rp1p/1bp3pq/4P1N1/8/2NB1QR1/PPP2P1P/2KR4 b - - 0 18;e7e5 f3f7;487;89;mate mateIn1 middlegame oneMove
+YYFG9;2r3k1/1pp2pp1/p1n1r2p/2P4q/1P1p4/P3NPQP/1B3R2/R5K1 b - - 0 26;d4e3 g3g7;487;88;kingsideAttack mate mateIn1 middlegame oneMove
+YymhR;1k3b1r/pppr1Qp1/3p1n1p/4pN2/4P3/2qP1R2/PPP3PP/R1B4K w - - 0 20;f7d7 c3e1 f3f1 e1f1;487;89;kingsideAttack mate mateIn2 middlegame short
+uGXCb;r1bq1rk1/pp1p1pp1/2n1p2p/2b1P3/2n4P/P1N2N2/1PQB1PP1/RB2K2R b KQ - 1 14;c4d2 c2h7;487;90;mate mateIn1 oneMove opening
+2IOMH;5k2/p3bP1r/8/5Q1p/1pp4q/5R2/PPP3P1/1Kr2B2 w - - 0 30;b1c1 h4e1;488;90;endgame mate mateIn1 oneMove
+9G4wZ;4r1k1/7p/7r/P7/PQ1q4/5pP1/5P1P/7K w - - 0 42;b4d4 e8e1;488;87;endgame mate mateIn1 oneMove queenRookEndgame
+BQgMI;r5k1/pp3ppp/2b1r3/3p2q1/P2P4/2N2B2/3Q1PPP/R2n2K1 w - - 0 23;d2g5 e6e1;488;89;master mate mateIn1 middlegame oneMove
+K8UHH;8/8/p5r1/1p1pk1p1/1P3PR1/P2K4/8/8 b - - 0 52;e5f5 g4g5 g6g5 f4g5;488;89;crushing endgame rookEndgame short
+RPaPJ;r4rk1/pbppb1pp/1p2pnq1/4np2/2PP1B2/3BP2P/PP1N1PP1/R2Q1RK1 w - - 0 12;d4e5 g6g2;488;87;kingsideAttack mate mateIn1 middlegame oneMove
+TAz5O;2r2k2/5pp1/7p/R4N2/1r3PK1/8/8/8 b - - 6 42;c8c4 a5a8 b4b8 a8b8 c4c8 b8c8;488;90;endgame long mate mateIn3
+lHkGr;3r1r1k/p4PpQ/bp3b2/3pqP2/3p2P1/1B1P2R1/PPP4P/R1BK4 b - - 0 22;h8h7 g3h3 f6h4 h3h4;488;84;mate mateIn2 middlegame short
+zl2gJ;8/5ppk/1q2p3/p6p/P4P1P/1Q3PP1/1K6/8 b - - 4 42;b6f2 b3c2 f2c2 b2c2;488;90;advantage endgame queenEndgame short
+7q9uc;8/8/8/4K3/p3P3/1k2N3/8/8 w - - 2 56;e5d6 a4a3 e4e5 a3a2;489;90;advancedPawn advantage endgame knightEndgame master short
+BEHLs;rn1qr1k1/1b1p1p1p/p4QpB/1ppP4/8/2P2NP1/P1P2PBP/R3R1K1 b - - 0 15;d8f6 e1e8;489;85;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove pillsburysMate
+N8zhh;r5k1/p4Qpp/1n6/4P3/2p5/8/Pq4PP/5R1K b - - 0 25;g8h8 f7f8 a8f8 f1f8;489;86;backRankMate endgame mate mateIn2 sacrifice short
+OL070;1n3rk1/5ppp/2p1p3/2PpQb2/8/P1n1PN2/1q1N1PPP/R3KB1R w KQ - 2 17;a1c1 b2c1;489;86;hangingPiece mate mateIn1 middlegame oneMove
+OxyLf;r5k1/3KN1pp/8/8/3R3P/8/p7/r7 b - - 1 43;g8f7 d4f4;489;88;endgame epauletteMate mate mateIn1 oneMove
+V73mG;5rk1/5pp1/7p/2b1NN1n/3pP1Q1/p1q2P1P/6P1/5RK1 b - - 5 34;h5f6 g4g7;489;84;mate mateIn1 middlegame oneMove
+ayX99;1r3rk1/3bppbp/1q1p1np1/p1p4P/4P1P1/2N1BP2/PPPQB3/2KR3R w - - 1 15;h5g6 b6b2;489;88;mate mateIn1 middlegame oneMove queensideAttack
+b19gx;r5k1/2p3p1/3b1n1p/q7/p6Q/1P1P4/P1PN1PPP/4R1K1 w - - 2 27;d2c4 a5e1;489;89;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+lFdGd;3q1rk1/p1r2ppp/4pb2/3n4/3PQ2P/2NB1P2/PP3P2/3RK2R b K - 4 17;d5c3 e4h7;489;85;kingsideAttack mate mateIn1 middlegame oneMove
+qVBcF;4r2k/8/5q1p/1p2b1n1/p5RQ/P1P5/4R1PP/7K w - - 2 44;h2h3 f6f1;489;85;mate mateIn1 middlegame oneMove
+uTh2A;6k1/2r4p/8/bR2p3/P2nPp2/8/6PP/2R4K w - - 7 47;b5a5 c7c1;489;90;backRankMate endgame hangingPiece mate mateIn1 oneMove
+v9Cl7;3r4/p3kppp/2p1p3/2n1P3/2N2P2/1P6/P5PP/5R1K w - - 2 26;f1f2 d8d1 f2f1 d1f1;489;84;backRankMate endgame mate mateIn2 short
+4ATYJ;r4rk1/pb3pbp/1p4p1/2pq4/3n4/P2PBN1P/1P2BPP1/1R1Q1RK1 w - - 2 15;f3d4 d5g2;490;84;kingsideAttack mate mateIn1 middlegame oneMove
+4aIv9;rn1qk1nr/p4pb1/1pp1p2p/3pN1p1/2PPB3/BP2PQ2/P4PPP/R3K2R b KQkq - 1 12;d5e4 f3f7;490;89;attackingF2F7 mate mateIn1 middlegame oneMove
+HeYa9;r1b1k1r1/p1p2pq1/2p5/2p4p/2N1P1P1/3P1P2/P1P3P1/R2Q1R1K w q - 0 18;g4h5 g7g2;490;90;kingsideAttack mate mateIn1 middlegame oneMove
+IoaAP;r2q1rk1/pp3ppp/2n1p2n/3pP1N1/3P1PP1/P1PQ4/7P/R1B2RK1 b - - 2 15;h6g4 d3h7;490;86;kingsideAttack mate mateIn1 middlegame oneMove
+K2JVS;4rb1k/pp3p1p/2pp1N2/4np2/8/3P1PRB/PPP2P1P/2K5 b - - 1 20;e8e6 g3g8;490;85;arabianMate endgame mate mateIn1 oneMove
+QAtga;5rk1/2pq3p/1p1p1Rn1/r2Pp2N/2P1P3/4P3/6PP/5RK1 b - - 0 31;g8h8 f6f8 g6f8 f1f8;490;86;kingsideAttack mate mateIn2 middlegame short
+b2JV3;rqr3k1/4bppp/3pb3/p3p3/QpP1P3/4N1P1/PP2BP1P/R2R2K1 b - - 0 21;e7d8 a4e8;490;85;master mate mateIn1 middlegame oneMove
+mUCcz;2r3k1/1pr2pp1/p2bp1q1/3p4/bP1B1P2/1NP3Q1/P1R4P/2R3K1 b - - 0 29;g6e4 g3g7;490;88;kingsideAttack mate mateIn1 middlegame oneMove
+pvmLB;r5rk/p2b2qp/7p/4P3/4N3/2Q4P/PP3PP1/2R2RK1 w - - 6 24;e4f6 g7g2;490;86;mate mateIn1 middlegame oneMove
+t57r0;7k/2p3rn/1p1p1N1R/p2Pp1N1/2P2n2/5P2/PPK5/8 b - - 2 37;g7g5 h6h7;490;86;arabianMate endgame master mate mateIn1 oneMove
+xnO37;6k1/4r1p1/p7/1p5R/5b2/P1P4P/1P4PN/7K w - - 1 41;h5f5 e7e1 h2f1 e1f1;490;88;endgame mate mateIn2 pillsburysMate short
+09p8L;8/R7/5p2/P5p1/4r3/4r1k1/6P1/3R2K1 w - - 16 42;a7f7 e3e1 d1e1 e4e1;491;88;endgame mate mateIn2 rookEndgame short
+lsEYW;2k4N/ppp3pp/5n2/1Pb5/4p1b1/P2rB3/R4PPP/1N2K2R w K - 0 16;e3c5 d3d1;491;85;mate mateIn1 middlegame oneMove operaMate
+o5NEA;r5k1/3qbp2/4pnpp/1pP5/4BP2/p1Q5/6PP/B1R2RK1 b - - 0 27;f6e4 c3g7;491;90;mate mateIn1 middlegame oneMove
+rxm4f;1rb3k1/2q4p/2p2p2/3pp3/8/Q3P2P/4BPP1/5RK1 b - - 0 22;g8h8 a3f8;491;86;endgame master mate mateIn1 oneMove
+yZB4S;5Rk1/p4ppp/5r2/1B1q4/P7/6P1/1P2QP1P/6K1 b - - 0 31;g8f8 e2e8;491;84;endgame mate mateIn1 oneMove
+zdpmf;8/8/7p/2P3p1/1P6/2r2k2/1R5P/6K1 w - - 4 48;b4b5 c3c1;491;88;endgame mate mateIn1 oneMove rookEndgame
+3750W;3r4/7p/1pk2p2/1R2bn2/1PP5/8/5PP1/R6K w - - 5 35;a1a6 d8d1;492;88;endgame mate mateIn1 oneMove pillsburysMate
+3CPGi;r4rk1/1pR3pp/p3p3/4p1b1/P1Np4/1P6/3B2PP/4Rq1K w - - 2 28;e1f1 f8f1;492;82;backRankMate mate mateIn1 middlegame oneMove
+Ne2KA;6r1/5p1k/2p1p1p1/pp5p/3rqP1P/4P1R1/PPP3R1/1K2Q3 w - - 0 33;e3d4 e4e1;492;90;backRankMate endgame hangingPiece mate mateIn1 oneMove
+Q77yu;3r3k/p5p1/1p1q3p/2p4N/5PQ1/1P5P/1P4PK/8 b - - 2 41;d8f8 g4g7;492;89;endgame master masterVsMaster mate mateIn1 oneMove
+SIjwK;r3r1k1/pbp2ppp/1p2p3/1BnqN3/3n4/P3P3/1P2QPPP/R3BRK1 w - - 0 18;e3d4 d5g2;492;90;kingsideAttack mate mateIn1 middlegame oneMove
+XT7un;6k1/1b1n3p/p3p1pn/1pb1P3/2pN2q1/2P3B1/PPQ2rPP/1B2R1K1 w - - 0 24;g3f2 g4g2;492;90;kingsideAttack mate mateIn1 middlegame oneMove
+YO17M;r1br2k1/pp3ppp/4p3/3n4/8/PNQ1BP2/2P3PP/2KR3R b - - 0 16;d5c3 d1d8;492;87;backRankMate hangingPiece mate mateIn1 middlegame oneMove
+c71SY;8/8/4p1k1/3p4/3P1P1Q/4P1p1/1r2N3/1q2K1R1 w - - 1 41;e2c1 b1c1;492;88;endgame hangingPiece mate mateIn1 oneMove
+lP3Gy;r4Qk1/1pq1r2p/pn2b2B/3n4/3P4/2N5/PP5P/4RR1K b - - 1 24;a8f8 f1f8;492;81;mate mateIn1 middlegame oneMove operaMate
+n04FM;3r3k/1Q1r1ppp/1pN1p3/2p5/2P5/1P6/P4PPP/q4RK1 w - - 0 24;f1a1 d7d1 a1d1 d8d1;492;86;backRankMate endgame mate mateIn2 short
+nGDAl;8/8/1P6/1R1p4/3P4/2r1PkB1/5P1P/7K w - - 2 45;b6b7 c3c1;492;83;endgame mate mateIn1 oneMove
+oJ5A7;6r1/p2R1N2/1b2pk1p/8/8/1P4r1/P6P/3R3K w - - 0 35;f7h6 g3g1 d1g1 g8g1;492;84;endgame mate mateIn2 operaMate short
+vl0Q0;1r6/6pk/p5Rp/2p1p3/2B2p2/P4P2/3R2PP/7K w - - 1 33;g6a6 b8b1 d2d1 b1d1 c4f1 d1f1;492;87;backRankMate endgame long mate mateIn3
+wB3rg;1r4k1/5p1p/2r3p1/1P2q3/PQ6/2B1p3/6PP/2R3K1 w - - 0 31;c3e5 c6c1 b4e1 c1e1;492;90;endgame hangingPiece mate mateIn2 short
+wf414;r4rk1/pbb2pp1/1p3n1p/4q3/1P6/P1N1P2P/1BP1BPP1/R3QRK1 w - - 0 18;c3d1 e5h2;492;86;mate mateIn1 middlegame oneMove
+zmpw6;r4rk1/2pq1ppp/2bp1n2/1p6/p3PNPP/1PQP4/PBP5/1K1R3R b - - 0 16;f6g4 c3g7;492;89;kingsideAttack mate mateIn1 middlegame oneMove
+9Rvm3;rn2k1nr/p1p1b1pp/1pq5/8/4Q3/5N2/PP1PPP1P/RNB1K2R w KQkq - 5 11;e4e3 c6c1;493;89;hangingPiece mate mateIn1 oneMove opening
+CeH31;2kr1b1r/ppp3pp/4Bp2/q3pn1P/4n3/2P2N1P/PP3P2/R1BQ1RK1 b - - 2 14;c8b8 d1d8;493;89;hangingPiece mate mateIn1 oneMove opening queensideAttack
+EVToA;r5k1/2R2p1p/6p1/1p6/1Pn5/p3P3/4K2P/B7 b - - 1 37;a8a4 c7c8;493;85;endgame mate mateIn1 oneMove pillsburysMate
+FSyVZ;r5k1/pp3pp1/2p4p/2PpP3/1q6/3Q4/PP3PPP/4R1K1 w - - 6 22;d3c2 b4e1;493;84;endgame hangingPiece kingsideAttack mate mateIn1 oneMove
+JN77b;q3r3/P4pk1/1p1p3p/3br1p1/P2N1p2/1QP2P2/6PP/R3R1K1 w - - 1 29;b3b6 e5e1 a1e1 e8e1;493;87;crushing kingsideAttack master masterVsMaster middlegame short
+Odk4t;r2q1rk1/5p1p/p2pp1p1/2p5/1p1bPPP1/3P4/PPP3P1/R1BQ1R1K w - - 0 16;a1b1 d8h4;493;88;mate mateIn1 middlegame oneMove
+QiE6T;2kr1b1r/ppp2ppp/1N2p1b1/3q4/3PnBP1/2Q4P/PPP1BP2/1K1R3R b - - 5 17;a7b6 c3c7;493;90;mate mateIn1 middlegame oneMove queensideAttack
+RXjlK;r2q1rk1/1p1bbppp/p1p1pn2/3pP1N1/P1PP1P2/2NQB3/1P4PP/R4RK1 b - - 0 13;f6g4 d3h7;493;83;kingsideAttack mate mateIn1 middlegame oneMove
+VpUd4;8/5pkp/p2Q2p1/4p3/P3P3/4qP2/1P4RP/2r4K w - - 7 37;g2g1 c1g1;493;90;endgame mate mateIn1 oneMove
+beWOP;4k3/7P/5K1b/5P2/8/8/8/8 b - - 0 63;e8f8 h7h8q;493;89;advancedPawn endgame mate mateIn1 oneMove promotion
+g34ii;2r2rk1/1p5p/6R1/p2qBn2/4p1Q1/2P5/P4PPP/5RK1 b - - 0 22;h7g6 g4g6 f5g7 g6g7;493;85;mate mateIn2 middlegame short
+k9EDZ;k2r4/pp1Q2pp/5b2/2R5/8/7P/PPP2PP1/6K1 b - - 2 28;d8d7 c5c8;493;89;backRankMate endgame mate mateIn1 oneMove
+oIqp5;4r1k1/1pp2ppp/3p1Q2/p1bP4/8/1P4R1/P2B2PP/1b2r2K w - - 1 25;d2e1 e8e1 f6f1 e1f1;493;87;backRankMate endgame mate mateIn2 short
+t3XjJ;r1b2rk1/ppp2ppp/2n5/8/3P4/2PQnN1P/q4PP1/1BR2RK1 b - - 1 15;a2e6 d3h7;493;89;kingsideAttack mate mateIn1 oneMove opening
+tY6F9;2r1k3/1N3pp1/4p1bp/8/1B3n2/7P/5PP1/3R3K b - - 2 39;c8c2 d1d8;493;87;endgame mate mateIn1 oneMove pillsburysMate
+vWm43;4r3/2p2pk1/p1pbrp1p/8/8/P1N2R1P/1PP2PP1/3R2K1 w - - 1 21;b2b4 e6e1 d1e1 e8e1;493;88;endgame kingsideAttack mate mateIn2 pillsburysMate short
+vcmJ6;5q1k/1p4pp/p2p4/3P2P1/3B3P/2N2r1b/PP4Q1/4R1K1 w - - 2 33;g2h2 f3f1 e1f1 f8f1;493;81;mate mateIn2 middlegame short
+2zwXO;2k1r3/1pp5/p5Qp/5Np1/1Pb2b2/P1P4P/6P1/3Rq2K w - - 1 29;d1e1 e8e1;494;89;endgame mate mateIn1 oneMove pillsburysMate
+AoSYc;3r4/R2b2kp/1Q1P1pp1/4p3/6q1/8/PP3PPP/3R2K1 w - - 1 36;b6d8 g4d1;494;87;backRankMate endgame hangingPiece mate mateIn1 oneMove
+MS1Ih;r6k/pp1qR1pp/3b4/5N2/3p2Q1/3P3P/PP3PP1/6K1 b - - 2 22;d6e7 g4g7;494;89;endgame mate mateIn1 oneMove
+VTwV9;2kr1bnr/pb1p1pp1/1p1P2np/8/1q6/2N2N2/PPPBQ1PP/2KR1B1R b - - 0 14;d8e8 e2e8;494;88;hangingPiece mate mateIn1 oneMove opening
+eEChT;k7/8/pp1K4/1Bp1P3/1n6/8/8/8 b - - 0 49;a6b5 e5e6 a8b7 e6e7;494;87;advancedPawn crushing endgame knightEndgame short
+kB5FR;r4rk1/p2R1pp1/1p5p/q1p1NP2/2P1nB2/1P6/PQ4PP/5RK1 w - - 4 26;f1e1 a5e1;494;83;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+uw90Z;5r2/5pbk/p3b1pp/3N3P/6q1/P1P3P1/BP3Q2/2KR4 w - - 1 34;c1b1 g4d1;494;82;hangingPiece mate mateIn1 middlegame oneMove queensideAttack
+vQC82;2r1k2r/pp3p1p/3b2p1/4p3/2q1P3/8/P1P3PP/R1BQ1R1K w k - 0 17;d1d6 c4f1;494;86;hangingPiece kingsideAttack mate mateIn1 middlegame oneMove
+6yKhS;7k/1p3pb1/3p1q1p/2pP2pP/2P2n2/1P2QP2/2BK4/R7 b - - 0 43;f6a1 e3e8 g7f8 e8f8;495;90;endgame mate mateIn2 short
+G3dim;r5k1/3n2b1/pp1ppqpp/8/6P1/5N2/PPP1QP2/1K1R3R w - - 2 24;d1d6 f6b2;495;87;mate mateIn1 middlegame oneMove queensideAttack
+HB9H3;4r3/p3r1kp/5pp1/1P6/8/2N3Q1/1P4PP/3Rq2K w - - 2 38;d1e1 e7e1 g3e1 e8e1;495;89;backRankMate endgame mate mateIn2 short
+I3xmR;3n2k1/7p/Rp2p1pq/1P1pP1n1/1P1P1b2/3B1N2/4Q1PP/7K w - - 3 37;f3g5 h6h2;495;82;kingsideAttack mate mateIn1 middlegame oneMove
+Id7zg;r1b1k2r/pp3ppp/4p3/2q5/3n1BP1/4p2Q/PPP2P1P/2KR1B1R w kq - 0 15;f2e3 c5c2;495;86;mate mateIn1 middlegame oneMove queensideAttack
+J0SyW;r2q1k1r/pp3ppp/n2Np3/1b2R3/2P5/P7/1P3PPP/RNBQ2K1 w - - 0 15;d6b5 d8d1 e5e1 d1e1;495;85;fork hangingPiece mate mateIn2 middlegame short
+Q5gnR;1q3rnk/R4p1p/2b2N2/1pp1pP2/3pP2Q/3P3P/1PP1B1P1/6K1 b - - 0 29;b8a7 h4h7;495;90;kingsideAttack mate mateIn1 middlegame oneMove
+WiXDR;5rk1/p4ppp/1p5n/5q2/5B2/4Q2P/P4PP1/4R1K1 b - - 1 23;f8c8 e3e8 c8e8 e1e8;495;81;backRankMate endgame mate mateIn2 sacrifice short
+YAAfp;r4rk1/1b1n1pBp/p1q1p1p1/2P5/Np1p1P2/P3P3/4B1PP/R2Q1RK1 w - - 0 18;a3b4 c6g2;495;88;kingsideAttack mate mateIn1 middlegame oneMove
+YhRLt;5bk1/p4rpP/3p4/2p1rPN1/1p3p2/8/1PK2P2/6RR b - - 0 33;g8h8 g5f7;495;86;endgame hangingPiece master mate mateIn1 oneMove
+ZufFu;2r3k1/p1q2p1p/4p1p1/8/3Q4/4R3/1P1B1PPP/6K1 w - - 0 30;e3g3 c7c1 d2c1 c8c1 d4d1 c1d1;495;89;backRankMate endgame long mate mateIn3 sacrifice
+ek6Q4;2r2b2/p4p1p/4P2k/2p4N/1r4PP/1P1P4/2K1R3/1R6 b - - 0 31;f7e6 e2e6;495;82;endgame epauletteMate master mate mateIn1 oneMove
+jEYg0;4k2r/ppp3pp/4p3/2b1P3/5B2/8/PPP2RPP/RN1r3K w k - 1 15;f2f1 d1f1;495;84;backRankMate hangingPiece master mate mateIn1 middlegame oneMove
+n4gBQ;r3r3/k5q1/1p1QN1pp/p7/P1bP4/2P5/5PPP/4R1K1 w - - 1 31;e6g7 e8e1;495;88;backRankMate endgame hangingPiece mate mateIn1 oneMove
+yQksD;r1bq1rk1/pp2bppp/4pB2/8/3p4/2PQ1N2/PPB2PPP/R3K2R b KQ - 0 12;e7f6 d3h7;495;88;kingsideAttack mate mateIn1 middlegame oneMove
+3WVJy;r5k1/2R2Rpp/p5q1/1p1rP3/6Q1/P7/1P4PP/7K w - - 3 25;g4g6 d5d1 f7f1 d1f1;496;89;backRankMate endgame mate mateIn2 queenRookEndgame short
+91q7l;r3k2r/p2n1pbp/1p1p1qp1/2pn4/4B3/P3BN2/1PPQ1PPP/2KR3R w kq - 2 14;e4d5 f6b2;496;85;mate mateIn1 middlegame oneMove queensideAttack
+VtIfM;2kr3r/2p4p/p1pqp3/5p2/2PP2n1/P3PQ2/3B1PP1/1R3RK1 w - - 0 19;d2b4 d6h2;496;85;mate mateIn1 middlegame oneMove
+XaARU;r4rk1/ppp2ppp/3q4/5nN1/3P2B1/2P5/PPQ3PP/R5K1 b - - 1 16;f5e3 c2h7;496;88;kingsideAttack mate mateIn1 middlegame oneMove
+YGqYu;3r3k/ppp3p1/5b1p/2P5/1PbB4/P3Q3/5PPP/6K1 w - - 0 39;d4f6 d8d1 e3e1 d1e1;496;86;backRankMate endgame mate mateIn2 short
+dJhLH;5rk1/pbp2ppp/1p2n1q1/4P3/3P4/1QP1n3/PP1BB1PP/R4RK1 w - - 1 18;d2e3 g6g2;496;85;kingsideAttack mate mateIn1 middlegame oneMove
+e6JwU;1Q4k1/p1r2p1p/1p4p1/2p5/4P3/2Br2qP/P5P1/1R4K1 b - - 1 28;c7c8 b8c8 d3d8 c8d8;496;88;endgame hangingPiece mate mateIn2 short
+mErJ4;2r3k1/pp3ppp/4p3/3p1qPP/7R/2R2PQ1/P5K1/8 b - - 0 27;c8c3 g3b8 c3c8 b8c8;496;88;backRankMate endgame mate mateIn2 short
+sF3Ag;3r1rk1/5ppp/pbpq4/8/4p1Q1/1P2P1P1/PB3P1P/2R1R1K1 b - - 1 21;f7f5 g4g7;496;90;kingsideAttack master masterVsMaster mate mateIn1 middlegame oneMove
+2HadE;rr1n2k1/2pq1ppp/2p5/p1Pp4/Q2P1P2/P1N4P/1P2RKP1/1R6 b - - 0 23;d7f5 e2e8;497;87;backRankMate mate mateIn1 middlegame oneMove
+8MJab;8/5k2/3R1p1K/2P3p1/3P2P1/5r2/8/8 w - - 1 58;c5c6 f3h3;497;87;endgame mate mateIn1 oneMove rookEndgame
+M4T0b;1rq2rk1/1p2npp1/2nbp2p/p2P1b2/2P5/2Q2N1P/PB1NBPP1/R3R1K1 b - - 0 16;d6b4 c3g7;497;89;kingsideAttack mate mateIn1 middlegame oneMove
+X8lgc;8/k7/P1K3p1/2P3Pr/8/8/7p/7R b - - 2 49;a7a6 h1a1;497;90;endgame mate mateIn1 oneMove rookEndgame
+Yx0hH;r3k2r/8/p1pqp3/2pp3p/3b2n1/2NP4/PPP3PP/R1B1QR1K w kq - 4 17;c3e2 d6h2;497;89;kingsideAttack mate mateIn1 middlegame oneMove
+dCACo;b5k1/1q1n1ppp/p2bpn2/1p4B1/3PN3/3B2P1/PP2NP1P/2R2RK1 w - - 2 21;e4d6 b7g2;497;87;mate mateIn1 middlegame oneMove
+dOzqQ;2r2k2/R5pp/3Npp2/3n4/6n1/8/P2BR1PP/2r3K1 w - - 5 25;d2c1 c8c1 e2e1 c1e1;497;87;mate mateIn2 middlegame short
+l7UiH;4N2k/pp3Qbp/2p3pq/5p2/3P4/2P2P1P/P7/6RK w - - 4 34;e8g7 h6h3;497;89;endgame mate mateIn1 oneMove
+927bl;rn3rk1/ppp2ppp/4b3/8/1q1PQ3/3BP3/P2N1PPP/3NK2R b K - 2 16;b8c6 e4h7;498;89;kingsideAttack mate mateIn1 middlegame oneMove
+C07Xx;3r1rk1/2qnnpp1/p1p1p2p/1p6/3P4/3QPN1P/PP3PP1/1BR2RK1 b - - 5 18;c7b8 d3h7;498;88;mate mateIn1 middlegame oneMove
+FAmyC;1r4k1/pp3pp1/2p1p2p/q3Pb2/2P5/1Q3B2/PP3PPP/3rR1K1 w - - 0 20;f3d1 a5e1;498;87;endgame hangingPiece kingsideAttack mate mateIn1 oneMove
+a7skE;r1k2b1r/1p3p1p/p4p2/1N1R4/8/8/PP3PPP/2R3K1 b - - 2 20;c8b8 d5d8;498;86;endgame mate mateIn1 oneMove
+kWODq;rnb2Qk1/1p3p1p/p3pPp1/4P3/3r4/3B4/PP4PP/2R2RK1 b - - 0 24;g8f8 c1c8 d4d8 c8d8;498;86;hangingPiece mate mateIn2 middlegame short
+q7Xjh;r2r2k1/pp3pq1/1b2p3/6R1/2p3P1/7Q/P4PK1/7R b - - 0 29;g7g5 h3h8;498;88;endgame mate mateIn1 oneMove
+yH7qk;1b6/3R4/6kp/3p1p2/4p3/1Nr1P2P/5PP1/7K w - - 0 39;b3d4 c3c1;498;89;endgame mate mateIn1 oneMove pillsburysMate
+zSKs9;4r2k/pb1p3p/5R2/1pP5/8/1B4P1/P1P2P1P/6K1 w - - 1 22;h2h4 e8e1 g1h2 e1h1;498;87;endgame mate mateIn2 operaMate short
+4G1ie;5k2/1pqb2p1/p4R1p/P1p5/1rBn4/8/1P3QP1/4R1K1 b - - 0 35;g7f6 f2f6;499;85;mate mateIn1 middlegame oneMove
+DWddu;r3k2r/1b3q2/pp2p2p/4B3/2PPn1p1/4P3/PP3PP1/R2QKB1R w KQkq - 1 18;e5h8 f7f2;499;82;attackingF2F7 mate mateIn1 middlegame oneMove
+ELu6j;7k/7p/2p3r1/1qPp1n2/1p1PpP2/pP2P3/P6Q/B1K4R b - - 11 43;g6g3 h2h7;499;85;endgame kingsideAttack master mate mateIn1 oneMove
+J5CwB;3r1rk1/1pp2pp1/p1b1p2p/2P1R1N1/3P4/3Q4/qB4PP/6K1 b - - 0 28;a2b2 d3h7;499;87;mate mateIn1 middlegame oneMove
+ZZwhG;rn2kr2/p6p/1p1qRB2/2pp1Q2/8/1B1P4/PPP2PPP/R2K4 b q - 0 21;d6e6 f5e6;499;87;hangingPiece mate mateIn1 middlegame oneMove
+gauN3;1r2k2r/3nbppp/pq2p3/2p1P3/2B1bP2/4BQ2/PP4PP/1K1R3R w k - 0 19;f3e4 b6b2;499;88;mate mateIn1 middlegame oneMove queensideAttack
+lxNkr;2rr1R1k/pp4pp/8/n2BP3/2pB4/P1P2Q2/3q2PP/5RK1 b - - 1 25;d8f8 f3f8 c8f8 f1f8;499;86;backRankMate mate mateIn2 middlegame short
+yHE9B;5qk1/p2b2p1/2p1p1Qp/1p1pP3/8/P1N1b3/1P4PP/5RK1 w - - 2 31;g1h1 f8f1;499;88;endgame hangingPiece kingsideAttack mate mateIn1 oneMove

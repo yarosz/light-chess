@@ -1,0 +1,34 @@
+{
+ "bands": [
+  {
+   "band": 1400,
+   "bytes": 401,
+   "file": "1400.txt",
+   "maxRating": 1478,
+   "minRating": 1440,
+   "puzzles": 3,
+   "sha256": "50755868ec7ac278240eac46ae8d97765abd11e8aa93d6443a35dca6806c2a3f"
+  },
+  {
+   "band": 1500,
+   "bytes": 408,
+   "file": "1500.txt",
+   "maxRating": 1541,
+   "minRating": 1500,
+   "puzzles": 3,
+   "sha256": "d254c7c886ce621123e195bb7eadd0137ed23c0f28f4a1df0484573636d973f7"
+  },
+  {
+   "band": 1800,
+   "bytes": 274,
+   "file": "1800.txt",
+   "maxRating": 1880,
+   "minRating": 1860,
+   "puzzles": 2,
+   "sha256": "884ba619685a68a5cc611f0db7aa635d829d5340f7fc35c76bbad0cd2857c4f5"
+  }
+ ],
+ "packSha256": "fe76384403f18fc940b80dc8b596c663d24d093281db1b3c3a19f6543efa7609",
+ "puzzles": 8,
+ "schemaVersion": 1
+}

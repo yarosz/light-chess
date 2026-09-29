@@ -1,0 +1,3 @@
+2THoA;1r3k2/5p1R/3p1N2/6P1/3p4/3r2PK/8/8 b - - 0 42;b8b3 h7h8 f8e7 h8e8;1500;77;endgame hookMate mate mateIn2 short
+pO2J4;8/pp6/8/1PP5/7p/3N4/3K1kn1/8 b - - 1 45;f2f1 c5c6 b7c6 b5c6 h4h3 c6c7 h3h2 c7c8q h2h1q c8c1 g2e1 c1e1;1521;76;advancedPawn crushing endgame knightEndgame promotion veryLong
+mREus;5r2/p3p2k/2R5/4B1p1/3R3p/4n2P/PP3rP1/6K1 w - - 1 32;d4d7 f2g2 g1h1 f8f1;1541;74;endgame mate mateIn2 short

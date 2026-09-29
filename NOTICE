@@ -1,0 +1,36 @@
+Chess, a Tool for the Light Phone III
+Copyright (C) 2026 Nicolas Yarosz
+
+This program is free software: you can redistribute it and/or modify it under the terms of the
+GNU General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version. See LICENSE.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Source: https://github.com/yarosz/light-chess
+
+Puzzles: the Lichess puzzle database (https://database.lichess.org/#puzzles), by lichess.org,
+released under CC0 1.0. The Pack in tool/src/main/assets/pack/ is built from the dump of
+2026-09-09 (docs/pack.md).
+
+Chess pieces: the cburnett set by Colin M.L. Burnett, used under the BSD 3-Clause licence
+(third_party/cburnett/LICENSE). Source: Wikimedia Commons, Category:SVG chess pieces.
+
+The APK is built on Light's SDK (https://github.com/lightphone/light-sdk), MIT licence,
+Copyright (c) 2026 The Light Phone. The SDK and the Tool bring these libraries into the APK (its
+release runtime classpath):
+
+- Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0): the Kotlin standard library,
+  kotlinx.coroutines, kotlinx.serialization, kotlinx-io, Jetpack Compose and AndroidX (including
+  Room, DataStore, WorkManager, CameraX and Media3), Material Components for Android, Ktor, OkHttp,
+  Okio, Gson, Guava, Tink, the UnifiedPush Android connector, javax.inject, JSpecify, and the
+  JetBrains, Error Prone and AutoValue annotations.
+- BSD 3-Clause: Protocol Buffers, JSR 305 annotations.
+- MIT: SLF4J API.
+- Google's terms (Android SDK licence and ML Kit terms): Google Play services, Firebase components
+  and ML Kit barcode scanning, which Light's SDK uses for its QR scanner.
+
+Unless required by applicable law or agreed to in writing, software distributed under the Apache
+License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+express or implied.

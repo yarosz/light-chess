@@ -1,0 +1,21 @@
+game 1 karballo=W result(karballo)=0.0 plies=142 34s
+game 2 karballo=B result(karballo)=0.0 plies=147 35s
+game 3 karballo=W result(karballo)=0.0 plies=98 22s
+game 4 karballo=B result(karballo)=0.5 plies=247 62s
+game 5 karballo=W result(karballo)=0.0 plies=172 41s
+game 6 karballo=B result(karballo)=0.0 plies=139 34s
+game 7 karballo=W result(karballo)=0.0 plies=88 20s
+game 8 karballo=B result(karballo)=0.0 plies=117 27s
+game 9 karballo=W result(karballo)=0.0 plies=92 21s
+game 10 karballo=B result(karballo)=0.0 plies=115 27s
+game 11 karballo=W result(karballo)=0.0 plies=112 26s
+game 12 karballo=B result(karballo)=0.0 plies=133 32s
+game 13 karballo=W result(karballo)=0.0 plies=116 27s
+game 14 karballo=B result(karballo)=0.0 plies=131 31s
+game 15 karballo=W result(karballo)=0.0 plies=122 29s
+game 16 karballo=B result(karballo)=0.0 plies=141 34s
+game 17 karballo=W result(karballo)=0.0 plies=108 25s
+game 18 karballo=B result(karballo)=0.0 plies=165 40s
+game 19 karballo=W result(karballo)=1.0 plies=131 31s
+game 20 karballo=B result(karballo)=0.0 plies=133 31s
+karballo vs pirarucu @250ms/move: +1 =1 -18 score 1.5/20

@@ -1,0 +1,84 @@
+# Names scripts/domain-drift.sh should not report: implementation and UI vocabulary, not domain terms.
+# One name per line, matched exactly. Domain terms go in CONTEXT.md instead. See AGENTS.md
+# "Domain language".
+
+# Tool shell (LightScreen / LightViewModel)
+ChessScreen
+ChessViewModel
+
+# Rules core: standard chess vocabulary that names parts of a Position, not new domain concepts
+Square
+Piece
+PieceType
+CastlingRights
+Geometry
+# FEN's side-to-move letters, written by the FEN writer
+w
+b
+# "FEN" is an _Avoid_ word for Position, but this error is about FEN text itself, as CONTEXT.md allows.
+FenException
+
+# Rules core: the kinds of Game Event (CONTEXT.md names them in the Game Event entry) and of Result
+Resignation
+DrawOffer
+DrawAcceptance
+DrawRefusal
+InvalidGameEventException
+WinReason
+DrawReason
+
+# Pack loader (v1 PR 2): the Pack's manifest file, and the error for a Pack line that is not a Puzzle
+PackManifest
+PackFormatException
+
+# Board view and input (v1 PR 3): UI vocabulary, not domain terms (DESIGN.md)
+CburnettPieces
+Shades
+Marks
+MoveInput
+Touch
+StripButton
+Wheel
+# The wheel's key-up rule (R4.17): implementation vocabulary
+TakenKeys
+WheelViewModel
+UiCopy
+${square.rank + 1}
+# The board view's accessibility label names the object on screen, not a Position (DESIGN.md "Copy")
+Chess board
+
+# Puzzle flow (v1 PR 4): implementation types around the glossary's Attempt, Missed and Player Rating
+AttemptState
+Stage
+Glicko
+Glicko2
+PuzzleFlow
+PuzzleState
+PuzzleData
+PuzzleStore
+PuzzleOwner
+InProgress
+MissedEntry
+HistoryEntry
+Motion
+MenuScreen
+MenuViewModel
+MenuPage
+# Copy templates: DESIGN.md "Copy" quotes what they print
+$MISSED · $count
+$PLAYER_RATING · $text
+Failed ${delta(delta ?: 0)}
+Solved ${delta(delta ?: 0)}
+# The Menu's Puzzle row (decision log S1): the Lichess id and its lichess.org address, two lines
+Puzzle $id\nlichess.org/training/$id
+# F5's own wording for the button; the page it sits on is titled "Player Rating"
+Reset rating
+# Try Mode's prompt after a wrong Move (CONTEXT.md "Try Mode")
+Try again
+# The source's own name, as CONTEXT.md's Puzzle entry uses it
+Puzzles: the Lichess puzzle database (lichess.org), CC0.
+Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate.
+
+# Release (v1 PR 5): the Pack manifest's source field, and the strip's measures (DESIGN.md "The strip")
+PackSource
+StripLayout

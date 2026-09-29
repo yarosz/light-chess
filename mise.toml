@@ -1,0 +1,51 @@
+[tools]
+java = "temurin-17"
+android-sdk = "23.0"
+
+[env]
+ANDROID_HOME = "{{env.HOME}}/Library/Android/sdk"
+ANDROID_SDK_ROOT = "{{env.HOME}}/Library/Android/sdk"
+# The Chess emulator, selected by AVD name (scripts/chess-emu.sh) on its own port. Never the Reader's LightPhone3 on 5554.
+CHESS_AVD = "LightPhone3-chess"
+_.path = [
+  "{{env.HOME}}/Library/Android/sdk/emulator",
+  "{{env.HOME}}/Library/Android/sdk/platform-tools",
+]
+
+[tasks.emu]
+description = "Boot the LightPhone3-chess AVD on emulator-5556 (writable system and public DNS, every boot; scripts/emulator/RECIPE.md)"
+run = [
+  "emulator -avd $CHESS_AVD -port 5556 -writable-system -no-snapshot -no-boot-anim -dns-server 1.1.1.1,8.8.8.8",
+]
+
+[tasks.tool]
+description = "Build (for the emulator's LightOS app), install, and launch on the Chess emulator (emulator-5556)"
+run = [
+  "scripts/emulator-build.sh ./gradlew :tool:assembleDebug",
+  "scripts/chess-emu.sh install -r tool/build/outputs/apk/debug/tool-debug.apk",
+  "scripts/chess-emu.sh shell monkey -p com.yarosz.chess 1",
+]
+
+[tasks.lightos]
+description = "Rebuild + reinstall the LightOS emulator system app on the Chess emulator (keeps uid 1000)"
+run = [
+  "./gradlew :sdk:emulator:assembleDebug",
+  "scripts/chess-emu.sh install -r light-sdk/sdk/emulator/build/outputs/apk/debug/emulator-debug.apk",
+]
+
+[tasks.ci]
+description = "Local CI: tests, Light-builder simulation, emulator round trip on the Chess AVD; posts signoff statuses"
+run = "scripts/ci.sh"
+
+[tasks.domain-drift]
+description = "List possible new domain terms since the last domain-pass/* tag (advisory; AGENTS.md)"
+run = "scripts/domain-drift.sh"
+
+[tasks.light-build]
+description = "Build the committed HEAD the way Light's release builder does (optional arg: SDK dir)"
+run = "scripts/light-build.sh"
+
+[settings]
+# Only install what this repo pins; do not auto-install tools from parent directories
+task.run_auto_install = false
+exec_auto_install = false
