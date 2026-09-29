@@ -17,6 +17,9 @@ import kotlin.test.Test
  * - `random`: Level 1 against a random mover, 40 Games.
  * - `anchor`: Levels against Karballo's Elo limiter; needs `-Dcalibrate.karballo=<spike serve bin>`
  *   and plays `calibrate.elos` (default 500,1000,1500) against the Levels in `calibrate.levels`.
+ * - `stockfish`: Levels against Stockfish's UCI_Elo limiter (see [stockfish]); skipped when no
+ *   `stockfish` is on PATH (`calibrate.stockfish=<bin>` names one), 1M nodes per Move unless
+ *   `calibrate.stockfish.nodes` says otherwise.
  *
  * `calibrate.levels=1-4` limits the Levels, `calibrate.threads` the parallel Games (default 6),
  * `calibrate.rounds` repeats every match with new seeds (40 Games a round), and
@@ -59,7 +62,7 @@ class LevelCalibrationTest {
 
     @Test
     fun `calibrate the Levels`() {
-        assumeTrue("set -Dcalibrate=blunders,ladder,random,anchor", modes.isNotEmpty())
+        assumeTrue("set -Dcalibrate=blunders,ladder,random,anchor,stockfish", modes.isNotEmpty())
         out.parentFile.mkdirs()
         say("--- ${java.time.LocalDateTime.now()} modes=$modes levels=${levels.map { it.number }} threads=$threads")
         for (level in levels) say("${name(level)} = ${settings(level)}")
@@ -67,6 +70,7 @@ class LevelCalibrationTest {
         if ("random" in modes) random()
         if ("ladder" in modes) ladder()
         if ("anchor" in modes) anchor()
+        if ("stockfish" in modes) stockfish()
     }
 
     private fun blunders() {
@@ -120,8 +124,66 @@ class LevelCalibrationTest {
         }
     }
 
+    /**
+     * Levels against Stockfish's UCI_Elo limiter. `calibrate.plan=1-2@1320,1500;3@1400,1700:1000000`
+     * names the anchors per Level, each at `calibrate.stockfish.nodes` unless `:nodes` follows it (its
+     * name then says so: "sf-1700-1000k"). Without a plan, `calibrate.levels` × `calibrate.elos`
+     * (default 1320,1600,2000). `calibrate.firstRound=n` starts at round n, so a later run plays new
+     * seeds. Every pairing shares one pool; Games go to `calibrate.pgn` (default
+     * build/calibration-stockfish.pgn).
+     */
+    private fun stockfish() {
+        val bin = LevelCalibration.StockfishSide.find(System.getProperty("calibrate.stockfish"))
+        assumeTrue("stockfish is not on PATH (or set -Dcalibrate.stockfish=<bin>)", bin != null)
+        val nodes = System.getProperty("calibrate.stockfish.nodes")?.toLong() ?: STOCKFISH_NODES
+        fun anchor(spec: String): Pair<Int, Long> =
+            spec.trim().split(':').let { it[0].toInt() to (it.getOrNull(1)?.toLong() ?: nodes) }
+        val plan: List<Pair<Level, Pair<Int, Long>>> = System.getProperty("calibrate.plan")?.let { spec ->
+            spec.split(';').filter { it.isNotBlank() }.flatMap { entry ->
+                val (range, elos) = entry.split('@')
+                val (from, to) = range.split('-').map { it.trim().toInt() }.let { it.first() to it.last() }
+                (from..to).flatMap { l -> elos.split(',').map { Level.of(l) to anchor(it) } }
+            }
+        } ?: run {
+            val elos = System.getProperty("calibrate.elos")?.split(',')?.map(::anchor) ?: listOf(1320, 1600, 2000).map { it to nodes }
+            levels.flatMap { level -> elos.map { level to it } }
+        }
+        fun anchorName(anchor: Pair<Int, Long>) =
+            if (anchor.second == nodes) "sf-${anchor.first}" else "sf-${anchor.first}-${anchor.second / 1000}k"
+        val pgn = File(System.getProperty("calibrate.pgn") ?: "build/calibration-stockfish.pgn")
+        pgn.absoluteFile.parentFile.mkdirs()
+        say("stockfish $bin, $nodes nodes per Move, plan ${plan.joinToString(" ") { (l, a) -> "L${l.number}@${anchorName(a)}" }}")
+        val depths = plan.associate { (_, a) -> anchorName(a) to LevelCalibration.PickDepths() }
+        val started = System.nanoTime()
+        val results = LevelCalibration.matches(
+            plan.map { (level, anchor) ->
+                val anchorName = anchorName(anchor)
+                LevelCalibration.Pairing(
+                    { LevelSide(name(level), settings(level)) },
+                    { LevelCalibration.StockfishSide(bin!!, anchorName, anchor.first, anchor.second, depths.getValue(anchorName)) },
+                )
+            },
+            threads,
+            rounds,
+            firstRound = System.getProperty("calibrate.firstRound")?.toInt() ?: 0,
+        ) { game ->
+            val text = LevelCalibration.pgn(game, "Chess Level calibration, Stockfish $nodes nodes")
+            synchronized(pgn) { pgn.appendText(text) }
+        }
+        for (result in results) say(result.line())
+        for ((anchorName, d) in depths.toSortedMap()) say(d.line(anchorName))
+        say("stockfish: ${results.sumOf { it.games }} Games in ${(System.nanoTime() - started) / 1_000_000_000} s")
+    }
+
     companion object {
         /** Karballo's search per Move in the anchor (`calibrate.karballo.nodes`): ~200 ms on a Mac. */
         const val KARBALLO_NODES = 300_000
+
+        /**
+         * Stockfish's search per Move (`calibrate.stockfish.nodes`), as in the 2026-09-29 gauntlet:
+         * reaches its limiter's pick depth on every Move up to UCI_Elo 2700 and 98% at 3000, about 2 s
+         * on a loaded Mac core. Its settings were calibrated at 120 s + 1 s, several million nodes.
+         */
+        const val STOCKFISH_NODES = 1_000_000L
     }
 }

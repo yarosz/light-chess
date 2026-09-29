@@ -4,11 +4,14 @@ import com.yarosz.chess.rules.Game
 import com.yarosz.chess.rules.Position
 import com.yarosz.chess.rules.Result
 import com.yarosz.chess.rules.Side
+import com.yarosz.chess.rules.san
 import java.io.BufferedReader
 import java.io.File
 import java.io.OutputStreamWriter
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.log10
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -126,8 +129,122 @@ object LevelCalibration {
         }
     }
 
+    /** How often a Stockfish anchor's search reached the depth where its limiter picks its Move. */
+    class PickDepths {
+        val moves = AtomicLong()
+        val short = AtomicLong()
+
+        fun line(name: String) = "%s: pick depth reached on %d of %d Moves (%.2f%% short)"
+            .format(name, moves.get() - short.get(), moves.get(), 100.0 * short.get() / moves.get().coerceAtLeast(1))
+    }
+
+    /**
+     * Stockfish's Elo limiter (UCI_LimitStrength, UCI_Elo), an external process over UCI: Threads 1,
+     * Hash 16, [nodes] per Move. Stockfish is a Mac calibration tool only, never part of the Tool's build.
+     *
+     * The limiter searches with MultiPV 4 and picks its Move when the search completes depth
+     * 1 + level, where level = clamp(((37.2473 e - 40.8525) e + 22.2943) e - 0.311438, 0, 19) and
+     * e = (UCI_Elo - 1320) / (3190 - 1320) (Stockfish's search.h). Deeper iterations don't change the
+     * Move, so a node budget that reaches the pick depth plays as the limiter was calibrated; [depths]
+     * counts the Moves that fell short. The pick's random term is seeded by Stockfish's clock, so its
+     * Games don't replay exactly; ours do.
+     */
+    class StockfishSide(
+        bin: String,
+        override val name: String,
+        private val elo: Int,
+        private val nodes: Long,
+        private val depths: PickDepths,
+    ) : Player {
+        private val pickDepth = 1 + pickLevel(elo)
+        private val process = ProcessBuilder(bin).redirectError(ProcessBuilder.Redirect.INHERIT).start()
+        private val input = OutputStreamWriter(process.outputStream)
+        private val output: BufferedReader = process.inputStream.bufferedReader()
+
+        init {
+            send("uci")
+            await("uciok")
+            send("setoption name Threads value 1")
+            send("setoption name Hash value 16")
+            send("setoption name UCI_LimitStrength value true")
+            send("setoption name UCI_Elo value $elo")
+        }
+
+        private fun send(line: String) {
+            input.write(line + "\n")
+            input.flush()
+        }
+
+        private fun await(token: String) {
+            while (true) {
+                val line = checkNotNull(output.readLine()) { "stockfish exited" }
+                if (line.trim() == token) return
+            }
+        }
+
+        override fun newGame(seed: Long) {
+            send("ucinewgame")
+            send("isready")
+            await("readyok")
+        }
+
+        override fun move(startFen: String, moves: List<String>): Played {
+            send("position fen $startFen" + if (moves.isEmpty()) "" else " moves " + moves.joinToString(" "))
+            send("go nodes $nodes")
+            var depth = 0
+            var score: Int? = null
+            var searched = 0L
+            while (true) {
+                val line = checkNotNull(output.readLine()) { "stockfish exited" }
+                val words = line.split(' ')
+                if (words.first() == "bestmove") {
+                    depths.moves.incrementAndGet()
+                    // A mate or a single legal Move can end the search before the pick depth.
+                    if (depth < pickDepth && score?.let { kotlin.math.abs(it) < MATE_SCORE / 2 } != false) depths.short.incrementAndGet()
+                    return Played(words[1], score, searched)
+                }
+                if (words.first() != "info" || "multipv" !in words || words[words.indexOf("multipv") + 1] != "1") continue
+                if ("depth" in words) depth = words[words.indexOf("depth") + 1].toInt()
+                if ("nodes" in words) searched = words[words.indexOf("nodes") + 1].toLong()
+                if ("score" in words) {
+                    val kind = words[words.indexOf("score") + 1]
+                    val value = words[words.indexOf("score") + 2].toInt()
+                    score = if (kind == "mate") (if (value > 0) MATE_SCORE - value else -MATE_SCORE - value) else value
+                }
+            }
+        }
+
+        override fun close() {
+            runCatching { send("quit") }
+            if (!process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)) process.destroy()
+        }
+
+        companion object {
+            const val MATE_SCORE = 30_000
+
+            /** Stockfish's skill level for [elo] (search.h, `Skill`), truncated as `time_to_pick` does. */
+            fun pickLevel(elo: Int): Int {
+                val e = (elo - 1320).toDouble() / (3190 - 1320)
+                return ((((37.2473 * e - 40.8525) * e + 22.2943) * e - 0.311438).coerceIn(0.0, 19.0)).toInt()
+            }
+
+            /** The `stockfish` on PATH, or [override]; null when there is none. */
+            fun find(override: String?): String? {
+                if (override != null) return override.takeIf { File(it).canExecute() }
+                return System.getenv("PATH").orEmpty().split(File.pathSeparatorChar)
+                    .map { File(it, "stockfish") }.firstOrNull { it.canExecute() }?.path
+            }
+        }
+    }
+
     /** How one Game went: [whiteScore] is 1, 0.5 or 0; [reason] names the ending. */
-    data class Outcome(val whiteScore: Double, val plies: Int, val reason: String, val nodes: Map<String, List<Long>>)
+    data class Outcome(
+        val whiteScore: Double,
+        val plies: Int,
+        val reason: String,
+        val nodes: Map<String, List<Long>>,
+        val moves: List<String>,
+    )
 
     const val MAX_PLIES = 300
     const val ADJUDICATE_CP = 1_000
@@ -155,13 +272,13 @@ object LevelCalibration {
                     is Result.Win -> if (result.winner == Side.WHITE) 1.0 else 0.0
                     is Result.Draw -> 0.5
                 }
-                return Outcome(score, moves.size, result.toString(), nodes)
+                return Outcome(score, moves.size, result.toString(), nodes, moves)
             }
-            if (moves.size >= MAX_PLIES) return Outcome(0.5, moves.size, "ply limit", nodes)
+            if (moves.size >= MAX_PLIES) return Outcome(0.5, moves.size, "ply limit", nodes, moves)
             val recent = whiteView.takeLast(ADJUDICATE_PLIES)
             if (recent.size == ADJUDICATE_PLIES && recent.all { it != null }) {
-                if (recent.all { it!! >= ADJUDICATE_CP }) return Outcome(1.0, moves.size, "adjudicated", nodes)
-                if (recent.all { it!! <= -ADJUDICATE_CP }) return Outcome(0.0, moves.size, "adjudicated", nodes)
+                if (recent.all { it!! >= ADJUDICATE_CP }) return Outcome(1.0, moves.size, "adjudicated", nodes, moves)
+                if (recent.all { it!! <= -ADJUDICATE_CP }) return Outcome(0.0, moves.size, "adjudicated", nodes, moves)
             }
             val whiteToMove = game.position.sideToMove == Side.WHITE
             val mover = if (whiteToMove) white else black
@@ -213,38 +330,113 @@ object LevelCalibration {
      * [OPENINGS] twice each per round (other seeds each round), colours swapped, between two players made fresh for every Game (fresh
      * engines, so Games are independent and can run in parallel on [threads] threads).
      */
-    fun match(a: () -> Player, b: () -> Player, threads: Int, rounds: Int = 1, openings: List<List<String>> = OPENINGS): MatchResult {
+    fun match(a: () -> Player, b: () -> Player, threads: Int, rounds: Int = 1, openings: List<List<String>> = OPENINGS): MatchResult =
+        matches(listOf(Pairing(a, b)), threads, rounds, openings).single()
+
+    /** A match to play: players made fresh for every Game by [a] and [b]. */
+    class Pairing(val a: () -> Player, val b: () -> Player)
+
+    /** One Game as played: who had White, the opening's index and seed, and how it went. */
+    data class PlayedGame(val white: String, val black: String, val opening: Int, val seed: Long, val outcome: Outcome)
+
+    /**
+     * Every pairing's Games in one pool of [threads], so no thread idles at the end of a match. The seeds
+     * are [match]'s, so a pairing replays alone or with others. [onGame] sees each Game as it ends, on
+     * the pool's threads. [firstRound] > 0 skips the seeds of earlier rounds, so a later run adds new Games.
+     */
+    fun matches(
+        pairings: List<Pairing>,
+        threads: Int,
+        rounds: Int = 1,
+        openings: List<List<String>> = OPENINGS,
+        firstRound: Int = 0,
+        onGame: (PlayedGame) -> Unit = {},
+    ): List<MatchResult> {
         val pool = Executors.newFixedThreadPool(threads)
         try {
-            val games = (0 until rounds).flatMap { r -> openings.indices.flatMap { i -> listOf(Triple(r, i, true), Triple(r, i, false)) } }
-            val jobs = games.map { (round, i, aWhite) ->
-                pool.submit(Callable {
-                    a().use { pa ->
-                        b().use { pb ->
-                            val seed = 100_000L * round + 1_000L * i + if (aWhite) 1 else 2
-                            val outcome = if (aWhite) playGame(pa, pb, openings[i], seed) else playGame(pb, pa, openings[i], seed)
-                            val aScore = if (aWhite) outcome.whiteScore else 1 - outcome.whiteScore
-                            Triple(aScore, outcome, pa.name to pb.name)
+            val games = (firstRound until firstRound + rounds).flatMap { r -> openings.indices.flatMap { i -> listOf(Triple(r, i, true), Triple(r, i, false)) } }
+            val jobs = pairings.map { ArrayList<Future<Triple<Double, Outcome, Pair<String, String>>>>() }
+            // Game by Game across the pairings, so every pairing progresses at the same rate.
+            for ((round, i, aWhite) in games) {
+                pairings.forEachIndexed { p, pairing ->
+                    jobs[p] += pool.submit(Callable {
+                        pairing.a().use { pa ->
+                            pairing.b().use { pb ->
+                                val seed = 100_000L * round + 1_000L * i + if (aWhite) 1 else 2
+                                val outcome = if (aWhite) playGame(pa, pb, openings[i], seed) else playGame(pb, pa, openings[i], seed)
+                                val (white, black) = if (aWhite) pa.name to pb.name else pb.name to pa.name
+                                onGame(PlayedGame(white, black, i, seed, outcome))
+                                val aScore = if (aWhite) outcome.whiteScore else 1 - outcome.whiteScore
+                                Triple(aScore, outcome, pa.name to pb.name)
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
-            val results = jobs.map { it.get() }
-            val (na, nb) = results.first().third
-            return MatchResult(
-                a = na,
-                b = nb,
-                games = results.size,
-                wins = results.count { it.first == 1.0 },
-                draws = results.count { it.first == 0.5 },
-                losses = results.count { it.first == 0.0 },
-                adjudicated = results.count { it.second.reason == "adjudicated" },
-                avgPlies = results.sumOf { it.second.plies } / results.size,
-                nodesA = results.flatMap { it.second.nodes.getValue(na) },
-                nodesB = results.flatMap { it.second.nodes.getValue(nb) },
-            )
+            return jobs.map { list ->
+                val results = list.map { it.get() }
+                val (na, nb) = results.first().third
+                MatchResult(
+                    a = na,
+                    b = nb,
+                    games = results.size,
+                    wins = results.count { it.first == 1.0 },
+                    draws = results.count { it.first == 0.5 },
+                    losses = results.count { it.first == 0.0 },
+                    adjudicated = results.count { it.second.reason == "adjudicated" },
+                    avgPlies = results.sumOf { it.second.plies } / results.size,
+                    nodesA = results.flatMap { it.second.nodes.getValue(na) },
+                    nodesB = results.flatMap { it.second.nodes.getValue(nb) },
+                )
+            }
         } finally {
             pool.shutdownNow()
+        }
+    }
+
+    /** [game] as PGN, its Moves in SAN from our rules core. */
+    fun pgn(game: PlayedGame, event: String): String {
+        val result = when (game.outcome.whiteScore) {
+            1.0 -> "1-0"
+            0.0 -> "0-1"
+            else -> "1/2-1/2"
+        }
+        var position = Position.fromFen(Position.START_FEN)
+        val tokens = ArrayList<String>()
+        game.outcome.moves.forEachIndexed { ply, uci ->
+            val move = position.moveFromUci(uci)!!
+            if (ply % 2 == 0) tokens += "${ply / 2 + 1}."
+            tokens += position.san(move)
+            position = position.play(move)
+        }
+        tokens += result
+        return buildString {
+            val tags = listOf(
+                "Event" to event,
+                "Round" to game.seed.toString(),
+                "White" to game.white,
+                "Black" to game.black,
+                "Result" to result,
+                "Opening" to (game.opening + 1).toString(),
+                "Termination" to game.outcome.reason,
+                "PlyCount" to game.outcome.plies.toString(),
+            )
+            for ((tag, value) in tags) append("[$tag \"$value\"]\n")
+            append('\n')
+            var width = 0
+            for (token in tokens) {
+                if (width > 0 && width + 1 + token.length > 79) {
+                    append('\n')
+                    width = 0
+                }
+                if (width > 0) {
+                    append(' ')
+                    width++
+                }
+                append(token)
+                width += token.length
+            }
+            append("\n\n")
         }
     }
 
