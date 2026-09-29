@@ -67,15 +67,22 @@ data class InProgress(
     val delta: Int? = null,
 )
 
+/**
+ * One Missed Puzzle (D2). [state] has a default so that a state this build doesn't know, written by a
+ * newer one, reads as Failed instead of making the whole file unreadable (coerceInputValues).
+ */
 @Serializable
-data class MissedEntry(val id: String, val puzzleRating: Int, val state: AttemptState)
+data class MissedEntry(val id: String, val puzzleRating: Int, val state: AttemptState = AttemptState.FAILED)
 
-/** One scored Attempt: the Rating screen's text list (F11). [delta] is 0 when unrated. */
+/**
+ * One scored Attempt: the Rating screen's text list (F11). [delta] is 0 when unrated. An unknown
+ * [state] reads as Failed, as in [MissedEntry].
+ */
 @Serializable
 data class HistoryEntry(
     val id: String,
     val puzzleRating: Int,
-    val state: AttemptState,
+    val state: AttemptState = AttemptState.FAILED,
     val delta: Int,
     val solutionShown: Boolean = false,
 )

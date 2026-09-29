@@ -79,8 +79,12 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
         } else if (progress != null) {
             val puzzle = pack.puzzle(progress.id, progress.puzzleRating)
             if (puzzle != null) {
+                // Moves that don't follow the Solution come only from a damaged file. An Attempt under
+                // way then restarts from the setup Move; one at its result stays there, with no Moves,
+                // since it was scored and recorded already and playing it again would do both twice.
                 current = Attempt.resume(puzzle, progress.state, progress.moves, progress.solutionShown, progress.done, progress.justWrong)
-                    ?: Attempt(puzzle, progress.state)
+                    ?: if (progress.done) Attempt(puzzle, progress.state, stage = Stage.DONE, solutionShown = progress.solutionShown)
+                    else Attempt(puzzle, progress.state)
                 delta = progress.delta
             }
         }
@@ -145,6 +149,28 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
         return if (candidates.isEmpty()) null else candidates[random.nextInt(candidates.size)]
     }
 
+    /**
+     * Reads ahead the Band files [pick] will need for the Puzzle after the rated one on screen, so
+     * that choosing it at the result (D1) reads no file on the caller's thread. The window is around
+     * the Player Rating as the result leaves it: after a win or a loss while the Attempt is Open, and
+     * unchanged for a Hinted end or a Next after a relaunch. For a background thread; changes nothing.
+     */
+    fun prefetchNext(session: PuzzleState) {
+        val attempt = session.current ?: return
+        val player = session.data.player
+        val ratings = buildSet {
+            add(player.rating)
+            if (attempt.underWay && attempt.state == AttemptState.OPEN) {
+                for (win in listOf(true, false)) add(rated(player, attempt.puzzle, win).rating)
+            }
+        }
+        val exclude = session.data.finished.toHashSet().apply { add(attempt.puzzle.id) }
+        for (rating in ratings) pack.candidates(rating.roundToInt(), exclude)
+    }
+
+    /** Reads ahead every Missed Puzzle, so that [replayMissed] reads no file (D2). For a background thread. */
+    fun prefetchMissed(session: PuzzleState) = pack.prefetch(session.data.missed.associate { it.id to it.puzzleRating })
+
     private fun step(session: PuzzleState, change: (Attempt) -> Attempt): PuzzleState {
         val replay = session.replay
         if (replay != null) {
@@ -170,13 +196,15 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
     /** One rating period: the Attempt against the Puzzle's rating and its own RD (A7, "Pack fill"). */
     private fun score(session: PuzzleState, attempt: Attempt, win: Boolean): PuzzleState {
         val old = session.data.player
-        val new = Glicko2.update(
-            old,
-            listOf(Glicko2.Game(attempt.puzzle.rating.toDouble(), attempt.puzzle.ratingDeviation.toDouble(), if (win) 1.0 else 0.0)),
-        )
+        val new = rated(old, attempt.puzzle, win)
         val delta = new.rating.roundToInt() - old.rating.roundToInt()
         return record(session.copy(data = session.data.withPlayer(new)), attempt, delta)
     }
+
+    private fun rated(player: Glicko, puzzle: Puzzle, win: Boolean): Glicko = Glicko2.update(
+        player,
+        listOf(Glicko2.Game(puzzle.rating.toDouble(), puzzle.ratingDeviation.toDouble(), if (win) 1.0 else 0.0)),
+    )
 
     /** The result goes in the history, the Puzzle is finished, a Failed or Hinted one joins Missed, and Next is chosen. */
     private fun record(session: PuzzleState, attempt: Attempt, delta: Int): PuzzleState {

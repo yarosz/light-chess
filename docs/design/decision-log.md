@@ -341,3 +341,27 @@ default Think time).
   from Player Rating, Missed or About returns to the Menu, as the arrow does, and the Menu returns to
   the Puzzle. System Back can't be intercepted by a screen (PLATFORM.md), which is why pages that were
   only state inside one screen skipped the Menu. Back from the puzzle screen still closes the Tool.
+
+## v1 review follow-ups (orchestrator, 2026-09-29)
+- V1 A save at a result whose Moves don't replay against the Solution (only a damaged file does
+  this) resumes at the result, with no Moves on the board, its state and the result strip's delta
+  kept. It no longer restarts from the setup Move, where finishing it again scored or recorded a
+  Solved or Hinted Attempt twice. An Attempt under way still restarts from the setup Move (F1).
+- V2 An Attempt state this build doesn't know, in a Missed or history row, reads as Failed
+  (`coerceInputValues` needs a default), so a newer build's file stays readable. An older build that
+  rewrites the file writes Failed back: a new state therefore needs a new schemaVersion and its own
+  migration, as the compatibility rule in `PuzzleData` implies.
+- V3 Band files are read ahead on a background thread instead of choosing the next Puzzle
+  asynchronously: the choice stays at the result (D1) and the strip behaves as before. Read ahead:
+  the Bands for the Player Rating after a win, a loss or no change, when a rated Attempt starts or the
+  rating changes; every Missed Puzzle's line when the Missed page opens. The seed screen's pick is
+  not read ahead (once per install or Reset rating). A tap that outruns the read ahead reads the file
+  on the main thread, as before.
+- V4 Assets: the SDK reads them only through `SealedLightContext.readAsset`, which holds the
+  screen's activity; `Context`, `LocalContext` and casts to it are blocked. The application's assets
+  are reachable only around the SDK (an `AndroidView` factory's context, or Compose's
+  `LocalResources`), which Chess doesn't do. RULING: the owner reads through the latest screen that
+  asked for it, so a relaunch releases the old activity; the owner holds at most the latest one. A
+  real fix needs an application-level asset reader in Light's SDK (a question for Light).
+- V5 The stage clock restarts only when the Attempt on screen changed, and a slide is cleared once
+  it has played or once its Move is no longer the latest (`slideAfter`, `restartsClock`).

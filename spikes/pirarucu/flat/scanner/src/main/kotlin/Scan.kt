@@ -1,4 +1,5 @@
 // GENERATED: rules copied verbatim from light-sdk/plugin/src/main/kotlin/com/thelightphone/plugin/LightSdkPlugin.kt
+// Those rules are Light's (github.com/lightphone/light-sdk, The Light Phone), MIT licence.
 import java.io.File
 object Rules {
         val BLOCKED_IMPORTS = listOf(

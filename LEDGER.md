@@ -19,6 +19,15 @@ again", never scoring twice; each Menu page is its own screen, so system Back fr
 Missed or About returns to the Menu; the Menu shows the Puzzle on screen as "Puzzle <id>" over
 "lichess.org/training/<id>" (A9 reconciled with D7). These must merge forward into the v2 and v3
 branches. To re-check on the LP3: system Back from each Menu page, and the id row in Akkurat.
+HANDOFF (v1 polish): fix/v1-polish (on main, not pushed) holds the non-blocking follow-ups from the v1
+reviews, decision log "v1 review follow-ups" V1-V5: README contact line and undated plan, "every rated
+Puzzle" (README, release notes), the bug template asks for the Puzzle id; a damaged save at a result
+resumes there instead of scoring twice; unknown Attempt states read as Failed; Band files read ahead
+off the main thread (next Puzzle, Missed); the stage clock restarts only on a real change; a slide
+clears once played; the owner reads assets through the latest screen (V4: the SDK has no
+application-level reader, a question for Light); provenance headers in spikes/. Emulator CI is the
+orchestrator's; to re-check there: a reply slide doesn't replay after Menu and back, Hint taps during
+a reply don't delay it, and a Missed replay opens at once.
 LAST SESSION: 2026-09-29
 
 ## Where things are

@@ -80,6 +80,22 @@ class PuzzleStoreTest {
     }
 
     @Test
+    fun `an Attempt state this build doesn't know reads as Failed and keeps the file readable`() {
+        main.writeText(
+            """{"rating":1650.5,"seeded":true,"finished":["a","b","c"],
+               |"current":{"id":"c","puzzleRating":1700,"state":"Skipped"},
+               |"missed":[{"id":"b","puzzleRating":1500,"state":"Skipped"},{"id":"a","puzzleRating":1400,"state":"Hinted"}],
+               |"history":[{"id":"b","puzzleRating":1500,"state":"Skipped","delta":0},{"id":"a","puzzleRating":1400,"state":"Hinted","delta":0}]}""".trimMargin(),
+        )
+        val data = PuzzleStore(dir).load()!!
+        assertEquals(1650.5, data.rating, "the rest of the file is read")
+        assertEquals(listOf("a", "b", "c"), data.finished)
+        assertEquals(AttemptState.OPEN, data.current!!.state)
+        assertEquals(listOf(MissedEntry("b", 1500, AttemptState.FAILED), MissedEntry("a", 1400, AttemptState.HINTED)), data.missed)
+        assertEquals(listOf(HistoryEntry("b", 1500, AttemptState.FAILED, 0), HistoryEntry("a", 1400, AttemptState.HINTED, 0)), data.history)
+    }
+
+    @Test
     fun `missing fields take their defaults`() {
         main.writeText("{}")
         assertEquals(PuzzleData(), PuzzleStore(dir).load())

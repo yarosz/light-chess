@@ -1,3 +1,4 @@
+// Adapted from Karballo's FileBook (github.com/albertoruibal/karballo, a709a7e, Alberto Alonso Ruibal), MIT licence.
 package karballo.book
 
 import karballo.Board

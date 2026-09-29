@@ -160,6 +160,18 @@ and writes the file; the two screens' view models are views onto it.
   Solution and each wrong Move in Try Mode are written at once, and a kill at any of them relaunches
   into it, never scoring twice (v1 smoke fixes). Before, a Failed result reached the file only in
   onAppPause, which a kill skips.
+- Band files are read ahead on a background thread (v1 review follow-ups), so the main thread reads
+  none in the usual case: when a rated Attempt starts, the Bands for the Player Rating after a win, a
+  loss and no change (`PuzzleFlow.prefetchNext`), and when the Missed page opens, the Band lines of
+  every Missed Puzzle (`prefetchMissed`). The choice itself still happens at the result (D1). A tap
+  that outruns the read ahead reads the file itself, as before.
+- The stage clock (A5) starts again only when the Attempt on screen changed, so a tap that changes
+  nothing (Hint while the reply is pending) doesn't delay the reply. A slide (setup, reply, Solution)
+  is cleared once it has played, and whenever its Move is no longer the latest, so a return from the
+  Menu doesn't play it again.
+- The owner reads assets through the latest screen that asked for it (`PuzzleOwner.of`): the SDK
+  reads them only through a screen's activity, so keeping the first screen's reader kept the first
+  activity alive after a relaunch.
 - Cold start: `ChessPerf` logs "session loaded ms=" and, once per process, "first puzzle drawn ms=...
   since process start". LightActivity keeps its splash screen up for at least 1 s after onCreate
   (light-sdk `LightActivity.kt`), so what the user sees first can't come sooner than that.
