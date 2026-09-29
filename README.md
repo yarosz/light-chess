@@ -1,11 +1,11 @@
 # Chess
 
-Chess Puzzles, and games against the computer, for the Light Phone III.
+Chess Puzzles, games against the computer, and Games with a friend, for the Light Phone III.
 
 Solve real positions from the Lichess puzzle database, 46,971 of them, chosen for your level.
 Your Player Rating moves with every rated Puzzle, and the ones you missed wait for another try.
-Or play the computer at one of eight Levels, on the phone itself. Works offline, with no account and
-nothing tracked.
+Or play the computer at one of eight Levels, on the phone itself, or a friend by correspondence, a
+few days per Move. No account and nothing tracked; only Games with a friend use the network.
 
 > **Status: 0.3.0, Puzzles (v1), playing the computer (v2) and playing a friend by correspondence
 > (v3) are done; not yet listed by Light.** A Light Phone III Tool built on
@@ -29,6 +29,10 @@ _Screenshots from a Light Phone III are coming._
   "Move now" makes it play at once. The Menu has Takeback, Offer draw, Resign, Flip board and the
   Game's Moves. A Game in progress is kept when you leave, and Games lists your last 50 finished
   ones to look back through.
+- **Play a friend.** Create an Invite Code and tell it to your friend; it works once, for 48 hours.
+  Choose 1, 3 or 7 days per Move. Each Move waits for "Send", with "Undo" until then. The Menu has
+  Offer draw and Resign; a finished Game offers a rematch. Moves pass through Chess's Relay, with no
+  name or account.
 - **Review.** Turn the scroll wheel back to step through the Moves of the Puzzle or Game on screen.
 - **Pieces.** Two sets, geometric and rounded; choose one in the Menu.
 - **Captured Pieces.** In a Game, a row under the board shows the pieces each Side has taken, and
