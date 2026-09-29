@@ -1120,10 +1120,14 @@ feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 an
     Correspondence Game's chosen Move, not yet sent, counts as shown), en passant included. A piece
     taken is the one its capture removed from the board (en passant's pawn included), so a promoted pawn taken later is the piece it became, and the
     pawn it came from is never counted.
-  - The strip: once the row shows, the status and buttons centre in the part of the strip below it (a
-    one-line status 10 dp lower than before), and a status's two lines are set closer (the room below
-    the row divided by two, just under Copy's font size) so a two-line Result (R4.16) still fits
-    there. The strip keeps its size and place, so the board never moves. Until the first capture it is
-    exactly as before, so a Game's strip matches a Puzzle's until something is taken.
+  - The strip: on every Game board the status and buttons centre in the part of the strip below the
+    row's band (a one-line status 10 dp lower than in a Puzzle), and a status's two lines are set
+    closer (the room below the row divided by two, just under Copy's font size) so a two-line Result
+    (R4.16) still fits there; the buttons' padding above and below is 4 dp there, not 8. The strip
+    keeps its size and place, so the board never moves. A Puzzle's strip is exactly as before.
+  - The band is reserved from a Game's first Position, before anything is captured (owner's choice,
+    2026-09-29, SUPERSEDES this ruling's first draft, which lowered the text only at the first capture):
+    the text never moves, neither when the first piece is taken nor when Review steps back across that
+    Ply. The pieces simply appear in the band once there is a capture.
   - Accessibility: the row reads, in its own order, "Captured by White: two pawns, a queen. Captured by
     Black: a knight. White is ahead by 7." ("Material is even." when neither leads), from `UiCopy`.

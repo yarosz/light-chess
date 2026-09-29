@@ -51,6 +51,18 @@ object StripLayout {
      */
     val BUTTON_VERTICAL_PADDING_BELOW_ROW: Dp = 4.dp
 
+    /**
+     * Where the status and buttons start, from the strip's top (P3, the owner's choice): below the
+     * captured-pieces row's band on every Game board ([captured] non-null), captures or not, so the
+     * text never moves when the first piece is taken or when Review steps across it; at the top in a
+     * Puzzle, as before.
+     */
+    fun textTop(captured: CapturedRowState?): Dp = if (captured != null) CapturedRowLayout.BOTTOM.dp else 0.dp
+
+    /** The buttons' padding above and below: the smaller one wherever the row's band is reserved. */
+    fun buttonVerticalPadding(captured: CapturedRowState?): Dp =
+        if (captured != null) BUTTON_VERTICAL_PADDING_BELOW_ROW else BUTTON_VERTICAL_PADDING
+
     /** LightOS `Copy` text: 30 design px with a line height of 1.5 (light-sdk `LightTheme.kt`). */
     const val COPY_DESIGN_PX = 30f
     const val COPY_LINE_HEIGHT = 1.5f
@@ -69,10 +81,11 @@ data class StripButton(val label: String, val description: String = label, val e
  * press-without-ripple. It is always two status lines tall, so the board never moves when a status
  * wraps.
  *
- * In a Game, [captured] puts the captured-pieces row in the strip's top band (P3). Once it shows,
- * the status and buttons centre in the part of the strip below it, and a status's two lines are set
- * closer so that a two-line Result still fits there; the strip keeps its size and place. Until
- * something is captured, and always in a Puzzle, the strip is as it was.
+ * On a Game board, [captured] reserves the strip's top band for the captured-pieces row (P3): the
+ * status and buttons always centre in the part of the strip below it, from the first Position on, and
+ * a status's two lines are set closer so that a two-line Result still fits there; the pieces appear
+ * in the band once something is taken. The strip keeps its size and place. A Puzzle passes no
+ * [captured], and its strip is as it was.
  */
 @Composable
 fun Strip(status: String, buttons: List<StripButton>, modifier: Modifier = Modifier, captured: CapturedRowState? = null) {
@@ -80,17 +93,16 @@ fun Strip(status: String, buttons: List<StripButton>, modifier: Modifier = Modif
     require(buttons.size <= 4) { "the strip holds at most 4 buttons" }
     val statusLines = with(StripLayout) { COPY_DESIGN_PX * COPY_LINE_HEIGHT * STATUS_MAX_LINES }.designVerticalPxToDp()
     val height = maxOf(StripLayout.MIN_HEIGHT, statusLines)
-    val row = captured?.takeIf { it.shown }
     BoxWithConstraints(modifier.fillMaxWidth().height(height)) {
-        if (row != null) CapturedRow(row, maxWidth, Modifier.align(Alignment.TopStart))
-        val top = if (row != null) CapturedRowLayout.BOTTOM.dp else 0.dp
-        val buttonPadding = if (row != null) StripLayout.BUTTON_VERTICAL_PADDING_BELOW_ROW else StripLayout.BUTTON_VERTICAL_PADDING
+        if (captured != null && captured.shown) CapturedRow(captured, maxWidth, Modifier.align(Alignment.TopStart))
+        val top = StripLayout.textTop(captured)
+        val buttonPadding = StripLayout.buttonVerticalPadding(captured)
         Row(
             Modifier.fillMaxWidth().fillMaxHeight().padding(top = top),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             val statusModifier = Modifier.weight(1f).padding(end = StripLayout.STATUS_GAP)
-            if (row == null) {
+            if (captured == null) {
                 LightText(
                     text = status,
                     variant = LightTextVariant.Copy,

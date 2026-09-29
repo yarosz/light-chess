@@ -114,7 +114,10 @@ object CapturedRowLayout {
  * row's accessibility label.
  */
 data class CapturedRowState(val captured: CapturedPieces, val bottom: Side, val pieceSet: PieceSet, val description: String) {
-    /** The row shows once something is captured (or the material is not level); until then the strip is as in a Puzzle. */
+    /**
+     * The row's pieces show once something is captured (or the material is not level). Its band is
+     * reserved on a Game board either way (`StripLayout.textTop`), so the strip's text never moves.
+     */
     val shown: Boolean get() = !captured.isEmpty
 }
 

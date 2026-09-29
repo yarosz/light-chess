@@ -164,6 +164,25 @@ class CapturedRowTest {
         assertEquals(8f, StripLayout.BUTTON_VERTICAL_PADDING.value)
     }
 
+    /**
+     * P3, the owner's choice: every Game board reserves the row's band from its first Position, so
+     * the strip's text sits in the same lowered place before and after the first capture (and as
+     * Review steps across it); a Puzzle's strip, which passes no row, is as before.
+     */
+    @Test
+    fun aGameStripIsLoweredFromTheStartAndAPuzzleStripIsNot() {
+        val start = capturedRow(Game.of(), 0, Side.WHITE, PieceSet.DEFAULT)
+        val later = CapturedRowState(sample, Side.WHITE, PieceSet.DEFAULT, "")
+        assertFalse(start.shown, "no pieces at Ply 0")
+        assertEquals(CapturedRowLayout.BOTTOM, StripLayout.textTop(start).value, "a Game strip at Ply 0 is lowered")
+        assertEquals(StripLayout.textTop(start), StripLayout.textTop(later), "the same place with and without captures")
+        assertEquals(StripLayout.buttonVerticalPadding(start), StripLayout.buttonVerticalPadding(later))
+        assertEquals(StripLayout.BUTTON_VERTICAL_PADDING_BELOW_ROW, StripLayout.buttonVerticalPadding(start))
+        // A Puzzle: no row, today's strip.
+        assertEquals(0f, StripLayout.textTop(null).value)
+        assertEquals(StripLayout.BUTTON_VERTICAL_PADDING, StripLayout.buttonVerticalPadding(null))
+    }
+
     @Test
     fun theRowShowsOnceSomethingIsCaptured() {
         val start = capturedRow(Game.of(), 0, Side.WHITE, PieceSet.DEFAULT)

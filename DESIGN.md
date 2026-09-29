@@ -10,8 +10,9 @@ The LP3's app area is 1080 × 1168 px at 480 dpi: 360 dp wide, about 389 dp tall
 square (8 × 39 dp, 117 px squares), centred, 12 dp below the top of the app area, with 24 dp either
 side. The strip is exactly as wide as the board, directly under it, and two `Copy` lines tall (90
 design px, 58 dp on the LP3; never under 48 dp). About 7 dp stay free at the bottom. In a Game, the
-strip's top band holds the Captured Pieces row once something is taken (P3; "The game screen" below):
-17 dp drawings 3 dp under the board, with the strip's text centred in the 38 dp left below them.
+strip's top band is kept for the Captured Pieces row (P3; "The game screen" below): 17 dp drawings 3 dp
+under the board once something is taken, and from the first Position the strip's text centred in the
+38 dp left below them. A Puzzle's strip has no band.
 
 The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). The puzzle
 flow puts the side to move after the setup Move at the bottom (A5). The game screen puts the user's
@@ -307,8 +308,10 @@ draws them and `CapturedRowTest` checks the layout:
   Side's end; nothing when even. From the material on the board, so a promotion counts.
 - A captured white piece is its board drawing; a captured black one the white drawing with a gray
   body (`CAPTURED_BLACK_BODY`), generated for both Piece Sets by `scripts/build-pieces.py`.
-- The strip: until the first capture, as in a Puzzle. Once the row shows, the status and buttons centre
-  below it (10 dp lower), and a two-line status's lines are set to half the room below the row, so a
+- The strip: on every Game board, from its first Position (the owner's choice: the text never moves
+  when the first piece is taken or when Review steps across it), the status and buttons centre below
+  the row's band (10 dp lower than in a Puzzle), whether or not the band holds pieces yet, and a
+  two-line status's lines are set to half the room below the row, so a
   Result still fits in two lines; the buttons' padding above and below drops from 8 dp to 4, so a
   label's line fits the 38 dp there unclipped (a 37 dp target). The strip keeps its size.
 - Its label: "Captured by White: two pawns, a queen. Captured by Black: a knight. White is ahead by
