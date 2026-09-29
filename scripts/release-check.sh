@@ -100,7 +100,12 @@ check_run() {
   drive shot "$out/run-2-about.png"
   local date uid traffic
   date=$(python3 -c 'import json;print(json.load(open("tool/src/main/assets/pack/manifest.json"))["source"]["date"])')
-  grep -q "Nothing leaves this phone." "$out/run-about.txt" || die "About has no privacy line"
+  # About's privacy line follows the Relay URL (W8): v1's line while it's empty, v3's once it's set.
+  local privacy="Nothing leaves this phone."
+  if [ -n "$(sed -nE 's/^[[:space:]]*const val URL = "(.*)"$/\1/p' tool/src/main/kotlin/com/yarosz/chess/relay/RelayConfig.kt)" ]; then
+    privacy="Chess uses the network only for Games with a friend"
+  fi
+  grep -qF "$privacy" "$out/run-about.txt" || die "About lacks the privacy line \"$privacy\""
   grep -q "dump of $date" "$out/run-about.txt" || die "About lacks the dump date $date"
   # The privacy line, measured: the Tool's uid has no row in the kernel's per-uid traffic counters.
   uid=$(emu shell pm list packages -U "$pkg" | tr -d '\r' | grep -oE 'uid:[0-9]+' | cut -d: -f2)

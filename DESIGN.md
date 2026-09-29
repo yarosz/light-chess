@@ -237,7 +237,7 @@ copy for the object on screen, while code names the chess state a Position.
   rating" then "Tap again to reset" (F5), and rows "1523 · Solved +12"; "No rated Puzzles yet" when
   empty. Missed: rows "1541 · Failed" or "1541 · Hinted"; "Nothing missed yet".
 - About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).
-  - "Chess $VERSION" (0.2.0, equal to `versionName`)
+  - "Chess $VERSION" (0.3.0, equal to `versionName`)
   - "Copyright 2026 Nicolas Yarosz."
   - "Free software under the GNU General Public License, version 3 or later, with no warranty."
   - "Source: $SOURCE" (github.com/yarosz/light-chess, as text: the phone has no browser)
@@ -310,10 +310,10 @@ draws them and `CapturedRowTest` checks the layout:
   body (`CAPTURED_BLACK_BODY`), generated for both Piece Sets by `scripts/build-pieces.py`.
 - The strip: on every Game board, from its first Position (the owner's choice: the text never moves
   when the first piece is taken or when Review steps across it), the status and buttons centre below
-  the row's band (10 dp lower than in a Puzzle), whether or not the band holds pieces yet, and a
-  two-line status's lines are set to half the room below the row, so a
-  Result still fits in two lines; the buttons' padding above and below drops from 8 dp to 4, so a
-  label's line fits the 38 dp there unclipped (a 37 dp target). The strip keeps its size.
+  the row's band (10 dp lower than in a Puzzle), whether or not the band holds pieces yet. A two-line
+  status's lines are set to half the room below the row, so a Result still fits in two lines. The
+  buttons' padding above and below drops from 8 dp to 4, so a label's line fits the 38 dp there
+  unclipped (a 37 dp target). The strip keeps its size.
 - Its label: "Captured by White: two pawns, a queen. Captured by Black: a knight. White is ahead by
   7.", the bottom Side first; "Material is even." when neither leads.
 

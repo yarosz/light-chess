@@ -7,10 +7,18 @@ non-debuggable 558K nps P50, depth 18 in 3 s). feat/v2-play merges feat/v1-relea
 as v2's base, and also the Levels (PR 3), the game record (PR 5 core), the Book (PR 6) and the game
 screen (PR 4, with R4.16/R4.17), reviewed and checked on the LP3: the computer is playable at every
 Level. v0.2.0 (v1 + v2) is released from main. v3: the Relay is done (protocol 1.0) and has its
-address, `https://chess-relay.yarosz.com` (decision log W11), deployed and live since 2026-09-29; the client (v3 PR 1)
-and Play a friend (v3 PR 2) are on feat/v3. v3/relay-url carries feat/v3 with main (0.2.0) merged in
-and the Relay URL wired. Next: the v3 release PR; v3 PR 3 (the
-live WebSocket) after.
+address, `https://chess-relay.yarosz.com` (decision log W11), deployed and live since 2026-09-29; the
+client and Play a friend are on main (#3), and so is the Captured Pieces row (P3, #10). v0.3.0 (v1 +
+v2 + v3 + P3) is the open release PR, pending merge and tag. Next: v3 PR 3 (the live WebSocket).
+HANDOFF (0.3.0 release PR, release/0.3.0 from main bb8da79, 2026-09-29): versionName 0.3.0,
+versionCode 3, `UiCopy.VERSION` with it; notes in `docs/release-notes/0.3.0.md` (the Pack is unchanged
+since v0.2.0, so the notes say nothing of it). README's status line names v3 done. Two doc nits from
+#10: DESIGN.md's strip bullet split into sentences, the decision log's P3 "What counts" rewrapped.
+`release-check.sh run` expected v1's privacy line; it now expects the one the build shows (v3's
+while `RelayConfig.URL` is set), and `release-drive.py about` scrolls About, since v3's longer line
+pushes the Puzzles line below the fold. The release checks (scan on a fresh public clone, relay and
+`/health`, apk, run, upgrade v0.2.0, light-build) ran on this branch's HEAD. Next: merge, tag v0.3.0 with a notes-only GitHub Release;
+the Light submission of that hash is the maintainer's.
 HANDOFF (v3 Relay URL, v3/relay-url from feat/v3, 2026-09-29): main after 0.2.0 (585d8d6, a4706da, #7,
 #8, #9) merged into feat/v3's tip (a merge commit, no rewrite). main's v2 is a squash (#2), so the
 conflicts were resolved against 359219b, the v2 tip feat/v3 had merged: only main's later work (README

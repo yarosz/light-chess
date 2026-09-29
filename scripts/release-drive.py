@@ -179,7 +179,18 @@ def main(argv):
         tap_label("Menu")
         tap_label("About")
         wait_for(r"^Chess \d")
-        print("\n".join(texts()))
+        # About scrolls, and v3's privacy line pushes the Puzzles line below the fold: scroll by touch
+        # until nothing new shows, keeping each line once, in order. The screenshot after is the end.
+        seen = []
+        for _ in range(12):
+            new = [t for t in texts() if t not in seen]
+            if not new and seen:
+                break
+            seen += new
+            focused()
+            adb("shell", "input", "swipe", "540", "1000", "540", "300", "200")
+            time.sleep(0.6)
+        print("\n".join(seen))
     elif cmd == "shot":
         with open(argv[1], "wb") as f:
             f.write(adb("exec-out", "screencap", "-p", binary=True))
