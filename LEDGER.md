@@ -13,6 +13,11 @@ only the Book is new, so the notes say nothing of the Pack). `release-check.sh s
 emulator's fixed 10.0.2.2 and 10.0.2.3, as feat/v3 needs, and passes on the public repo. The release
 checks (scan, apk, run, upgrade v0.1.0, light-build) ran on this branch's HEAD. Next: merge, tag
 v0.2.0 with a notes-only GitHub Release; the Light submission of that hash is the maintainer's.
+HANDOFF (v2 LP3 checks, 2026-09-29): checked under the lease on main (b823cc0): the Menu has Play
+the computer, then Pieces just above About, then the Puzzle id row; the rounded set draws on the
+game board; a cold start into a Game shows a black frame, then its first board in the rounded set
+(M4); system Back from New game, Moves and Games returns to the Menu (S3, M2). The 0.2.0 notes don't
+list the two piece sets: they are already in v0.1.0.
 HANDOFF (forward merge, 2026-09-29): main (v1 0.1.0 + #4-#6) is merged into feat/v2-play (a merge
 commit, no rewrite). main's v1 is a squash, so the merge's content was resolved against fix/v1-keyup
 (25530a1), the commit v1's squash starts from. Decision log "Forward merge" M1-M3: the Piece Set
