@@ -30,7 +30,7 @@ jobs:
           # The action's default list includes the removed legacy "tools" package.
           packages: "platform-tools platforms;android-36 build-tools;36.0.0"
       - uses: gradle/actions/setup-gradle@v4
-      - name: Generated pieces match the vendored SVGs
+      - name: Piece converter self-test, and the generated pieces match the SVGs
         run: python3 scripts/build-pieces.py --check
       - name: Unit and property tests
         run: ./gradlew --console=plain :tool:testDebugUnitTest

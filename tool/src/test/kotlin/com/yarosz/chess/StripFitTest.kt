@@ -1,6 +1,7 @@
 package com.yarosz.chess
 
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.StripLayout
 import com.yarosz.chess.correspondence.HaltReason
 import com.yarosz.chess.correspondence.Refusal
@@ -255,6 +256,38 @@ class StripFitTest {
         }
     }
 
+    /**
+     * The Menu's Puzzle row (A9 with D7): a Menu line is the LP3's 360 dp less 24 dp either side. With
+     * the widest 5-character Lichess id, each of its two lines fits whole, so Android never breaks the
+     * address (it would at a slash: seen on the emulator when the address shared a line).
+     */
+    @Test
+    fun theMenuPuzzleRowFits() {
+        val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
+        for (id in listOf("WWWWW", "mmmmm", "00sHx")) {
+            val lines = UiCopy.puzzleRow(id).split('\n')
+            assertEquals(listOf("Puzzle $id", "lichess.org/training/$id"), lines)
+            for (l in lines) assertTrue(AkkuratProxy.width(l) <= room, "\"$l\" (${AkkuratProxy.width(l)} dp) in $room dp")
+        }
+    }
+
+    /** The Menu's Pieces row (P2): "Pieces · <set>" for every Piece Set, each on one Menu line. */
+    @Test
+    fun theMenuPiecesRowNamesEverySetOnOneLine() {
+        val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
+        assertEquals("Pieces · Geometric", UiCopy.piecesRow(PieceSet.GEOMETRIC))
+        assertEquals("Pieces · Rounded", UiCopy.piecesRow(PieceSet.ROUNDED))
+        assertEquals(PieceSet.entries.size, PieceSet.entries.map(UiCopy::pieceSetName).toSet().size, "every set has its own name")
+        for (set in PieceSet.entries) {
+            val row = UiCopy.piecesRow(set)
+            assertTrue(AkkuratProxy.width(row) <= room, "\"$row\" (${AkkuratProxy.width(row)} dp) in $room dp")
+        }
+        // A tap moves to the next set; from the last it wraps to the first, so every set is reachable.
+        assertEquals(PieceSet.ROUNDED, PieceSet.GEOMETRIC.next)
+        assertEquals(PieceSet.GEOMETRIC, PieceSet.ROUNDED.next)
+        assertEquals(PieceSet.GEOMETRIC, PieceSet.DEFAULT)
+    }
+
     /** The bug seen on the LP3: on one line, the first Puzzle's status lost its end next to Menu. */
     @Test
     fun oneLineWasTooShortForTheFirstPuzzle() {
@@ -320,6 +353,10 @@ class StripFitTest {
     private companion object {
         /** Side bearings, both ends of a string: the ink gap between neighbouring buttons ran 8-9 px past their padding. */
         const val LP3_BEARINGS_DP = 3f
+
+        /** The LP3's app area (DESIGN.md "Layout") and a Menu line's side padding (`MenuScreen.Line`). */
+        const val MENU_WIDTH_DP = 360f
+        const val MENU_PADDING_DP = 24f
     }
 }
 
@@ -363,6 +400,7 @@ object AkkuratProxy {
         for (d in '0'..'9') put(d, 556)
         put(' ', 278); put(',', 278); put('.', 278); put(':', 278); put('\'', 191); put('’', 222); put('?', 556)
         put('·', 278); put('+', 584); put('−', 584); put('-', 333); put('…', 1000); put('=', 584); put('#', 556)
+        put('/', 278)
         putAll(NARROW)
     }
 

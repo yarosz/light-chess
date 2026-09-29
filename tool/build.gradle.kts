@@ -90,7 +90,7 @@ android {
             // -Dcorrespondence.seeds=<n> runs more seeds of CorrespondencePropertyTest; -Drelay.e2e=<url>
             // runs RelayEndToEndTest against a local Worker (relay/README.md); -Drelay.phone=<url> with
             // relay.phone.dir and relay.phone.cmd runs SecondPhoneTest, a second phone against the emulator.
-            for (key in listOf("correspondence.seeds", "relay.e2e", "relay.phone", "relay.phone.dir", "relay.phone.cmd", "calibrate","calibrate.threads", "calibrate.rounds", "calibrate.karballo", "calibrate.karballo.nodes", "calibrate.levels", "calibrate.set", "calibrate.seeds", "calibrate.elos")) {
+            for (key in listOf("correspondence.seeds", "relay.e2e", "relay.phone", "relay.phone.dir", "relay.phone.cmd", "calibrate", "calibrate.threads", "calibrate.rounds", "calibrate.karballo", "calibrate.karballo.nodes", "calibrate.levels", "calibrate.set", "calibrate.seeds", "calibrate.elos", "calibrate.stockfish", "calibrate.stockfish.nodes", "calibrate.plan", "calibrate.pgn", "calibrate.firstRound")) {
                 providers.systemProperty(key).orNull?.let { value -> it.systemProperty(key, value) }
             }
         }

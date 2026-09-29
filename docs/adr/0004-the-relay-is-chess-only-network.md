@@ -20,7 +20,8 @@ three rules (decision log W1):
 `RelayConfig.URL` is committed empty until the maintainer deploys the Relay. While it is empty,
 Play a friend doesn't exist in the Tool (no Menu entry, no client, no job), About keeps "Chess never
 uses the network. Nothing leaves this phone.", and `scripts/release-check.sh relay` refuses to call
-a build releasable.
+a build releasable. (2026-09-29: the URL is set to `https://chess-relay.yarosz.com`, the Relay's
+one public address, ahead of its deploy; decision log W11.)
 
 ## Considered Options
 

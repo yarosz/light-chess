@@ -11,7 +11,7 @@ tagged commit on `main`, not an APK we build.
     it on the About screen, and `ToolMetadataTest` keeps the two equal.
   - `versionCode`: +1 every release, never reused, never lower. Light's build server rejects a
     `versionCode` that isn't greater than the last published one, and Android refuses to install a
-    lower one over a higher one. 0.1.0 is `versionCode = 1`.
+    lower one over a higher one. 0.1.0 is `versionCode = 1`, 0.2.0 is `2`.
 - The Tool id `com.yarosz.chess` is permanent from the first published build. Never change it.
 - Tag the merged release commit `vX.Y.Z`. The GitHub Release carries notes only, no APK.
 - Release notes users see are the ones entered in Light's portal: three lines, in the listing's voice,
@@ -44,6 +44,8 @@ Release PR (version bump, notes, and the `light-sdk` submodule at Light's newest
       repo. The scan covers every tracked file and every commit on every branch.
 - [ ] `scripts/release-check.sh relay`: `tool/lighttool.toml` declares INTERNET (ADR 0004), so
       `RelayConfig.URL` must name the deployed Relay over HTTPS; it fails while the URL is empty (W8).
+      The script doesn't reach the Relay: also check that `curl https://chess-relay.yarosz.com/health`
+      answers `{"status":"ok",...}` (W11, relay/README.md "Deploying").
 - [ ] `scripts/release-check.sh apk`: the unsigned, minified release, as Light builds it. It checks
       the package, `versionCode` and `versionName` with `aapt dump badging`, fails on any permission
       beyond the set Light's SDK merges in, and prints the APK's size.

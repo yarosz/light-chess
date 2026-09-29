@@ -176,6 +176,9 @@ class FriendScreen(
 
     private val friends: FriendOwner by lazy { checkNotNull(FriendOwner.of(lightContext)) { "Play a friend is off" } }
 
+    /** For the Piece Set's row only: it is kept in `puzzles.json` (P2, M1). */
+    private val owner: PuzzleOwner by lazy { PuzzleOwner.of(lightContext.filesDir, lightContext::readAsset) }
+
     override fun createViewModel() = FriendViewModel(friends, startPage, startGame)
 
     @Composable
@@ -321,7 +324,7 @@ class FriendScreen(
 
     /**
      * The Correspondence Game's Menu (W2, W4, W6), top to bottom: why it stopped, the Game's actions,
-     * Moves, Rename, Forget game, then back to Play a friend and About. No Game Hint, no Takeback, no
+     * Moves, Rename, Forget game, then back to Play a friend, Pieces and About. No Game Hint, no Takeback, no
      * flip (W10, G3).
      */
     @Composable
@@ -364,6 +367,9 @@ class FriendScreen(
             }
         }
         MenuRow(UiCopy.PLAY_FRIEND) { goBack(FriendExit()) }
+        // P2, M1: the one Piece Set, just above About as in every Menu.
+        val pieceSet = owner.pieceSet.collectAsState().value
+        if (pieceSet != null) MenuRow(UiCopy.piecesRow(pieceSet)) { owner.nextPieceSet() }
         MenuRow(UiCopy.ABOUT) { navigateTo({ MenuScreen(it, MenuPage.ABOUT) }) }
     }
 }

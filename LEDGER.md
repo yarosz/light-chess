@@ -1,16 +1,78 @@
 # Ledger
 
-STATUS: v1 feature-complete (0.1.0, versionCode 1; branch feat/v1-release, now with the wheel key-up
-fix R4.17), checked on the LP3, pending LP3 photos for the README and the maintainer's submission. v2: Pirarucu is GO (ADR 0001
-accepted: LP3 non-debuggable 558K nps P50, depth 18 in 3 s). feat/v2-play merges feat/v1-release and
-feat/v2-bench as v2's base, and now also merges the Levels (PR 3), the game record (PR 5 core) and
-the Book (PR 6), and the game screen (PR 4, with R4.16/R4.17), reviewed and checked on the LP3: the
-computer is playable at every Level. Next is the v3 client.
-v3: the Relay is done on feat/v3-relay (protocol 1.0, not deployed). v3 PR 1, the Kotlin client core
-(protocol types, RelayClient, the sync engine; no UI, no permission, nothing calls it), is on
-feat/v3-client. v3 PR 2 (screens + network, Play a friend) is on feat/v3-play; next is v3 PR 3 (the
-live WebSocket).
-LAST SESSION: 2026-09-28
+STATUS: v1 0.1.0 is on main (the squashed v1 release with the smoke fixes S1-S3, then #4 the CC0
+pieces P1, #5 the review follow-ups V1-V5, #6 the Piece Set chooser P2), pending LP3 photos for the
+README and the maintainer's submission to Light. v2: Pirarucu is GO (ADR 0001 accepted: LP3
+non-debuggable 558K nps P50, depth 18 in 3 s). feat/v2-play merges feat/v1-release and feat/v2-bench
+as v2's base, and also the Levels (PR 3), the game record (PR 5 core), the Book (PR 6) and the game
+screen (PR 4, with R4.16/R4.17), reviewed and checked on the LP3: the computer is playable at every
+Level. v0.2.0 (v1 + v2) is released from main. v3: the Relay is done (protocol 1.0) and has its
+address, `https://chess-relay.yarosz.com` (decision log W11), deployed and live since 2026-09-29; the client (v3 PR 1)
+and Play a friend (v3 PR 2) are on feat/v3. v3/relay-url carries feat/v3 with main (0.2.0) merged in
+and the Relay URL wired. Next: the v3 release PR; v3 PR 3 (the
+live WebSocket) after.
+HANDOFF (v3 Relay URL, v3/relay-url from feat/v3, 2026-09-29): main after 0.2.0 (585d8d6, a4706da, #7,
+#8, #9) merged into feat/v3's tip (a merge commit, no rewrite). main's v2 is a squash (#2), so the
+conflicts were resolved against 359219b, the v2 tip feat/v3 had merged: only main's later work (README
+for v2, M4, the About Book line, the Stockfish calibration, 0.2.0, the scan's 10.0.2.2/10.0.2.3) had
+to be combined with v3. Kept main's versionName 0.2.0 / versionCode 2 (v3 had no bump of its own;
+the v3 release PR bumps it). v3's forward-merge rulings M4/M5 are now M5/M6 (main's M4 came first);
+M7: the friend screens read M4's early Piece Set too. The Relay's URL (W11): `RelayConfig.URL` is
+`https://chess-relay.yarosz.com`, a custom domain on the maintainer's zone bound by the maintainer's
+infrastructure code, not wrangler (no `routes`); `workers_dev` off (relay/wrangler.jsonc,
+relay/README.md "Deploying"). A debug build still takes `-Prelay.url` (the emulator's local Relay);
+without it a debug build, like release, talks to that URL. README's Privacy paragraph still says the
+Relay isn't deployed: the v3 release PR changes it with the deploy. Next: the maintainer deploys
+(`npx wrangler deploy` in relay/, then binds the domain, then `/health` at the URL), then the v3
+release PR (version bump, notes, README privacy, LP3 checks).
+HANDOFF (forward merge, 2026-09-29): main (v1 0.1.0 + #4-#6) is merged into feat/v2-play, and
+feat/v2-play into feat/v3 (merge commits, no rewrite). main's v1 is a squash, so the first merge's
+content was resolved against fix/v1-keyup (25530a1), the commit v1's squash starts from. Decision
+log "Forward merge" M1-M3 and M5-M6: the Piece Set stays in `puzzles.json` and every board draws it
+(puzzle, game, Games Review, a Correspondence Game, each promotion picker); "Pieces" sits just above
+About in every Menu (puzzle, game, Play a friend, a Correspondence Game's); New game, Games and Moves
+are their own Menu screens (S3); the game owner takes V4. Checked on the emulator: the Menus, a
+Puzzle and a Game in the rounded set; not Play a friend (the emulator build has no Relay URL). To
+re-check on the LP3: the rounded set on a Correspondence Game. Open (M6): the Correspondence Game's
+Menu (FriendScreen) keeps Moves and Rename as pages inside one screen, so system Back there skips to
+the board, the bug S3 fixed for the other Menus; give each its own screen.
+HANDOFF (0.2.0 release PR, release/0.2.0 from main, 2026-09-29): versionName 0.2.0, versionCode 2,
+`UiCopy.VERSION` with it; notes in `docs/release-notes/0.2.0.md` (the Pack is unchanged since v0.1.0,
+only the Book is new, so the notes say nothing of the Pack). `release-check.sh scan` now allows the
+emulator's fixed 10.0.2.2 and 10.0.2.3, as feat/v3 needs, and passes on the public repo. The release
+checks (scan, apk, run, upgrade v0.1.0, light-build) ran on this branch's HEAD. Next: merge, tag
+v0.2.0 with a notes-only GitHub Release; the Light submission of that hash is the maintainer's.
+HANDOFF (v2 LP3 checks, 2026-09-29): checked under the lease on main (b823cc0): the Menu has Play
+the computer, then Pieces just above About, then the Puzzle id row; the rounded set draws on the
+game board; a cold start into a Game shows a black frame, then its first board in the rounded set
+(M4); system Back from New game, Moves and Games returns to the Menu (S3, M2). The 0.2.0 notes don't
+list the two piece sets: they are already in v0.1.0.
+HANDOFF (v1 pre-submission LP3 checks, 2026-09-29): checked under the lease on main (ecd6349): both
+Piece Sets draw on the LP3; the Menu's Pieces row switches sets and the choice survives a relaunch;
+the Puzzle id row is the Menu's last row; Back from About returns to the Menu (S3); the wheel scrolls
+back into Review and its click returns to the latest Move (R4.17). v0.1.0 tagged at ecd6349 with a
+notes-only GitHub Release, after the release checks (scan, apk, run, light-build). The Light
+submission of that hash is the maintainer's. Noted: main's `release-check.sh scan` history check will
+need v3's `10.0.2.2` allowance (and check `10.0.2.3`) once feat/v3 merges -- its "Play a friend"
+commits already carry the emulator host alias, which main's version of the script doesn't yet allow.
+Still open on the LP3, from main's v1 work: how the greys and both sets look on the physical panel
+(maintainer's eyes/photos) -- the rounded set's king/queen likeness, the white bishop's slot and the
+knight's ear at 1x, and the geometric set's white outer line on light squares, the knight's eye and
+the bishop's slot; a reply slide doesn't replay after Menu and back, Hint taps during a reply don't
+delay it, and a Missed replay opens at once.
+HANDOFF (PR 2 review fixes, fix/v2-review from feat/v2, 2026-09-29): the README describes v2 (the
+computer, its credits, privacy); About's Book line reads "the Lichess games database", as NOTICE;
+`ToolMetadataTest` checks the engine and Book credits in About, NOTICE and the README; decision log
+M4: the Piece Set is read from `puzzles.json` before any Band, so a cold start into a Game draws the
+chosen set from its first frame and the game Menu has the Pieces row at once. DESIGN.md rewrapped and
+says what the wheel does on the game Menu. Checked on the emulator; no version bump (the release PR
+does that). To check on the LP3: a cold start into a Game in the rounded set.
+HANDOFF (Relay live, 2026-09-29): the Worker `chess-relay` is deployed with wrangler from this branch
+(`relay/`, workers_dev off, no routes); `chess-relay.yarosz.com` is bound to it by the maintainer's
+infrastructure code (W11). `/health` answers `{"status":"ok","protocol":"1.0","majors":[1]}`.
+`RelayEndToEndTest` passes against the live URL. On devices: the LP3 created an Invite Code, the
+emulator joined it, and 1.e4 (LP3) and 1...e5 (emulator) each reached the other within one 60 s poll.
+LAST SESSION: 2026-09-29
 
 ## HANDOFF (read first when resuming)
 - Branches, all signed and unpushed (there is no remote yet):
@@ -33,6 +95,9 @@ LAST SESSION: 2026-09-28
     (bbaad95) is left behind it; feat/v2-play carries both.
   - feat/v3-relay: the Relay (TypeScript Worker + Durable Object, 93 tests, dry-run OK), from the v1
     pack commit. Not merged into feat/v2-play; not deployed.
+  - feat/level-calibration (on main): the Stockfish mode of LevelCalibrationTest and its
+    gauntlet (docs/levels.md "The Stockfish gauntlet"). Test code, script and docs only; no labels,
+    because the fit was not consistent. 289 tests.
 - v2 PR 4 is done and merged into feat/v2-play (brief `docs/design/briefs/v2-pr4-game-screen.md`),
   reviewed by the orchestrator (GameFlow, GameOwner's search and save races, screenshots). Checked on the emulator: a Level 1 Game as White to
   checkmate, Level 8 at 30 s with Move now and a Takeback in both states, a Game Hint, a declined draw
@@ -80,12 +145,15 @@ LAST SESSION: 2026-09-28
     Rematch accepted, the Result in Games, "Not a code" / "No such code".
 - Next: v3 PR 3, the live WebSocket (`/live`, G3: ping every 5 s while the board shows, closed in
   onAppPause, "Live · Your move" / "Live · Their move"), which replaces Y12's one-minute board sync.
-  Before PR 2 merges: the LP3 check of LightWork in Doze (orchestrator, under the lease).
+  Done on the LP3 (2026-09-29): LightOS disables Doze (PLATFORM.md). A one-off friend-send job
+  delivered a Move that had failed to send once a local Relay was back (via adb reverse), with no
+  user action, and a second phone on the JVM saw it.
 - For the maintainer (PR 2):
   - Done 2026-09-28: the privacy wording is approved (UiCopy.PRIVACY_FRIENDS, docs/privacy.md, ADR
     0004). Still ask Light whether a privacy statement is needed.
-  - A deploy of the Relay (relay/README.md) and a commit that gives `RelayConfig.URL` its HTTPS URL:
-    until then `release-check.sh relay` refuses a release, and no release build has Play a friend.
+  - A deploy of the Relay (relay/README.md) at `https://chess-relay.yarosz.com`, the URL
+    `RelayConfig.URL` now has (W11, v3/relay-url). Until it answers `/health`, a release would show
+    Play a friend with nothing behind it.
 - Deferred from PR 4: "Play from here" (F7) from a Puzzle's start (R4.15: its own entry on the puzzle
   screen, a decided-Position test, "Ends your current game"); a draw offer while the computer thinks
   (R4.5: on the user's Move only); exact replay at Level 8 (clock-bound). Not measured: the strength
@@ -95,6 +163,15 @@ LAST SESSION: 2026-09-28
   books, CC0 by their author, built from the Lichess database; no checksums, 50 KB-339 MB). Ours
   would add a small reproducible book with a published checksum, but its builder compiles the rules
   core and Book reader, so publishing it means relicensing those to MIT. Revisit only if asked.
+- Slated for a follow-up, not scheduled (maintainer, 2026-09-28):
+  - "Play a stranger", v3.x after friend play ships. It is anonymous matchmaking with no accounts and
+    no visible lobby: the Relay's matchmaker hands a waiting ticket to the next phone that asks, and
+    both get seats as if a code were redeemed. It reopens C6 ("friends only"), so it gets an ADR.
+    Open: ticket expiry (about 7 days), matching on Days per Move only, an optional coarse strength
+    band, one ticket per phone, and the brief IP rate limit. No chat keeps harassment out; timeouts
+    handle stalling.
+  - LP3-only play can only be an honour rule, because the Relay can't tell an LP3 from a sideloaded
+    APK.
 - Working rules learned:
   - Builders run with `isolation: worktree`. The orchestrator must not EnterWorktree while a
     non-isolated agent works in its worktree: that moves the harness pin and blocks the agent.
@@ -103,17 +180,20 @@ LAST SESSION: 2026-09-28
   - Long gradle and light-build runs go in the background (the maintainer backgrounds long blocking
     commands).
   - The LP3's serial is in the umbrella PLATFORM.md (never in this public repo). Take the lease with noclobber and message
-    light-doom and the Reader session before and after. The chess emulator is LightPhone3-chess on
+    the Reader session before and after (Doom is finished, 2026-09-28). The chess emulator is LightPhone3-chess on
     emulator-5556; never touch 5554.
 - Waiting on the maintainer (none blocks development):
   - Light: a GPLv3 Tool (and GPL alongside the SDK's proprietary ML Kit); production push; an
     alert/badge method; a privacy statement; listing requirements; the SDK's 1 s splash; and the
     scanner's bare-`javaClass` gap (light-sdk).
-  - A Cloudflare account and URL to deploy the Relay (relay/README.md).
+  - The Relay's deploy from the maintainer's Cloudflare account (relay/README.md); the URL is chosen
+    (W11).
   - LP3 photos for the README, then the v1 submission.
   - Maybe: release the CC0 opening Book as its own repo (builder MIT, book.bin CC0) after checking
     whether a CC0 Polyglot book already exists.
-  - Stockfish: approved for later, for real Elo labels (decision log "Stockfish for calibration").
+  - Stockfish: installed (Homebrew, 19) and run on 2026-09-29; the UCI_Elo fit was not consistent,
+    so still no Elo labels (decision log "Stockfish calibration (2026-09-29)"). Next try, if wanted: a
+    3M-node gauntlet, about 15 hours of the Mac with 8 threads.
 
 ## Where things are
 - Design: `CONTEXT.md` (glossary), `docs/adr/0001-0003`, `docs/design/decision-log.md`. The log holds
@@ -126,8 +206,9 @@ LAST SESSION: 2026-09-28
   Kiwipete d5 and position 6 d5.
 - Board: `tool/src/main/kotlin/com/yarosz/chess/board/`. `PositionView` (Compose Canvas), `MoveInput`
   (pure input state machine), `Review` (wheel), `Shades`/`Marks` (constants, `ShadesTest` enforces
-  D10), `Strip`, and `CburnettPieces`, generated by `scripts/build-pieces.py` from
-  `third_party/cburnett` (BSD-3; CI runs `--check`). `DESIGN.md` holds the values, the marker
+  D10), `Strip`, and `PieceVectors`, generated by `scripts/build-pieces.py` from
+  `art/pieces/geometric` and `art/pieces/rounded` (original drawings, CC0; the Piece Set picks one;
+  CI runs `--check`). `DESIGN.md` holds the values, the marker
   readability rule and the input decisions; copy lives in `UiCopy`.
 - Puzzle flow: `puzzles/Attempt.kt` (pure state machine: A3-A6), `PuzzleFlow.kt` (scoring, selection,
   Missed, Reset rating, the F1 carry-over), `Glicko2.kt` (checked against Glickman's worked example),
@@ -179,7 +260,8 @@ LAST SESSION: 2026-09-28
   `engine/LevelPlayer.kt` (the pick, seeded per Game and Ply; MoveNow; `LevelMove.trueScore` for G1),
   `EngineHost.play`. Calibration: `LevelCalibrationTest` (`-Dcalibrate=blunders,random,ladder,anchor`),
   `scripts/level-elo.py`, Karballo line server `spikes/karballo/flat/serve`. Values, tables and method:
-  `docs/levels.md` and decision log "v2 PR 3". No Elo labels (the Karballo anchor is too loose).
+  `docs/levels.md` and decision log "v2 PR 3". No Elo labels: neither Karballo nor Stockfish's UCI_Elo
+  (`-Dcalibrate=stockfish`, decision log "Stockfish calibration (2026-09-29)") gives a consistent fit.
 - Licence: GPL-3.0-or-later, relicensable later. Outside code needs a copyright assignment
   (CONTRIBUTING.md).
 - Emulator: AVD `LightPhone3-chess` on emulator-5556 (`scripts/emulator/RECIPE.md`). Scripts find it by

@@ -5,6 +5,11 @@
   "name": "chess-relay",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-01",
+  // The Worker's only public address is https://chess-relay.yarosz.com, the one the Tool ships
+  // (RelayConfig.URL, decision log W11). That custom domain is bound outside this repo, by the
+  // maintainer's infrastructure code, so wrangler never creates DNS: no `routes` here. workers_dev is
+  // off so the Worker isn't also reachable at a second, account-named workers.dev address.
+  "workers_dev": false,
   // Wrangler's own usage telemetry, off for everyone who runs it in this directory.
   "send_metrics": false,
   // No request logs and no traces (decision log C6).

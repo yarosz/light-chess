@@ -185,8 +185,8 @@ data class Attempt(
         /**
          * An Attempt carried over from the save file: [moves] (UCI, after the setup Move) replayed
          * against the Solution. Null when they don't follow it, as after a new Pack changed the line
-         * (the caller then restarts from the setup Move, F1). [done] and [solutionShown] come back as
-         * saved; with no Moves played the Attempt starts again from [Stage.HOLD].
+         * (the caller then restarts from the setup Move, F1). [done], [solutionShown] and [justWrong]
+         * come back as saved; with no Moves played the Attempt starts again from [Stage.HOLD].
          */
         fun resume(
             puzzle: Puzzle,
@@ -194,6 +194,7 @@ data class Attempt(
             moves: List<String>,
             solutionShown: Boolean,
             done: Boolean,
+            justWrong: Boolean = false,
         ): Attempt? {
             var p = puzzle.position
             val played = ArrayList<Move>(moves.size)
@@ -214,7 +215,7 @@ data class Attempt(
                 played.size % 2 == 1 -> Stage.REPLY
                 else -> Stage.PLAY
             }
-            return Attempt(puzzle, state, played, stage, solutionShown = solutionShown)
+            return Attempt(puzzle, state, played, stage, justWrong = justWrong, solutionShown = solutionShown)
         }
     }
 }

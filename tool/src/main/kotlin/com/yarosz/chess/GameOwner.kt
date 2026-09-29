@@ -40,10 +40,11 @@ import kotlinx.coroutines.withContext
  * Every change happens on the main thread. The file is written on [io] after every change (a
  * force-stop skips onAppPause, so the user's last Move must already be on disk); [pause] (onAppPause)
  * stops the search and writes at once on the calling thread; [resume] re-runs the computer's turn if
- * it was thinking (B6), from the Game's seed.
+ * it was thinking (B6), from the Game's seed. The Book comes through the latest screen that asked for
+ * the owner ([of]), as [PuzzleOwner]'s assets do (V4).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class GameOwner(filesDir: File, private val readAsset: (String) -> ByteArray) {
+class GameOwner(filesDir: File, @Volatile private var readAsset: (String) -> ByteArray) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val io = Dispatchers.IO.limitedParallelism(1)
     private val store = GameStore(filesDir)
@@ -324,8 +325,12 @@ class GameOwner(filesDir: File, private val readAsset: (String) -> ByteArray) {
 
         private val owners = HashMap<String, GameOwner>()
 
-        /** The process's owner of [filesDir], made the first time it is asked for. */
-        fun of(filesDir: File, readAsset: (String) -> ByteArray): GameOwner =
-            synchronized(owners) { owners.getOrPut(filesDir.canonicalPath) { GameOwner(filesDir, readAsset) } }
+        /**
+         * The process's owner of [filesDir], made the first time it is asked for. It reads the assets
+         * through [readAsset] from then on, in place of the reader of the screen that asked before (V4).
+         */
+        fun of(filesDir: File, readAsset: (String) -> ByteArray): GameOwner = synchronized(owners) {
+            owners.getOrPut(filesDir.canonicalPath) { GameOwner(filesDir, readAsset) }.also { it.readAsset = readAsset }
+        }
     }
 }

@@ -42,6 +42,7 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.thelightphone.sdk.ui.lightClickable
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.engine.ThinkTime
 import com.yarosz.chess.games.Confirm
@@ -57,7 +58,11 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
-/** The Menu's pages. The Menu is a visible button because back leaves the Tool (PLATFORM.md). */
+/**
+ * The Menu's pages. The Menu is a visible button because back leaves the Tool (PLATFORM.md). Each page
+ * is its own [MenuScreen] on the SDK's back stack: system Back never reaches a screen (LightActivity
+ * pops the stack itself), so a sub-page that were only state inside one screen would skip the Menu.
+ */
 enum class MenuPage(val title: String, val scrolls: Boolean) {
     MENU(UiCopy.MENU_TITLE, false),
     RATING(UiCopy.PLAYER_RATING, true),
@@ -68,17 +73,13 @@ enum class MenuPage(val title: String, val scrolls: Boolean) {
     MOVES(UiCopy.MOVES, true),
 }
 
-/** Which page shows, the second taps, the new-game page's choices, and the wheel's scroll steps (F3). */
+/** The second taps, the new-game page's choices, and the wheel's scroll steps (F3) on one page. */
 class MenuViewModel(
     private val owner: PuzzleOwner,
     private val game: GameOwner,
     private val modes: ModeOwner,
-    /** The page the Menu opened on: back from it leaves the Menu. */
-    val startPage: MenuPage,
+    private val page: MenuPage,
 ) : WheelViewModel<Unit>() {
-    var page by mutableStateOf(startPage)
-        private set
-
     /** "Reset rating" was tapped once; the next tap resets (F5). */
     var confirmingReset by mutableStateOf(false)
         private set
@@ -92,12 +93,16 @@ class MenuViewModel(
     /** One row per wheel detent: -1 up, +1 down. */
     val scroll: SharedFlow<Int> = steps
 
-    fun open(next: MenuPage) {
+    init {
+        // The Missed page reads its Puzzles ahead, so a tap on a row reads no file on the main thread.
+        if (page == MenuPage.MISSED) owner.prefetchMissed()
+    }
+
+    /** Before another page opens over this one: a pending second tap is dropped. */
+    fun leaving() {
         owner.touched()
         game.touched()
         game.cancelConfirm()
-        if (next == MenuPage.NEW_GAME) game.state.value?.data?.choices?.let { choices = it }
-        page = next
         confirmingReset = false
     }
 
@@ -125,10 +130,13 @@ class MenuViewModel(
         return started
     }
 
-    /** "Play the computer" from the puzzle Menu: true when a Game is in progress to return to. */
+    /**
+     * "Play the computer" from the puzzle Menu: true when a Game is in progress to return to (the
+     * mode is then the game's); false when the new-game page should open instead (R4.11).
+     */
     fun playComputer(): Boolean {
         val inProgress = game.state.value?.inProgress == true
-        if (inProgress) modes.set(Mode.GAME) else open(MenuPage.NEW_GAME)
+        if (inProgress) modes.set(Mode.GAME)
         return inProgress
     }
 
@@ -175,9 +183,15 @@ class MenuViewModel(
     }
 }
 
+/**
+ * One Menu page. Back, the arrow or the system's, goes one page up: a sub-page to the Menu, the Menu
+ * to the board. A sub-page that has done its job (a reset, a Missed replay, a Start) leaves the Menu
+ * as well: it goes back with a result, and the Menu, handed that result, goes back too. System Back
+ * never carries one, so it always stops at the Menu.
+ */
 class MenuScreen(
     sealedActivity: SealedLightActivity,
-    private val startPage: MenuPage = MenuPage.MENU,
+    private val page: MenuPage = MenuPage.MENU,
 ) : LightScreen<Unit, MenuViewModel>(sealedActivity) {
 
     override val viewModelClass: Class<MenuViewModel>
@@ -188,7 +202,15 @@ class MenuScreen(
     private val modes: ModeOwner by lazy { ModeOwner.of(lightContext.filesDir) }
     private val friends: FriendOwner? get() = FriendOwner.of(lightContext)
 
-    override fun createViewModel() = MenuViewModel(owner, game, modes, startPage)
+    override fun createViewModel() = MenuViewModel(owner, game, modes, page)
+
+    private fun open(next: MenuPage) {
+        viewModel.leaving()
+        navigateTo({ MenuScreen(it, next) }) { goBack() }
+    }
+
+    /** Back to the board from a sub-page, past the Menu. */
+    private fun leaveMenu() = goBack(Unit)
 
     @Composable
     override fun Content() {
@@ -201,21 +223,19 @@ class MenuScreen(
         // Play a friend exists only once the Relay URL is set (W8).
         val friendState = friends?.state?.collectAsState()?.value
         val vm = viewModel
-        val page = vm.page
-        val back = { if (page == vm.startPage) goBack() else vm.open(vm.startPage) }
         val data = session?.data
+        val pieceSet by owner.pieceSet.collectAsState()
         LightTheme(colors = themeColors) {
             Column(Modifier.fillMaxSize().background(LightThemeTokens.colors.background)) {
                 // The computer may be thinking behind the Menu: keep the screen on for it too (contradiction 4).
                 AndroidView(factory = { View(it) }, modifier = Modifier.size(0.dp), update = { it.keepScreenOn = mode == Mode.GAME && gameAwake })
                 LightTopBar(
-                    leftButton = LightBarButton.LightIcon(icon = LightIcons.BACK, onClick = back),
+                    leftButton = LightBarButton.LightIcon(icon = LightIcons.BACK, onClick = { goBack() }),
                     center = LightTopBarCenter.Text(page.title),
                 )
                 val scrollState = rememberScrollState()
                 val rowPx = with(LocalDensity.current) { ROW_HEIGHT.toPx() }
-                LaunchedEffect(page) {
-                    scrollState.scrollTo(0)
+                LaunchedEffect(Unit) {
                     vm.scroll.collect { scrollState.animateScrollBy(it * rowPx) }
                 }
                 LightScrollView(Modifier.weight(1f).fillMaxWidth(), scrollState = scrollState) {
@@ -229,29 +249,33 @@ class MenuScreen(
                                         vm.puzzles()
                                         goBack()
                                     }
-                                    Row(UiCopy.PLAY_COMPUTER) { if (vm.playComputer()) goBack() }
-                                    Row(UiCopy.GAMES) { vm.open(MenuPage.GAMES) }
-                                    Row(UiCopy.ABOUT) { vm.open(MenuPage.ABOUT) }
+                                    Row(UiCopy.PLAY_COMPUTER) { if (vm.playComputer()) goBack() else open(MenuPage.NEW_GAME) }
+                                    Row(UiCopy.GAMES) { open(MenuPage.GAMES) }
+                                    Pieces(pieceSet)
+                                    Row(UiCopy.ABOUT) { open(MenuPage.ABOUT) }
                                 }
-                                shown != null -> GameMenu(shown, friendState)
+                                shown != null -> GameMenu(shown, friendState, pieceSet)
                                 data != null -> {
-                                    Row(UiCopy.ratingRow(data.player.text)) { vm.open(MenuPage.RATING) }
-                                    Row(UiCopy.missedCount(data.missed.size)) { vm.open(MenuPage.MISSED) }
-                                    Row(UiCopy.PLAY_COMPUTER) { if (vm.playComputer()) goBack() }
+                                    Row(UiCopy.ratingRow(data.player.text)) { open(MenuPage.RATING) }
+                                    Row(UiCopy.missedCount(data.missed.size)) { open(MenuPage.MISSED) }
+                                    Row(UiCopy.PLAY_COMPUTER) { if (vm.playComputer()) goBack() else open(MenuPage.NEW_GAME) }
                                     friendState?.let { friends ->
                                         Row(UiCopy.playFriend(friends.yourMove)) {
                                             vm.playFriend()
                                             goBack()
                                         }
                                     }
-                                    Row(UiCopy.ABOUT) { vm.open(MenuPage.ABOUT) }
+                                    Pieces(pieceSet)
+                                    Row(UiCopy.ABOUT) { open(MenuPage.ABOUT) }
+                                    // A9 with D7: the Puzzle on screen, by its Lichess id, as text (v1 smoke fixes).
+                                    session?.attempt?.let { Line(UiCopy.puzzleRow(it.puzzle.id), lighten = true) }
                                 }
                             }
                         }
                         MenuPage.RATING -> if (data != null) {
                             Line(data.player.text)
                             Row(if (vm.confirmingReset) UiCopy.RESET_CONFIRM else UiCopy.RESET_RATING) {
-                                if (vm.tapReset()) goBack()
+                                if (vm.tapReset()) leaveMenu()
                             }
                             if (data.history.isEmpty()) Line(UiCopy.NO_HISTORY, lighten = true)
                             for (entry in data.history) {
@@ -263,7 +287,7 @@ class MenuScreen(
                             for (entry in data.missed) {
                                 Row(UiCopy.missedRow(entry.puzzleRating, entry.state)) {
                                     owner.replayMissed(entry.id)
-                                    goBack()
+                                    leaveMenu()
                                 }
                             }
                         }
@@ -291,7 +315,7 @@ class MenuScreen(
 
     /** The Menu while a Game shows (B5, D10, contradiction 2): the Game's actions, then the pages. */
     @Composable
-    private fun GameMenu(state: GameState, friendState: FriendState?) {
+    private fun GameMenu(state: GameState, friendState: FriendState?, pieceSet: PieceSet?) {
         val vm = viewModel
         val record = state.record ?: return
         if (state.phase != Phase.OVER) {
@@ -316,13 +340,13 @@ class MenuScreen(
             game.flip()
             goBack()
         }
-        Row(UiCopy.MOVES) { vm.open(MenuPage.MOVES) }
+        Row(UiCopy.MOVES) { open(MenuPage.MOVES) }
         if (record.level == 8) {
             val seconds = record.thinkTimeSeconds ?: state.data.choices.thinkTimeSeconds
             Row(UiCopy.thinkTimeRow(seconds)) { vm.nextThinkTime(seconds) }
         }
-        Row(UiCopy.NEW_GAME) { vm.open(MenuPage.NEW_GAME) }
-        Row(UiCopy.GAMES) { vm.open(MenuPage.GAMES) }
+        Row(UiCopy.NEW_GAME) { open(MenuPage.NEW_GAME) }
+        Row(UiCopy.GAMES) { open(MenuPage.GAMES) }
         Row(UiCopy.PUZZLES) {
             vm.puzzles()
             goBack()
@@ -333,7 +357,18 @@ class MenuScreen(
                 goBack()
             }
         }
-        Row(UiCopy.ABOUT) { vm.open(MenuPage.ABOUT) }
+        Pieces(pieceSet)
+        Row(UiCopy.ABOUT) { open(MenuPage.ABOUT) }
+    }
+
+    /**
+     * P2, M1: the one Piece Set, just above About in every Menu; a tap moves to the next set and stays
+     * on the Menu. Every board draws it. Hidden until `puzzles.json`, which keeps it, is read; that is
+     * before the first Puzzle (M4), so the row is there as soon as the Menu is.
+     */
+    @Composable
+    private fun Pieces(pieceSet: PieceSet?) {
+        if (pieceSet != null) Row(UiCopy.piecesRow(pieceSet)) { owner.nextPieceSet() }
     }
 
     /** The new-game page: Level 1-8, the Side to play, Think Time at Level 8, and Start (F7, F11). */
@@ -356,7 +391,7 @@ class MenuScreen(
         }
         val replacing = state?.confirming == Confirm.REPLACE
         Row(if (replacing) UiCopy.REPLACE_CONFIRM else UiCopy.START) {
-            if (vm.start()) goBack()
+            if (vm.start()) leaveMenu()
         }
         if (state?.inProgress == true) Line(UiCopy.REPLACE_NOTE, lighten = true)
     }

@@ -1,5 +1,6 @@
 package com.yarosz.chess
 
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.correspondence.Refusal
 import com.yarosz.chess.puzzles.AttemptState
 import com.yarosz.chess.rules.DrawReason
@@ -48,6 +49,7 @@ object UiCopy {
     const val MENU_TITLE = "Menu"
     const val MISSED = "Missed"
     const val ABOUT = "About"
+    const val PIECES = "Pieces"
     const val PLAYER_RATING = "Player Rating"
     const val RESET_RATING = "Reset rating"
     const val RESET_CONFIRM = "Tap again to reset"
@@ -94,7 +96,7 @@ object UiCopy {
     const val REPLACE_NOTE = "The Game in progress is saved as unfinished."
 
     /** The Tool's version; `ToolMetadataTest` holds it equal to `versionName` in `tool/lighttool.toml`. */
-    const val VERSION = "0.1.0"
+    const val VERSION = "0.2.0"
     const val SOURCE = "github.com/yarosz/light-chess"
 
     /**
@@ -111,7 +113,7 @@ object UiCopy {
     const val ABOUT_ENGINE = "Engine: Pirarucu by Raoni Campos (ratosh), GPL-3.0."
 
     /** The opening Book's credit (book ruling 1, docs/book.md). */
-    const val ABOUT_BOOK = "Opening book: games from the Lichess database (lichess.org), CC0, January 2018."
+    const val ABOUT_BOOK = "Opening book: the Lichess games database (lichess.org), CC0, January 2018."
 
     /** The legal notices About shows after its own copy: verbatim licence text, kept out of code. */
     const val NOTICES_ASSET = "about/notices.txt"
@@ -119,7 +121,7 @@ object UiCopy {
     /**
      * The About page (D7), one plain-text paragraph per entry. [packDate] is the Lichess dump the Pack
      * was built from (`source.date` in the Pack manifest); [notices] is [NOTICES_ASSET]'s text, whose
-     * paragraphs (split at blank lines) follow: the cburnett licence and the release APK's libraries.
+     * paragraphs (split at blank lines) follow: the pieces' CC0 credit and the release APK's libraries.
      * [friends] is whether Play a friend is on (the Relay URL is set, W1/W8), which changes the privacy line.
      */
     fun about(packDate: String?, notices: String, friends: Boolean = false): List<String> = listOf(
@@ -307,4 +309,20 @@ object UiCopy {
     fun ratingRow(text: String) = "$PLAYER_RATING · $text"
 
     fun missedCount(count: Int) = "$MISSED · $count"
+
+    /** The Piece Set's name in the Menu (P2). */
+    fun pieceSetName(set: PieceSet) = when (set) {
+        PieceSet.GEOMETRIC -> "Geometric"
+        PieceSet.ROUNDED -> "Rounded"
+    }
+
+    /** The Menu's Pieces row (P2): the Piece Set in use; a tap moves to the next one. */
+    fun piecesRow(set: PieceSet) = "$PIECES · ${pieceSetName(set)}"
+
+    /**
+     * The Menu's last row (A9 with D7, "v1 smoke fixes"): the Puzzle on screen by its Lichess id, then
+     * its page on lichess.org on a line of its own, since Android would otherwise break the address
+     * at a slash. Text, not a link: the phone has no browser and Chess never uses the network (D5).
+     */
+    fun puzzleRow(id: String) = "Puzzle $id\nlichess.org/training/$id"
 }

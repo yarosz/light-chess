@@ -32,7 +32,7 @@ PackManifest
 PackFormatException
 
 # Board view and input (v1 PR 3): UI vocabulary, not domain terms (DESIGN.md)
-CburnettPieces
+PieceVectors
 Shades
 Marks
 MoveInput
@@ -67,8 +67,12 @@ MenuPage
 # Copy templates: DESIGN.md "Copy" quotes what they print
 $MISSED · $count
 $PLAYER_RATING · $text
+# The Menu's Pieces row (decision log P2): "Pieces · Geometric", the Piece Set by its UI name
+$PIECES · ${pieceSetName(set)}
 Failed ${delta(delta ?: 0)}
 Solved ${delta(delta ?: 0)}
+# The Menu's Puzzle row (decision log S1): the Lichess id and its lichess.org address, two lines
+Puzzle $id\nlichess.org/training/$id
 # F5's own wording for the button; the page it sits on is titled "Player Rating"
 Reset rating
 # Try Mode's prompt after a wrong Move (CONTEXT.md "Try Mode")
@@ -115,7 +119,7 @@ Draw by threefold repetition
 # Opening Book (v2 PR 6): the per-Level rule for playing from the Book (docs/book.md). The user meets the Book and the Level.
 BookPolicy
 # About copy for the Book (DESIGN.md): "Opening book" and "database" are the chess player's and Lichess's words here.
-Opening book: games from the Lichess database (lichess.org), CC0, January 2018.
+Opening book: the Lichess games database (lichess.org), CC0, January 2018.
 
 # Levels (v2 PR 3): how the computer plays at a Level. The user meets the Level, Think Time and Move Now.
 LevelPlayer

@@ -4,7 +4,10 @@ import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import com.yarosz.chess.board.Motion
+import com.yarosz.chess.board.PieceSet
+import com.yarosz.chess.puzzles.Attempt
 import com.yarosz.chess.puzzles.Pack
+import com.yarosz.chess.puzzles.PuzzleData
 import com.yarosz.chess.puzzles.PuzzleFlow
 import com.yarosz.chess.puzzles.PuzzleStore
 import com.yarosz.chess.puzzles.PuzzleState
@@ -33,14 +36,20 @@ private const val TAG = "Chess"
  * view models are views onto it, as Reader's `ShelfOwner` is (its ADR 0008).
  *
  * Every change happens on the main thread. The file is written on [io], one save at a time, after
- * every change to what it keeps except the Moves of the Attempt on screen; [flush] (onAppPause)
- * writes everything at once on the calling thread.
+ * every change to what it keeps except the Moves of the Attempt on screen ([PuzzleState.kept]);
+ * [flush] (onAppPause) writes everything at once on the calling thread. The Band files are read
+ * ahead on [Dispatchers.Default], so choosing the next Puzzle and opening a Missed one read none on
+ * the main thread.
+ *
+ * The assets come through the latest screen that asked for the owner ([of]): the SDK reads them only
+ * through a screen's activity, so holding the first screen's reader would keep the first activity
+ * alive for the life of the process after LightOS relaunches a new one.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class PuzzleOwner(filesDir: File, private val readAsset: (String) -> ByteArray) {
+class PuzzleOwner(filesDir: File, @Volatile private var readAsset: (String) -> ByteArray) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val io = Dispatchers.IO.limitedParallelism(1)
-    private val pack = Pack(readAsset)
+    private val pack = Pack { path -> readAsset(path) }
     private val flow = PuzzleFlow(pack)
     private val store = PuzzleStore(filesDir)
 
@@ -49,11 +58,21 @@ class PuzzleOwner(filesDir: File, private val readAsset: (String) -> ByteArray) 
     /** Null until the save file and the first Puzzle are read. */
     val session: StateFlow<PuzzleState?> = sessions
 
+    private val pieceSets = MutableStateFlow<PieceSet?>(null)
+
+    /**
+     * The Piece Set every board draws (P2, M1), null only until `puzzles.json` is read. It comes from
+     * the file before any Band is read (M4), so the game screen and the game Menu have it from their
+     * first frame instead of waiting for the first Puzzle.
+     */
+    val pieceSet: StateFlow<PieceSet?> = pieceSets
+
     private val motions = MutableStateFlow<Motion?>(null)
 
     /** The Move the board animates as it lands: the setup Move, each reply and each Solution Move. */
     val motion: StateFlow<Motion?> = motions
     private var motionId = 0
+    private var slideEnd: Job? = null
 
     private val awakeFlow = MutableStateFlow(false)
 
@@ -68,11 +87,13 @@ class PuzzleOwner(filesDir: File, private val readAsset: (String) -> ByteArray) 
     init {
         scope.launch {
             val started = SystemClock.uptimeMillis()
+            val saved = withContext(Dispatchers.Default) { store.load() }
+            pieceSets.value = (saved ?: PuzzleData()).pieceSet
             val opened = withContext(Dispatchers.Default) {
-                flow.open(store.load()).also { it.attempt?.positions }
+                flow.open(saved).also { it.attempt?.positions }
             }
             Log.i(PERF_TAG, "session loaded ms=${SystemClock.uptimeMillis() - started}")
-            set(opened, save = true)
+            set(withPieceSet(opened, pieceSets.value), save = true)
             touched()
         }
     }
@@ -90,6 +111,17 @@ class PuzzleOwner(filesDir: File, private val readAsset: (String) -> ByteArray) 
     fun replayMissed(id: String) = act { flow.replayMissed(it, id) }
 
     fun resetRating() = act(flow::resetRating)
+
+    /** A tap on a Menu's Pieces row. Before the first Puzzle is read, the choice waits for it (M4). */
+    fun nextPieceSet() {
+        if (sessions.value == null) pieceSets.value = pieceSets.value?.next else act(flow::nextPieceSet)
+    }
+
+    /** The Missed page is open: read its Puzzles ahead, so a tap on one reads no file (D2). */
+    fun prefetchMissed() {
+        val session = sessions.value ?: return
+        scope.launch(Dispatchers.Default) { prefetch { flow.prefetchMissed(session) } }
+    }
 
     /** A touch or a wheel event: restarts D3's five minutes. */
     fun touched() {
@@ -136,25 +168,39 @@ class PuzzleOwner(filesDir: File, private val readAsset: (String) -> ByteArray) 
     private fun set(next: PuzzleState, save: Boolean = false) {
         val before = sessions.value
         sessions.value = next
+        pieceSets.value = next.data.pieceSet
         val was = before?.attempt
         val now = next.attempt
-        if (now != null && was != null && now.puzzle == was.puzzle && now.moves.size == was.moves.size + 1 && was.stage.auto) {
-            motions.value = Motion(now.moves.last(), ++motionId)
-        } else if (now?.puzzle != was?.puzzle) {
-            motions.value = null
-        }
-        timer?.cancel()
-        now?.delayMs?.let { ms ->
-            timer = scope.launch {
-                delay(ms)
-                set(flow.advance(sessions.value ?: return@launch))
+        val motion = slideAfter(was, now, motions.value, motionId + 1)
+        if (motion != motions.value) {
+            if (motion != null) motionId = motion.id
+            motions.value = motion
+            // Once it has played, the slide is over: a screen that comes back doesn't play it again.
+            slideEnd?.cancel()
+            if (motion != null) {
+                slideEnd = scope.launch {
+                    delay(SLIDE_KEPT_MS)
+                    if (motions.value == motion) motions.value = null
+                }
             }
+        }
+        if (restartsClock(was, now)) {
+            timer?.cancel()
+            timer = now?.delayMs?.let { ms ->
+                scope.launch {
+                    delay(ms)
+                    set(flow.advance(sessions.value ?: return@launch))
+                }
+            }
+        }
+        if (next.current?.puzzle != before?.current?.puzzle || next.data.rating != before?.data?.rating) {
+            scope.launch(Dispatchers.Default) { prefetch { flow.prefetchNext(next) } }
         }
         if (next.upNext != null && next.upNext != before?.upNext) {
             val upNext = next.upNext
             scope.launch(Dispatchers.Default) { upNext.position }
         }
-        if (save || next.data != before?.data || next.current?.puzzle != before?.current?.puzzle) {
+        if (save || next.kept != before?.kept) {
             scope.launch(io) {
                 val latest = sessions.value ?: return@launch
                 runCatching { store.save(latest.toData()) }.onFailure { Log.w(TAG, "puzzles.json save failed", it) }
@@ -163,8 +209,10 @@ class PuzzleOwner(filesDir: File, private val readAsset: (String) -> ByteArray) 
         updateAwake()
     }
 
-    /** A stage whose Moves play themselves, so the board animates them. */
-    private val Stage.auto: Boolean get() = this != Stage.PLAY && this != Stage.DONE
+    /** A read ahead that fails costs nothing: the main thread reads the file itself, as it would have. */
+    private fun prefetch(read: () -> Unit) {
+        runCatching(read).onFailure { Log.w(TAG, "prefetch failed", it) }
+    }
 
     private fun updateAwake() {
         awakeFlow.value = recentInput && sessions.value?.attempt?.underWay == true
@@ -174,10 +222,47 @@ class PuzzleOwner(filesDir: File, private val readAsset: (String) -> ByteArray) 
         /** D3 and contradiction 4: five minutes since the last touch or wheel event. */
         const val AWAKE_MS = 5 * 60 * 1000L
 
+        /** How long a slide stays after it starts: its 250 ms and a margin for the first frame. */
+        private const val SLIDE_KEPT_MS = 2L * Motion.MS
+
         private val owners = HashMap<String, PuzzleOwner>()
 
-        /** The process's owner of [filesDir], made the first time it is asked for. */
-        fun of(filesDir: File, readAsset: (String) -> ByteArray): PuzzleOwner =
-            synchronized(owners) { owners.getOrPut(filesDir.canonicalPath) { PuzzleOwner(filesDir, readAsset) } }
+        /**
+         * The process's owner of [filesDir], made the first time it is asked for. It reads the assets
+         * through [readAsset] from then on, in place of the reader of the screen that asked before.
+         */
+        fun of(filesDir: File, readAsset: (String) -> ByteArray): PuzzleOwner = synchronized(owners) {
+            owners.getOrPut(filesDir.canonicalPath) { PuzzleOwner(filesDir, readAsset) }.also { it.readAsset = readAsset }
+        }
     }
 }
+
+/**
+ * The session [opened] from the file, with the Piece Set [chosen] while it was being read (M4): a
+ * tap on a Pieces row before the first Puzzle is read isn't lost. Null (not read yet) changes nothing.
+ */
+internal fun withPieceSet(opened: PuzzleState, chosen: PieceSet?): PuzzleState =
+    if (chosen == null || chosen == opened.data.pieceSet) opened else opened.copy(data = opened.data.copy(pieceSet = chosen))
+
+/** A stage whose Moves play themselves, so the board animates them. */
+private val Stage.auto: Boolean get() = this != Stage.PLAY && this != Stage.DONE
+
+/**
+ * The slide the board shows once [now] replaces [was] (A5, F11), given the slide [current] shown so
+ * far: a Move that played itself (setup, reply, Solution) slides in as [id]. Otherwise [current]
+ * stays only while its Move is still the latest, so the user's own Move onto that square never slides
+ * in from the opponent's origin, and a new Puzzle starts with none.
+ */
+internal fun slideAfter(was: Attempt?, now: Attempt?, current: Motion?, id: Int): Motion? = when {
+    now != null && was != null && now.puzzle == was.puzzle && now.moves.size == was.moves.size + 1 && was.stage.auto ->
+        Motion(now.moves.last(), id)
+    now?.puzzle != was?.puzzle -> null
+    current != null && now?.moves?.lastOrNull() != current.move -> null
+    else -> current
+}
+
+/**
+ * The stage clock (A5) starts again only when the Attempt on screen changed. A tap that changes
+ * nothing, like Hint while the reply is pending, leaves the running wait alone instead of delaying it.
+ */
+internal fun restartsClock(was: Attempt?, now: Attempt?): Boolean = now != was

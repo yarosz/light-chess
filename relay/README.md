@@ -53,11 +53,20 @@ The client allows plain HTTP only to 127.0.0.1 or localhost; everything else mus
 
 ## Deploying
 
-Not deployed yet. Deploying is the maintainer's call, including the account. What it needs:
+The Relay's address is `https://chess-relay.yarosz.com` (decision log W11). The Tool ships with it
+(`RelayConfig.URL`), so it doesn't change once a release is out. The maintainer deploys it, from
+the maintainer's Cloudflare account that holds the `yarosz.com` zone. Not deployed yet.
+
+`npx wrangler deploy` uploads the Worker and its Durable Object migration only. The custom domain
+`chess-relay.yarosz.com` is bound to the `chess-relay` Worker separately, after the first deploy,
+by the maintainer's infrastructure code, so wrangler never creates DNS and `wrangler.jsonc` has no
+`routes`. `workers_dev` is `false`, so the Worker has no second address on workers.dev: there is one
+public address, the one the Tool ships.
 
 ### Prerequisites
 
-- A Cloudflare account. SQLite-backed Durable Objects and the rate-limiting binding are available
+- The Cloudflare account that holds the `yarosz.com` zone (a custom domain must be on a zone in the
+  Worker's own account). SQLite-backed Durable Objects and the rate-limiting binding are available
   on the Workers Free plan; check the current limits (the decision log's C7 assumes about 100,000
   requests a day, which holds only while polling stays small).
 - Credentials for wrangler, one of:
@@ -68,9 +77,6 @@ Not deployed yet. Deploying is the maintainer's call, including the account. Wha
   SHA-256 digests.
 - `namespace_id` of the `REDEEM_LIMITER` binding (`"1001"`) must be unique among the rate limiters
   in the account; change it if another Worker already uses it.
-- Optional: a custom domain. Without one the Relay is at
-  `https://chess-relay.<account-subdomain>.workers.dev`. Whichever URL is chosen is the one the Tool
-  ships with, so choose it before the Kotlin client is released.
 
 ### Commands
 
@@ -81,7 +87,8 @@ npm run check                       # typecheck, tests, dry-run bundle
 npx wrangler login                  # or export CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID
 npx wrangler whoami                 # confirm the account before deploying
 npx wrangler deploy                 # applies migration v1 (new_sqlite_classes) on the first deploy
-curl https://chess-relay.<account-subdomain>.workers.dev/health
+# then bind the custom domain chess-relay.yarosz.com to the chess-relay Worker (outside this repo)
+curl https://chess-relay.yarosz.com/health
 # expect: {"status":"ok","protocol":"1.0","majors":[1]}
 ```
 

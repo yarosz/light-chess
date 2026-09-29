@@ -29,6 +29,7 @@ import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
 import com.yarosz.chess.board.MoveInput
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.PositionView
 import com.yarosz.chess.board.Review
 import com.yarosz.chess.board.Strip
@@ -149,6 +150,9 @@ class FriendGameScreen(
 
     private val friends: FriendOwner by lazy { checkNotNull(FriendOwner.of(lightContext)) { "Play a friend is off" } }
 
+    /** For the Piece Set only: it is kept in `puzzles.json` and every board draws it (P2, M1). */
+    private val owner: PuzzleOwner by lazy { PuzzleOwner.of(lightContext.filesDir, lightContext::readAsset) }
+
     override fun createViewModel() = FriendGameViewModel(friends, gameId)
 
     @Composable
@@ -176,6 +180,7 @@ class FriendGameScreen(
     @Composable
     private fun Board(game: CorrespondenceGame, state: FriendState, now: Long) {
         val vm = viewModel
+        val pieceSet by owner.pieceSet.collectAsState()
         val played = game.log?.game ?: Game.of()
         val review = vm.review.takeIf { it.ply == null || it.ply < played.ply } ?: Review()
         val chosen = state.chosen[gameId].takeIf { review.ply == null }
@@ -220,6 +225,7 @@ class FriendGameScreen(
                 bottom = game.seat.side,
                 onTouch = { vm.touch(it, game, state) },
                 description = UiCopy.BOARD_DESCRIPTION,
+                pieceSet = pieceSet ?: PieceSet.DEFAULT,
             )
             Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE))
         }

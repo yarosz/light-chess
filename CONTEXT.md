@@ -30,6 +30,11 @@ _Avoid_: turn
 One Move by one side, counted from the start of a Game or Puzzle. White's first Move is ply 1.
 _Avoid_: half-move, turn
 
+**Piece Set**:
+The player's chosen look for the pieces: geometric or rounded. It changes how the pieces are drawn
+and nothing about play.
+_Avoid_: theme (a theme is a kind of Puzzle), skin, style
+
 **Review**:
 Stepping backward and forward through the Moves already played, without changing the Game or
 Attempt. Leaving Review returns to the latest Position.

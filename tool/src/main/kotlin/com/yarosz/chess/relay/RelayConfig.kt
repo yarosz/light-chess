@@ -3,14 +3,15 @@ package com.yarosz.chess.relay
 import com.yarosz.chess.BuildConfig
 
 /**
- * Where the Relay is (W8). Light builds releases from the public commit, so the deployed Relay's
- * root URL is a committed constant, and it stays empty until the maintainer deploys the Relay
- * (relay/README.md). While it is empty, Play a friend is off: no Menu entry, no LightWork job, no
- * request, and About keeps the "never uses the network" line (W1).
+ * Where the Relay is (W8, W11). Light builds releases from the public commit, so the deployed Relay's
+ * root URL is a committed constant: `https://chess-relay.yarosz.com`, the Worker's custom domain on
+ * a zone the maintainer owns (relay/README.md "Deploying"). With it set, Play a friend is on in every
+ * build. An empty [URL] would turn it off: no Menu entry, no LightWork job, no request, and About
+ * keeping the "never uses the network" line (W1).
  */
 object RelayConfig {
-    /** The deployed Relay, HTTPS only. Empty: not deployed yet. */
-    const val URL = ""
+    /** The deployed Relay, HTTPS only, no trailing slash (W11). Empty would mean: not deployed. */
+    const val URL = "https://chess-relay.yarosz.com"
 
     /**
      * The URL this build talks to: [URL], or a debug build's `-Prelay.url` override, which lives only

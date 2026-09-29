@@ -148,9 +148,11 @@ check_scan() {
   local pat='/Users/[A-Za-z]|/home/[a-z]+/|[A-Z]:\\Users\\|\bLP3[A-Z0-9]{8,}|\.ts\.net\b|\b[a-z0-9-]+\.local\b|\.lan\b'
   pat+='|\b192\.168\.[0-9]+\.[0-9]+|\b10\.[0-9]+\.[0-9]+\.[0-9]+\b|\b172\.(1[6-9]|2[0-9]|3[01])\.[0-9]+\.[0-9]+'
   pat+='|[A-Za-z0-9._%-]*[A-Za-z0-9]@[A-Za-z0-9-]+\.[A-Za-z]{2,}|BEGIN [A-Z ]*PRIVATE KEY|ghp_[A-Za-z0-9]{20}|sk_(live|test)_|AKIA[0-9A-Z]{12}|xox[bp]-'
-  # Allowed: git's own no-reply addresses, the commit trailer, and the SDK's public dev-key path.
-  # 10.0.2.2 is the Android emulator's fixed alias for its host (a debug build's local Relay, W8).
-  local allow='noreply@anthropic\.com|users\.noreply\.github\.com|lightsdk-dev\.jks|10\.0\.2\.2'
+  # Allowed: git's own no-reply addresses, the commit trailer, and the SDK's public dev-key path. Also
+  # the Android emulator's fixed addresses, which name no machine: 10.0.2.2 is its alias for the host (a
+  # debug build's local Relay, W8) and 10.0.2.3 its DNS (a negative test in v3's Relay client). Only
+  # these two; any other 10.x address still fails. (Loopback, 127.0.0.1, never matches the patterns.)
+  local allow='noreply@anthropic\.com|users\.noreply\.github\.com|lightsdk-dev\.jks|\b10\.0\.2\.[23]\b'
   local private="" hits
   if [ -n "${RELEASE_SCAN_PRIVATE:-}" ]; then
     [ -f "$RELEASE_SCAN_PRIVATE" ] || die "RELEASE_SCAN_PRIVATE names no file"

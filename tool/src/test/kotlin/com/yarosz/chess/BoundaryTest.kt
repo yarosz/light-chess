@@ -78,6 +78,16 @@ class BoundaryTest {
     }
 
     @Test
+    fun `the committed Relay URL is the Worker's only address, bound outside wrangler (W11)`() {
+        assertEquals("https://chess-relay.yarosz.com", RelayConfig.URL)
+        val wrangler = File("../relay/wrangler.jsonc").readText()
+        // workers_dev off: no second address. No routes: the custom domain is bound outside this repo.
+        assertTrue(Regex(""""workers_dev":\s*false""").containsMatchIn(wrangler), wrangler)
+        assertFalse(Regex(""""routes"\s*:|"route"\s*:""").containsMatchIn(wrangler), wrangler)
+        assertTrue(RelayConfig.URL in wrangler, "wrangler.jsonc names the address the Tool ships")
+    }
+
+    @Test
     fun `only the debug build allows cleartext, and only to the local addresses`() {
         val config = File("src/debug/res/xml/network_security_config.xml").readText()
         assertTrue("""<base-config cleartextTrafficPermitted="false" />""" in config)

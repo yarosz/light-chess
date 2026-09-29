@@ -20,6 +20,7 @@ import com.thelightphone.sdk.ui.LightTheme
 import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.PositionView
 import com.yarosz.chess.board.Review
 import com.yarosz.chess.board.Strip
@@ -62,11 +63,15 @@ class GameReviewScreen(
 
     private val game: GameOwner by lazy { GameOwner.of(lightContext.filesDir, lightContext::readAsset) }
 
+    /** For the Piece Set only: it is kept in `puzzles.json` and every board draws it (P2, M1). */
+    private val owner: PuzzleOwner by lazy { PuzzleOwner.of(lightContext.filesDir, lightContext::readAsset) }
+
     override fun createViewModel() = GameReviewViewModel(game, record)
 
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
+        val pieceSet by owner.pieceSet.collectAsState()
         val vm = viewModel
         val positions = record.game.positions
         val shown = vm.review.ply ?: positions.lastIndex
@@ -89,6 +94,7 @@ class GameReviewScreen(
                     bottom = record.userSide,
                     onTouch = vm::touch,
                     description = UiCopy.BOARD_DESCRIPTION,
+                    pieceSet = pieceSet ?: PieceSet.DEFAULT,
                 )
                 Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE))
             }
