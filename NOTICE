@@ -18,8 +18,8 @@ Opening book: games from the Lichess standard rated games database
 (https://database.lichess.org/#standard_games), by lichess.org, released under CC0 1.0. The Book in
 tool/src/main/assets/book/ is built from the January 2018 dump (docs/book.md).
 
-Chess pieces: the cburnett set by Colin M.L. Burnett, used under the BSD 3-Clause licence
-(third_party/cburnett/LICENSE). Source: Wikimedia Commons, Category:SVG chess pieces.
+Pieces: original drawings made for Chess (two sets), released under CC0 1.0 (no rights reserved).
+The waiver is CC0 1.0 Universal, in art/pieces/LICENSE.txt.
 
 The APK is built on Light's SDK (https://github.com/lightphone/light-sdk), MIT licence,
 Copyright (c) 2026 The Light Phone. The SDK and the Tool bring these libraries into the APK (its

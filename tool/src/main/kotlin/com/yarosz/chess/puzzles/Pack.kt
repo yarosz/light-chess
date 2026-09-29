@@ -47,6 +47,9 @@ class Pack(private val readAsset: (String) -> ByteArray) {
 
     private val loaded = HashMap<Int, List<Puzzle>>()
 
+    /** The Puzzles the last [prefetch] found, by Lichess id. */
+    private val found = HashMap<String, Puzzle>()
+
     /** The Band whose 100-point slice holds [rating]: the lowest or top Band beyond the Pack's range. */
     fun bandFor(rating: Int): Band = bands.lastOrNull { it.band <= rating } ?: bands.first()
 
@@ -88,19 +91,43 @@ class Pack(private val readAsset: (String) -> ByteArray) {
      * text, nearest first, and only the matching line is parsed.
      */
     fun puzzle(id: String, ratingHint: Int? = null): Puzzle? {
+        synchronized(found) { found[id] }?.let { return it }
         val order = if (ratingHint == null) bands else bands.sortedBy { kotlin.math.abs(it.band - bandFor(ratingHint).band) }
-        val prefix = "$id;"
         for (band in order) {
             val cached = synchronized(loaded) { loaded[band.band] }
             if (cached != null) {
                 cached.firstOrNull { it.id == id }?.let { return it }
                 continue
             }
-            val text = readAsset("$DIR/${band.file}").decodeToString()
-            val at = if (text.startsWith(prefix)) 0 else text.indexOf("\n$prefix").let { if (it < 0) -1 else it + 1 }
-            if (at >= 0) return Puzzle.parse(text.substring(at, text.indexOf('\n', at).let { if (it < 0) text.length else it }))
+            lineOf(readAsset("$DIR/${band.file}").decodeToString(), id)?.let { return Puzzle.parse(it) }
         }
         return null
+    }
+
+    /**
+     * Reads ahead the Puzzles [wanted] names (Lichess id to Puzzle Rating), so that [puzzle] finds them
+     * without reading a file: each Band file is read once, only for the Bands their ratings name and
+     * not yet loaded, and only the matching lines are parsed. Replaces what the last call found. For a
+     * background thread (Missed, D2); a Puzzle it misses is still found by [puzzle].
+     */
+    fun prefetch(wanted: Map<String, Int>) {
+        val out = HashMap<String, Puzzle>()
+        for ((band, ids) in wanted.keys.groupBy { bandFor(wanted.getValue(it)) }) {
+            if (synchronized(loaded) { band.band in loaded }) continue
+            val text = readAsset("$DIR/${band.file}").decodeToString()
+            for (id in ids) lineOf(text, id)?.let { out[id] = Puzzle.parse(it) }
+        }
+        synchronized(found) {
+            found.clear()
+            found.putAll(out)
+        }
+    }
+
+    /** The line of [text] (a Band file) for [id], or null. */
+    private fun lineOf(text: String, id: String): String? {
+        val prefix = "$id;"
+        val at = if (text.startsWith(prefix)) 0 else text.indexOf("\n$prefix").let { if (it < 0) return null else it + 1 }
+        return text.substring(at, text.indexOf('\n', at).let { if (it < 0) text.length else it })
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.yarosz.chess.puzzles
 
+import com.yarosz.chess.board.PieceSet
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -26,6 +27,13 @@ data class PuzzleData(
     val missed: List<MissedEntry> = emptyList(),
     /** Newest first, at most [HISTORY_CAP] (F11). */
     val history: List<HistoryEntry> = emptyList(),
+    /**
+     * The Piece Set the board draws (P2). A Tool-wide choice kept here because this is v1's only save
+     * file; Reset rating leaves it alone. A file without it, or with a set this build doesn't know,
+     * reads as the default (coerceInputValues). Added without a schemaVersion bump: it only adds a
+     * field, and an older build that drops it loses a look, never a meaning.
+     */
+    val pieceSet: PieceSet = PieceSet.DEFAULT,
 ) {
     val player: Glicko get() = Glicko(rating, deviation, volatility)
 
@@ -59,21 +67,30 @@ data class InProgress(
     /** UCI, the Moves after the setup Move. */
     val moves: List<String> = emptyList(),
     val solutionShown: Boolean = false,
+    /** The last Move tried was wrong and taken back: the strip reads "Try again" until the next correct Move. */
+    val justWrong: Boolean = false,
     /** The Attempt reached its result; the strip shows it and Next. */
     val done: Boolean = false,
     /** The Player Rating's change when the Attempt was scored, shown in the result strip. */
     val delta: Int? = null,
 )
 
+/**
+ * One Missed Puzzle (D2). [state] has a default so that a state this build doesn't know, written by a
+ * newer one, reads as Failed instead of making the whole file unreadable (coerceInputValues).
+ */
 @Serializable
-data class MissedEntry(val id: String, val puzzleRating: Int, val state: AttemptState)
+data class MissedEntry(val id: String, val puzzleRating: Int, val state: AttemptState = AttemptState.FAILED)
 
-/** One scored Attempt: the Rating screen's text list (F11). [delta] is 0 when unrated. */
+/**
+ * One scored Attempt: the Rating screen's text list (F11). [delta] is 0 when unrated. An unknown
+ * [state] reads as Failed, as in [MissedEntry].
+ */
 @Serializable
 data class HistoryEntry(
     val id: String,
     val puzzleRating: Int,
-    val state: AttemptState,
+    val state: AttemptState = AttemptState.FAILED,
     val delta: Int,
     val solutionShown: Boolean = false,
 )

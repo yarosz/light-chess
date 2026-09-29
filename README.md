@@ -3,12 +3,14 @@
 Chess Puzzles for the Light Phone III.
 
 Solve real positions from the Lichess puzzle database, 46,971 of them, chosen for your level.
-Your Player Rating moves with every Puzzle, and the ones you missed wait for another try.
+Your Player Rating moves with every rated Puzzle, and the ones you missed wait for another try.
 Works offline, with no account and nothing tracked.
 
 > **Status: 0.1.0, feature-complete for v1, not yet listed by Light.** A Light Phone III Tool built on
-> [Light's SDK](https://github.com/lightphone/light-sdk). Playing the computer comes in v2, and a friend
-> by correspondence in v3.
+> [Light's SDK](https://github.com/lightphone/light-sdk). Planned: playing the computer, then a friend
+> by correspondence.
+
+Questions or bugs: https://github.com/yarosz/light-chess/issues
 
 <!-- Screenshots: LP3 photos go in docs/screenshots/ (first Puzzle, a result, the Menu, About). -->
 _Screenshots from a Light Phone III are coming._
@@ -21,6 +23,7 @@ _Screenshots from a Light Phone III are coming._
   one question on first launch, or skip it.
 - **Missed.** The last 100 Puzzles you failed or needed a Hint for, to replay unrated.
 - **Review.** Turn the scroll wheel back to step through the Moves of the Puzzle on screen.
+- **Pieces.** Two sets, geometric and rounded; choose one in the Menu.
 - The screen stays on while you think, for up to five minutes without a touch.
 
 ## Install
@@ -62,8 +65,8 @@ Android permissions its package lists come from Light's SDK. See `SECURITY.md`.
 
 - Puzzles: the [Lichess puzzle database](https://database.lichess.org/#puzzles) (lichess.org),
   released under CC0. The Pack is built from the dump of 2026-09-09 (`docs/pack.md`).
-- Pieces: the cburnett set by Colin M.L. Burnett, under the BSD 3-Clause licence
-  (`third_party/cburnett/`).
+- Pieces: original drawings made for Chess (two sets), released under CC0 1.0 (no rights reserved).
+  The drawings are in `art/pieces/`.
 - Built on Light's SDK (MIT) and the libraries it brings, listed in `NOTICE` and on the About screen.
 
 ## Licence

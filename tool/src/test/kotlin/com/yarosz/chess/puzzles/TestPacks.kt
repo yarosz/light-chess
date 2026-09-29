@@ -8,7 +8,8 @@ object TestPacks {
     /** [Lines.MATE_IN_2]'s Position and Solution under another id and Puzzle Rating. */
     fun line(id: String, rating: Int, rd: Int = 75, moves: String = MOVES, fen: String = FEN) = "$id;$fen;$moves;$rating;$rd;mate"
 
-    fun of(sha: String, lines: List<String>): Pack {
+    /** A Pack of [lines]; each asset it reads is added to [reads]. */
+    fun of(sha: String, lines: List<String>, reads: MutableList<String>? = null): Pack {
         val byBand = lines.groupBy { it.split(';')[3].toInt() / 100 * 100 }.toSortedMap()
         val files = HashMap<String, ByteArray>()
         val bands = byBand.map { (band, group) ->
@@ -21,6 +22,6 @@ object TestPacks {
         }
         files["${Pack.DIR}/manifest.json"] =
             """{"schemaVersion":1,"packSha256":"$sha","puzzles":${lines.size},"bands":[${bands.joinToString(",")}]}""".toByteArray()
-        return Pack { path -> files[path] ?: error("no asset $path") }
+        return Pack { path -> reads?.add(path); files[path] ?: error("no asset $path") }
     }
 }

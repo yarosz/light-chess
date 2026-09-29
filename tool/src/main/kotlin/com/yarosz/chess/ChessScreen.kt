@@ -35,6 +35,7 @@ import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.lightClickable
 import com.yarosz.chess.board.MoveInput
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
 import com.yarosz.chess.board.PositionView
 import com.yarosz.chess.board.Review
@@ -198,7 +199,7 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
                 AndroidView(factory = { View(it) }, modifier = Modifier.size(0.dp), update = { it.keepScreenOn = awake })
                 if (mode == Mode.GAME && gameState == null) return@Box
                 if (gameShown != null) {
-                    GameView(gameShown)
+                    GameView(gameShown, session?.data?.pieceSet ?: PieceSet.DEFAULT)
                     return@Box
                 }
                 val s = session ?: return@Box
@@ -256,6 +257,7 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
                 description = UiCopy.BOARD_DESCRIPTION,
                 hint = attempt.hintSquare.takeIf { review.ply == null },
                 motion = motion.takeIf { review.ply == null },
+                pieceSet = session.data.pieceSet,
             )
             Strip(status, buttons, Modifier.width(POSITION_VIEW_SIZE))
         }
@@ -268,7 +270,7 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
 
     /** The game screen (v2 PR 4): the board with the user's Side at the bottom, and the strip by context. */
     @Composable
-    private fun GameView(state: GameState) {
+    private fun GameView(state: GameState, pieceSet: PieceSet) {
         val vm = viewModel
         val record = state.record ?: return
         val motion by game.motion.collectAsState()
@@ -304,6 +306,7 @@ class ChessScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Chess
                 hint = state.hint?.from.takeIf { live },
                 hintTarget = state.hint?.to.takeIf { live },
                 motion = motion.takeIf { live },
+                pieceSet = pieceSet,
             )
             Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE))
         }

@@ -12,6 +12,7 @@
   getResourceAsStream, uses threads, rated 2651. Check whether `SearchOptions.stop` needs @Volatile.
 - R1.3 Licence: GPLv3-or-later; NOTICE credits for Pirarucu, cburnett and Lichess. OPEN: the maintainer asks
   Light whether a GPLv3 Tool is acceptable.
+  (cburnett's NOTICE credit SUPERSEDED by P1: NOTICE credits Chess's own CC0 pieces instead.)
 - R1.4 Puzzles: Lichess CC0 (6,100,952 puzzles; csv.zst 304 MB, 2026-09-09). Filter Popularity >= 85,
   NbPlays >= 500, RD <= 90; stratify by rating and theme; 100K-200K puzzles; fixed binary layout at
   ~40-60 B/puzzle; one .bin per rating band, each < 5 MB. Reproducible script, pinned dump date, dump not
@@ -22,6 +23,7 @@
 - R1.6 Input: tap-tap primary (dots on legal targets, rings on captures; reselect/deselect rules),
   plus drag with the lifted piece drawn one square above the finger; four-piece promotion picker.
 - R1.7 Rendering: cburnett (Wikimedia BSD-3 / GPLv2+ option), converted to ImageVector at build time.
+  (Piece source SUPERSEDED by P1: an original CC0 set; the build-time conversion stays.)
   Tune shades on the LP3 (start: #D8D8D8 / #8C8C8C). Last move = shade + outline, check = ring,
   selection = heavy border, coordinates inside the edge squares. Exclude staunty and maestro (NC).
 - R1.8 Layout: 312 dp board (39 dp = 117 px squares) plus a 48 dp strip: status + up to 3 text buttons.
@@ -184,6 +186,7 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
   LAST USED; the v3 menu entry shows "Your move: N".
 - D7 About: GPLv3-or-later + source URL as text; Lichess CC0 + dump date; cburnett; Apache-2.0
   notices for bundled libraries; later Pirarucu (ratosh, GPLv3) and the book's provenance.
+  (The cburnett credit SUPERSEDED by P1: one line crediting Chess's own CC0 pieces, reworded by P2.)
 - D8 Glossary (Reader format, grouped Platform/Board/Puzzles/Games/Network): Puzzle Rating = the
   puzzle's difficulty; Player Rating = the user's; Attempt states Open/Failed/Hinted/Solved; add
   Ply, Try Mode, Review, Missed, Result, Tool; Live is a state of a Correspondence Game.
@@ -232,6 +235,9 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
   list of the last 50. Deferred: sound, premoves, eval bar, analysis, PGN export, Chess960,
   pass-and-play. Takeback while thinking = stop, then undo 2 plies. Icon: gray cburnett knight. No
   telemetry.
+  ("cburnett only" and "Icon: gray cburnett knight" SUPERSEDED by P1: Chess's own CC0 set, and its
+  knight for an icon; "cburnett only" then "one set" SUPERSEDED by P2: two sets, and the Piece Set is
+  v1's one setting, so "no v1 settings" is SUPERSEDED by P2 for it alone.)
 Contradictions resolved:
  1 No theme filter in v1 (R1.5's filter moves to v1.x).
  2 The strip shows <= 3 buttons chosen by context: your turn = Takeback, Game Hint, Menu; engine
@@ -605,3 +611,117 @@ Implementation:
   at once in onAppPause, which also stops the search; onScreenShow re-runs the computer's turn.
 - `GameStrip` (pure) picks the strip; StripFitTest measures every state it returns, every Result for
   both Sides, and the Games Review strips.
+
+## v1 smoke fixes (orchestrator, 2026-09-29)
+- S1 Reconciles A9 with D7. A9 asked About for "per-puzzle lichess.org/training/<id> as text"; D7,
+  which built About, lists only the Lichess CC0 credit and dump date, and About is one page for the
+  whole Tool, so no screen showed a Puzzle's id. RULING: About keeps D7's credit unchanged; the
+  per-puzzle part of A9 moves to the Menu, the one screen opened from a Puzzle: a plain row under
+  About, "Puzzle <id>" over "lichess.org/training/<id>", for the Attempt on screen (a Missed replay's
+  own id). Text only, never a link: the phone has no browser and Chess never uses the network (D5).
+  The address gets its own line because Android broke it at a slash when it shared one with the id
+  (emulator); each line fits 360 dp whole with the widest id (`StripFitTest`).
+- S2 The save file keeps up with every result (A8, "written on every result"): a background save
+  follows every change to what the file keeps except the Moves of the Attempt on screen, which is
+  the Attempt's state, `done`, `solutionShown` and "Try again". Seen on the emulator: after a wrong
+  Move, the Failed result reached the file only in onAppPause, so a kill at the result relaunched
+  into the Puzzle mid-way. A relaunch in Try Mode after a wrong Move reads "Try again", as before the
+  kill. Scoring stays on the Attempt's own transitions (A3), so a relaunch never scores twice.
+- S3 Back is page-aware: each Menu page is its own screen on the SDK's back stack, so system Back
+  from Player Rating, Missed or About returns to the Menu, as the arrow does, and the Menu returns to
+  the Puzzle. System Back can't be intercepted by a screen (PLATFORM.md), which is why pages that were
+  only state inside one screen skipped the Menu. Back from the puzzle screen still closes the Tool.
+
+## Pieces: an original CC0 set (2026-09-29)
+- P1 SUPERSEDES R1.7's piece source (cburnett), D7's cburnett credit, and F11's "cburnett only" and
+  "Icon: gray cburnett knight" (one set, now this one; see the icon below); the rest of R1.7 stands,
+  including the conversion to ImageVector at build time (`scripts/build-pieces.py`). RULING: the
+  pieces are Chess's own drawings, twelve SVGs in `art/pieces/` released under CC0 1.0 Universal
+  (`art/pieces/LICENSE.txt`), not derived from cburnett or any other set. The owner approved the
+  design as drawn; a change to a drawing is a design change and goes back to the owner.
+  - Style: LightOS's glyph style, geometric and flat on a 45 × 45 viewBox, no shading or texture.
+  - One silhouette per piece. Black is that silhouette, solid, with thin white cuts where needed (the
+    bishop's slot, the knight's eye).
+  - White is its outer-line twin: the same silhouette filled white over a wider black stroke painted
+    first, with thin black cuts, so a white piece keeps an edge on the light square as well as the
+    dark one. The converter keeps each file's path order for this; `PieceVectorsTest` pins it.
+  - Credit: one line, "Pieces: original drawings made for Chess, released under CC0 1.0 (no rights
+    reserved).", in NOTICE, the README and About (`assets/about/notices.txt`). With cburnett gone,
+    About no longer reproduces a BSD licence. (Wording SUPERSEDED by P2, for two sets; this set now
+    lives in `art/pieces/geometric/`.)
+  - The Tool icon is unchanged: Light's plugin generates the manifest with no `android:icon`,
+    `lighttool.toml` has no icon field, a hand-written manifest fails the build, and LightOS lists
+    Tools by label. When Light offers a way to set one, it is this set's knight (the owner has a
+    white-on-black and a black-on-white version), not a cburnett knight.
+
+## v1 review follow-ups (orchestrator, 2026-09-29)
+- V1 A save at a result whose Moves don't replay against the Solution (only a damaged file does
+  this) resumes at the result, with no Moves on the board, its state and the result strip's delta
+  kept. It no longer restarts from the setup Move, where finishing it again scored or recorded a
+  Solved or Hinted Attempt twice. An Attempt under way still restarts from the setup Move (F1).
+- V2 An Attempt state this build doesn't know, in a Missed or history row, reads as Failed
+  (`coerceInputValues` needs a default), so a newer build's file stays readable. An older build that
+  rewrites the file writes Failed back: a new state therefore needs a new schemaVersion and its own
+  migration, as the compatibility rule in `PuzzleData` implies.
+- V3 Band files are read ahead on a background thread instead of choosing the next Puzzle
+  asynchronously: the choice stays at the result (D1) and the strip behaves as before. Read ahead:
+  the Bands for the Player Rating after a win, a loss or no change, when a rated Attempt starts or the
+  rating changes; every Missed Puzzle's line when the Missed page opens. The seed screen's pick is
+  not read ahead (once per install or Reset rating). A tap that outruns the read ahead reads the file
+  on the main thread, as before.
+- V4 Assets: the SDK reads them only through `SealedLightContext.readAsset`, which holds the
+  screen's activity; `Context`, `LocalContext` and casts to it are blocked. The application's assets
+  are reachable only around the SDK (an `AndroidView` factory's context, or Compose's
+  `LocalResources`), which Chess doesn't do. RULING: the owner reads through the latest screen that
+  asked for it, so a relaunch releases the old activity; the owner holds at most the latest one. A
+  real fix needs an application-level asset reader in Light's SDK (a question for Light).
+- V5 The stage clock restarts only when the Attempt on screen changed, and a slide is cleared once
+  it has played or once its Move is no longer the latest (`slideAfter`, `restartsClock`).
+
+## Pieces: two sets, the player's choice (owner, 2026-09-29)
+- P2 EXTENDS P1 to two sets and SUPERSEDES F11's "no v1 settings" for this one choice. RULING: the
+  player chooses the Piece Set (CONTEXT.md) from two, both Chess's own drawings under CC0 1.0 in
+  `art/pieces/` (one `LICENSE.txt` for both): geometric (`geometric/`, P1's set) and rounded
+  (`rounded/`, drawn from circles, capsules and rounded rectangles; `rounded/tools/` generates its
+  SVGs). The owner approved both as drawn; P1's design rules hold for both, and a change to either
+  goes back to the owner.
+  - Geometric is the default, for a new player and for an existing save.
+  - The Menu shows the choice as a row, "Pieces · Geometric", between Missed and About; a tap moves to
+    the next set ("Pieces · Rounded", then back) and stays on the Menu. The Puzzle id row stays the
+    Menu's last row (S1). The Menu page doesn't scroll, so the row takes no wheel key (R4.17).
+  - The board and the promotion picker draw the chosen set. It changes nothing about play.
+  - Saved: `pieceSet` in `puzzles.json`, v1's only save file, written at once like every other kept
+    change (S2). It outlasts a relaunch and Reset rating (F5 resets only the Player Rating). A file
+    without it, or with a set this build doesn't know, reads as geometric (coerceInputValues, as V2).
+    No schemaVersion bump: the field is only added, and no field an earlier schema knows changes
+    meaning. An older build ignores it and, if it rewrites the file, drops it, so the player sees
+    geometric again: a lost look, never a wrong result. V2's reason for a bump (an older build
+    writing a different meaning back) doesn't arise. When v2 adds its own save file (D6), the Piece
+    Set may move to a Tool-wide one, with a migration.
+  - Credit: P1's line, reworded for two sets and identical in NOTICE, the README and About
+    (`assets/about/notices.txt`): "Pieces: original drawings made for Chess (two sets), released
+    under CC0 1.0 (no rights reserved)." `ToolMetadataTest` checks all three. `LICENSE.txt` is titled
+    "Chess pieces", so it doesn't read as a work of Light's.
+  - `scripts/build-pieces.py` converts both sets into `PieceVectors` and now fails loudly on numbers
+    after Z (it looped forever) and on any attribute it doesn't understand (it dropped them);
+    `--self-test`, which `--check` runs in CI, covers both.
+
+## Forward merge: v2 on v1 0.1.0 (orchestrator, 2026-09-29)
+v2 (feat/v2-play) takes main's v1 release, the smoke fixes (S1-S3), the new pieces (P1, P2) and the
+review follow-ups (V1-V5). Two rulings reconcile them with v2's Menus and save files:
+- M1 Reconciles P2's placement with v2 (D6's second save file, R4.11's two Menus). RULING: the Piece
+  Set stays one Tool-wide choice, and every board draws it: the puzzle screen, the game screen, a
+  finished Game from Games, and each one's promotion picker. It stays in `puzzles.json` (P2's
+  field, its compatibility rule unchanged); `games.json` doesn't copy it, and the game screen and
+  the Games Review read it from the puzzle owner. P2's "may move to a Tool-wide file, with a
+  migration" is left for a second Tool-wide setting: one field doesn't need a third file. The row,
+  "Pieces · Geometric", sits just above About in both Menus: the puzzle Menu reads Player Rating,
+  Missed, Play the computer, Pieces, About, then the Puzzle id row, still last (S1); the game Menu
+  ends New game, Games, Puzzles, Pieces, About. A tap moves to the next set and stays on the Menu.
+- M2 Applies S3 to v2's pages: New game, Games and Moves are each their own Menu screen on the back
+  stack, so Back (the arrow or the system's) goes one page up to the Menu. Start leaves the Menu for
+  the board, as a reset or a Missed replay does. New game opened from the Result's Next is its own
+  screen over the board, so Back returns to the board. A finished Game opened from Games goes back to
+  Games.
+- M3 V4 holds for the game owner too: `GameOwner` reads the Book through the latest screen that asked
+  for it, as `PuzzleOwner` reads the Pack, so a relaunch releases the old activity.

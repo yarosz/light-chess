@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45">
+  <path d="M13.95 33.37A1.8 1.8 0 0 1 15.75 31.57H29.25A1.8 1.8 0 0 1 31.05 33.37V35.17H13.95Z" fill="#000" stroke="#000" stroke-width="7.06" stroke-linejoin="round"/>
+  <path d="M20.88 8.17A1.62 1.62 0 1 0 24.12 8.17A1.62 1.62 0 1 0 20.88 8.17Z" fill="#000" stroke="#000" stroke-width="7.06" stroke-linejoin="round"/>
+  <path d="M22.5 10.87C26.1 13.57 28.35 17.17 28.35 20.32C28.35 23.47 26.1 25.72 22.5 25.72C18.9 25.72 16.65 23.47 16.65 20.32C16.65 17.17 18.9 13.57 22.5 10.87Z" fill="#000" stroke="#000" stroke-width="7.06" stroke-linejoin="round"/>
+  <path d="M19.8 25.27H25.2L26.55 32.47H18.45Z" fill="#000" stroke="#000" stroke-width="7.06" stroke-linejoin="round"/>
+  <path d="M13.95 33.37A1.8 1.8 0 0 1 15.75 31.57H29.25A1.8 1.8 0 0 1 31.05 33.37V35.17H13.95Z" fill="#fff" stroke="#fff" stroke-width="3.06" stroke-linejoin="round"/>
+  <path d="M20.88 8.17A1.62 1.62 0 1 0 24.12 8.17A1.62 1.62 0 1 0 20.88 8.17Z" fill="#fff" stroke="#fff" stroke-width="3.06" stroke-linejoin="round"/>
+  <path d="M22.5 10.87C26.1 13.57 28.35 17.17 28.35 20.32C28.35 23.47 26.1 25.72 22.5 25.72C18.9 25.72 16.65 23.47 16.65 20.32C16.65 17.17 18.9 13.57 22.5 10.87Z" fill="#fff" stroke="#fff" stroke-width="3.06" stroke-linejoin="round"/>
+  <path d="M19.8 25.27H25.2L26.55 32.47H18.45Z" fill="#fff" stroke="#fff" stroke-width="3.06" stroke-linejoin="round"/>
+  <path d="M24.75 15.82L21.6 19.87" fill="none" stroke="#000" stroke-width="2.16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
