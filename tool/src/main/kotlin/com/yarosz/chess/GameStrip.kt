@@ -66,6 +66,17 @@ data class GameStrip(
         /** Review, on the game screen and in a replay alike: the rest of the strip is back at the latest Position. */
         private fun review(record: GameRecord, reviewPly: Int) =
             GameStrip(UiCopy.review(reviewPly, record.game.ply), listOf(GameButton.LATEST), menu = false)
+
+        /**
+         * Every button set [of] can show on the computer's board (E6): the Captured Pieces keep the
+         * room beside the widest, Move now, whichever is shown. `StripFitTest` checks the list is whole.
+         */
+        val BOARD_BUTTONS: List<List<GameButton>> = listOf(
+            emptyList(), listOf(GameButton.MOVE_NOW), listOf(GameButton.HINT), listOf(GameButton.NEXT), listOf(GameButton.LATEST),
+        )
+
+        /** Every button set [replay] can show (E6): none, or Latest in Review. */
+        val REPLAY_BUTTONS: List<List<GameButton>> = listOf(emptyList(), listOf(GameButton.LATEST))
     }
 }
 
