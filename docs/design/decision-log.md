@@ -1466,7 +1466,8 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   board the buttons' labels have their own line at the bottom of the action row, under the Captured
   Pieces' line, CENTRED as a group horizontally on the screen (which centres them on the board). Each
   button's target is the row's full height, 37.33 dp, as E2 had it: the Captured Pieces take no
-  touches, so a target reaches up over them (`BarLayout.buttonLine`). Their labels, semantics labels
+  touches, so a target reaches up over them (`fillMaxHeight` on each button's Box in `ActionRow`;
+  `BarLayout.buttonLine` places only the label). Their labels, semantics labels
   and the Button role are as before. The budget, on the LP3: the app area is 1168 px, so the row is
   1168 - 120 - 936 = 112 px, 37.33 dp. The Captured Pieces' line is 3 dp plus the drawings. A label's
   ink in `Copy` (30 design px, 19.45 dp) runs from its tallest letter, 0.750 em above the baseline
@@ -1496,22 +1497,27 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   of empty row between the board and the labels for pieces that never come; the labels would read
   as fallen away from the board. The horizontal centring is what the boards share.
 - E15 Tests. `StripFitTest`: `everyActionRowFitsUnderTheBoard` (every board's buttons, centred on
-  the screen, stay within the board's edges), `everyButtonsTargetIsTheWholeRow` (on a Game's board
-  and on the Puzzle board each target runs from the row's top to its bottom; the labels' baselines,
-  31.83 and 23.88 dp from the row's top), `thePiecesAndTheButtonsEachHaveTheirLine` (the row is 37.33
+  the screen, stay within the board's edges), `theLabelsBaselinesSitWhereTheirInkIsCentred` (the
+  labels' baselines, 31.83 dp from the row's top on a Game's board and 23.88 dp on the Puzzle
+  board), `thePiecesAndTheButtonsEachHaveTheirLine` (the row is 37.33
   dp; the pieces' line is 3 + 15 dp; the labels' ink is centred between the drawings' ink, 15.9 dp,
   and the app area's bottom, 1.34 dp clear of each, and the Material Lead's box ends above it;
   Akkurat's ascent may reach 0.819 em and its descent 0.283 em; a 16 dp box would not leave room for
   the ink; the Puzzle board's ink is centred in the whole row), `theCapturedPiecesRunFromEachEdgeOfTheBoard`
   (fifteen a Side, lead -103, 0 and 103, both Sides at the bottom: P3's steps, every piece inside the
   board, the bottom Side's end at the left edge, the top Side's at the right, the lead after the
-  leading end), `theCapturedPiecesDontDependOnTheButtons` (each Game board shows several sets, and
-  beside every one the same pieces are placed identically at the board's width and the labels'
-  baseline is the same). They replace `theCapturedPiecesShareTheActionRow`,
+  leading end). They replace `theCapturedPiecesShareTheActionRow`,
   `theCapturedPiecesStayStillAsTheButtonsChange` and `everyBoardButtonIsInItsBoardsButtonSets`.
+  That the Captured Pieces stay still as the buttons change is by construction (`CapturedRow` takes
+  no buttons), and no unit test sees it. Nor does one see each button's full-height target: it is by
+  construction too (`fillMaxHeight` on each button's Box in `ActionRow`; the repo has no Compose UI
+  test setup), and the orchestrator checks it on the emulator and the LP3.
   `CapturedRowTest.theDrawingsKeepTheOwnersMockUpsProportions` replaces `theDrawingsMatchTheOwnersMockUp`,
   and `CapturedRowTest.theDrawingsInkStopsAboveTheirBox` reads every drawing in `art/pieces` for
-  its lowest ink (38.7 of 45 units). Accessibility is unchanged: the row's label
+  its lowest ink (38.7 of 45 units): each path's lowest point plus half its stroke (1 when the width
+  is unset), which bounds the ink only with round joins and round or butt caps, so it fails on a
+  stroked path of more than one segment without `stroke-linejoin="round"`, a square cap, an element
+  other than `<path>`, a group, a transform or a style. Accessibility is unchanged: the row's label
   (`CapturedRowTest.theRowsLabelReadsBothEndsAndTheLead`) and each button's label, role and
   full-height target are as before, the row read before the buttons.
 

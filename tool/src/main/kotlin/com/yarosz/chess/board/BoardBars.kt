@@ -110,20 +110,14 @@ object BarLayout {
     fun labelRoomTop(captured: Boolean): Dp = if (captured) CapturedRowLayout.INK_BOTTOM.dp else 0.dp
 
     /**
-     * E13, E14: one button in an action row: its target from [targetTop] to [targetBottom] and its
-     * label's baseline at [labelBaseline], all from the row's top.
+     * E13, E14: the baseline, from the row's top, of a button's label in an action row [rowHeight]
+     * tall, for `Copy` [em] tall: the label's ink, [COPY_INK_ASCENT] + [COPY_INK_DESCENT] em, is
+     * centred between [labelRoomTop] and the row's bottom. The button's target, the row's full
+     * height, is not computed here: `ActionRow` gives each button's Box `fillMaxHeight`.
      */
-    data class ButtonLine(val targetTop: Dp, val targetBottom: Dp, val labelBaseline: Dp)
-
-    /**
-     * E13, E14: a button in an action row [rowHeight] tall, for `Copy` [em] tall: its target is the
-     * row's full height on every board; its label's ink, [COPY_INK_ASCENT] + [COPY_INK_DESCENT] em, is
-     * centred between [labelRoomTop] and the row's bottom.
-     */
-    fun buttonLine(rowHeight: Dp, em: Dp, captured: Boolean): ButtonLine {
+    fun buttonLine(rowHeight: Dp, em: Dp, captured: Boolean): Dp {
         val top = labelRoomTop(captured)
-        val baseline = top + (rowHeight - top - em * (COPY_INK_ASCENT + COPY_INK_DESCENT)) / 2 + em * COPY_INK_ASCENT
-        return ButtonLine(targetTop = 0.dp, targetBottom = rowHeight, labelBaseline = baseline)
+        return top + (rowHeight - top - em * (COPY_INK_ASCENT + COPY_INK_DESCENT)) / 2 + em * COPY_INK_ASCENT
     }
 }
 
@@ -234,7 +228,6 @@ private fun Modifier.labelLine(em: Dp, captured: Boolean): Modifier = layout { m
     val text = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
     if (!constraints.hasBoundedHeight) return@layout layout(text.width, text.height) { text.place(0, 0) }
     val height = constraints.maxHeight
-    val line = BarLayout.buttonLine(height.toDp(), em, captured)
-    val baseline = (line.labelBaseline - line.targetTop).roundToPx()
+    val baseline = BarLayout.buttonLine(height.toDp(), em, captured).roundToPx()
     layout(text.width, height) { text.place(0, baseline - text[FirstBaseline]) }
 }

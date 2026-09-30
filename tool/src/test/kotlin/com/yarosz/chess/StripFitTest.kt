@@ -567,22 +567,13 @@ class StripFitTest {
     /** LightOS `Copy`'s font size on the LP3, in dp: 30 design px. */
     private val copyEm: Float get() = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX)
 
-    /** A button in the LP3's action row, as `ActionRow` places it (E13, E14). */
-    private fun buttonLine(captured: Boolean): BarLayout.ButtonLine = BarLayout.buttonLine(actionRowHeight.dp, copyEm.dp, captured)
+    /** A label's baseline in the LP3's action row, from the row's top, as `ActionRow` places it (E13, E14). */
+    private fun labelBaseline(captured: Boolean): Float = BarLayout.buttonLine(actionRowHeight.dp, copyEm.dp, captured).value
 
     /** A label's ink as `ActionRow` places it on a Game's board ([captured]) or the Puzzle board: its top and bottom, from the row's top. */
     private fun labelInk(captured: Boolean): Pair<Float, Float> {
-        val baseline = buttonLine(captured).labelBaseline.value
+        val baseline = labelBaseline(captured)
         return baseline - BarLayout.COPY_INK_ASCENT * copyEm to baseline + BarLayout.COPY_INK_DESCENT * copyEm
-    }
-
-    /** The boards with Captured Pieces, each with the button sets its strips are seen to show. */
-    private val capturedBoards: Map<String, List<List<String>>> by lazy {
-        mapOf(
-            "the computer's board" to computerStripsAsShown().map { s -> s.buttons.map { it.label } }.distinct(),
-            "a replay" to replayStripsAsShown().map { s -> s.buttons.map { it.label } }.distinct(),
-            "a Correspondence Game's board" to friendStrips.map { s -> s.buttons.map { it.label } }.distinct(),
-        )
     }
 
     /** Fifteen pieces taken, every kind among them: the widest end (P3's `CapturedRowTest`). */
@@ -606,20 +597,15 @@ class StripFitTest {
     }
 
     /**
-     * E13, E14: every button's target is the action row's full height, 37.33 dp, on a Game's board as
-     * on the Puzzle board: the Captured Pieces take no touches, and the labels sit where their ink is
-     * centred whatever the target (a Game's board's baseline 31.83 dp from the row's top, the Puzzle
-     * board's 23.88 dp).
+     * E13, E14: the labels' baselines in the LP3's 37.33 dp row, from its top: 31.83 dp on a Game's
+     * board, 23.88 dp on the Puzzle board. (Each button's target, the row's full height, is by
+     * construction, `fillMaxHeight` on its Box in `ActionRow`: no unit test sees it; it is checked on
+     * the emulator and the LP3.)
      */
     @Test
-    fun everyButtonsTargetIsTheWholeRow() {
-        for (captured in listOf(true, false)) {
-            val line = buttonLine(captured)
-            assertEquals(0f, line.targetTop.value, "the target starts at the row's top (captured: $captured)")
-            assertEquals(actionRowHeight, line.targetBottom.value, 0.001f, "the target ends at the row's bottom (captured: $captured)")
-        }
-        assertEquals(31.83f, buttonLine(captured = true).labelBaseline.value, 0.01f)
-        assertEquals(23.88f, buttonLine(captured = false).labelBaseline.value, 0.01f)
+    fun theLabelsBaselinesSitWhereTheirInkIsCentred() {
+        assertEquals(31.83f, labelBaseline(captured = true), 0.01f)
+        assertEquals(23.88f, labelBaseline(captured = false), 0.01f)
     }
 
     /**
@@ -645,7 +631,7 @@ class StripFitTest {
         assertEquals(top - roomTop, actionRowHeight - bottom, 0.01f)
         assertEquals(1.34f, top - roomTop, 0.01f)
         // Akkurat's ink may run past Roboto's by this much before it touches: ascent to 0.819 em, descent to 0.283 em.
-        val baseline = buttonLine(captured = true).labelBaseline.value
+        val baseline = labelBaseline(captured = true)
         assertEquals(0.819f, (baseline - CapturedRowLayout.INK_BOTTOM) / copyEm, 0.001f)
         assertEquals(0.283f, (actionRowHeight - baseline) / copyEm, 0.001f)
         // The Material Lead, Superfine (16 design px, a 1.2 line height) centred on the drawings: its box ends above the labels' ink.
@@ -690,25 +676,6 @@ class StripFitTest {
                 (lead > 0) == (bottom == Side.WHITE) -> assertEquals(left.maxOf { it.x } + CapturedRowLayout.SIZE + CapturedRowLayout.LEAD_GAP, row.leadX)
                 else -> assertEquals(right.minOf { it.x } - CapturedRowLayout.LEAD_GAP, row.leadX + leadWidth(row.lead!!))
             }
-        }
-    }
-
-    /**
-     * E12, SUPERSEDING E6's room: the Captured Pieces don't depend on the buttons. Each Game's board
-     * shows several button sets, and beside every one of them the same pieces are placed identically
-     * at the board's width and the labels sit on the same baseline, before and after the first
-     * capture; so neither end, nor the steps, nor the labels move as buttons come and go.
-     */
-    @Test
-    fun theCapturedPiecesDontDependOnTheButtons() {
-        val captured = CapturedPieces(fifteen, listOf(PieceType.PAWN, PieceType.ROOK), 30)
-        for ((board, sets) in capturedBoards) {
-            assertTrue(sets.size > 1, "$board shows several button sets: $sets")
-            val beside = sets.map { buttons ->
-                assertTrue(buttonsWidth(buttons) <= POSITION_VIEW_SIZE.value, "$board: $buttons")
-                CapturedRowLayout.fit(captured, Side.WHITE, POSITION_VIEW_SIZE.value, ::leadWidth) to buttonLine(captured = true)
-            }
-            assertEquals(1, beside.distinct().size, "$board: the row and the labels' line beside every set")
         }
     }
 

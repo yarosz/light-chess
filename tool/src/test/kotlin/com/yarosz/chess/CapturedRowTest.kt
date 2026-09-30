@@ -143,7 +143,11 @@ class CapturedRowTest {
      * E13: every drawing's ink stops at [CapturedRowLayout.INK_BOTTOM_UNITS] of its 45 units, 2.1 dp
      * above the 15 dp box, which is where the labels' room under the pieces starts. Read from the
      * source drawings in `art/pieces` (which `PieceVectors` is generated from): each path's lowest
-     * point, curves and arcs sampled, plus half its outline (every join and cap is round).
+     * point, curves and arcs sampled, plus half its stroke's width when it has one. Half the width
+     * bounds the ink only for round joins (a miter reaches past it) and for round or butt caps (a
+     * square cap reaches past it; the kings' crosses end in butt caps), so the test fails on a stroked
+     * path of more than one segment without `stroke-linejoin="round"`, on a square cap, and on
+     * anything it does not read: an element other than `<path>`, a group, a transform or a style.
      */
     @Test
     fun theDrawingsInkStopsAboveTheirBox() {
@@ -152,12 +156,25 @@ class CapturedRowTest {
         val bottoms = files.associate { file ->
             val svg = file.readText()
             assertTrue("viewBox=\"0 0 45 45\"" in svg, file.name)
+            val elements = Regex("""<([A-Za-z][A-Za-z0-9:-]*)""").findAll(svg).map { it.groupValues[1] }.toSet()
+            assertTrue(elements.all { it == "svg" || it == "path" }, "${file.name}: only <svg> and <path> are read, not ${elements - setOf("svg", "path")}")
+            assertFalse(Regex("""\b(transform|style)=""").containsMatchIn(svg), "${file.name}: a transform or style attribute moves ink the test does not read")
+            val root = Regex("""<svg ([^>]*)>""").find(svg)!!.groupValues[1]
+            assertFalse("stroke" in root, "${file.name}: a stroke inherited from <svg> is not read")
             file.name to Regex("""<path ([^>]*)>""").findAll(svg).maxOf { path ->
                 val attrs = path.groupValues[1]
-                val d = Regex("""\bd="([^"]*)"""").find(attrs)!!.groupValues[1]
-                val stroke = Regex("""stroke-width="([0-9.]+)"""").find(attrs)?.groupValues?.get(1)?.toFloat() ?: 0f
-                assertFalse("miter" in attrs || "square" in attrs || "transform" in attrs, "${file.name}: $attrs")
-                lowestY(d) + stroke / 2
+                fun attr(name: String) = Regex("""(?:^|\s)$name="([^"]*)"""").find(attrs)?.groupValues?.get(1)
+                val d = attr("d")!!
+                val extent = pathExtent(d)
+                val stroked = attr("stroke").let { it != null && it != "none" }
+                val width = if (!stroked) 0f else attr("stroke-width")?.let { w ->
+                    w.toFloatOrNull() ?: error("${file.name}: stroke-width \"$w\" is not a plain number")
+                } ?: 1f // SVG's default stroke-width.
+                if (stroked && extent.segments > 1) {
+                    assertEquals("round", attr("stroke-linejoin"), "${file.name}: a stroked path of ${extent.segments} segments needs round joins for half its width to bound its ink: $attrs")
+                }
+                assertFalse(attr("stroke-linecap") == "square", "${file.name}: a square cap reaches past half the width: $attrs")
+                extent.lowest + width / 2
             }
         }
         assertEquals(CapturedRowLayout.INK_BOTTOM_UNITS, bottoms.values.max(), 0.01f, "the lowest ink: $bottoms")
@@ -166,20 +183,27 @@ class CapturedRowTest {
         assertEquals(2.1f, CapturedRowLayout.BOTTOM - CapturedRowLayout.INK_BOTTOM, 0.001f)
     }
 
-    /** The lowest point of an SVG path of absolute M, L, H, V, C, Q, A and Z commands (the pieces' only ones). */
-    private fun lowestY(d: String): Float {
+    /** A path's lowest point and how many segments it draws (a closing Z counts as one). */
+    private data class PathExtent(val lowest: Float, val segments: Int)
+
+    /** [PathExtent] of an SVG path of absolute M, L, H, V, C, Q, A and Z commands (the pieces' only ones). */
+    private fun pathExtent(d: String): PathExtent {
         val tokens = Regex("""[A-Za-z]|-?[0-9]*\.?[0-9]+""").findAll(d).map { it.value }.toList()
         var i = 0
         fun num() = tokens[i++].toDouble()
         var x = 0.0
         var y = 0.0
         var low = Double.NEGATIVE_INFINITY
+        var segments = 0
         var command = 'M'
         fun at(py: Double) { low = maxOf(low, py) }
         while (i < tokens.size) {
             if (tokens[i][0].isLetter()) command = tokens[i++][0]
+            if (command != 'M') segments++
             when (command) {
-                'M', 'L' -> { x = num(); y = num(); at(y) }
+                // Coordinates after an M's first pair are implicit L's.
+                'M' -> { x = num(); y = num(); at(y); command = 'L' }
+                'L' -> { x = num(); y = num(); at(y) }
                 'H' -> x = num()
                 'V' -> { y = num(); at(y) }
                 'Z' -> {}
@@ -230,7 +254,7 @@ class CapturedRowTest {
                 else -> error("unexpected command '$command' in $d")
             }
         }
-        return low.toFloat()
+        return PathExtent(low.toFloat(), segments)
     }
 
     @Test

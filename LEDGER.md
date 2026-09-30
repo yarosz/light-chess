@@ -18,13 +18,16 @@ E4's place, E13 amends E2 and P3's sizes). On a Game's board the Captured Pieces
 line, 3 dp under the board across its 312 dp, each Side's end from its own board edge; the buttons are
 centred on their own line below. The drawings are 15 dp (from 17) so a `Copy` label's ink (0.964 em,
 Roboto) fits the 37.33 dp row under their box; steps 5 and 14.5 dp. Code review follow-ups: each
-button's target is the row's full height again (37.33 dp, not the 19.33 dp line), and
+button's target is the row's full height again (37.33 dp, not the 19.33 dp line), by construction
+(`fillMaxHeight` on each button's Box in `ActionRow`; no unit test sees it), and
 `BarLayout.buttonLine` centres the labels' ink between the drawings' ink (15.9 dp, 38.7 of 45 units,
 read from `art/pieces` by `CapturedRowTest`) and the row's bottom: baseline 31.83 dp, 1.34 dp clear
 either side (was 0.3), Akkurat safe to an ascent of 0.819 em and a descent of 0.283 em. Measured by
 ink rather than box, a 16 dp drawing would also fit (0.9 dp either side); the size stays 15 dp by
-E13's box rule. The follow-ups are checked by tests only, not yet on the emulator. The Puzzle board's buttons are centred in the whole row (E14). E6's room, `buttonSets`
-and the `BOARD_BUTTONS`/`REPLAY_BUTTONS` lists are gone, so #19's two open nits (the row's real
+E13's box rule. The label placement is checked by tests only; the full-height targets are for the
+orchestrator to check on the emulator and the LP3. Neither is on the emulator yet. The Puzzle
+board's buttons are centred in the whole row (E14). E6's room, `buttonSets` and the
+`BOARD_BUTTONS`/`REPLAY_BUTTONS` lists are gone, so #19's two open nits (the row's real
 width, a compile-time `buttonSets` pairing) are moot. Checked on the emulator (Roboto; its window
 runs to 1240 px, so its row is 61 dp, not the LP3's 37.33): pieces at both board edges, Hint and
 Hint · Solution centred. To check on the LP3: Akkurat's label ink under crowded pieces (Accept,
@@ -54,15 +57,15 @@ relaunches instead of tapping "Next Puzzle", so `state` keeps the Result. From #
 `StripFitTest.everyBoardButtonIsInItsBoardsButtonSets` guards the E6 lists and `ActionRow` requires
 `buttonSets` with `captured`; the two low nits that followed (measure the action row's real width in
 `ActionRow` rather than the screen's, and make `buttonSets` a compile-time pairing with `captured`)
-are CLOSED: E12 deleted E6's room and `buttonSets` (feat/captured-edges). The StripFitTest arrow-target nit is moot under E (no
-strip has the arrow). N20: `Review.wheel` takes every turn on a board, at either end and before any
-Move, and still leaves the click on the live Position to LightOS; pages that aren't boards are
-unchanged (F3). Checked on the emulator (Roboto): Home, the Puzzles page in its states, Past
-Puzzles, Player Rating, the Puzzle, computer and replay Menus with Pieces in both sets, a Missed
-replay's Menu id and "Back to the rated Puzzle", the Puzzles launch stack. Not checked: a
-Correspondence Game's Menu (needs a second phone). To check on the LP3: the Pieces preview in
-Akkurat, a fast scrub back to the present leaves the brightness alone, the click on the live
-Position still toggles the flashlight.
+are CLOSED: E12 deleted E6's room and `buttonSets` (feat/captured-edges). The StripFitTest
+arrow-target nit is moot under E (no strip has the arrow). N20: `Review.wheel` takes every turn on a
+board, at either end and before any Move, and still leaves the click on the live Position to
+LightOS; pages that aren't boards are unchanged (F3). Checked on the emulator (Roboto): Home, the
+Puzzles page in its states, Past Puzzles, Player Rating, the Puzzle, computer and replay Menus with
+Pieces in both sets, a Missed replay's Menu id and "Back to the rated Puzzle", the Puzzles launch
+stack. Not checked: a Correspondence Game's Menu (needs a second phone). To check on the LP3: the
+Pieces preview in Akkurat, a fast scrub back to the present leaves the brightness alone, the click
+on the live Position still toggles the flashlight.
 HANDOFF (Layout E, feat/layout-e from main 65eb451, 2026-09-30): the owner chose layout E over D's
 board strip (trial #17, closed); this PR supersedes it. Decision log "Layout E (owner, 2026-09-30)"
 E1-E5 (they SUPERSEDE N3's strip arrow and N4's strip placement on the boards; N4's mark geometry
