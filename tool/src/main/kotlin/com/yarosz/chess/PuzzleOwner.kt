@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -112,7 +113,33 @@ class PuzzleOwner(
 
     fun next() = act(flow::next)
 
-    fun replayMissed(id: String) = act { flow.replayMissed(it, id) }
+    /**
+     * A Missed row's tap: true when the replay started. False, and the page stays where it is, for a
+     * Puzzle the Pack no longer has ([missedGone], N13) and for one the read ahead hasn't reached yet:
+     * the main thread never reads a Band file, so that tap waits for [prefetchMissed], after which the
+     * row either replays or shows lightened.
+     */
+    fun replayMissed(id: String): Boolean {
+        val session = sessions.value ?: return false
+        if (id in gone.value) return false
+        if (!flow.readAhead(id)) {
+            if (missedCheck?.isActive != true) prefetchMissed()
+            return false
+        }
+        val next = flow.replayMissed(session, id)
+        if (next === session) return false
+        touched()
+        set(next)
+        return true
+    }
+
+    /** The Puzzles page's first row (N12): the rated Puzzle, ready for the board it opens. */
+    fun toRated() = act(flow::toRated)
+
+    private val gone = MutableStateFlow<Set<String>>(emptySet())
+
+    /** Missed Puzzles the Pack no longer has (N13): their rows are lightened and do nothing. */
+    val missedGone: StateFlow<Set<String>> = gone
 
     fun resetRating() = act(flow::resetRating)
 
@@ -121,11 +148,33 @@ class PuzzleOwner(
         if (sessions.value == null) pieceSets.value = pieceSets.value?.next else act(flow::nextPieceSet)
     }
 
-    /** The Missed page is open: read its Puzzles ahead, so a tap on one reads no file (D2). */
+    /** The last [prefetchMissed], while it runs. */
+    private var missedCheck: Job? = null
+
+    /**
+     * The Puzzles page or Missed is open: read the Missed Puzzles ahead, so a tap on one reads no file
+     * (D2), and find the ones the Pack no longer has (N13), so their rows show lightened and the count
+     * leaves them out. An id found gone is never looked for again in this process (the Pack is the
+     * Tool's own assets), so once every row is known each open reads at most the Bands of the rows
+     * still there, and none when the last call found them. A call while one runs does nothing.
+     */
     fun prefetchMissed() {
         val session = sessions.value ?: return
-        scope.launch(Dispatchers.Default) { prefetch { flow.prefetchMissed(session) } }
+        // One check at a time: the Missed list changes only on the board, never under these pages.
+        if (missedCheck?.isActive == true) return
+        val known = gone.value
+        missedCheck = scope.launch {
+            val missing = withContext(Dispatchers.Default) {
+                runCatching { flow.prefetchMissed(session, known) }
+                    .onFailure { Log.w(TAG, "prefetch failed", it) }
+                    .getOrDefault(emptySet())
+            }
+            if (missing.isNotEmpty()) gone.value = gone.value + missing
+        }
     }
+
+    /** Stops this owner's work (its clock, its saves): for tests, which make owners of their own. */
+    internal fun close() = scope.cancel()
 
     /** A touch or a wheel event: restarts D3's five minutes. */
     fun touched() {

@@ -1436,3 +1436,147 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   pay for Accept and Decline, which they never show). Test: `StripFitTest.theCapturedPiecesStayStillAsTheButtonsChange`
   (each board's list holds every set its strips show; the room and the placed row are identical
   beside every set; the room clears every set; fifteen a Side still fit with the ends apart).
+
+## Puzzles page and Pieces (owner, 2026-09-30)
+After an adversarial review of Navigation D. Home had eight rows and scrolled on the LP3, three of
+them the Puzzles' own (the rating, Missed and the Puzzle board), and Pieces sat among places although
+it is about how a board is drawn. The Puzzle board had no Menu, so the Puzzle's id moved to About,
+far from the Puzzle it names. The rulings: Puzzles becomes a place of its own, a list page, with the
+Puzzle board a step above it; Pieces moves into the Menu of every board, where its change shows.
+- N11 Home, five rows. AMENDS N1 and, through it, N10. RULING: Home's rows, in order: "Puzzles ·
+  1176?" (the Player Rating as shown today, "?" and all; "Puzzles" alone until `puzzles.json` is
+  read), "Play the computer", "Play a friend" (with "· Your move: N" while that count is above 0, W6;
+  absent while the Relay URL is empty, W8), "Games", "About". Player Rating, Missed and Pieces leave
+  Home. The rating is on the Puzzles row, the one place it belongs to, and still shows once on Home.
+  With five rows Home fits one screen, so by N10's measured rule the wheel stays with LightOS there
+  (Home still measures it: were a row ever to overflow, it would take the wheel again). `HomeRows`
+  and `HomeTest`.
+- N12 The Puzzles page. NEW; AMENDS N1's "Puzzles opens the Puzzle board". RULING: Home's Puzzles row
+  opens a list page with LightOS's top bar (the back arrow to Home, the title "Puzzles"), not the
+  board. Its rows, in order:
+  1. A first row that says what it will do, from the Puzzle flow's state, and never names a Puzzle:
+     an Attempt under way on the rated Puzzle, Try Mode included, "Continue Puzzle" (opens the
+     board); at a Result, "Next Puzzle" (advances to the next Puzzle, as the strip's Next does, then
+     opens the board on it); during a Missed replay, "Back to the rated Puzzle" (ends the replay,
+     whatever its stage, and opens the board on the rated Puzzle; the rated one's own state is
+     untouched, since `attempt = replay ?: current` and only `replay` is cleared); before the seed
+     screen is answered, or after Reset rating, "Start" (opens the board, which shows the seed
+     screen as today, D4, F6); with the Pack used up, a plain line, not a button, "Every Puzzle is
+     finished" (`UiCopy.PACK_FINISHED`, the strip's words). Before `puzzles.json` is read, "Continue
+     Puzzle", as the board it opens waits for the file.
+  2. "Missed · N" (N13).
+  3. "Past Puzzles" (N14).
+  4. "Player Rating · 1176?" (N15).
+  `PuzzlesRows` holds the rows as data, `PuzzlesPageTest` the first row for every state and what
+  each tap does.
+- N13 Missed, from the Puzzles page. KEEPS D2 and F4; FIXES a silent no-op. RULING: "Missed · N"
+  opens today's Missed page: its rows replay unrated (D2), and a clean replay leaves Missed (F4).
+  The name stays Missed, the glossary's term. A row whose Puzzle the Pack no longer has is shown
+  lightened and does nothing. F1's carry-over already drops such rows when a new Pack is noticed; the
+  page checks again, on the background read it already makes (`prefetchMissed`), for a row the
+  carry-over can't see. Before, `replayMissed` returned the state unchanged for such a row and the
+  page still went back with a result, so the board opened on the rated Puzzle instead of the one
+  tapped. Now a replay that doesn't start marks its row and stays on the page.
+- N14 Past Puzzles. NEW; MOVES F11's rating-history rows off the Player Rating page. RULING: "Past
+  Puzzles" opens a read-only list of the rated Attempts, newest first, in today's words ("1523 ·
+  Solved +12", "1541 · Failed −9", "1500 · Solved, unrated" for a Hinted one): not tappable, since a
+  Puzzle once finished is never served again (A7) and Missed is how one is played again. Empty:
+  "No rated Puzzles yet". `PuzzleData.HISTORY_CAP` rises from 50 to 100, the same as Missed's.
+  `decode` is lenient, so a file of 50 still reads, and grows to 100 as Attempts are scored; an older
+  build that reads a file of 100 shows it whole and trims it to its 50 on its next result. The file
+  stays small: a history row is about 90 bytes of JSON, so 100 rows add some 4.5 KB to a file that
+  also holds 100 Missed rows and up to a few thousand finished ids. "Past Puzzles" is UI vocabulary
+  (docs/domain-ignore.txt), the page's name, not a new domain concept: the rows are Attempts, and
+  the list is the history `PuzzleData` already keeps. CONTEXT.md's _Avoid_ for Review ("history
+  mode") is about stepping through Moves and doesn't collide.
+- N15 The Player Rating page. AMENDS N1's page and F11's "Rating screen". KEEPS F5. RULING: the page
+  shows the rating ("1176?"), while it is provisional a static line, "The ? goes after about 50
+  rated Puzzles." (a countdown would lie: Glicko's deviation can rise between Puzzles, DESIGN.md "The
+  puzzle flow" has the measured 48), and Reset rating with its second tap, "Tap again to reset" (F5).
+  Reset replaces the page with the Puzzle board, which asks the seed question again (N16). The
+  history rows are Past Puzzles' now (N14).
+- N16 Depth and launch. AMENDS N2. KEEPS A10's intent. RULING: the Puzzles page is a place, one
+  step from Home; the Puzzle board is a step above it: back from the board goes to the Puzzles page,
+  then to Home. A cold start in Puzzles pushes Home, then the Puzzles page, then the board, so it
+  still opens straight onto the board (A10) and back walks down the levels. The Relay-less friend
+  mode opens the same stack (Y6). A Missed replay replaces the Missed page with the board, Reset
+  rating the Player Rating page, and the first row's tap pushes the board over the Puzzles page, so
+  the stack is never deeper than root, place, page, detail: Home, the Puzzles page, Missed / Past
+  Puzzles / Player Rating or the board, and nothing above the board but its Menu. The depth rule for
+  every place: Home; a place (the Puzzles page, the computer's board, Play a friend, Games, About);
+  a page or board over it; and a detail over that (a board's Menu and its pages, a replayed Game).
+  The Puzzles page writes `mode.txt` as Puzzles when Home opens it, as the board did; its pages
+  don't. `Navigation`/`HomeNavigator` (`HomeTest`).
+- N17 Pieces in every board's Menu, and every board has one. AMENDS N4 and N5; SUPERSEDES N5's "The
+  Puzzle board has no Menu" and its "never settings", and N1's and P2's placement of the Pieces row.
+  RULING: N5's rule becomes "a Menu holds everything about this board: its actions and how it is
+  drawn". Every board's strip has the Menu mark on the right, as N4 draws it, in every state but
+  Review on the board of a Game in play (the computer's and a Correspondence Game's), whose Menu
+  holds that Game's actions (N21). Under Layout E the mark is the board's top-bar right button (E1), and this SUPERSEDES
+  E1's "not on the Puzzle board (N5) and not on a replay"; the fit is E's title and action-row
+  measure (E3, E5), which the mark doesn't change. The Menus:
+  - The Puzzle board: the mark in every state, Review included (`StripFitTest` measures each). The
+    end of the Pack draws no board and has no mark. Its Menu: "Pieces · Geometric", then
+    the Puzzle on screen as two grey lines (N18).
+  - The computer's Game and a Correspondence Game: their actions as N5 lists them, then Pieces last,
+    set apart by a gap as wide as the Menu's section spacing, so a fast wheel over-scroll to the end
+    lands on Pieces and never on an action.
+  - A replayed Game from Games: the mark too (it had none), in Review as well (N21); its Menu is
+    Pieces alone. Flip board and Moves for a replay are out of scope.
+  - The invite page and the list pages (Play a friend, Games, the Puzzles page) draw no board and have
+    no Pieces row; a deleted Game's Menu, opened from the Play a friend list, has none either.
+  A tap on Pieces still moves to the next set and stays on the Menu (P2), and the row waits for the
+  Piece Set like before (M4). `PuzzleMenu`, `GameMenu`, `FriendMenu`, `GameReviewMenu` (`MenuTest`).
+- N18 The Puzzle's id, in its board's Menu. AMENDS N8 (About no longer shows it) and returns S1's
+  placement. RULING: the Puzzle board's Menu ends with "Puzzle 00sHx" over
+  "lichess.org/training/00sHx", in grey, as text (D5, D7), for the Puzzle on screen: a Missed replay's
+  Menu names the replay's Puzzle, never the rated one below it. About ends with the Tool's notices.
+- N19 The Pieces row shows the set. NEW. RULING: the row draws the chosen set's white king, queen and
+  knight beside its label, at the row text's height, from the same `PieceVectors` the board uses, so a
+  tap shows the change without leaving the Menu. The row stays one line at the LP3's 360 dp with the
+  widest set's name (`MenuTest`), and its semantics label is its text.
+
+## Puzzles page review follow-ups (orchestrator, 2026-09-30)
+From the review of the Puzzles page PR (#20).
+- N21 Which Menus hide in Review. AMENDS N17. Contradiction: N17 hid the mark in Review on every
+  Game's board, the replay's included, for "R4.16's room", a reason from D's strip that E3 retired
+  (the status is the top bar's title now, and the mark doesn't change its fit). RULING: a Menu that
+  holds a Game's actions hides in Review, since Takeback, Resign, Offer draw and the rest act on the
+  live Game, not on the Position shown: the computer's board and a Correspondence Game's board. A
+  replayed Game's Menu holds only Pieces, which acts on no Game, so its mark stays in Review, as the
+  Puzzle board's does. `GameStrip.replay`, `MenuTest`.
+- N22 The first row's edge cases. AMENDS N12. (a) A Missed replay started after Reset rating, before
+  the seed is answered: the board shows the replay the tap asked for (a replay is unrated and needs no
+  rating), and the seed screen follows when it ends (Next, or the first row). The first row reads
+  "Start" while the seed is unanswered, replay or not, and its tap ends the replay, so the board it
+  opens asks the seed; before, the board showed the seed screen and the tapped replay only after it,
+  under a "Start" that didn't say so. `PuzzleState.seedScreen`. (b) With the Pack used up, the first
+  row is the plain "Every Puzzle is finished" even over a Missed replay: "Back to the rated Puzzle"
+  would open the finished line, and there is no rated Puzzle to go back to. The replay, never saved,
+  is left as it is; a Missed tap replaces it. `PuzzlesRows.start`, `PuzzlesPageTest`.
+- N23 The Missed check. AMENDS N13. RULING: the check reads each Band file at most once, for every
+  Missed id at once (`Pack.prefetch`: the Bands the ratings name first, then, for ids still missing,
+  the others), where it read every uncached Band once per lost id on each open. An id found gone is
+  never looked for again in the process (the Pack is the Tool's own assets), and a Puzzle the last
+  check found is kept without a read. A tap never reads a file on the main thread: a lost row, or one
+  the check hasn't reached yet, starts nothing and the page stays; the row then replays, or lightens,
+  when the check ends. The check runs when the Puzzles page or Missed opens, and "Missed · N" counts
+  only the rows that replay. Puzzle stays capitalised as the glossary term in the page's copy:
+  "Continue Puzzle", "Next Puzzle", "Back to the rated Puzzle", "Past Puzzles", like "Every Puzzle is
+  finished" and the strip's "Next Puzzle". `PuzzlesPageTest`, `PuzzleOwnerMissedTest`.
+
+## The wheel on a board (owner, 2026-09-30)
+Seen on the LP3: scrubbing the Moves with the wheel also changed LightOS's brightness. A board took a
+turn only when it changed the Position shown: `Review.wheel` returned null for a clockwise turn at the
+latest Position and a counter-clockwise one with no Moves, so the board's view model returned false
+and LightActivity handed the turn to LightOS. A fast scrub back to the present overshoots the end, and
+every detent past it changed the brightness.
+- N20 A board takes every turn. AMENDS R1.9's "otherwise return false" for boards; KEEPS F2, F3,
+  R4.17 and `TakenKeys` as they are. RULING: a board (a Puzzle, a Game against the computer, a
+  Correspondence Game, a replayed Game) takes every counter-clockwise and clockwise turn, even one that
+  moves nothing: at the latest Position, at Ply 0, and before any Move (the Puzzle's held start
+  included), a turn is taken and changes nothing. The click keeps F2: in Review it returns to the
+  latest Position; on the latest Position it goes to LightOS, for the flashlight. Pages that are not
+  boards keep F3: one that scrolls takes the wheel, one that fits leaves it with LightOS (Home, a
+  Menu that fits, the lists), so brightness still works there. The seed screen and the end of the
+  Pack draw no board and leave the wheel with LightOS. `Review.wheel` holds the rule (`ReviewTest`).

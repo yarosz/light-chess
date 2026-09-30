@@ -1,13 +1,18 @@
 package com.yarosz.chess
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row as HorizontalRow
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
@@ -17,7 +22,10 @@ import androidx.compose.ui.unit.dp
 import com.thelightphone.sdk.ui.LightText
 import com.thelightphone.sdk.ui.LightTextVariant
 import com.thelightphone.sdk.ui.lightClickable
+import com.yarosz.chess.board.PieceSet
+import com.yarosz.chess.board.PieceVectors
 import com.yarosz.chess.rules.Game
+import com.yarosz.chess.rules.Piece
 import com.yarosz.chess.rules.Side
 import com.yarosz.chess.rules.san
 
@@ -25,6 +33,56 @@ import com.yarosz.chess.rules.san
 object Rows {
     /** One wheel detent scrolls one row (F3). */
     val HEIGHT = 48.dp
+
+    /** The Menu's section spacing: what sets the Pieces row apart from a board's actions (N17). */
+    val GAP = 16.dp
+
+    /** A drawn piece in the Pieces row (N19): the height of a row's `Copy` line. */
+    val PIECE = 24.dp
+
+    /** The pieces the Pieces row draws (N19): White's king, queen and knight, in that order. */
+    val PREVIEW = listOf(Piece.WHITE_KING, Piece.WHITE_QUEEN, Piece.WHITE_KNIGHT)
+}
+
+/**
+ * A Menu's rows from its data (N5, N17): plain lines for the rows without an entry, the Pieces row
+ * with its set drawn (N19), a gap before a row that asks for one, and [onTap] for the others.
+ */
+@Composable
+fun <A> MenuItems(items: List<MenuItem<A>>, onTap: (A) -> Unit) {
+    for (item in items) {
+        if (item.gap) Spacer(Modifier.height(Rows.GAP))
+        val entry = item.entry
+        val set = item.pieces
+        when {
+            entry == null -> MenuLine(item.text, item.lighten)
+            set != null -> PiecesRow(item.text, set) { onTap(entry) }
+            else -> MenuRow(item.text, item.lighten) { onTap(entry) }
+        }
+    }
+}
+
+/**
+ * The Pieces row (P2, N17, N19): its text, then [set]'s white king, queen and knight at the text's
+ * height, drawn from the board's own vectors, so a tap shows the change on the Menu itself. One
+ * target, labelled with its text.
+ */
+@Composable
+fun PiecesRow(label: String, set: PieceSet, onClick: () -> Unit) {
+    HorizontalRow(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = Rows.HEIGHT)
+            .lightClickable(onClickLabel = label, role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = label }
+            .padding(horizontal = 24.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LightText(text = label, variant = LightTextVariant.Copy, maxLines = 1, modifier = Modifier.padding(end = 12.dp))
+        for (piece in Rows.PREVIEW) {
+            Image(rememberVectorPainter(PieceVectors.vector(set, piece)), contentDescription = null, modifier = Modifier.size(Rows.PIECE))
+        }
+    }
 }
 
 /** A tappable row; [lighten] for one that does nothing now (W6: at the cap of five). */

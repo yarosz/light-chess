@@ -28,7 +28,10 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
-/** Home's wheel (N10, F3): one row per detent while the list scrolls, else the wheel stays with LightOS. */
+/**
+ * Home's wheel (N10, F3): one row per detent while the list scrolls, else the wheel stays with LightOS.
+ * With N11's five rows it fits on the LP3, so the wheel stays with LightOS; it still measures.
+ */
 class HomeViewModel(
     private val owner: PuzzleOwner,
     private val game: GameOwner,
@@ -66,7 +69,30 @@ class HomeViewModel(
 }
 
 /**
- * Home (N1): the Tool's root, a list titled "Chess" with no back arrow, so system back from it closes
+ * [place]'s screen over the top one (N2, N16), opened by Home or the Puzzles page. Its pages sit over
+ * no board, so none lets the computer think (overGame false, New game included). [onDone] runs once
+ * its page goes back with a result (Start, Reset rating, a Missed replay), after the page is popped.
+ */
+fun SimpleLightScreen<*>.pushPlace(place: Place, onDone: (() -> Unit)?) {
+    val done: ((Unit) -> Unit)? = onDone?.let { run -> { run() } }
+    fun page(page: MenuPage) = navigateTo({ MenuScreen(it, page, overGame = false) }, done)
+    when (place) {
+        Place.HOME -> {}
+        Place.PUZZLES -> page(MenuPage.PUZZLES)
+        Place.PUZZLE -> navigateTo({ PuzzleScreen(it) }, done)
+        Place.COMPUTER -> navigateTo({ GameScreen(it) }, done)
+        Place.NEW_GAME -> page(MenuPage.NEW_GAME)
+        Place.PLAY_FRIEND -> navigateTo({ FriendListScreen(it) }, done)
+        Place.PLAYER_RATING -> page(MenuPage.RATING)
+        Place.MISSED -> page(MenuPage.MISSED)
+        Place.PAST_PUZZLES -> page(MenuPage.PAST_PUZZLES)
+        Place.GAMES -> page(MenuPage.GAMES)
+        Place.ABOUT -> page(MenuPage.ABOUT)
+    }
+}
+
+/**
+ * Home (N1, N11): the Tool's root, a list titled "Chess" with no back arrow, so system back from it closes
  * Chess. It opens on the place last used, pushed over it (N2), and each row opens a place or a page
  * one step up from it.
  */
@@ -98,47 +124,21 @@ class HomeScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, HomeVi
         navigator.launch(modes.mode.value, friendsOn = friends != null)
     }
 
-    /** Which place opens over which, and what replaces a page once done (N2): `HomeTest`. */
-    private val navigator by lazy { HomeNavigator(modes::set, ::push) }
-
-    /**
-     * [place]'s screen over the top one; [onDone] runs once its page goes back with a result (Start,
-     * Reset rating, a Missed replay), after the page is popped. Home's pages sit over no board, New
-     * game included, so none lets the computer think (N2).
-     */
-    private fun push(place: Place, onDone: (() -> Unit)?) {
-        val done: ((Unit) -> Unit)? = onDone?.let { run -> { run() } }
-        when (place) {
-            Place.HOME -> {}
-            Place.PUZZLE -> navigateTo({ PuzzleScreen(it) }, done)
-            Place.COMPUTER -> navigateTo({ GameScreen(it) }, done)
-            Place.NEW_GAME -> navigateTo({ MenuScreen(it, MenuPage.NEW_GAME, overGame = false) }, done)
-            Place.PLAY_FRIEND -> navigateTo({ FriendListScreen(it) }, done)
-            Place.PLAYER_RATING -> navigateTo({ MenuScreen(it, MenuPage.RATING, overGame = false) }, done)
-            Place.MISSED -> navigateTo({ MenuScreen(it, MenuPage.MISSED, overGame = false) }, done)
-            Place.GAMES -> navigateTo({ MenuScreen(it, MenuPage.GAMES, overGame = false) }, done)
-            Place.ABOUT -> navigateTo({ MenuScreen(it, MenuPage.ABOUT, overGame = false) }, done)
-        }
-    }
+    /** Which place opens over which, and what replaces a page once done (N2, N16): `HomeTest`. */
+    private val navigator by lazy { HomeNavigator(modes::set, this::pushPlace) }
 
     private fun tap(entry: HomeEntry) {
         owner.touched()
-        if (entry == HomeEntry.PIECES) {
-            owner.nextPieceSet()
-            return
-        }
-        Navigation.open(entry, gameInProgress = game.state.value?.inProgress == true)?.let { navigator.open(it) }
+        navigator.open(Navigation.open(entry, gameInProgress = game.state.value?.inProgress == true))
     }
 
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
         val session by owner.session.collectAsState()
-        val pieceSet by owner.pieceSet.collectAsState()
         val friendState = friends?.state?.collectAsState()?.value
         val vm = viewModel
-        val data = session?.data
-        val rows = HomeRows.of(data?.player?.text, data?.missed?.size, friendState?.yourMove, pieceSet)
+        val rows = HomeRows.of(session?.data?.player?.text, friendState?.yourMove)
         LightTheme(colors = themeColors) {
             Column(Modifier.fillMaxSize().background(LightThemeTokens.colors.background)) {
                 LightTopBar(center = LightTopBarCenter.Text(UiCopy.HOME_TITLE))

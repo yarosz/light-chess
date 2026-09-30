@@ -25,6 +25,22 @@ GameMenu
 GameMenuEntry
 FriendMenu
 FriendMenuEntry
+# Puzzles page and Pieces (decision log N11-N19): the Puzzles page's rows and pages, and the Menus
+# of the Puzzle board and a replayed Game. UI vocabulary, like Home's. "Past Puzzles" names a page
+# (N14): its rows are Attempts, and the list is the history PuzzleData already keeps, so it is not a
+# domain concept of its own.
+PuzzlesRows
+PuzzlesRow
+PuzzlesEntry
+PuzzlesStart
+PuzzlesPages
+PuzzleMenu
+PiecesMenuEntry
+GameReviewMenu
+PlayerRatingEntry
+Past Puzzles
+$PUZZLES · $playerRating
+Puzzle $id
 
 # Rules core: standard chess vocabulary that names parts of a Position, not new domain concepts
 Square
@@ -92,7 +108,6 @@ $PIECES · ${pieceSetName(set)}
 Failed ${delta(delta ?: 0)}
 Solved ${delta(delta ?: 0)}
 # The Menu's Puzzle row (decision log S1): the Lichess id and its lichess.org address, two lines
-Puzzle $id\nlichess.org/training/$id
 # F5's own wording for the button; the page it sits on is titled "Player Rating"
 Reset rating
 # Try Mode's prompt after a wrong Move (CONTEXT.md "Try Mode")

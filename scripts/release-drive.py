@@ -4,7 +4,7 @@
   release-drive.py skip           answer the seed screen with Skip
   release-drive.py solve          play the user's Moves of the Puzzle on screen, from the Pack
   release-drive.py next           tap Next and wait for the next Puzzle
-  release-drive.py state          print Home's rating, Missed count and rated history as JSON
+  release-drive.py state          print the rating, Missed count and rated history (Past Puzzles) as JSON
   release-drive.py about          open Home > About and print its text
   release-drive.py wait TEXT      wait until TEXT shows
   release-drive.py shot PATH      save a screenshot
@@ -149,9 +149,14 @@ def solve():
     print(json.dumps({"puzzle": pid, "result": result}, ensure_ascii=False))
 
 
+# The Puzzles page's first row (N12), whatever it reads: each opens the Puzzle board.
+PUZZLES_START = ("Continue Puzzle", "Next Puzzle", "Back to the rated Puzzle", "Start")
+
+
 def open_list():
-    """From the puzzle screen to the list of the rating, Missed and About: Home since Navigation D
-    (back from the Puzzle), the puzzle Menu before it (an older build, for `upgrade`)."""
+    """From the puzzle screen to the list with the rating and Missed: the Puzzles page since N16
+    (back from the Puzzle), Home in a Navigation D build, the puzzle Menu before that (an older
+    build, for `upgrade`)."""
     if any(t == "Menu" for t in texts()):
         tap_label("Menu")
     else:
@@ -166,7 +171,9 @@ def has_label(label):
 
 
 def swipe(up=True):
-    """One slow drag on the list (no fling): up shows the rows below, down the rows above."""
+    """One drag of 500 px in 300 ms on the list: up shows the rows below, down the rows above. It is
+    fast enough for Compose to fling on, so it may pass more than a screen; `scroll_to` checks the
+    tree after each."""
     focused()
     start, end = ("900", "400") if up else ("400", "900")
     adb("shell", "input", "swipe", "540", start, "540", end, "300")
@@ -175,9 +182,9 @@ def swipe(up=True):
 
 def scroll_to(label, up=True, tries=6):
     """Drag the list until a row labelled `label` is in uiautomator's tree, stopping once a drag shows
-    nothing new (the list's end). uiautomator leaves out a Compose row wholly off screen: on the LP3,
-    Home's eight 53 dp rows under its 40 dp top bar need more than the app area's 389 dp, so About
-    starts below the fold. An older build's puzzle Menu fits, and returns at once."""
+    nothing new (the list's end). uiautomator leaves out a Compose row wholly off screen. Home's five
+    rows fit since N11 and return at once; a Navigation D build's eight did not (About below the
+    fold), and an older build's puzzle Menu fits."""
     for _ in range(tries):
         if has_label(label):
             return
@@ -189,34 +196,70 @@ def scroll_to(label, up=True, tries=6):
         sys.exit(f'release-drive: no "{label}" row after scrolling: {texts()}')
 
 
+def history_rows():
+    return [t for t in texts() if re.match(r"^\d+ · (Solved|Failed|Hinted)", t)]
+
+
 def state():
     open_list()
     rows = texts()
     rating = next(t for t in rows if t.startswith("Player Rating ·"))
     missed = next(t for t in rows if t.startswith("Missed ·"))
-    tap_label(rating)
-    history = [t for t in texts() if re.match(r"^\d+ · (Solved|Failed|Hinted)", t)]
+    if "Past Puzzles" in rows:
+        # N14: the rated history is Past Puzzles', its own page on the Puzzles page.
+        tap_label("Past Puzzles")
+        wait_for(r"^\d+ · |^No rated Puzzles yet")
+        history = history_rows()
+        focused()
+        adb("shell", "input", "keyevent", "KEYCODE_BACK")
+        time.sleep(0.8)
+    else:
+        # A Navigation D build or older: the history is on the Player Rating page.
+        tap_label(rating)
+        history = history_rows()
     back_to_puzzle()
     print(json.dumps({"rating": rating, "missed": missed, "history": history}, ensure_ascii=False))
 
 
+PUZZLE_SCREEN = r"to move|Tap a piece|^Solved|^Failed|^Hinted"
+
+
 def on_puzzle():
-    return any(re.search(r"to move|Tap a piece|^Solved|^Failed|^Hinted", t) for t in texts())
+    return any(re.search(PUZZLE_SCREEN, t) for t in texts())
+
+
+def relaunch():
+    """Chess again from a cold start, as release-check.sh's `launch` does: a Puzzles launch opens the
+    Puzzle board straight away (A10, N16), on the Attempt as the save file keeps it."""
+    adb("shell", "am", "force-stop", PKG)
+    adb("shell", "monkey", "-p", PKG, "1")
+    wait_for(PUZZLE_SCREEN, seconds=30)
 
 
 def back_to_puzzle():
-    """Back, until the puzzle screen shows; from Home (titled "Chess"), its Puzzles row, scrolled
-    back into view if need be. Never back from the puzzle screen of an older build, nor from Home:
-    either closes the Tool."""
-    for _ in range(4):
+    """Back, until the puzzle screen shows: from the Puzzles page (N12), its first row, but at a
+    Result ("Next Puzzle", which would advance) a relaunch instead, which reopens the board on the
+    Result the save file keeps (every Result is saved at once, so a force-stop loses nothing); from
+    Home (titled "Chess"), its Puzzles row ("Puzzles · 1500?" since N11, "Puzzles" before, scrolled
+    back into view on a Navigation D build). Never back from the puzzle screen of an older build, nor
+    from Home: either closes the Tool."""
+    for _ in range(5):
         if on_puzzle():
             return
         focused()
-        if has_label("Chess"):
-            scroll_to("Puzzles", up=False)
-            tap_label("Puzzles")
-        elif "Puzzles" in texts():
-            tap_label("Puzzles")
+        rows = texts()
+        start = next((t for t in rows if t in PUZZLES_START), None)
+        if start == "Next Puzzle":
+            relaunch()
+            continue
+        if start:
+            tap_label(start)
+        elif has_label("Chess"):
+            if not any(t.startswith("Puzzles") for t in rows):
+                scroll_to("Puzzles", up=False)
+            tap_label(next(t for t in texts() if t == "Puzzles" or t.startswith("Puzzles ·")))
+        elif "Puzzles" in rows and "Past Puzzles" not in rows:
+            tap_label("Puzzles")  # an older build's Menu row
         else:
             adb("shell", "input", "keyevent", "KEYCODE_BACK")
         time.sleep(0.8)
@@ -239,8 +282,15 @@ def main(argv):
     elif cmd == "state":
         state()
     elif cmd == "about":
-        open_list()
-        scroll_to("About")  # below the fold on Home; in view on an older build's Menu
+        # This build's Home: back from the Puzzle to the Puzzles page (N16), then to Home, whose five
+        # rows fit (N11). Back stops at Home: once more would close the Tool.
+        for _ in range(3):
+            if has_label("Chess") and has_label("About"):
+                break
+            focused()
+            adb("shell", "input", "keyevent", "KEYCODE_BACK")
+            time.sleep(0.8)
+        scroll_to("About")  # in view at once since N11
         tap_label("About")
         wait_for(r"^Chess \d")
         # About scrolls, and v3's privacy line pushes the Puzzles line below the fold: scroll by touch

@@ -97,9 +97,11 @@ class EngineHost(newEngine: () -> Engine) {
 
     /**
      * Ends the engine thread once the work queued on it is done, waiting up to [waitMs]: for a host a
-     * test made, so the process keeps one engine thread (`EngineTest`). Never called on [shared].
+     * test made, so the process keeps one engine thread (`EngineTest`). Never on [shared], which the
+     * process keeps for its whole life: that fails at once.
      */
     fun shutdown(waitMs: Long = 5_000) {
+        check(!(sharedHost.isInitialized() && sharedHost.value === this)) { "the shared engine thread is never shut down" }
         executor.shutdown()
         executor.awaitTermination(waitMs, java.util.concurrent.TimeUnit.MILLISECONDS)
     }
@@ -107,7 +109,9 @@ class EngineHost(newEngine: () -> Engine) {
     companion object {
         const val THREAD_NAME = "chess-engine"
 
+        private val sharedHost = lazy { EngineHost { PirarucuEngine() } }
+
         /** The process-wide host every view model attaches to. */
-        val shared: EngineHost by lazy { EngineHost { PirarucuEngine() } }
+        val shared: EngineHost by sharedHost
     }
 }

@@ -210,7 +210,7 @@ class FriendGameScreen(
         }
         val menu = StripButton(UiCopy.MENU_DESCRIPTION) {
             vm.touched()
-            navigateTo({ FriendScreen(it, FriendPage.MENU, gameId) }) { exit -> if (exit != null) goBack(exit) }
+            navigateTo({ FriendScreen(it, FriendPage.MENU, gameId, overBoard = true) }) { exit -> if (exit != null) goBack(exit) }
         }
         // E1, E2: the top bar (the arrow, the status, the Menu mark), the board, then the action row.
         Column(

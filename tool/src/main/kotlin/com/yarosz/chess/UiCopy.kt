@@ -59,6 +59,18 @@ object UiCopy {
     const val RESET_CONFIRM = "Tap again to reset"
     const val NO_HISTORY = "No rated Puzzles yet"
     const val NO_MISSED = "Nothing missed yet"
+
+    // The Puzzles page (N12-N15).
+    const val PAST_PUZZLES = "Past Puzzles"
+    const val CONTINUE_PUZZLE = "Continue Puzzle"
+    const val NEXT_PUZZLE = "Next Puzzle"
+    const val BACK_TO_RATED = "Back to the rated Puzzle"
+
+    /**
+     * The Player Rating page's line while the rating is provisional (N15). Static on purpose: Glicko's
+     * deviation can rise between Puzzles, so a countdown would lie; about 48 is measured (DESIGN.md).
+     */
+    const val PROVISIONAL_NOTE = "The ? goes after about 50 rated Puzzles."
     const val BACK_DESCRIPTION = "Back"
 
     // The game screen's strip (contradictions 2 and 3, B5, G1).
@@ -125,9 +137,9 @@ object UiCopy {
      * was built from (`source.date` in the Pack manifest); [notices] is [NOTICES_ASSET]'s text, whose
      * paragraphs (split at blank lines) follow: the pieces' CC0 credit and the release APK's libraries.
      * [friends] is whether Play a friend is on (the Relay URL is set, W1/W8), which changes the privacy line.
-     * [puzzleId] is the Puzzle last shown, whose id and address end the page (A9, N8).
+     * The Puzzle's id is no longer here: it is in the Puzzle board's Menu (N18).
      */
-    fun about(packDate: String?, notices: String, friends: Boolean = false, puzzleId: String? = null): List<String> = listOf(
+    fun about(packDate: String?, notices: String, friends: Boolean = false): List<String> = listOf(
         "Chess $VERSION",
         ABOUT_COPYRIGHT,
         ABOUT_LICENCE,
@@ -137,8 +149,7 @@ object UiCopy {
         else "Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate.",
         ABOUT_ENGINE,
         ABOUT_BOOK,
-    ) + notices.split(Regex("\\n\\s*\\n")).map { it.trim().replace(Regex("\\s*\\n\\s*"), " ") }.filter { it.isNotEmpty() } +
-        listOfNotNull(puzzleId?.let(::puzzleRow))
+    ) + notices.split(Regex("\\n\\s*\\n")).map { it.trim().replace(Regex("\\s*\\n\\s*"), " ") }.filter { it.isNotEmpty() }
 
     // Playing a friend (v3 PR 2: W1, W2, W4, W6, W10). Shown only once the Relay URL is set (W8).
 
@@ -335,6 +346,18 @@ object UiCopy {
 
     fun ratingRow(text: String) = "$PLAYER_RATING · $text"
 
+    /** Home's Puzzles row (N11): "Puzzles · 1176?", the Player Rating as shown everywhere. */
+    fun puzzlesRow(playerRating: String) = "$PUZZLES · $playerRating"
+
+    /** The Puzzles page's first row (N12): what a tap will do, never a Puzzle's id. */
+    fun puzzlesStart(start: PuzzlesStart) = when (start) {
+        PuzzlesStart.CONTINUE -> CONTINUE_PUZZLE
+        PuzzlesStart.NEXT -> NEXT_PUZZLE
+        PuzzlesStart.BACK_TO_RATED -> BACK_TO_RATED
+        PuzzlesStart.START -> START
+        PuzzlesStart.FINISHED -> PACK_FINISHED
+    }
+
     fun missedCount(count: Int) = "$MISSED · $count"
 
     /** The Piece Set's name in the Menu (P2). */
@@ -343,15 +366,15 @@ object UiCopy {
         PieceSet.ROUNDED -> "Rounded"
     }
 
-    /** The Menu's Pieces row (P2): the Piece Set in use; a tap moves to the next one. */
+    /** A board Menu's Pieces row (P2, N17): the Piece Set in use; a tap moves to the next one. */
     fun piecesRow(set: PieceSet) = "$PIECES · ${pieceSetName(set)}"
 
     /**
-     * About's last lines (A9 with D7, S1, N8): the Puzzle last shown by its Lichess id, then its page on
-     * lichess.org on a line of its own, since Android would otherwise break the address at a slash.
-     * Text, not a link: the phone has no browser and Chess never uses the network (D5).
+     * The Puzzle board's Menu's last lines (A9 with D7, S1, N18): the Puzzle on screen by its Lichess id,
+     * then its page on lichess.org on a line of its own, since Android would otherwise break the address
+     * at a slash. Text, not a link: the phone has no browser and Chess never uses the network (D5).
      */
-    fun puzzleRow(id: String) = "Puzzle $id\nlichess.org/training/$id"
+    fun puzzleLines(id: String) = listOf("Puzzle $id", "lichess.org/training/$id")
 
     /**
      * The captured-pieces row's accessibility label (P3), in the row's order, the Side at the

@@ -84,8 +84,16 @@ class GameReviewScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
             ) {
-                // E1: the arrow returns to the Games, as system back does; a replay has no Menu.
-                BoardTopBar(strip.status, StripButton(UiCopy.BACK_DESCRIPTION) { goBack() })
+                // E1: the arrow returns to the Games, as system back does.
+                BoardTopBar(
+                    strip.status,
+                    StripButton(UiCopy.BACK_DESCRIPTION) { goBack() },
+                    // N17, N21: Pieces, in Review too: the replay's Menu acts on no Game.
+                    StripButton(UiCopy.MENU_DESCRIPTION) {
+                        game.touched()
+                        navigateTo({ MenuScreen(it, MenuPage.GAME_REVIEW_MENU, overGame = false) })
+                    }.takeIf { strip.menu },
+                )
                 PositionView(
                     position = positions[shown],
                     lastMove = record.game.moves.getOrNull(shown - 1),

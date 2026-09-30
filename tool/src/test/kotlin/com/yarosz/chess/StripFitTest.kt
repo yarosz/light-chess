@@ -69,8 +69,9 @@ class StripFitTest {
     private val strips: List<Case> by lazy { stripCases() }
 
     private fun stripCases(): List<Case> = buildList {
-        for (strip in puzzleStrips()) add(Case(strip.status, strip.buttons.map { it.label }))
-        add(Case(PuzzleStrip.FINISHED.status, PuzzleStrip.FINISHED.buttons.map { it.label }))
+        // N17: the Puzzle board's mark in every state; the end of the Pack draws no board and has none.
+        for (strip in puzzleStrips()) add(Case(strip.status, strip.buttons.map { it.label }, menu = strip.menu))
+        add(Case(PuzzleStrip.FINISHED.status, PuzzleStrip.FINISHED.buttons.map { it.label }, menu = PuzzleStrip.FINISHED.menu))
         for (strip in gameStrips()) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, menu = strip.menu))
         for (strip in friendStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, menu = strip.menu))
         // The invite page: LightOS's top bar, with its back arrow, then the strip.
@@ -361,17 +362,17 @@ class StripFitTest {
     }
 
     /**
-     * About's Puzzle lines (A9 with D7, N8): a page line is the LP3's 360 dp less 24 dp either side.
-     * With the widest 5-character Lichess id, each of its two lines fits whole, so Android never breaks
-     * the address (it would at a slash: seen on the emulator when the address shared a line).
+     * The Puzzle board's Menu's lines (A9 with D7, N18): a page line is the LP3's 360 dp less 24 dp
+     * either side. With the widest 5-character Lichess id, each of its two lines fits whole, so Android
+     * never breaks the address (it would at a slash: seen on the emulator when the address shared a
+     * line). About no longer carries them.
      */
     @Test
-    fun theAboutPuzzleLinesFit() {
-        assertEquals(UiCopy.puzzleRow("00sHx"), UiCopy.about(null, "", puzzleId = "00sHx").last(), "About ends with the Puzzle (N8)")
-        assertTrue(UiCopy.about(null, "").none { it.startsWith("Puzzle ") }, "and says nothing of one before a Puzzle shows")
+    fun thePuzzleMenuLinesFit() {
+        assertTrue(UiCopy.about(null, "").none { it.startsWith("Puzzle ") || "lichess.org/training" in it }, "About names no Puzzle (N18)")
         val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
         for (id in listOf("WWWWW", "mmmmm", "00sHx")) {
-            val lines = UiCopy.puzzleRow(id).split('\n')
+            val lines = UiCopy.puzzleLines(id)
             assertEquals(listOf("Puzzle $id", "lichess.org/training/$id"), lines)
             for (l in lines) assertTrue(AkkuratProxy.width(l) <= room, "\"$l\" (${AkkuratProxy.width(l)} dp) in $room dp")
         }
@@ -390,7 +391,7 @@ class StripFitTest {
         }
     }
 
-    /** The Menu's Pieces row (P2): "Pieces · <set>" for every Piece Set, each on one Menu line. */
+    /** A board Menu's Pieces row (P2, N17): "Pieces · <set>" for every Piece Set, each on one Menu line. */
     @Test
     fun theMenuPiecesRowNamesEverySetOnOneLine() {
         val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
@@ -685,6 +686,18 @@ class StripFitTest {
                 assertEquals(expected[i + 1], CapturedRowLayout.fit(CapturedPieces(pieces, pieces, 0), Side.WHITE, room, ::leadWidth).steps, 0.01f, "$board, ${pieces.size} a Side")
             }
         }
+    }
+
+    /**
+     * E6's guard for a new button: every one a Game's board can show is in its board's sets, so the
+     * room is measured beside it. A new GameButton or FriendButton that no set names fails here, even
+     * before a strip case shows it.
+     */
+    @Test
+    fun everyBoardButtonIsInItsBoardsButtonSets() {
+        val game = (GameStrip.BOARD_BUTTONS + GameStrip.REPLAY_BUTTONS).flatten().toSet()
+        assertEquals(GameButton.entries.toSet(), game, "GameButtons missing from GameStrip's sets")
+        assertEquals(FriendButton.entries.toSet(), FriendStrip.BOARD_BUTTONS.flatten().toSet(), "FriendButtons missing from FriendStrip.BOARD_BUTTONS")
     }
 
     /** The Material Lead's width: LightOS Superfine (16 design px), as `CapturedRowTest` measures it. */

@@ -22,9 +22,10 @@ enum class Wheel {
  * - Forward (clockwise) steps toward the latest; reaching it leaves Review.
  * - Click returns to the latest Position.
  *
- * [wheel] returns null when the key isn't Review's to take (not in Review, or nothing to review), so
- * the screen returns false and LightOS keeps the wheel's brightness and flashlight (for the whole
- * press, down and up: R4.17, [TakenKeys]).
+ * A board takes every turn (N20): at either end, with nothing to review, or at the latest Position,
+ * a turn returns this Review unchanged, so a fast scrub back to the present never overshoots into
+ * LightOS's brightness. [wheel] returns null only for a click outside Review, so the screen returns
+ * false and LightOS keeps the flashlight (for the whole press, down and up: R4.17, [TakenKeys]).
  */
 data class Review(val ply: Int? = null) {
 
@@ -34,9 +35,9 @@ data class Review(val ply: Int? = null) {
         Wheel.BACK -> when {
             ply != null -> Review(maxOf(0, ply - 1))
             latestPly > 0 -> Review(latestPly - 1)
-            else -> null
+            else -> this
         }
-        Wheel.FORWARD -> ply?.let { if (it + 1 >= latestPly) Review() else Review(it + 1) }
+        Wheel.FORWARD -> ply?.let { if (it + 1 >= latestPly) Review() else Review(it + 1) } ?: this
         Wheel.CLICK -> ply?.let { Review() }
     }
 }

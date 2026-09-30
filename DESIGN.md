@@ -4,30 +4,57 @@ Tunable values and the rules behind them. Rulings live in `docs/design/decision-
 this file holds the constants we expect to adjust from measurements on the Light Phone III, and the
 small decisions v1 PRs 3 and 4 made that the log doesn't cover.
 
-## Navigation (N1-N10)
+## Navigation (N1-N20)
 
-LEFT always leaves (toward Home), RIGHT always opens this board's actions, and a fixed Home list goes
-places. No gestures. Rulings: decision log "Navigation D".
+LEFT always leaves (toward Home), RIGHT always opens this board's Menu, and a fixed Home list goes
+places. No gestures. Rulings: decision log "Navigation D" and "Puzzles page and Pieces".
 
 - Home (`HomeScreen`, the `@InitialScreen`): LightOS's top bar titled "Chess" with no back arrow, then
-  the rows `HomeRows` gives: "Puzzles", "Player Rating · 1727?", "Missed · 3", "Play the computer",
-  "Play a friend" or "Play a friend · Your move: 2" (only with the Relay URL set), "Games", "Pieces ·
-  Geometric", "About". Before `puzzles.json` is read the rating and Missed rows show no status and
-  Pieces is hidden (M4). System back from Home closes Chess.
-- Launch (`Navigation.launch`): the place last used (`mode.txt`) is pushed over Home on the
-  activity's first show, before Home is drawn: the Puzzle board, the computer's board, or the Play a
-  friend list (the Puzzle when the Relay URL is empty). The launch doesn't write `mode.txt`; opening a
-  place from Home does.
-- Depth: Home, then a place (the Puzzle board, the computer's board, Play a friend), then a detail (a
-  Correspondence Game's board or an invite, a replayed Game, a board's Menu and its pages). Player
-  Rating, Missed, Games and About are pages over Home. Play the computer with no Game in progress
-  opens the new-game page, and Start replaces it with the board; Reset rating and a Missed replay
-  replace their page with the Puzzle board.
+  the five rows `HomeRows` gives (N11): "Puzzles · 1176?", "Play the computer", "Play a friend" or
+  "Play a friend · Your move: 2" (only with the Relay URL set), "Games", "About". Before
+  `puzzles.json` is read the Puzzles row reads "Puzzles". System back from Home closes Chess.
+- The Puzzles page (`MenuPage.PUZZLES`, rows from `PuzzlesRows`, N12): the top bar with the back
+  arrow and the title "Puzzles", then a first row that says what it does, "Missed · 3", "Past
+  Puzzles" and "Player Rating · 1176?". The first row, from the Puzzle flow's state
+  (`PuzzlesRows.start`, then `PuzzleFlow.toRated` on a tap):
+
+  | State | Row | A tap |
+  |---|---|---|
+  | An Attempt under way, Try Mode included | "Continue Puzzle" | opens the board |
+  | The rated Attempt at its Result | "Next Puzzle" | the next Puzzle, then the board |
+  | A Missed replay on screen | "Back to the rated Puzzle" | ends the replay, then the board |
+  | Before the seed, or after Reset rating | "Start" | ends a Missed replay, then the board, which asks the seed (D4, N22) |
+  | The Pack used up, a Missed replay or not | "Every Puzzle is finished" | nothing: a plain line (N22) |
+  | `puzzles.json` not read yet | "Continue Puzzle" | the board, which waits for it |
+
+  "Missed · 3" counts only the rows that replay: a Puzzle the Pack lost is left out (N13, N23).
+
+- Missed (N13, N23): as before, but a row whose Puzzle the Pack no longer has is a lightened line.
+  The background read (`PuzzleOwner.prefetchMissed`, when the Puzzles page or Missed opens) finds
+  such rows, reading each Band file at most once, and never looks for one again in the process. A
+  tap reads no file: on a lost row, or one the read hasn't reached yet, it starts nothing and the
+  page stays.
+- Past Puzzles (N14): the rated Attempts, newest first, read-only, up to 100 (`HISTORY_CAP`).
+- Player Rating (N15): the rating, "The ? goes after about 50 rated Puzzles." while it is
+  provisional, and Reset rating ("Tap again to reset").
+- Launch (`Navigation.launch`, N16): the place last used (`mode.txt`) is pushed over Home on the
+  activity's first show, before Home is drawn: for Puzzles the Puzzles page and the board over it
+  (so Chess opens on the board and back walks down the levels), else the computer's board or the Play
+  a friend list (the Puzzle when the Relay URL is empty). The launch doesn't write `mode.txt`; opening
+  the Puzzles page, the board, the computer's board or Play a friend does.
+- Depth (N16): Home; a place (the Puzzles page, the computer's board, Play a friend, Games, About); a
+  page or board over it (the Puzzle board, Missed, Past Puzzles, Player Rating, a Correspondence
+  Game's board or an invite, a replayed Game); a detail over that (a board's Menu and its pages).
+  Play the computer with no Game in progress opens the new-game page, and Start replaces it with the
+  board; Reset rating and a Missed replay replace their page with the Puzzle board, over the Puzzles
+  page. Home and the Puzzles page each open places through a `HomeNavigator`, whose pushes never sit
+  over a board (`overGame` false), so nothing they open lets the computer think.
 - Every Menu page is its own screen (S3, N6): the computer's Moves and New game, a Correspondence
   Game's Moves and Rename. A second tap ("Tap again to resign") changes its row in place.
-- Home scrolls on the LP3 (eight 53 dp rows under a 40 dp top bar in 389 dp), so it takes the wheel,
-  one row per detent, every event (F3). It measures that from its own layout: if its rows ever fit,
-  the wheel stays with LightOS.
+- The wheel (N10, N20): Home's five rows fit the LP3 (40 dp top bar plus five 53 dp rows in 389 dp),
+  so it leaves the wheel with LightOS; it still measures, and would take the wheel if a row ever
+  overflowed. So do the Puzzles page, the Player Rating page and the Puzzle board's and a replay's
+  Menus, which always fit. Missed, Past Puzzles and the Game Menus may scroll and take it (F3).
 
 ## Layout (R1.8, layout E: E1-E4)
 
@@ -38,8 +65,9 @@ to bottom (decision log "Layout E"):
 - Top bar (E1, `BoardTopBar`): light-sdk's `LightTopBar`, 3 grid units (40 dp) tall. It has
   `LightIcons.BACK` at the left ("Back", `goBack`, in every state), the status as its title (`Fine`,
   centred, at most 18 grid units, 240 dp, on up to two lines, E3), and at the right N4's three
-  squares where the board has a Menu (`GameStrip.menu`, `FriendStrip.menu`). The squares are drawn by
-  a painter as the SDK's right button, in a 40 dp square box ending one grid unit in, centred on the
+  squares where the board has a Menu (`PuzzleStrip.menu`, `GameStrip.menu`, `FriendStrip.menu`;
+  N17: every board, but not in a Game's Review). The squares are drawn by a painter as the SDK's right
+  button, in a 40 dp square box ending one grid unit in, centred on the
   bar's middle, their ink ending 16 dp from the edge.
 - Board: 312 dp square (8 × 39 dp, 117 px squares), centred with 24 dp either side, directly under
   the bar (40 + 312 = 352 dp of 389).
@@ -93,7 +121,7 @@ Floors, in gray levels:
   (126 / 88 on light squares, 100 / 62 on dark ones).
 - The picker cells are at least 60 above the dimmed board under them.
 
-## Pieces (P1, P2)
+## Pieces (P1, P2, N17, N19)
 
 Chess's own two sets, original CC0 drawings in `art/pieces/geometric/` and `art/pieces/rounded/` (the
 README there has the design rules), converted to ImageVector code at build time by
@@ -101,14 +129,18 @@ README there has the design rules), converted to ImageVector code at build time 
 silhouette in white over a wider black outline, so it keeps an edge on the light square (216) as well
 as the dark one. Each piece is drawn in its square with a small inset.
 
-The player's Piece Set is geometric until changed. Home's "Pieces · Geometric" row (N1, N5: no
-Menu has it any more) moves to the next set on each tap ("Pieces · Rounded", then back), and every
-board and its promotion picker draw it from then on: the Puzzle, the Game with the computer, a
-Correspondence Game and a finished Game from Games (M1). The row sits just above About. The choice is
-saved once, in `puzzles.json` (`pieceSet`), so it outlasts a relaunch and Reset rating; a set this
-build doesn't know reads as geometric. The puzzle owner reads it from the file before any Band (M4):
-a cold start into a Game draws its first frame in the chosen set. The row is a tap target only; the
-wheel scrolls Home (N10).
+The player's Piece Set is geometric until changed. Every board's Menu has a "Pieces · Geometric"
+row (N17): first on the Puzzle board's Menu, alone on a replayed Game's, and last on the computer's
+and a Correspondence Game's, 16 dp below their actions (`Rows.GAP`), so a wheel over-scroll to the
+end lands on Pieces and never on an action. The invite page and the list pages draw no board and
+have none. A tap moves to the next set ("Pieces · Rounded", then back) and stays on the Menu, and
+every board and its promotion picker draw it from then on: the Puzzle, the Game with the computer, a
+Correspondence Game and a finished Game from Games (M1). The row draws the chosen set's white king,
+queen and knight beside its label, 24 dp square (`Rows.PIECE`, the height of a `Copy` line), from the
+board's own `PieceVectors` (N19), so the change shows on the Menu. The choice is saved once, in
+`puzzles.json` (`pieceSet`), so it outlasts a relaunch and Reset rating; a set this build doesn't know
+reads as geometric. The puzzle owner reads it from the file before any Band (M4): a cold start into a
+Game draws its first frame in the chosen set, and the row waits for it.
 
 ## Marks (R1.6, R1.7, A5)
 
@@ -146,12 +178,15 @@ maps touches to squares. Every legality question goes to the rules core.
   promotion square inward: queen, rook, bishop, knight. The next tap picks a piece; a tap anywhere
   else cancels and deselects. Underpromotion is one tap, like the queen.
 
-## Wheel and Review (R1.9, F2)
+## Wheel and Review (R1.9, F2, N20)
 
 - Counter-clockwise enters Review one Ply back, then steps back to the start. Clockwise steps forward;
   reaching the latest Position leaves Review. A click returns to the latest Position.
-- Outside Review, clockwise and click return false, as does counter-clockwise before any Move, so
-  LightOS keeps brightness and the flashlight.
+- A board takes every turn (N20), even one that moves nothing: clockwise at the latest Position,
+  counter-clockwise at Ply 0 or before any Move. A fast scrub back to the present overshoots the end,
+  and each detent past it used to change LightOS's brightness. The click outside Review returns false,
+  so LightOS keeps the flashlight. Pages that aren't boards keep F3 (one that fits leaves the wheel
+  with LightOS, brightness included); so do the seed screen and the end of the Pack.
 - A key's up and repeats go where its down went (R4.17): LightActivity asks the screen about each
   separately and hands LightOS every wheel event the screen doesn't take, so a screen that took only
   the down turned the flashlight on with the up of a click it had used (seen on the LP3). Every view
@@ -203,8 +238,12 @@ and Menu and "Review · 4 of 6" next to Latest and Menu on one line, as the LP3 
 is in the layout those screencaps show (the strip as wide as the board, "Menu" as text). A new
 string or state goes into the test.
 
-The Puzzle board's buttons by context (`PuzzleStrip`), in the action row; the Puzzle board has no
-Menu (N5):
+The Puzzle board's buttons by context (`PuzzleStrip`), in the action row, and the Menu mark in the
+top bar in every state but the end of the Pack, which draws no board (N17, E1). Its Menu: "Pieces ·
+Geometric", then "Puzzle 00sHx" over "lichess.org/training/00sHx" in grey, for the Puzzle on screen,
+a Missed replay's own (N18). A replayed Game's top bar has the mark, in Review too, and its Menu is
+Pieces alone (N21). A Missed replay started before the seed shows first; the seed screen follows it
+(N22).
 
 | When | Buttons |
 |---|---|
@@ -282,14 +321,19 @@ copy for the object on screen, while code names the chess state a Position.
 - The seed screen (D4): "How well do you play chess?", then "I'm new to chess" (800), "I play now and
   then" (1200), "I play often and study the game" (1600), "I play in a club or in tournaments" (2000),
   and "Skip" (1500).
-- Home (N1): the title "Chess", then "Puzzles", "Player Rating · 1500?", "Missed · 3", "Play the
-  computer", "Play a friend · Your move: 2", "Games", "Pieces · Geometric" or "Pieces · Rounded" (P2,
-  M1; a tap moves to the next set and stays on Home), "About". `HomeTest` checks that each row fits
-  one line. Each page is its own screen, so Back, the arrow or the system's, goes from a page to Home
-  (or to the board it was opened over); Reset rating and a Missed replay go straight to the Puzzle
-  board. The rating page: "Player Rating", the rating, "Reset rating" then "Tap again to reset"
-  (F5), and rows "1523 · Solved +12"; "No rated Puzzles yet" when empty. Missed: rows "1541 · Failed"
-  or "1541 · Hinted"; "Nothing missed yet".
+- Home (N11): the title "Chess", then "Puzzles · 1500?", "Play the computer", "Play a friend · Your
+  move: 2", "Games", "About". `HomeTest` checks that each row fits one line. Each page is its own
+  screen, so Back, the arrow or the system's, goes from a page one level down (N16); Reset rating
+  and a Missed replay go straight to the Puzzle board, over the Puzzles page.
+- The Puzzles page (N12): the title "Puzzles", then "Continue Puzzle", "Next Puzzle", "Back to the
+  rated Puzzle", "Start" or "Every Puzzle is finished" (a plain line), then "Missed · 3", "Past
+  Puzzles", "Player Rating · 1500?". The Player Rating page: the rating, "The ? goes after about 50
+  rated Puzzles." while it ends in "?", "Reset rating" then "Tap again to reset" (F5). Past Puzzles:
+  rows "1523 · Solved +12", "1541 · Failed −9"; "No rated Puzzles yet" when empty. Missed: rows
+  "1541 · Failed" or "1541 · Hinted", lightened for a Puzzle the Pack lost; "Nothing missed yet".
+- A board's Menu (N17-N19): "Pieces · Geometric" or "Pieces · Rounded" with the set drawn beside it
+  (P2, M1; a tap moves to the next set and stays on the Menu); on the Puzzle board, "Puzzle 00sHx"
+  over "lichess.org/training/00sHx".
 - About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).
   - "Chess $VERSION" (0.3.1, equal to `versionName`)
   - "Copyright 2026 Nicolas Yarosz."
@@ -310,9 +354,9 @@ copy for the object on screen, while code names the chess state a Position.
     notice. NOTICE names the same libraries.
   - "Engine: Pirarucu by Raoni Campos (ratosh), GPL-3.0." (D7, v2 PR 4), before the Book's line.
     NOTICE carries the longer credit.
-  - Last, the Puzzle last shown, "Puzzle 00sHx" over "lichess.org/training/00sHx" (A9 with D7, S1,
-    N8: it was the puzzle Menu's last row). The address has its own line, since Android breaks it at
-    a slash; `StripFitTest` checks that each line fits 360 dp.
+  - No Puzzle id since N18: "Puzzle 00sHx" over "lichess.org/training/00sHx" is the Puzzle board's
+    Menu's (A9 with D7, S1). The address has its own line, since Android breaks it at a slash;
+    `StripFitTest` checks that each line fits 360 dp.
 
 ## The game screen (v2 PR 4)
 
@@ -354,8 +398,8 @@ arrow is always in the top bar, and "the mark" is the Menu mark at its right (N4
 | A Game Hint being found | "Finding a Game Hint" | the mark |
 | The computer thinking | "Thinking" | Move now, the mark |
 | The Result | the Result | Next, the mark |
-| Review | "Review · 12 of 40" | Latest |
-| A finished Game from Games | the Result, or Review | none at the Result, Latest in Review |
+| Review | "Review · 12 of 40" | Latest (no mark: the Menu's actions act on the live Game, N21) |
+| A finished Game from Games | the Result, or Review | the mark, and Latest in Review (N21) |
 
 The Captured Pieces (P3), on every board in a Game (this screen, a Correspondence Game's board and
 Games Review), never on a Puzzle's. `CapturedPieces` (rules core) reads them from the Moves up to the

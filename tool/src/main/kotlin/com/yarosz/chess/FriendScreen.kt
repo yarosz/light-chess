@@ -34,6 +34,7 @@ import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.Strip
 import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Wheel
@@ -161,16 +162,24 @@ class FriendViewModel(private val friends: FriendOwner, startPage: FriendPage, s
     override fun onScreenShow(screen: SimpleLightScreen<FriendExit?>) = friends.sync()
 }
 
+/**
+ * [overBoard]: the page was opened from the Game's board, so its Menu ends with Pieces (N17); from the
+ * invite page or the Play a friend list, which draw no board, it has none.
+ */
 class FriendScreen(
     sealedActivity: SealedLightActivity,
     private val startPage: FriendPage,
     private val startGame: String? = null,
+    private val overBoard: Boolean = false,
 ) : LightScreen<FriendExit?, FriendViewModel>(sealedActivity) {
 
     override val viewModelClass: Class<FriendViewModel>
         get() = FriendViewModel::class.java
 
     private val friends: FriendOwner by lazy { checkNotNull(FriendOwner.of(lightContext)) { "Play a friend is off" } }
+
+    /** For the Piece Set only: it is kept in `puzzles.json` and every board draws it (P2, M1, N17). */
+    private val puzzles: PuzzleOwner by lazy { PuzzleOwner.of(lightContext.filesDir, lightContext::readAsset) }
 
     override fun createViewModel() = FriendViewModel(friends, startPage, startGame)
 
@@ -209,7 +218,7 @@ class FriendScreen(
                             LightScrollView(Modifier.weight(1f).fillMaxWidth(), scrollState = scrollState) {
                                 when (page) {
                                     FriendPage.NEW -> NewGame(state)
-                                    FriendPage.MENU -> if (game != null) GameMenu(game, state)
+                                    FriendPage.MENU -> if (game != null) GameMenu(game, state, puzzles.pieceSet.collectAsState().value.takeIf { overBoard })
                                     FriendPage.MOVES -> game?.log?.let { MoveList(it.game) }
                                     else -> {}
                                 }
@@ -321,37 +330,31 @@ class FriendScreen(
     }
 
     /**
-     * The Correspondence Game's Menu, or an invite's (N5): only this Game's actions, from [FriendMenu].
-     * Moves and Rename open as their own screens (N6).
+     * The Correspondence Game's Menu, or an invite's (N5, N17): this Game's actions, from [FriendMenu],
+     * then Pieces over the board ([pieceSet] non-null). Moves and Rename open as their own screens (N6).
      */
     @Composable
-    private fun GameMenu(game: CorrespondenceGame, state: FriendState) {
+    private fun GameMenu(game: CorrespondenceGame, state: FriendState, pieceSet: PieceSet?) {
         val vm = viewModel
         val id = game.gameId
-        for (item in FriendMenu.of(game, state, vm.confirming)) {
-            val entry = item.entry
-            if (entry == null) {
-                MenuLine(item.text, item.lighten)
-                continue
-            }
-            MenuRow(item.text) {
-                when (entry) {
-                    FriendMenuEntry.SEND_AND_OFFER_DRAW -> {
-                        friends.send(id, offerDraw = true)
-                        goBack()
-                    }
-                    FriendMenuEntry.OFFER_DRAW -> {
-                        friends.offerDraw(id)
-                        goBack()
-                    }
-                    FriendMenuEntry.RESIGN -> if (vm.confirm(FriendConfirm.RESIGN)) {
-                        friends.resign(id)
-                        goBack()
-                    }
-                    FriendMenuEntry.MOVES -> open(FriendPage.MOVES)
-                    FriendMenuEntry.RENAME -> open(FriendPage.RENAME)
-                    FriendMenuEntry.FORGET -> if (vm.confirm(FriendConfirm.FORGET)) friends.forget(id) { goBack(FriendExit()) }
+        MenuItems(FriendMenu.of(game, state, vm.confirming, pieceSet)) { entry ->
+            when (entry) {
+                FriendMenuEntry.SEND_AND_OFFER_DRAW -> {
+                    friends.send(id, offerDraw = true)
+                    goBack()
                 }
+                FriendMenuEntry.OFFER_DRAW -> {
+                    friends.offerDraw(id)
+                    goBack()
+                }
+                FriendMenuEntry.RESIGN -> if (vm.confirm(FriendConfirm.RESIGN)) {
+                    friends.resign(id)
+                    goBack()
+                }
+                FriendMenuEntry.MOVES -> open(FriendPage.MOVES)
+                FriendMenuEntry.RENAME -> open(FriendPage.RENAME)
+                FriendMenuEntry.FORGET -> if (vm.confirm(FriendConfirm.FORGET)) friends.forget(id) { goBack(FriendExit()) }
+                FriendMenuEntry.PIECES -> puzzles.nextPieceSet()
             }
         }
     }

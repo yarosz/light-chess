@@ -12,6 +12,40 @@ client and Play a friend are on main (#3), and so is the Captured Pieces row (P3
 v2 + v3 + P3) is released. v0.3.1 is the open release PR, carrying the v3 review follow-ups: the
 Relay's limits and plain-HTTP refusal (#13, L1-L5) and Play a friend's Time Left and deleted Game
 (#14, W12, W13). Next: v3 PR 3 (the live WebSocket).
+HANDOFF (Puzzles page and Pieces, feat/puzzles-page from main 65eb451, main 0e1ec7c (layout E)
+merged in, 2026-09-30): the owner's rulings after the Navigation D review, decision log "Puzzles page
+and Pieces" N11-N19, and "The wheel on a board" N20. Home has five rows ("Puzzles · 1176?", Play the
+computer, Play a friend, Games, About) and fits, so the wheel stays with LightOS there. Puzzles opens
+the Puzzles page (`MenuPage.PUZZLES`, rows from `PuzzlesRows`): a first row naming what it does
+("Continue Puzzle", "Next Puzzle", "Back to the rated Puzzle", "Start", or the plain "Every Puzzle is
+finished"; `PuzzleFlow.toRated` readies the board), Missed (a row the Pack lost is lightened, and a
+replay that can't start stays on the page: `PuzzleOwner.missedGone`), Past Puzzles (the history,
+`HISTORY_CAP` now 100) and the shrunk Player Rating page. The board is a level above the Puzzles
+page, and a Puzzles launch pushes Home, the page and the board (`HomeNavigator`, which the Puzzles
+page uses too). Every board has the Menu mark in E's top bar: the Puzzle board's Menu is Pieces and
+the Puzzle's id (out of About), a replay's is Pieces, the Game Menus end with Pieces set apart
+(`Rows.GAP`); the Pieces row draws the set's white king, queen and knight (`PiecesRow`). Review
+nits: `EngineHost.shutdown` refuses the shared host, `GameOwnerTest` releases its owners
+(`PuzzleOwner.close`, `ModeOwner.forget`), `HomeNavigator` lost its always-false overGame (Home's
+and the Puzzles page's pages open over no board, in `pushPlace`), release-drive.py follows the
+Puzzles page. Review follow-ups (N21-N23, main 0619f47 (E6) merged in): the Missed check reads each
+Band once for all ids and remembers the lost ones, and a Missed tap never reads a file on the main
+thread (`Pack.prefetch`, `PuzzleOwnerMissedTest`); "Missed · N" counts only replayable rows; a replay's
+Menu mark stays in Review; a Missed replay before the seed shows first, and the Pack used up reads
+the finished line even over a replay; Puzzle is capitalised in the page's copy; release-drive.py
+relaunches instead of tapping "Next Puzzle", so `state` keeps the Result. From #19's review:
+`StripFitTest.everyBoardButtonIsInItsBoardsButtonSets` guards the E6 lists and `ActionRow` requires
+`buttonSets` with `captured`; still open (low): measure the action row's real width in `ActionRow`
+rather than the screen's (`LocalConfiguration.screenWidthDp`), and make `buttonSets` a compile-time
+pairing with `captured` rather than a `require`. The StripFitTest arrow-target nit is moot under E (no
+strip has the arrow). N20: `Review.wheel` takes every turn on a board, at either end and before any
+Move, and still leaves the click on the live Position to LightOS; pages that aren't boards are
+unchanged (F3). Checked on the emulator (Roboto): Home, the Puzzles page in its states, Past
+Puzzles, Player Rating, the Puzzle, computer and replay Menus with Pieces in both sets, a Missed
+replay's Menu id and "Back to the rated Puzzle", the Puzzles launch stack. Not checked: a
+Correspondence Game's Menu (needs a second phone). To check on the LP3: the Pieces preview in
+Akkurat, a fast scrub back to the present leaves the brightness alone, the click on the live
+Position still toggles the flashlight.
 HANDOFF (Layout E, feat/layout-e from main 65eb451, 2026-09-30): the owner chose layout E over D's
 board strip (trial #17, closed); this PR supersedes it. Decision log "Layout E (owner, 2026-09-30)"
 E1-E5 (they SUPERSEDE N3's strip arrow and N4's strip placement on the boards; N4's mark geometry
