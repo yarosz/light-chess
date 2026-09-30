@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -12,16 +11,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.thelightphone.sdk.LightScreen
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.ui.LightTheme
 import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
+import com.yarosz.chess.board.ActionRow
+import com.yarosz.chess.board.BoardTopBar
 import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.PositionView
 import com.yarosz.chess.board.Review
-import com.yarosz.chess.board.Strip
 import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Touch
 import com.yarosz.chess.board.Wheel
@@ -81,10 +80,12 @@ class GameReviewScreen(
         }
         LightTheme(colors = themeColors) {
             Column(
-                Modifier.fillMaxSize().background(LightThemeTokens.colors.background).padding(top = 12.dp),
+                Modifier.fillMaxSize().background(LightThemeTokens.colors.background),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
             ) {
+                // E1: the arrow returns to the Games, as system back does; a replay has no Menu.
+                BoardTopBar(strip.status, StripButton(UiCopy.BACK_DESCRIPTION) { goBack() })
                 PositionView(
                     position = positions[shown],
                     lastMove = record.game.moves.getOrNull(shown - 1),
@@ -94,11 +95,9 @@ class GameReviewScreen(
                     description = UiCopy.BOARD_DESCRIPTION,
                     pieceSet = pieceSet ?: PieceSet.DEFAULT,
                 )
-                Strip(
-                    strip.status, buttons,
+                ActionRow(
+                    buttons, Modifier.weight(1f),
                     captured = rememberCapturedRow(record.game, shown, record.userSide, pieceSet ?: PieceSet.DEFAULT),
-                    // N3: the arrow returns to the Games, as system back does; a replay has no Menu.
-                    back = StripButton(UiCopy.BACK_DESCRIPTION) { goBack() },
                 )
             }
         }

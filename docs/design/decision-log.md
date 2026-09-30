@@ -28,7 +28,8 @@
   selection = heavy border, coordinates inside the edge squares. Exclude staunty and maestro (NC).
 - R1.8 Layout: 312 dp board (39 dp = 117 px squares) plus a 48 dp strip: status + up to 3 text buttons.
   (The strip's width SUPERSEDED by N3: it spans the screen, with the back arrow at its left; its
-  "Menu" text button SUPERSEDED by N4's mark, beside at most three text buttons.)
+  "Menu" text button SUPERSEDED by N4's mark, beside at most three text buttons. On the boards, the
+  strip SUPERSEDED by layout E: a LightOS top bar over the board, E1, and an action row under it, E2.)
 - R1.9 Keys: the wheel browses history in review AND mid-game (a "live" tap returns); otherwise return
   false. Volume and shutter stay with LightOS.
 - R1.10 Identity: "Chess", com.yarosz.chess, github.com/yarosz/light-chess, light-reader template;
@@ -1119,7 +1120,8 @@ feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 an
   shows the Captured Pieces (CONTEXT.md) in one row under the board: the game screen against the
   computer, a Correspondence Game's board, and Games Review. A Puzzle's board never does (a Puzzle
   starts mid-Game, so captures mean nothing there), and its strip is unchanged.
-  - Place: the strip's top band, the gap between the board's bottom edge and the strip's text. At the
+  - Place: the strip's top band, the gap between the board's bottom edge and the strip's text.
+    (SUPERSEDED by E4: the row sits at the left of the action row, beside the buttons.) At the
     left end the pieces the Side at the bottom of the board has taken, at the right end the other
     Side's, each end growing inwards from the board's edge; a flipped board swaps them. Both ends read
     pawn, knight, bishop, rook, queen from left to right, as the mock-up drew them, so the left end has
@@ -1142,7 +1144,8 @@ feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 an
     Correspondence Game's chosen Move, not yet sent, counts as shown), en passant included. A piece
     taken is the one its capture removed from the board (en passant's pawn included), so a promoted
     pawn taken later is the piece it became, and the pawn it came from is never counted.
-  - The strip: on every Game board the status and buttons centre in the part of the strip below the
+  - The strip (SUPERSEDED by E4 with the strip's band; the boards have no strip): on every Game
+    board the status and buttons centre in the part of the strip below the
     row's band (a one-line status 10 dp lower than in a Puzzle), and a status's two lines are set
     closer (the room below the row divided by two, just under Copy's font size) so a two-line Result
     (R4.16) still fits there; the buttons' padding above and below is 4 dp there, not 8. The strip
@@ -1288,7 +1291,9 @@ Home), RIGHT always opens this board's actions, and a fixed Home list goes place
   where each Home row leads, and `HomeNavigator` what opens over what and what replaces a page once
   done (`HomeTest`, `GameOwnerTest`).
 - N3 The back arrow on every board. SUPERSEDES the Games replay's "Back" text button (v2 PR 4) and
-  R1.8's "the strip is exactly as wide as the board". RULING: every board's strip (a Puzzle, a Game
+  R1.8's "the strip is exactly as wide as the board". (The arrow's place in the strip SUPERSEDED by
+  E1: every board's arrow is in LightOS's top bar. That every board has it, in every state, as
+  `goBack` labelled "Back", holds.) RULING: every board's strip (a Puzzle, a Game
   against the computer, a Correspondence Game, a replayed Game) has LightOS's back arrow
   (`LightIcons.BACK`) at its left, in every state, drawn where LightOS's top bar draws it: one grid
   unit in from the screen's edge, two grid units square, so its ink covers pixels 48 to 82 of 1080
@@ -1299,7 +1304,10 @@ Home), RIGHT always opens this board's actions, and a fixed Home list goes place
   dp wide from the screen's edge (`StripLayout.backTarget`), as the mark's is: it runs about 11 dp
   over the start of the status, which takes no touches, and the ink stays where it is. The Captured
   Pieces row (P3) stays aligned with the board.
-- N4 The Menu mark. SUPERSEDES the strip's "Menu" text button (R1.8, contradiction 2, Y7). RULING:
+- N4 The Menu mark. SUPERSEDES the strip's "Menu" text button (R1.8, contradiction 2, Y7). (On the
+  boards, the mark's place in the strip, centred on its x-height, SUPERSEDED by E1: it is the top
+  bar's right button, centred on the bar's middle line. Its squares, sizes, label and 16 dp ink end
+  hold, and the invite page's strip keeps it as ruled here.) RULING:
   the Menu is three solid squares, LightOS's "more" mark as the Album tool draws it: each about 2.67
   by 2.33 dp (8 by 7 px on the LP3), 9.33 dp (28 px) apart centre to centre. They are drawn as
   shapes, not typed as a font's full stops, because the emulator (Roboto) and the LP3 (Akkurat)
@@ -1321,7 +1329,8 @@ Home), RIGHT always opens this board's actions, and a fixed Home list goes place
   draw or Offer draw (or its lightened line), Resign, Moves, Rename, Forget game (over or stopped).
   An invite's Menu: the halt line, Rename, Forget game (stopped). None has Puzzles, Play the
   computer, Play a friend, Games, Pieces, About, Player Rating or Missed. The Puzzle board has no
-  Menu: its strip is the arrow, the status and Hint, Solution, Next or Latest as before. `GameMenu`
+  Menu: its strip is the arrow, the status and Hint, Solution, Next or Latest as before. (Since E1
+  and E2: its top bar is the arrow and the status, its action row the buttons.) `GameMenu`
   and `FriendMenu` hold the rows as data (`MenuTest`).
 - N6 S3 everywhere. FIXES M6's open issue. RULING: every Menu page is its own screen on the back
   stack, so system back pops one level: a Correspondence Game's Moves and Rename now open as screens
@@ -1340,8 +1349,69 @@ Home), RIGHT always opens this board's actions, and a fixed Home list goes place
 - N9 Copy. RULING: a draw offer's strip reads "Draw?" (`UiCopy.DRAW_QUESTION`). The Play a friend
   row keeps "Draw offered". The draw offer's and the rematch offer's strips gain the Menu mark:
   "Draw? · Accept · Decline · Menu" and "Rematch? · Accept · Decline · Menu". `StripFitTest`
-  measures every strip with the arrow and the mark, at the LP3's width.
+  measures every strip with the arrow and the mark, at the LP3's width. (On the boards, E1 and E2:
+  "Draw?" or "Rematch?" is the top bar's title beside the mark, Accept and Decline the action row.)
 - N10 The wheel. KEEPS R1.9, F2, F3 and R4.17 on every board and page. RULING: Home is a list page.
   While it scrolls (on the LP3 its eight rows under the top bar need more than the app area's 389
   dp), it takes the wheel one row per detent and takes every event, a click included (F3). If
   all its rows fit, the wheel stays with LightOS, as it did on the puzzle Menu (P2).
+
+## Layout E (owner, 2026-09-30)
+The owner tried a second board layout, "E", on the LP3 beside D's strip (N3, N4), and chose E (#17
+was the trial). E changes only the board screens: a Puzzle, a Game against the computer, a
+Correspondence Game and a replayed Game. N1, N2 and N5 to N10 hold as they are, and so do every
+button's action, the second taps, the wheel's rules and the back stack. The invite page and the
+list pages keep their top bars and strips. E1 to E4 SUPERSEDE N3's back arrow in the strip and N4's
+placement of the mark in the strip, on every board; N4's mark itself (its squares, sizes, label and
+ink end) holds, now in the top bar. The strip's back arrow and its captured-pieces band (P3's
+place) are gone from the code; the strip is the invite page's and the Play a friend list's.
+- E1 The top bar. SUPERSEDES N3's arrow in the strip and N4's mark in the strip, on the boards.
+  RULING: every board opens with LightOS's top bar, light-sdk's own `LightTopBar`: 3 grid units tall (40 dp on the
+  LP3), with `LightIcons.BACK` at its standard left place, as on every other page. The arrow's label
+  is "Back" and it does what system back does (`goBack`). The status is the bar's title, in the
+  SDK's title style (`Fine`, centred, at most `CENTER_MAX_WIDTH_UNITS`, 18 grid units, 240 dp). The
+  right of the bar holds N4's three squares, as the SDK's right button, wherever D's strip had the
+  mark: the computer's board and a Correspondence Game's board, but not in Review, not on the
+  new-game status, not on the Puzzle board (N5) and not on a replay. The squares keep N4's sizes
+  (8 by 7 px, 28 px apart) and its label ("Open the Menu"), and their ink still ends 16 dp from the
+  screen's edge. They are centred on the bar's middle line, as the SDK centres the arrow, because
+  the bar has no text line beside them. The target is the SDK's button box: the bar's height, 40 dp
+  square, ending one grid unit in.
+- E2 The board and the action row. SUPERSEDES N3's strip under the board (and R1.8's board 12 dp
+  below the top of the app area). RULING: the 312 dp board sits directly under the bar (40 + 312 = 352 of the LP3's 389 dp). The rest, about 37 dp, is the
+  action row: this moment's buttons, the same as D's (`PuzzleStrip`, `GameStrip`, `FriendStrip`, at
+  most three, contradiction 2), at its right in LightOS `Copy`. Each button's target is the row's
+  full height, and the last label's ink ends 16 dp from the edge, under the mark. The row has no
+  back arrow, no Menu mark and no status. When every Puzzle is finished, the page is the top bar
+  alone, saying so.
+- E3 A long status. RULING: the title may take a second line at the same `Fine` size, since two lines
+  are 37 dp, inside the bar's 40 dp. Measured in `StripFitTest`'s Akkurat stand-in, every status a
+  board can show fits one line today; the widest, "Tap a piece, then a square", is 234 of 240 dp,
+  and "Draw by the 50-move rule" and "You won by resignation" also take one line. The second line
+  is a margin for Akkurat and for new copy. Rejected: a smaller size (the SDK's two-line `Detail`
+  title, 13 dp), which every status would pay for although none needs it; and moving long Results
+  into the action row, where they would compete with Next, Rematch and the Captured Pieces. R4.16's
+  line counts were D's strip's and don't apply to the title (`GameStrip.statusLines` and
+  `FriendStrip.statusLines` still carry them, for the invite page's strip and as a copy budget). `StripFitTest` checks every Puzzle,
+  computer, Correspondence Game and replay state against the SDK's constants, read from its source.
+- E4 The Captured Pieces. SUPERSEDES P3's place (the strip's top band) and its strip rules (the
+  lowered text, the closer lines, the 4 dp button padding). RULING: on a Game's board the row
+  shares the action row, at its left. Its room runs from the board's left edge to 4 dp
+  before the first button, and never past the board's right edge. The bottom Side's end grows from
+  the board's left edge, and the other Side's grows inwards from the room's right end, beside the
+  buttons. Everything else in P3 holds: the order, the drawings, the Material Lead, every piece
+  drawn, and the row never wraps. When the two ends would come closer than 4 dp, every step shrinks
+  by one factor until they don't, as a fanned hand closes (`CapturedRowLayout.fit`). In the
+  stand-in, eight pieces taken by each Side keep P3's own steps beside any one computer button, and
+  so do fifteen a Side at the board's full width. Fifteen a Side close to 0.94 of the steps beside
+  Hint and 0.70 beside Move now. Beside Accept and Decline, eight a Side close to 0.77 and fifteen a
+  Side to 0.45. Rejected: showing the row only when no button is shown, because a computer board
+  nearly always has one, so P3 would vanish there. E has no reserved band: the pieces and the
+  buttons share one line.
+- E5 Tests. `StripFitTest`: `theTopBarIsLightOsTopBar` (the bar's height, padding, title width and
+  `Fine` read from light-sdk's source), `everyBoardStatusFitsTheTopBarTitle`,
+  `everyActionRowFitsUnderTheBoard`, `theCapturedPiecesShareTheActionRow`, and N9's offers in the
+  top bar (`theOffersHoldOneLineWithTheMenu`). The strip tests now measure only the invite page's and
+  the Play a friend list's strips (`everyStatusFitsNextToItsButtons`) and N4's mark
+  (`theMarkSitsWhereLightOsDrawsIt`). D's tests for the arrow's place in the strip and
+  `CapturedRowTest`'s tests of the strip's band are gone with the code they measured.

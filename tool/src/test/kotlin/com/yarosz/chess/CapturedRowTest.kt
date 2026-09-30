@@ -5,7 +5,6 @@ import com.yarosz.chess.board.CapturedRowLayout.Placed
 import com.yarosz.chess.board.CapturedRowState
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
 import com.yarosz.chess.board.PieceSet
-import com.yarosz.chess.board.StripLayout
 import com.yarosz.chess.rules.CapturedPieces
 import com.yarosz.chess.rules.Game
 import com.yarosz.chess.rules.Piece
@@ -24,7 +23,8 @@ import kotlin.test.assertTrue
 
 /**
  * The captured-pieces row (P3): where each end's pieces and the Material Lead go, that the widest
- * row fits the board without its two ends meeting, its accessibility label, and the strip's room.
+ * row fits the board without its two ends meeting, and its accessibility label. Its room in the
+ * action row beside the buttons is `StripFitTest`'s (E4).
  */
 class CapturedRowTest {
 
@@ -129,58 +129,6 @@ class CapturedRowTest {
         assertTrue(kotlin.math.abs(CapturedRowLayout.KIND_STEP * 3 - 50) <= 1.5f)
         // Kinds don't overlap; pieces of one kind do.
         assertTrue(CapturedRowLayout.KIND_STEP < CapturedRowLayout.SIZE && CapturedRowLayout.SAME_STEP < CapturedRowLayout.SIZE / 2)
-    }
-
-    /**
-     * The strip's text below the row (P3): its lines are set to fill the room under the row, which
-     * holds [StripLayout.STATUS_MAX_LINES] lines of LightOS Copy at no less than 0.98 of the font size,
-     * so a two-line Result fits without the row moving the board or the strip.
-     */
-    @Test
-    fun theStripsTextFitsBelowTheRow() {
-        val strip = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX * StripLayout.COPY_LINE_HEIGHT * StripLayout.STATUS_MAX_LINES)
-        val below = strip - CapturedRowLayout.BOTTOM
-        val copy = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX)
-        assertTrue(below / StripLayout.STATUS_MAX_LINES >= 0.98f * copy, "$below dp below the row for two lines of $copy sp")
-        // The mock-up's shift: a one-line status centres 10 dp (30 px) lower than without the row.
-        assertEquals(10f, CapturedRowLayout.BOTTOM / 2, 0.5f)
-    }
-
-    /**
-     * The buttons below the row (P3, PR review): a label's line (Copy's line height) plus its padding
-     * above and below fits the room under the row, so no label (descenders included) is clipped, and
-     * the target stays at least 36 dp tall. Without the row, the padding is as before.
-     */
-    @Test
-    fun theStripsButtonsFitBelowTheRow() {
-        val strip = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX * StripLayout.COPY_LINE_HEIGHT * StripLayout.STATUS_MAX_LINES)
-        val below = strip - CapturedRowLayout.BOTTOM
-        val line = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX * StripLayout.COPY_LINE_HEIGHT)
-        val button = line + 2 * StripLayout.BUTTON_VERTICAL_PADDING_BELOW_ROW.value
-        assertTrue(button <= below, "a button is $button dp tall in $below dp below the row")
-        assertTrue(button >= 36f, "a $button dp tap target")
-        // The regular padding would not fit: this is why the row needs its own.
-        assertTrue(line + 2 * StripLayout.BUTTON_VERTICAL_PADDING.value > below)
-        assertEquals(8f, StripLayout.BUTTON_VERTICAL_PADDING.value)
-    }
-
-    /**
-     * P3, the owner's choice: every Game board reserves the row's band from its first Position, so
-     * the strip's text sits in the same lowered place before and after the first capture (and as
-     * Review steps across it); a Puzzle's strip, which passes no row, is as before.
-     */
-    @Test
-    fun aGameStripIsLoweredFromTheStartAndAPuzzleStripIsNot() {
-        val start = capturedRow(Game.of(), 0, Side.WHITE, PieceSet.DEFAULT)
-        val later = CapturedRowState(sample, Side.WHITE, PieceSet.DEFAULT, "")
-        assertFalse(start.shown, "no pieces at Ply 0")
-        assertEquals(CapturedRowLayout.BOTTOM, StripLayout.textTop(start).value, "a Game strip at Ply 0 is lowered")
-        assertEquals(StripLayout.textTop(start), StripLayout.textTop(later), "the same place with and without captures")
-        assertEquals(StripLayout.buttonVerticalPadding(start), StripLayout.buttonVerticalPadding(later))
-        assertEquals(StripLayout.BUTTON_VERTICAL_PADDING_BELOW_ROW, StripLayout.buttonVerticalPadding(start))
-        // A Puzzle: no row, today's strip.
-        assertEquals(0f, StripLayout.textTop(null).value)
-        assertEquals(StripLayout.BUTTON_VERTICAL_PADDING, StripLayout.buttonVerticalPadding(null))
     }
 
     @Test
