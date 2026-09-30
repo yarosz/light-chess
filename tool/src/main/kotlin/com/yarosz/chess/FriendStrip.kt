@@ -36,6 +36,23 @@ enum class FriendButton(val label: String, val description: String) {
 data class FriendStrip(val status: String, val buttons: List<FriendButton>, val statusLines: Int = 1, val menu: Boolean = true) {
     companion object {
         /**
+         * Every button set [of] can show on a Correspondence Game's board (E6), an invite's included:
+         * the Captured Pieces keep the room beside the widest, Accept and Decline, whichever is shown.
+         * `StripFitTest` checks the list is whole.
+         */
+        val BOARD_BUTTONS: List<List<FriendButton>> = listOf(
+            emptyList(),
+            listOf(FriendButton.LATEST),
+            listOf(FriendButton.SEND, FriendButton.UNDO),
+            listOf(FriendButton.RETRY),
+            listOf(FriendButton.ACCEPT_DRAW, FriendButton.DECLINE_DRAW),
+            listOf(FriendButton.CLAIM),
+            listOf(FriendButton.REMATCH),
+            listOf(FriendButton.ACCEPT_REMATCH, FriendButton.DECLINE_REMATCH),
+            listOf(FriendButton.CANCEL),
+        )
+
+        /**
          * The strip for [game] at the Relay time [now] (the phone's estimate, V14). [chosen] is the Move
          * waiting for Send or Undo (F11); [sending] a request in flight; [notice] a few seconds' line.
          */

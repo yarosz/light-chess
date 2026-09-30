@@ -70,10 +70,12 @@ to bottom (decision log "Layout E"):
 - Action row (E2, `ActionRow`): the rest, about 37 dp. It holds this moment's buttons at the right
   (the tables below), in `Copy`, each target the row's height, the last label's ink 16 dp from the
   edge. It has no arrow, mark or status.
-- Captured Pieces (E4, P3): on a Game's board, at the action row's left, from the board's left edge
-  to 4 dp before the first button (at most the board's width). The other Side's end grows inwards
-  from that room's right end, and `CapturedRowLayout.fit` tightens the steps when the ends would
-  meet. The drawings are centred on the row's middle line.
+- Captured Pieces (E4, E6, P3): on a Game's board, at the action row's left, in a room that never
+  changes on that board: from the board's left edge to 4 dp before the widest button set the board
+  can show (`BarLayout.capturedRoom`, at most the board's width), whichever set is shown. The other
+  Side's end grows inwards from that room's right end, and `CapturedRowLayout.fit` tightens the
+  steps when the ends would meet, from that same room, so the row moves only when a piece is taken
+  or Review steps. The drawings are centred on the row's middle line.
 - When every Puzzle is finished: the top bar alone.
 
 `StripFitTest` measures every board state in the bar and the row (E5). The invite page and the Play
@@ -195,8 +197,10 @@ maps touches to squares. Every legality question goes to the rules core.
 A board's status is its top bar's title and its buttons sit in the action row (Layout, above). Up to
 three text buttons by context, in LightOS `Copy` and the content colour, with LightOS's press
 without a ripple, 8 dp padding either side of each label, edge to edge, as in Reader's footer. Every
-button carries a semantics label and the Button role (F11), and so do the back arrow ("Back") and
-the Menu mark ("Open the Menu"). The last label ends 16 dp from the screen's edge, under the mark.
+button carries a semantics label and the Button role (F11). The back arrow ("Back") and the Menu
+mark ("Open the Menu") carry their labels too; on the boards they are the SDK's `LightBarButton`s in
+`LightTopBar`, which set no role, the same as on every LightOS page (we keep SDK parity and don't
+change the SDK). The last label ends 16 dp from the screen's edge, under the mark.
 
 The invite page and the Play a friend list keep the strip at their foot (`Strip`, `StripLayout`),
 under LightOS's top bar, which holds their back arrow: a status in `Copy` and the secondary content
@@ -398,18 +402,23 @@ Ply on screen, en passant included, a promoted pawn taken later as the piece it 
 draws them and `CapturedRowTest` checks the layout:
 
 - One row at the action row's left (E4). Left end: what the Side at the bottom has taken, from the
-  board's left edge; right end: the other Side's, inwards from 4 dp before the first button (at
-  most the board's right edge); both reading pawn, knight, bishop, rook, queen from
+  board's left edge; right end: the other Side's, inwards from the room's right end, 4 dp before
+  the widest button set the board can show (E6, at most the board's right edge); both reading pawn, knight, bishop, rook, queen from
   left to right (pawns at the left edge, queens at the right). One kind fans out, 5.5 dp a piece; the
   next kind starts 16.5 dp on; drawings are 17 dp. The widest row (fifteen a side, "+103") fits the
   board's width as it is; beside buttons, `CapturedRowLayout.fit` shrinks every step by one factor
   until the ends are 4 dp apart, so every piece is still drawn.
+- The room is the board's, not the moment's (E6): the computer's board keeps the room beside Move
+  now (207 dp in the stand-in), a replay beside Latest (245.5 dp), a Correspondence Game's board
+  beside Accept and Decline (148 dp). So neither end nor the steps move as Move now, Hint, Next,
+  Send and Undo or Latest come and go. The Puzzle board has no Captured Pieces and no room.
 - The Material Lead, "+7", in Superfine and the secondary content colour just inside the leading
   Side's end; nothing when even. From the material on the board, so a promotion counts.
 - A captured white piece is its board drawing; a captured black one the white drawing with a gray
   body (`CAPTURED_BLACK_BODY`), generated for both Piece Sets by `scripts/build-pieces.py`.
 - The buttons stay at the action row's right whether or not the row holds pieces yet, so nothing
-  moves when the first piece is taken or when Review steps across it. (P3's band in D's strip, with
+  moves when the first piece is taken or when Review steps across it, and the pieces stay put
+  whichever buttons are shown (E6). (P3's band in D's strip, with
   the text lowered below it, is superseded by E4.)
 - Its label: "Captured by White: two pawns, a queen. Captured by Black: a knight. White is ahead by
   7.", the bottom Side first; "Material is even." when neither leads.

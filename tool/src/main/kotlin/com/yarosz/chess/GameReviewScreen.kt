@@ -106,6 +106,7 @@ class GameReviewScreen(
                 ActionRow(
                     buttons, Modifier.weight(1f),
                     captured = rememberCapturedRow(record.game, shown, record.userSide, pieceSet ?: PieceSet.DEFAULT),
+                    buttonSets = GameStrip.REPLAY_BUTTONS.map { set -> set.map { it.label } },
                 )
             }
         }

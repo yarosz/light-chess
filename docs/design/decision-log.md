@@ -1397,7 +1397,8 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
 - E4 The Captured Pieces. SUPERSEDES P3's place (the strip's top band) and its strip rules (the
   lowered text, the closer lines, the 4 dp button padding). RULING: on a Game's board the row
   shares the action row, at its left. Its room runs from the board's left edge to 4 dp
-  before the first button, and never past the board's right edge. The bottom Side's end grows from
+  before the first button, and never past the board's right edge. (AMENDED by E6: before the
+  board's widest button set, not the one shown.) The bottom Side's end grows from
   the board's left edge, and the other Side's grows inwards from the room's right end, beside the
   buttons. Everything else in P3 holds: the order, the drawings, the Material Lead, every piece
   drawn, and the row never wraps. When the two ends would come closer than 4 dp, every step shrinks
@@ -1415,6 +1416,26 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   the Play a friend list's strips (`everyStatusFitsNextToItsButtons`) and N4's mark
   (`theMarkSitsWhereLightOsDrawsIt`). D's tests for the arrow's place in the strip and
   `CapturedRowTest`'s tests of the strip's band are gone with the code they measured.
+- E6 The Captured Pieces stay still as the buttons change (orchestrator, from #18's review;
+  AMENDS E4's room). Contradiction: E4 anchored the row's right end, and `fit`'s factor, to the room
+  the buttons shown leave, so the top Side's pieces jumped sideways whenever the set changed (every
+  Ply on the computer's board: Thinking · Move now, Your move · Hint, a Game Hint being found with no
+  button, Next; about 120 dp when Send and Undo come and go), and in crowded rows the left end's
+  spacing breathed too, against P3's "nothing moves". RULING: each board keeps one room for the
+  Captured Pieces, from the board's left edge to 4 dp before the widest button set that board can
+  show, at most the board's width; both ends and `fit`'s factor are computed in that room, so only a
+  capture or a Review step changes the row. The buttons stay right-aligned. The sets are the strips'
+  own lists (`GameStrip.BOARD_BUTTONS`, `GameStrip.REPLAY_BUTTONS`, `FriendStrip.BOARD_BUTTONS`),
+  measured in `Copy` at run time (`BarLayout.capturedRoom`); the set shown is counted with them, so
+  a set missing from a list can never overlap the row. In the stand-in: the computer's board keeps
+  the room beside Move now, 207 dp (eight pieces a Side keep P3's steps, fifteen close to 0.70); a
+  replay beside Latest, 245.5 dp (1 and 0.86); a Correspondence Game's board beside Accept and
+  Decline, 148 dp, invite and Claim states included (0.77 and 0.45). The Puzzle board has no Captured
+  Pieces (P3), so it keeps no room and its buttons sit as before. Rejected: a room per button set (E4
+  as it was: the jump), and a fixed width for every board (the replay and the computer's board would
+  pay for Accept and Decline, which they never show). Test: `StripFitTest.theCapturedPiecesStayStillAsTheButtonsChange`
+  (each board's list holds every set its strips show; the room and the placed row are identical
+  beside every set; the room clears every set; fifteen a Side still fit with the ends apart).
 
 ## Puzzles page and Pieces (owner, 2026-09-30)
 After an adversarial review of Navigation D. Home had eight rows and scrolled on the LP3, three of
