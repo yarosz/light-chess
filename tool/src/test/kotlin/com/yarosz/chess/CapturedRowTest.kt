@@ -15,6 +15,13 @@ import com.yarosz.chess.rules.PieceType.PAWN
 import com.yarosz.chess.rules.PieceType.QUEEN
 import com.yarosz.chess.rules.PieceType.ROOK
 import com.yarosz.chess.rules.Side
+import java.io.File
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -24,7 +31,7 @@ import kotlin.test.assertTrue
 /**
  * The captured-pieces row (P3): where each end's pieces and the Material Lead go, that the widest
  * row fits the board without its two ends meeting, and its accessibility label. Its room in the
- * action row beside the buttons is `StripFitTest`'s (E4).
+ * action row, across the board's width above the buttons' line, is `StripFitTest`'s (E12, E13).
  */
 class CapturedRowTest {
 
@@ -122,13 +129,132 @@ class CapturedRowTest {
     }
 
     @Test
-    fun theDrawingsMatchTheOwnersMockUp() {
-        // The mock-up, in LP3 px (3 per dp): drawings 52 px, 17 px within a kind, 50 px to the next.
-        assertTrue(kotlin.math.abs(CapturedRowLayout.SIZE * 3 - 52) <= 1.5f)
-        assertTrue(kotlin.math.abs(CapturedRowLayout.SAME_STEP * 3 - 17) <= 1.5f)
-        assertTrue(kotlin.math.abs(CapturedRowLayout.KIND_STEP * 3 - 50) <= 1.5f)
+    fun theDrawingsKeepTheOwnersMockUpsProportions() {
+        // E13: 15 dp drawings (45 px on the LP3), where the mock-up drew 52 px and P3 had 17 dp; the steps
+        // keep the mock-up's proportions, 17 and 50 px beside its 52 px drawing, to half a dp.
+        assertEquals(15f, CapturedRowLayout.SIZE)
+        assertEquals(CapturedRowLayout.SIZE * 17f / 52f, CapturedRowLayout.SAME_STEP, 0.25f)
+        assertEquals(CapturedRowLayout.SIZE * 50f / 52f, CapturedRowLayout.KIND_STEP, 0.25f)
         // Kinds don't overlap; pieces of one kind do.
         assertTrue(CapturedRowLayout.KIND_STEP < CapturedRowLayout.SIZE && CapturedRowLayout.SAME_STEP < CapturedRowLayout.SIZE / 2)
+    }
+
+    /**
+     * E13: every drawing's ink stops at [CapturedRowLayout.INK_BOTTOM_UNITS] of its 45 units, 2.1 dp
+     * above the 15 dp box, which is where the labels' room under the pieces starts. Read from the
+     * source drawings in `art/pieces` (which `PieceVectors` is generated from): each path's lowest
+     * point, curves and arcs sampled, plus half its stroke's width when it has one. Half the width
+     * bounds the ink only for round joins (a miter reaches past it) and for round or butt caps (a
+     * square cap reaches past it; the kings' crosses end in butt caps), so the test fails on a stroked
+     * path of more than one segment without `stroke-linejoin="round"`, on a square cap, and on
+     * anything it does not read: an element other than `<path>`, a group, a transform or a style.
+     */
+    @Test
+    fun theDrawingsInkStopsAboveTheirBox() {
+        val files = File("../art/pieces").walk().filter { it.extension == "svg" }.toList()
+        assertEquals(24, files.size, "both sets, twelve drawings each")
+        val bottoms = files.associate { file ->
+            val svg = file.readText()
+            assertTrue("viewBox=\"0 0 45 45\"" in svg, file.name)
+            val elements = Regex("""<([A-Za-z][A-Za-z0-9:-]*)""").findAll(svg).map { it.groupValues[1] }.toSet()
+            assertTrue(elements.all { it == "svg" || it == "path" }, "${file.name}: only <svg> and <path> are read, not ${elements - setOf("svg", "path")}")
+            assertFalse(Regex("""\b(transform|style)=""").containsMatchIn(svg), "${file.name}: a transform or style attribute moves ink the test does not read")
+            val root = Regex("""<svg ([^>]*)>""").find(svg)!!.groupValues[1]
+            assertFalse("stroke" in root, "${file.name}: a stroke inherited from <svg> is not read")
+            file.name to Regex("""<path ([^>]*)>""").findAll(svg).maxOf { path ->
+                val attrs = path.groupValues[1]
+                fun attr(name: String) = Regex("""(?:^|\s)$name="([^"]*)"""").find(attrs)?.groupValues?.get(1)
+                val d = attr("d")!!
+                val extent = pathExtent(d)
+                val stroked = attr("stroke").let { it != null && it != "none" }
+                val width = if (!stroked) 0f else attr("stroke-width")?.let { w ->
+                    w.toFloatOrNull() ?: error("${file.name}: stroke-width \"$w\" is not a plain number")
+                } ?: 1f // SVG's default stroke-width.
+                if (stroked && extent.segments > 1) {
+                    assertEquals("round", attr("stroke-linejoin"), "${file.name}: a stroked path of ${extent.segments} segments needs round joins for half its width to bound its ink: $attrs")
+                }
+                assertFalse(attr("stroke-linecap") == "square", "${file.name}: a square cap reaches past half the width: $attrs")
+                extent.lowest + width / 2
+            }
+        }
+        assertEquals(CapturedRowLayout.INK_BOTTOM_UNITS, bottoms.values.max(), 0.01f, "the lowest ink: $bottoms")
+        assertEquals(45f, CapturedRowLayout.VIEWPORT_UNITS)
+        assertEquals(15.9f, CapturedRowLayout.INK_BOTTOM, 0.001f)
+        assertEquals(2.1f, CapturedRowLayout.BOTTOM - CapturedRowLayout.INK_BOTTOM, 0.001f)
+    }
+
+    /** A path's lowest point and how many segments it draws (a closing Z counts as one). */
+    private data class PathExtent(val lowest: Float, val segments: Int)
+
+    /** [PathExtent] of an SVG path of absolute M, L, H, V, C, Q, A and Z commands (the pieces' only ones). */
+    private fun pathExtent(d: String): PathExtent {
+        val tokens = Regex("""[A-Za-z]|-?[0-9]*\.?[0-9]+""").findAll(d).map { it.value }.toList()
+        var i = 0
+        fun num() = tokens[i++].toDouble()
+        var x = 0.0
+        var y = 0.0
+        var low = Double.NEGATIVE_INFINITY
+        var segments = 0
+        var command = 'M'
+        fun at(py: Double) { low = maxOf(low, py) }
+        while (i < tokens.size) {
+            if (tokens[i][0].isLetter()) command = tokens[i++][0]
+            if (command != 'M') segments++
+            when (command) {
+                // Coordinates after an M's first pair are implicit L's.
+                'M' -> { x = num(); y = num(); at(y); command = 'L' }
+                'L' -> { x = num(); y = num(); at(y) }
+                'H' -> x = num()
+                'V' -> { y = num(); at(y) }
+                'Z' -> {}
+                'C', 'Q' -> {
+                    val n = if (command == 'C') 3 else 2
+                    val ys = DoubleArray(n + 1).also { it[0] = y }
+                    for (k in 1..n) { x = num(); ys[k] = num() }
+                    for (step in 0..SAMPLES) {
+                        val t = step.toDouble() / SAMPLES
+                        // De Casteljau on the y coordinates.
+                        val b = ys.copyOf()
+                        for (level in n downTo 1) for (k in 0 until level) b[k] = b[k] * (1 - t) + b[k + 1] * t
+                        at(b[0])
+                    }
+                    y = ys[n]
+                }
+                'A' -> {
+                    var rx = abs(num())
+                    var ry = abs(num())
+                    val phi = Math.toRadians(num())
+                    val large = num() != 0.0
+                    val sweep = num() != 0.0
+                    val x2 = num()
+                    val y2 = num()
+                    // The endpoint-to-centre conversion of SVG 1.1's implementation notes (F.6.5).
+                    val c = cos(phi)
+                    val s = sin(phi)
+                    val x1p = c * (x - x2) / 2 + s * (y - y2) / 2
+                    val y1p = -s * (x - x2) / 2 + c * (y - y2) / 2
+                    val scale = x1p * x1p / (rx * rx) + y1p * y1p / (ry * ry)
+                    if (scale > 1) { rx *= sqrt(scale); ry *= sqrt(scale) }
+                    val root = sqrt(maxOf(0.0, (rx * rx * ry * ry - rx * rx * y1p * y1p - ry * ry * x1p * x1p) / (rx * rx * y1p * y1p + ry * ry * x1p * x1p)))
+                    val coef = if (large == sweep) -root else root
+                    val cxp = coef * rx * y1p / ry
+                    val cyp = -coef * ry * x1p / rx
+                    val cy = s * cxp + c * cyp + (y + y2) / 2
+                    val t1 = atan2((y1p - cyp) / ry, (x1p - cxp) / rx)
+                    var dt = atan2((-y1p - cyp) / ry, (-x1p - cxp) / rx) - t1
+                    if (sweep && dt < 0) dt += 2 * PI
+                    if (!sweep && dt > 0) dt -= 2 * PI
+                    for (step in 0..SAMPLES) {
+                        val t = t1 + dt * step / SAMPLES
+                        at(cy + s * rx * cos(t) + c * ry * sin(t))
+                    }
+                    x = x2
+                    y = y2
+                }
+                else -> error("unexpected command '$command' in $d")
+            }
+        }
+        return PathExtent(low.toFloat(), segments)
     }
 
     @Test
@@ -162,5 +288,8 @@ class CapturedRowTest {
     private companion object {
         /** LightOS Superfine: 16 design px (light-sdk `LightTheme.kt`). */
         const val SUPERFINE_DESIGN_PX = 16f
+
+        /** Points sampled along each curve and arc of a drawing. */
+        const val SAMPLES = 400
     }
 }

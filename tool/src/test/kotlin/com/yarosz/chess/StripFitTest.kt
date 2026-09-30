@@ -38,8 +38,8 @@ import kotlin.test.assertTrue
 
 /**
  * Every status and button the boards and pages can show fits the LP3. On a board (layout E, decision
- * log "Layout E"), each status fits the top bar's title and each moment's buttons the action row under
- * the board, beside the Captured Pieces: the tests from [theTopBarIsLightOsTopBar] on. On the invite
+ * log "Layout E"), each status fits the top bar's title and each moment's buttons their line in the
+ * action row under the board, below the Captured Pieces: the tests from [theTopBarIsLightOsTopBar] on. On the invite
  * page and the Play a friend list, which keep the strip under their LightOS top bars, each button's
  * label holds one line and the status fits in the room the buttons leave, in at most
  * [StripLayout.STATUS_MAX_LINES] lines. The cases follow DESIGN.md's "Buttons by context" tables; a
@@ -557,147 +557,126 @@ class StripFitTest {
         assertTrue(twoLines.size * 10 < boardCases.map { it.status }.distinct().size, "two lines are rare: $twoLines")
     }
 
-    /** The action row's height on the LP3: the app area less the top bar and the board (E2). */
-    private val actionRowHeight: Float
-        get() = AkkuratProxy.LP3_SCREEN_HEIGHT_DP - BarLayout.topBarHeight(LP3_WIDTH_DP.dp).value - POSITION_VIEW_SIZE.value
-
     /**
-     * The Captured Pieces' room on a board whose button sets are [buttonSets] (E6), from the board's
-     * left edge to just before the widest set, never past the board's right edge, in the stand-in.
+     * The action row's height on the LP3: the app area (1168 px at 3 px per dp, 389.33 dp) less the
+     * top bar and the board (E2): 112 px, 37.33 dp.
      */
-    private fun capturedRoom(buttonSets: List<List<String>>): Float =
-        BarLayout.capturedRoom(LP3_WIDTH_DP.dp, buttonSets) { AkkuratProxy.width(it).dp }.value
+    private val actionRowHeight: Float
+        get() = AkkuratProxy.LP3_APP_HEIGHT_PX / LP3_PX_PER_DP - BarLayout.topBarHeight(LP3_WIDTH_DP.dp).value - POSITION_VIEW_SIZE.value
 
-    /** The room beside [buttons] alone, as on a board that could show nothing wider (E4's measure). */
-    private fun roomBeside(buttons: List<String>): Float = capturedRoom(listOf(buttons))
+    /** LightOS `Copy`'s font size on the LP3, in dp: 30 design px. */
+    private val copyEm: Float get() = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX)
 
-    /** Each board with Captured Pieces (E6): its button sets, and the sets its strips are seen to show. */
-    private val capturedBoards: Map<String, Pair<List<List<String>>, List<List<String>>>> by lazy {
-        fun <T> labels(sets: List<List<T>>, label: (T) -> String) = sets.map { set -> set.map(label) }
-        mapOf(
-            "the computer's board" to (labels(GameStrip.BOARD_BUTTONS) { it.label } to computerStripsAsShown().map { s -> s.buttons.map { it.label } }),
-            "a replay" to (labels(GameStrip.REPLAY_BUTTONS) { it.label } to replayStripsAsShown().map { s -> s.buttons.map { it.label } }),
-            "a Correspondence Game's board" to (labels(FriendStrip.BOARD_BUTTONS) { it.label } to friendStrips.map { s -> s.buttons.map { it.label } }),
-        )
+    /** A label's baseline in the LP3's action row, from the row's top, as `ActionRow` places it (E13, E14). */
+    private fun labelBaseline(captured: Boolean): Float = BarLayout.buttonLine(actionRowHeight.dp, copyEm.dp, captured).value
+
+    /** A label's ink as `ActionRow` places it on a Game's board ([captured]) or the Puzzle board: its top and bottom, from the row's top. */
+    private fun labelInk(captured: Boolean): Pair<Float, Float> {
+        val baseline = labelBaseline(captured)
+        return baseline - BarLayout.COPY_INK_ASCENT * copyEm to baseline + BarLayout.COPY_INK_DESCENT * copyEm
     }
 
+    /** Fifteen pieces taken, every kind among them: the widest end (P3's `CapturedRowTest`). */
+    private val fifteen = List(8) { PieceType.PAWN } + List(2) { PieceType.KNIGHT } + List(2) { PieceType.BISHOP } +
+        List(2) { PieceType.ROOK } + PieceType.QUEEN
+
     /**
-     * E2: the action row under the board is at least one `Copy` line tall on the LP3 (37 of 389 dp,
-     * under the 40 dp bar and the 312 dp board), and every board's buttons fit it on one line, from
-     * the board's left edge to 16 dp from the screen's.
+     * E13: every board's buttons fit the row, at most three, and centred as a group on the screen
+     * (`ActionRow` aligns them to its centre) they stay within the board's edges.
      */
     @Test
     fun everyActionRowFitsUnderTheBoard() {
-        val line = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX * StripLayout.COPY_LINE_HEIGHT)
-        assertEquals(37f, actionRowHeight, 0.5f)
-        assertTrue(line <= actionRowHeight, "a $line dp line in a $actionRowHeight dp row")
+        val side = BarLayout.boardSide(LP3_WIDTH_DP.dp).value
         for (case in boardCases) {
             assertTrue(case.buttons.size <= 3)
-            assertTrue(roomBeside(case.buttons) >= 0f, "${case.buttons} in the row")
-            // Nothing is left of the board's edge, so the buttons end within the row.
-            assertTrue(LP3_WIDTH_DP - BarLayout.boardSide(LP3_WIDTH_DP.dp).value - BarLayout.BUTTONS_END.value >= buttonsWidth(case.buttons))
+            val width = buttonsWidth(case.buttons)
+            assertTrue((LP3_WIDTH_DP - width) / 2 >= side, "${case.buttons} ($width dp) start at ${(LP3_WIDTH_DP - width) / 2} dp, the board at $side dp")
         }
+        // The widest set, Accept and Decline, keeps well inside the board.
+        assertTrue(boardCases.any { it.buttons == listOf(UiCopy.ACCEPT, UiCopy.DECLINE) })
     }
 
     /**
-     * E4: on a Game's board the Captured Pieces share the action row, left of the buttons. Beside
-     * every Game board's buttons the widest row (fifteen pieces at each end, a +103 lead) still draws
-     * every piece inside its room with its ends apart, tightened; beside a computer board's one button,
-     * a Game with eight pieces taken each side keeps P3's own steps.
+     * E13, E14: the labels' baselines in the LP3's 37.33 dp row, from its top: 31.83 dp on a Game's
+     * board, 23.88 dp on the Puzzle board. (Each button's target, the row's full height, is by
+     * construction, `fillMaxHeight` on its Box in `ActionRow`: no unit test sees it; it is checked on
+     * the emulator and the LP3.)
      */
     @Test
-    fun theCapturedPiecesShareTheActionRow() {
-        val fifteen = List(8) { PieceType.PAWN } + List(2) { PieceType.KNIGHT } + List(2) { PieceType.BISHOP } +
-            List(2) { PieceType.ROOK } + PieceType.QUEEN
-        val eight = List(5) { PieceType.PAWN } + PieceType.KNIGHT + PieceType.BISHOP + PieceType.ROOK
-        val gameCases = boardCases.filter { c -> gameStrips().any { it.status == c.status } || friendStrips.any { it.status == c.status } }
-        val buttonSets = gameCases.map { it.buttons }.distinct()
-        assertTrue(listOf(UiCopy.ACCEPT, UiCopy.DECLINE) in buttonSets && listOf(UiCopy.MOVE_NOW) in buttonSets)
-        for (buttons in buttonSets) {
-            val room = roomBeside(buttons)
-            for (lead in listOf(-103, 0, 103)) for (bottom in Side.entries) {
-                val row = CapturedRowLayout.fit(CapturedPieces(fifteen, fifteen, lead), bottom, room, ::leadWidth)
-                assertEquals(30, row.pieces.size, "every piece is drawn beside $buttons")
-                assertTrue(row.pieces.all { it.x >= 0f && it.x + CapturedRowLayout.SIZE <= room + 0.01f }, "inside $room dp beside $buttons")
-                assertTrue(row.leftEnd + CapturedRowLayout.MIN_GAP <= row.rightStart + 0.01f, "ends apart beside $buttons: $row")
-            }
-        }
-        for (button in listOf(UiCopy.HINT, UiCopy.MOVE_NOW, UiCopy.NEXT, UiCopy.LATEST)) {
-            val row = CapturedRowLayout.fit(CapturedPieces(eight, eight, 0), Side.WHITE, roomBeside(listOf(button)), ::leadWidth)
-            assertEquals(1f, row.steps, "eight a side beside $button keeps its steps")
-        }
-        // At the board's full width (no buttons) nothing ever tightens: P3's own test holds there.
-        assertEquals(1f, CapturedRowLayout.fit(CapturedPieces(fifteen, fifteen, 103), Side.WHITE, POSITION_VIEW_SIZE.value, ::leadWidth).steps)
+    fun theLabelsBaselinesSitWhereTheirInkIsCentred() {
+        assertEquals(31.83f, labelBaseline(captured = true), 0.01f)
+        assertEquals(23.88f, labelBaseline(captured = false), 0.01f)
     }
 
     /**
-     * E6: each board's Captured Pieces keep one room, beside the widest button set it can show, so
-     * neither end nor the steps move as buttons come and go (Thinking · Move now, Your move · Hint, a
-     * Game Hint being found, Next; Send and Undo; Latest in Review). Each board's list of sets is
-     * whole, the room is the same beside every set, it never overlaps any set, and the crowded rows
-     * still fit it with their ends apart. The Puzzle board has no Captured Pieces (P3), so no room.
+     * E13's vertical budget: on a Game's board the Captured Pieces (3 dp, then the 15 dp drawings, whose
+     * ink stops at 15.9 dp) and the labels below them share the 37.33 dp row with no overlap: a label's
+     * ink, `Copy` from its tallest letter to its descender, is centred between the drawings' ink and the
+     * app area's bottom edge, about 1.34 dp clear of each; the Material Lead's whole text box ends above
+     * it. The drawings' size is set by their box: 15 dp is the largest whole size whose box leaves room
+     * for the ink. On the Puzzle board (E14) the ink is centred in the whole row.
      */
     @Test
-    fun theCapturedPiecesStayStillAsTheButtonsChange() {
-        val fifteen = List(8) { PieceType.PAWN } + List(2) { PieceType.KNIGHT } + List(2) { PieceType.BISHOP } +
-            List(2) { PieceType.ROOK } + PieceType.QUEEN
-        val eight = List(5) { PieceType.PAWN } + PieceType.KNIGHT + PieceType.BISHOP + PieceType.ROOK
-        val samples = listOf(
-            CapturedPieces(listOf(PieceType.PAWN), emptyList(), 1),
-            CapturedPieces(eight, listOf(PieceType.QUEEN, PieceType.PAWN), -3),
-            CapturedPieces(eight, eight, 0),
-            CapturedPieces(fifteen, fifteen, 103),
-            CapturedPieces(fifteen, fifteen, -103),
-        )
-        val rowWidth = LP3_WIDTH_DP - BarLayout.boardSide(LP3_WIDTH_DP.dp).value - BarLayout.BUTTONS_END.value
-        val rooms = mutableMapOf<String, Float>()
-        for ((board, sets) in capturedBoards) {
-            val (buttonSets, shown) = sets
-            for (buttons in shown.distinct()) assertTrue(buttons in buttonSets, "$board shows $buttons, missing from its button sets")
-            // ActionRow counts the set shown with the board's sets: the room is the same beside each.
-            val room = capturedRoom(buttonSets)
-            for (buttons in buttonSets) {
-                assertEquals(room, capturedRoom(buttonSets + listOf(buttons)), "$board's room beside $buttons")
-                assertTrue(room + BarLayout.CAPTURED_GAP.value + buttonsWidth(buttons) <= rowWidth + 0.01f, "$board's room clears $buttons")
-            }
-            for (captured in samples) for (bottom in Side.entries) {
-                val rows = buttonSets.map { CapturedRowLayout.fit(captured, bottom, capturedRoom(buttonSets + listOf(it)), ::leadWidth) }
-                assertTrue(rows.all { it == rows.first() }, "$board's row is the same beside every set: $captured")
-                val row = rows.first()
-                assertEquals(captured.by(Side.WHITE).size + captured.by(Side.BLACK).size, row.pieces.size, "every piece drawn on $board")
-                assertTrue(row.pieces.all { it.x >= 0f && it.x + CapturedRowLayout.SIZE <= room + 0.01f }, "inside $room dp on $board")
-                assertTrue(row.leftEnd + CapturedRowLayout.MIN_GAP <= row.rightStart + 0.01f, "ends apart on $board: $row")
-            }
-            rooms[board] = room
-        }
-        // The widest sets in the stand-in: Move now, Latest, Accept and Decline.
-        assertEquals(roomBeside(listOf(UiCopy.MOVE_NOW)), rooms.getValue("the computer's board"))
-        assertEquals(roomBeside(listOf(UiCopy.LATEST)), rooms.getValue("a replay"))
-        assertEquals(roomBeside(listOf(UiCopy.ACCEPT, UiCopy.DECLINE)), rooms.getValue("a Correspondence Game's board"))
-        // E6's numbers: each room in dp, then the steps kept by eight and by fifteen pieces a Side.
-        for ((board, expected) in mapOf(
-            "the computer's board" to listOf(207f, 1f, 0.70f),
-            "a replay" to listOf(245.5f, 1f, 0.86f),
-            "a Correspondence Game's board" to listOf(148f, 0.77f, 0.45f),
-        )) {
-            val room = rooms.getValue(board)
-            assertEquals(expected[0], room, 0.5f, "$board's room")
-            for ((i, pieces) in listOf(eight, fifteen).withIndex()) {
-                assertEquals(expected[i + 1], CapturedRowLayout.fit(CapturedPieces(pieces, pieces, 0), Side.WHITE, room, ::leadWidth).steps, 0.01f, "$board, ${pieces.size} a Side")
-            }
-        }
+    fun thePiecesAndTheButtonsEachHaveTheirLine() {
+        assertEquals(37.33f, actionRowHeight, 0.01f)
+        assertEquals(19.45f, copyEm, 0.01f)
+        assertEquals(CapturedRowLayout.TOP + CapturedRowLayout.SIZE, BarLayout.PIECES_LINE.value)
+        assertEquals(18f, BarLayout.PIECES_LINE.value)
+        val roomTop = BarLayout.labelRoomTop(captured = true).value
+        assertEquals(CapturedRowLayout.INK_BOTTOM, roomTop, "the labels' room starts at the drawings' ink bottom")
+        val (top, bottom) = labelInk(captured = true)
+        assertTrue(top >= CapturedRowLayout.INK_BOTTOM, "the labels' ink starts at $top dp, the drawings' ink ends at ${CapturedRowLayout.INK_BOTTOM} dp")
+        assertTrue(bottom <= actionRowHeight, "the labels' ink ends at $bottom dp in a $actionRowHeight dp row")
+        // Centred: the same room above the ink and below it, about 1.34 dp each.
+        assertEquals(top - roomTop, actionRowHeight - bottom, 0.01f)
+        assertEquals(1.34f, top - roomTop, 0.01f)
+        // Akkurat's ink may run past Roboto's by this much before it touches: ascent to 0.819 em, descent to 0.283 em.
+        val baseline = labelBaseline(captured = true)
+        assertEquals(0.819f, (baseline - CapturedRowLayout.INK_BOTTOM) / copyEm, 0.001f)
+        assertEquals(0.283f, (actionRowHeight - baseline) / copyEm, 0.001f)
+        // The Material Lead, Superfine (16 design px, a 1.2 line height) centred on the drawings: its box ends above the labels' ink.
+        val leadBoxBottom = CapturedRowLayout.TOP + CapturedRowLayout.SIZE / 2 + AkkuratProxy.size(16f * 1.2f) / 2
+        assertTrue(leadBoxBottom < top, "the lead's box ends at $leadBoxBottom dp, the labels' ink starts at $top dp")
+        // One dp more of drawing box, and a label's ink no longer fits under the box.
+        val ink = (BarLayout.COPY_INK_ASCENT + BarLayout.COPY_INK_DESCENT) * copyEm
+        assertTrue(CapturedRowLayout.BOTTOM + ink <= actionRowHeight, "the ink fits under the 15 dp box")
+        assertTrue(CapturedRowLayout.BOTTOM + 1f + ink > actionRowHeight, "a 16 dp box would leave room for the ink")
+        // The Puzzle board: the whole row, the ink in its middle.
+        assertEquals(0f, BarLayout.labelRoomTop(captured = false).value)
+        val (puzzleTop, puzzleBottom) = labelInk(captured = false)
+        assertEquals(puzzleTop, actionRowHeight - puzzleBottom, 0.01f)
+        assertTrue(puzzleTop > 0f && puzzleBottom < actionRowHeight)
     }
 
     /**
-     * E6's guard for a new button: every one a Game's board can show is in its board's sets, so the
-     * room is measured beside it. A new GameButton or FriendButton that no set names fails here, even
-     * before a strip case shows it.
+     * E12: the Captured Pieces run across the board's full width, the bottom Side's end from its left
+     * edge and the other's from its right edge. The crowded rows (fifteen a Side, a lead of 103 either
+     * way) keep P3's own steps there, with every piece drawn and the ends apart: `fit` never has to
+     * tighten on the LP3, and stays for anything wider.
      */
     @Test
-    fun everyBoardButtonIsInItsBoardsButtonSets() {
-        val game = (GameStrip.BOARD_BUTTONS + GameStrip.REPLAY_BUTTONS).flatten().toSet()
-        assertEquals(GameButton.entries.toSet(), game, "GameButtons missing from GameStrip's sets")
-        assertEquals(FriendButton.entries.toSet(), FriendStrip.BOARD_BUTTONS.flatten().toSet(), "FriendButtons missing from FriendStrip.BOARD_BUTTONS")
+    fun theCapturedPiecesRunFromEachEdgeOfTheBoard() {
+        val board = POSITION_VIEW_SIZE.value
+        for (lead in listOf(-103, 0, 103)) for (bottom in Side.entries) {
+            val captured = CapturedPieces(fifteen, fifteen, lead)
+            val row = CapturedRowLayout.fit(captured, bottom, board, ::leadWidth)
+            assertEquals(1f, row.steps, "fifteen a Side, lead $lead, keep their steps")
+            assertEquals(30, row.pieces.size, "every piece is drawn")
+            assertTrue(row.pieces.all { it.x >= 0f && it.x + CapturedRowLayout.SIZE <= board }, "inside the board: $row")
+            assertTrue(row.leftEnd + CapturedRowLayout.MIN_GAP <= row.rightStart, "ends apart: $row")
+            // The bottom Side's end starts at the board's left edge (the top Side's pieces, which it
+            // took), the top Side's end ends at its right edge.
+            val left = row.pieces.filter { it.piece.side == bottom.opponent }
+            val right = row.pieces.filter { it.piece.side == bottom }
+            assertEquals(0f, left.minOf { it.x })
+            assertEquals(board, right.maxOf { it.x } + CapturedRowLayout.SIZE)
+            // The lead, after the leading Side's end.
+            when {
+                lead == 0 -> assertEquals(null, row.lead)
+                (lead > 0) == (bottom == Side.WHITE) -> assertEquals(left.maxOf { it.x } + CapturedRowLayout.SIZE + CapturedRowLayout.LEAD_GAP, row.leadX)
+                else -> assertEquals(right.minOf { it.x } - CapturedRowLayout.LEAD_GAP, row.leadX + leadWidth(row.lead!!))
+            }
+        }
     }
 
     /** The Material Lead's width: LightOS Superfine (16 design px), as `CapturedRowTest` measures it. */
@@ -709,6 +688,9 @@ class StripFitTest {
 
         /** The LP3's width in dp: 1080 px at 3 px per dp. */
         const val LP3_WIDTH_DP = 360f
+
+        /** The LP3's density: 480 dpi, 3 px per dp. */
+        const val LP3_PX_PER_DP = 3f
 
         /** Side bearings, both ends of a string: the ink gap between neighbouring buttons ran 8-9 px past their padding. */
         const val LP3_BEARINGS_DP = 3f
@@ -727,6 +709,9 @@ private val results: List<Result> =
 object AkkuratProxy {
     /** The LP3's app area is 1168 px tall at 480 dpi: Configuration.screenHeightDp = 389. */
     const val LP3_SCREEN_HEIGHT_DP = 389f
+
+    /** The app area's height in px: 389.33 dp, which the board's Column fills (E2's row, E13). */
+    const val LP3_APP_HEIGHT_PX = 1168f
 
     /**
      * Akkurat against Helvetica (with [NARROW] widened), with margin: every measured string clears its

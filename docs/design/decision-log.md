@@ -1121,7 +1121,8 @@ feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 an
   computer, a Correspondence Game's board, and Games Review. A Puzzle's board never does (a Puzzle
   starts mid-Game, so captures mean nothing there), and its strip is unchanged.
   - Place: the strip's top band, the gap between the board's bottom edge and the strip's text.
-    (SUPERSEDED by E4: the row sits at the left of the action row, beside the buttons.) At the
+    (SUPERSEDED by E4: the row sits at the left of the action row, beside the buttons; and E4 by E12:
+    the row is the action row's top line, the drawings 3 dp under the board, across its width.) At the
     left end the pieces the Side at the bottom of the board has taken, at the right end the other
     Side's, each end growing inwards from the board's edge; a flipped board swaps them. Both ends read
     pawn, knight, bishop, rook, queen from left to right, as the mock-up drew them, so the left end has
@@ -1131,6 +1132,7 @@ feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 an
     Material Lead, keeps its two ends apart).
   - Sizes (`CapturedRowLayout`), from the mock-up's 52, 17 and 50 px at 3 px per dp: drawings 17 dp,
     5.5 dp from one piece to the next of its kind, 16.5 dp to the next kind, 3 dp below the board.
+    (AMENDED by E13: drawings 15 dp, steps 5 and 14.5 dp, the mock-up's proportions; 3 dp holds.)
   - The Material Lead, "+7" from the material on the board (P1 N3 B3 R5 Q9, so a promotion counts), in
     LightOS Superfine and the secondary content colour, just inside the leading Side's end; nothing
     when the material is even.
@@ -1381,7 +1383,9 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   below the top of the app area). RULING: the 312 dp board sits directly under the bar (40 + 312 = 352 of the LP3's 389 dp). The rest, about 37 dp, is the
   action row: this moment's buttons, the same as D's (`PuzzleStrip`, `GameStrip`, `FriendStrip`, at
   most three, contradiction 2), at its right in LightOS `Copy`. Each button's target is the row's
-  full height, and the last label's ink ends 16 dp from the edge, under the mark. The row has no
+  full height, and the last label's ink ends 16 dp from the edge, under the mark. (AMENDED by E13
+  and E14: the buttons are centred as a group, on their own line under the Captured Pieces on a
+  Game's board, each target that line's height; on the Puzzle board, in the row's middle.) The row has no
   back arrow, no Menu mark and no status. When every Puzzle is finished, the page is the top bar
   alone, saying so.
 - E3 A long status. RULING: the title may take a second line at the same `Fine` size, since two lines
@@ -1398,7 +1402,8 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   lowered text, the closer lines, the 4 dp button padding). RULING: on a Game's board the row
   shares the action row, at its left. Its room runs from the board's left edge to 4 dp
   before the first button, and never past the board's right edge. (AMENDED by E6: before the
-  board's widest button set, not the one shown.) The bottom Side's end grows from
+  board's widest button set, not the one shown. The place SUPERSEDED by E12: the row is the action
+  row's top line, across the board's width, and the buttons have a line of their own.) The bottom Side's end grows from
   the board's left edge, and the other Side's grows inwards from the room's right end, beside the
   buttons. Everything else in P3 holds: the order, the drawings, the Material Lead, every piece
   drawn, and the row never wraps. When the two ends would come closer than 4 dp, every step shrinks
@@ -1409,7 +1414,7 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   Side to 0.45. Rejected: showing the row only when no button is shown, because a computer board
   nearly always has one, so P3 would vanish there. E has no reserved band: the pieces and the
   buttons share one line.
-- E5 Tests. `StripFitTest`: `theTopBarIsLightOsTopBar` (the bar's height, padding, title width and
+- E5 Tests. (The action row's tests AMENDED by E15.) `StripFitTest`: `theTopBarIsLightOsTopBar` (the bar's height, padding, title width and
   `Fine` read from light-sdk's source), `everyBoardStatusFitsTheTopBarTitle`,
   `everyActionRowFitsUnderTheBoard`, `theCapturedPiecesShareTheActionRow`, and N9's offers in the
   top bar (`theOffersHoldOneLineWithTheMenu`). The strip tests now measure only the invite page's and
@@ -1417,7 +1422,8 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   (`theMarkSitsWhereLightOsDrawsIt`). D's tests for the arrow's place in the strip and
   `CapturedRowTest`'s tests of the strip's band are gone with the code they measured.
 - E6 The Captured Pieces stay still as the buttons change (orchestrator, from #18's review;
-  AMENDS E4's room). Contradiction: E4 anchored the row's right end, and `fit`'s factor, to the room
+  AMENDS E4's room). (SUPERSEDED by E12: the row no longer shares a line with the buttons, so it has
+  no room beside them to keep; its aim, that only a capture or a Review step moves the row, holds.) Contradiction: E4 anchored the row's right end, and `fit`'s factor, to the room
   the buttons shown leave, so the top Side's pieces jumped sideways whenever the set changed (every
   Ply on the computer's board: Thinking · Move now, Your move · Hint, a Game Hint being found with no
   button, Next; about 120 dp when Send and Undo come and go), and in crowded rows the left end's
@@ -1436,6 +1442,84 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   pay for Accept and Decline, which they never show). Test: `StripFitTest.theCapturedPiecesStayStillAsTheButtonsChange`
   (each board's list holds every set its strips show; the room and the placed row are identical
   beside every set; the room clears every set; fifteen a Side still fit with the ends apart).
+
+- (This section's E1 to E6 share their ids with Round 2B's E1 to E6 above; a citation from the v3
+  rulings means Round 2B's. Its later rulings start at E12, after Round 2B's E11.)
+- E12 The Captured Pieces from each edge, high and tight (owner, 2026-09-30, from mocks). SUPERSEDES
+  E6 and E4's place (the action row's left, beside the buttons); AMENDS P3's place, returning its 3
+  dp. RULING: on a Game's board the Captured Pieces are the action row's top line: their drawings 3
+  dp under the board's bottom edge (P3's original placement), across the board's full 312 dp. The
+  bottom Side's end files in from the board's left edge, the top Side's from its right edge, and the
+  Material Lead sits after the leading Side's end, as P3 has it. The two ends tighten by `fit`'s one
+  factor only when they would meet across the full width: fifteen a Side with a lead of 103 either
+  way keep P3's steps there, with every piece drawn and the ends apart, so on the LP3 `fit` never
+  acts; it stays for the extreme cases (a narrower board). The row no longer depends on the buttons,
+  so it stays still by construction as they come and go: E6's room (`BarLayout.capturedRoom`,
+  `CAPTURED_GAP`), `ActionRow`'s `buttonSets` and its `require`, and the button-set lists
+  (`GameStrip.BOARD_BUTTONS`, `GameStrip.REPLAY_BUTTONS`, `FriendStrip.BOARD_BUTTONS`) and their
+  guard test (`everyBoardButtonIsInItsBoardsButtonSets`) are deleted: nothing else read them, and
+  `StripFitTest` still measures every set each board shows from the strips themselves. Also gone:
+  `BarLayout.BUTTONS_END` (E2's 16 dp end, E13). `ActionRow` places the row with
+  `CapturedRow(captured, POSITION_VIEW_SIZE, ...)`.
+- E13 The buttons' line and the vertical budget. AMENDS E2 (the buttons at the right, the last
+  label's ink 16 dp from the edge, each target the row's height) and P3's sizes. RULING: on a Game's
+  board the buttons' labels have their own line at the bottom of the action row, under the Captured
+  Pieces' line, CENTRED as a group horizontally on the screen (which centres them on the board). Each
+  button's target is the row's full height, 37.33 dp, as E2 had it: the Captured Pieces take no
+  touches, so a target reaches up over them (`fillMaxHeight` on each button's Box in `ActionRow`;
+  `BarLayout.buttonLine` places only the label). Their labels, semantics labels
+  and the Button role are as before. The budget, on the LP3: the app area is 1168 px, so the row is
+  1168 - 120 - 936 = 112 px, 37.33 dp. The Captured Pieces' line is 3 dp plus the drawings. A label's
+  ink in `Copy` (30 design px, 19.45 dp) runs from its tallest letter, 0.750 em above the baseline
+  ("l", "d", "h"), to a descender, 0.214 em below ("p" in Accept, "y" in Retry): 0.964 em, 18.75 dp,
+  measured on the emulator's Roboto. At P3's 17 dp the drawings' box and the ink would need 3 + 17 +
+  18.75 = 38.75 dp, and at 16 dp 37.75: neither fits. The drawings are therefore 15 dp (45 px), the
+  largest whole size whose box leaves room for the ink: the pieces' line is 18 dp. The drawings' own
+  ink stops higher, 2.1 dp above their box (every piece stops at 38.7 of 45 units: its base plus half
+  its outline, `CapturedRowLayout.INK_BOTTOM`, 15.9 dp from the board), and the labels' ink is
+  centred between that and the row's bottom (`BarLayout.labelRoomTop`, placed by the text's first
+  baseline, 31.83 dp from the row's top): about 1.34 dp clear of the drawings' ink above and of the
+  app area's bottom edge below, so nothing overlaps and nothing is clipped. (Centred between the box
+  and the row's bottom instead, the ink had only 0.3 dp either side.) The Material Lead's whole text
+  box, Superfine centred on the drawings, ends at 16.7 dp, above the ink's 17.24. The steps keep the
+  owner's mock-up's proportions (17 and 50 px beside its 52 px drawing), rounded to half a dp at 15
+  dp: 5 dp within a kind, 14.5 dp to the next (P3's 5.5 and 16.5 at 17). The labels sit at the same
+  baseline on every Game's board, before the first capture too, so they never move. Akkurat's ink on
+  the LP3 is unmeasured (the emulator has Roboto), and the placement is fixed by Roboto's constants,
+  so what matters is each side on its own, not the total: Akkurat's tallest letter would touch the
+  drawings' ink only past 0.819 em above the baseline, and a descender would be clipped by the app
+  area's bottom edge only past 0.283 em below. Check it on the LP3 with a descender label (Accept,
+  Retry) beside crowded pieces.
+- E14 The Puzzle board's buttons (orchestrator's choice). RULING: the Puzzle board has no Captured
+  Pieces (P3), so its buttons' line is the whole action row: Hint, Solution, Next and Latest centred
+  as a group horizontally, like a Game's board, and their ink centred vertically in the row, each
+  target the row's height. Rejected: the bottom line, as on a Game's board, which would leave 18 dp
+  of empty row between the board and the labels for pieces that never come; the labels would read
+  as fallen away from the board. The horizontal centring is what the boards share.
+- E15 Tests. `StripFitTest`: `everyActionRowFitsUnderTheBoard` (every board's buttons, centred on
+  the screen, stay within the board's edges), `theLabelsBaselinesSitWhereTheirInkIsCentred` (the
+  labels' baselines, 31.83 dp from the row's top on a Game's board and 23.88 dp on the Puzzle
+  board), `thePiecesAndTheButtonsEachHaveTheirLine` (the row is 37.33
+  dp; the pieces' line is 3 + 15 dp; the labels' ink is centred between the drawings' ink, 15.9 dp,
+  and the app area's bottom, 1.34 dp clear of each, and the Material Lead's box ends above it;
+  Akkurat's ascent may reach 0.819 em and its descent 0.283 em; a 16 dp box would not leave room for
+  the ink; the Puzzle board's ink is centred in the whole row), `theCapturedPiecesRunFromEachEdgeOfTheBoard`
+  (fifteen a Side, lead -103, 0 and 103, both Sides at the bottom: P3's steps, every piece inside the
+  board, the bottom Side's end at the left edge, the top Side's at the right, the lead after the
+  leading end). They replace `theCapturedPiecesShareTheActionRow`,
+  `theCapturedPiecesStayStillAsTheButtonsChange` and `everyBoardButtonIsInItsBoardsButtonSets`.
+  That the Captured Pieces stay still as the buttons change is by construction (`CapturedRow` takes
+  no buttons), and no unit test sees it. Nor does one see each button's full-height target: it is by
+  construction too (`fillMaxHeight` on each button's Box in `ActionRow`; the repo has no Compose UI
+  test setup), and the orchestrator checks it on the emulator and the LP3.
+  `CapturedRowTest.theDrawingsKeepTheOwnersMockUpsProportions` replaces `theDrawingsMatchTheOwnersMockUp`,
+  and `CapturedRowTest.theDrawingsInkStopsAboveTheirBox` reads every drawing in `art/pieces` for
+  its lowest ink (38.7 of 45 units): each path's lowest point plus half its stroke (1 when the width
+  is unset), which bounds the ink only with round joins and round or butt caps, so it fails on a
+  stroked path of more than one segment without `stroke-linejoin="round"`, a square cap, an element
+  other than `<path>`, a group, a transform or a style. Accessibility is unchanged: the row's label
+  (`CapturedRowTest.theRowsLabelReadsBothEndsAndTheLead`) and each button's label, role and
+  full-height target are as before, the row read before the buttons.
 
 ## Puzzles page and Pieces (owner, 2026-09-30)
 After an adversarial review of Navigation D. Home had eight rows and scrolled on the LP3, three of

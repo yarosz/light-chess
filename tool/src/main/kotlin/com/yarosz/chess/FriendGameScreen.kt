@@ -230,7 +230,7 @@ class FriendGameScreen(
             )
             // A chosen Move not yet sent counts as shown (F11): its capture is in the row at once.
             val captured = rememberCapturedRow(shownGame ?: played, shownGame?.ply ?: shown, game.seat.side, pieceSet)
-            ActionRow(buttons, Modifier.weight(1f), captured = captured, buttonSets = FriendStrip.BOARD_BUTTONS.map { set -> set.map { it.label } })
+            ActionRow(buttons, Modifier.weight(1f), captured = captured)
         }
     }
 

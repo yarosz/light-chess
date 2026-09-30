@@ -24,31 +24,53 @@ import com.yarosz.chess.rules.Side
 
 /**
  * The captured-pieces row's measures and placement (P3), in dp, pure so `CapturedRowTest` can check
- * that the widest row fits the board. The row sits at the left of the action row under the board
- * (E4), tightened by [fit] to the room the board's widest button set leaves (E6, `BarLayout.capturedRoom`),
- * which is the same whatever buttons are shown: at the left end the pieces the Side at the bottom has
- * taken, at the right end the other Side's, each end growing inwards from its edge of that room. Both ends read pawn, knight, bishop, rook, queen from left
- * to right, so the left end has its pawns at the edge and the right end its queens. Pieces of one kind
+ * that the widest row fits the board. The row is the top line of the action row under the board
+ * (E12), across the board's full width whatever buttons are shown: at the left end the pieces the Side
+ * at the bottom has taken, from the board's left edge, at the right end the other Side's, from the
+ * board's right edge, each end growing inwards. Both ends read pawn, knight, bishop, rook, queen from
+ * left to right, so the left end has its pawns at the edge and the right end its queens. Pieces of one kind
  * overlap like a fanned hand; the Material Lead ("+7") sits just inside the leading Side's end.
  */
 object CapturedRowLayout {
-    /** The drawing's box: 51 px on the LP3 (the owner's mock-up: 52). */
-    const val SIZE = 17f
+    /**
+     * The drawing's box: 45 px on the LP3 (E13; P3's 17 dp, the owner's mock-up's 52 px, left too little
+     * of the 37 dp row for a `Copy` label's ink under the drawings).
+     */
+    const val SIZE = 15f
 
-    /** From one piece to the next of the same kind (the mock-up: 17 px). */
-    const val SAME_STEP = 5.5f
+    /**
+     * From one piece to the next of the same kind: the mock-up's 17 px beside its 52 px drawing, scaled
+     * to the 15 dp drawing (4.9 dp) and rounded to half a dp (E13; P3's 5.5 dp at 17 dp).
+     */
+    const val SAME_STEP = 5f
 
-    /** From the last piece of one kind to the first of the next (the mock-up: 50 px). */
-    const val KIND_STEP = 16.5f
+    /** From the last piece of one kind to the first of the next: the mock-up's 50 px, scaled likewise (14.4 dp; P3's 16.5). */
+    const val KIND_STEP = 14.5f
 
     /** Between an end's last piece and its Material Lead. */
     const val LEAD_GAP = 1f
 
-    /** The drawings' top, inside the row's canvas (`ActionRow` lifts the canvas by half of it, E4). */
+    /** The drawings' top, inside the row's canvas, which starts at the board's bottom edge: P3's 3 dp (E12). */
     const val TOP = 3f
 
     /** The row's canvas height: the drawings and the room above them. */
     const val BOTTOM = TOP + SIZE
+
+    /**
+     * Where the drawings' ink stops, in their 45-unit viewport: 38.7, every piece's base (35.17 in a
+     * white drawing, 37 in a black one) plus half its outline (`CapturedRowTest` reads it from
+     * `art/pieces`). Nothing is drawn lower.
+     */
+    const val INK_BOTTOM_UNITS = 38.7f
+
+    /** The drawings' viewport, in units: 45 by 45 (`PieceVectors`). */
+    const val VIEWPORT_UNITS = 45f
+
+    /**
+     * The drawings' ink bottom inside the row's canvas: 15.9 dp, 2.1 dp above their box. The labels'
+     * ink below is centred between this and the action row's bottom (E13).
+     */
+    const val INK_BOTTOM = TOP + SIZE * INK_BOTTOM_UNITS / VIEWPORT_UNITS
 
     /** The two ends, their Material Lead included, never come closer than this. */
     const val MIN_GAP = 4f
@@ -68,10 +90,11 @@ object CapturedRowLayout {
     fun leadText(captured: CapturedPieces): String? = captured.lead.takeIf { it != 0 }?.let { "+${kotlin.math.abs(it)}" }
 
     /**
-     * [place] in a room [width] wide, tightened where it must be (E4): at the board's full width the
-     * widest row keeps its ends [MIN_GAP] apart as placed (`CapturedRowTest`); in layout E's narrower
-     * room beside the board's widest button set (E6), when they would come closer, every step shrinks by the one factor that
-     * keeps them [MIN_GAP] apart, as a fanned hand closes. Nothing is dropped and nothing wraps.
+     * [place] in a room [width] wide, tightened where it must be (E4, E12): at the board's full width,
+     * where `ActionRow` places it, the widest row keeps its ends [MIN_GAP] apart as placed
+     * (`CapturedRowTest`); in a narrower room, when they would come closer, every step shrinks by the
+     * one factor that keeps them [MIN_GAP] apart, as a fanned hand closes. Nothing is dropped and
+     * nothing wraps.
      */
     fun fit(captured: CapturedPieces, bottom: Side, width: Float, textWidth: (String) -> Float): Row {
         val natural = place(captured, bottom, width, textWidth)
@@ -134,14 +157,14 @@ object CapturedRowLayout {
 }
 
 /**
- * What the action row needs to draw the captured-pieces row (P3, E4): the Game's [captured] pieces
+ * What the action row needs to draw the captured-pieces row (P3, E12): the Game's [captured] pieces
  * at the Ply on screen, the Side at the [bottom] of the board and the player's [pieceSet].
  * [description] is the row's accessibility label.
  */
 data class CapturedRowState(val captured: CapturedPieces, val bottom: Side, val pieceSet: PieceSet, val description: String) {
     /**
      * The row's pieces show once something is captured (or the material is not level). The buttons
-     * sit at the action row's right either way, so nothing moves when the first piece is taken.
+     * sit on their line below it either way (E13), so nothing moves when the first piece is taken.
      */
     val shown: Boolean get() = !captured.isEmpty
 }
