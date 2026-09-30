@@ -29,20 +29,36 @@ places. No gestures. Rulings: decision log "Navigation D".
   one row per detent, every event (F3). It measures that from its own layout: if its rows ever fit,
   the wheel stays with LightOS.
 
-## Layout (R1.8)
+## Layout (R1.8, layout E: E1-E4)
 
-The LP3's app area is 1080 × 1168 px at 480 dpi: 360 dp wide, about 389 dp tall. The board is 312 dp
-square (8 × 39 dp, 117 px squares), centred, 12 dp below the top of the app area, with 24 dp either
-side. The strip spans the screen directly under it (N3), and is two `Copy` lines tall (90
-design px, 58 dp on the LP3; never under 48 dp). About 7 dp stay free at the bottom. In a Game, the
-strip's top band is kept for the Captured Pieces row (P3; "The game screen" below): 17 dp drawings 3 dp
-under the board once something is taken, and from the first Position the strip's text centred in the
-38 dp left below them. A Puzzle's strip has no band.
+The LP3's app area is 1080 × 1168 px at 480 dpi: 360 dp wide, about 389 dp tall. Every board (a
+Puzzle, the computer's Game, a Correspondence Game, a replayed Game) is laid out the same way, top
+to bottom (decision log "Layout E"):
+
+- Top bar (E1, `BoardTopBar`): light-sdk's `LightTopBar`, 3 grid units (40 dp) tall. It has
+  `LightIcons.BACK` at the left ("Back", `goBack`, in every state), the status as its title (`Fine`,
+  centred, at most 18 grid units, 240 dp, on up to two lines, E3), and at the right N4's three
+  squares where the board has a Menu (`GameStrip.menu`, `FriendStrip.menu`). The squares are drawn by
+  a painter as the SDK's right button, in a 40 dp square box ending one grid unit in, centred on the
+  bar's middle, their ink ending 16 dp from the edge.
+- Board: 312 dp square (8 × 39 dp, 117 px squares), centred with 24 dp either side, directly under
+  the bar (40 + 312 = 352 dp of 389).
+- Action row (E2, `ActionRow`): the rest, about 37 dp. It holds this moment's buttons at the right
+  (the tables below), in `Copy`, each target the row's height, the last label's ink 16 dp from the
+  edge. It has no arrow, mark or status.
+- Captured Pieces (E4, P3): on a Game's board, at the action row's left, from the board's left edge
+  to 4 dp before the first button (at most the board's width). The other Side's end grows inwards
+  from that room's right end, and `CapturedRowLayout.fit` tightens the steps when the ends would
+  meet. The drawings are centred on the row's middle line.
+- When every Puzzle is finished: the top bar alone.
+
+`StripFitTest` measures every board state in the bar and the row (E5). The invite page and the Play
+a friend list keep LightOS's top bar and the strip at their foot ("The strip" below).
 
 The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). The puzzle
 flow puts the side to move after the setup Move at the bottom (A5). The game screen puts the user's
 Side at the bottom; "Flip board" in the Menu turns it (D10, v2), and the flip is kept in `games.json`.
-The Captured Pieces row stays aligned with the board, 24 dp from either edge.
+The Captured Pieces row stays aligned with the board's left edge.
 
 ## Palette (D10)
 
@@ -138,67 +154,53 @@ maps touches to squares. Every legality question goes to the rules core.
   separately and hands LightOS every wheel event the screen doesn't take, so a screen that took only
   the down turned the flashlight on with the up of a click it had used (seen on the LP3). Every view
   model that takes the wheel extends `WheelViewModel`, which records the taken presses (`TakenKeys`).
-- A tap on the board during Review returns to the latest Position (the "live" tap of R1.9); the strip
-  shows a Latest button while Review is on.
+- A tap on the board during Review returns to the latest Position (the "live" tap of R1.9); the
+  action row shows a Latest button while Review is on.
 - The emulator's Android build doesn't know Light's wheel keycodes: an injected 317-319 arrives as
   keycode 0. The wheel is covered by `ReviewTest` and must be checked on the LP3.
 
-## The strip (R1.8, F11, contradiction 2)
+## Buttons, the title and the strip (R1.8, F11, contradiction 2, E1-E3)
 
-On every board, LightOS's back arrow at the left (N3), a status line, up to three text buttons, and
-the Menu mark at the right where the board has a Menu (N4), as in Reader's footer: LightOS `Copy`
-text, the status in the secondary content colour, buttons in the content colour with LightOS's
-press without a ripple, 8 dp padding around each button. Every button carries a semantics label and
-the Button role (F11). The buttons sit edge to edge, 4 dp after the status: with 4 dp between them,
-"White to move" was cut short next to Hint, Solution and Menu on the emulator.
+A board's status is its top bar's title and its buttons sit in the action row (Layout, above). Up to
+three text buttons by context, in LightOS `Copy` and the content colour, with LightOS's press
+without a ripple, 8 dp padding either side of each label, edge to edge, as in Reader's footer. Every
+button carries a semantics label and the Button role (F11), and so do the back arrow ("Back") and
+the Menu mark ("Open the Menu"). The last label ends 16 dp from the screen's edge, under the mark.
 
-The strip spans the screen (`StripLayout`, values on the LP3's 1080 px):
+The invite page and the Play a friend list keep the strip at their foot (`Strip`, `StripLayout`),
+under LightOS's top bar, which holds their back arrow: a status in `Copy` and the secondary content
+colour from the board's edge (24 dp), up to three text buttons 4 dp after it, and on the invite page
+the Menu mark at the right (N4): three solid squares, 8 by 7 px, 28 px apart centre to centre, drawn
+as shapes (a full stop differs between Roboto and Akkurat), ink ending 16 dp (48 px) from the right
+edge, centred on the x-height of the `Copy` text in the font in use (the label's baseline less half
+an "x"'s ink, `Paint.getTextBounds`), with a 48 dp target the strip's full height. The last text
+button ends at the target, its right padding under it. The strip's status wraps to a second line
+instead of being cut short, and the strip is always two lines tall.
 
-- The back arrow is `LightIcons.BACK` where LightOS's top bar draws it: one grid unit (a 27th of the
-  width) in, two grid units square, so its ink covers pixels 48 to 82 (the last inked pixel is 82;
-  its right edge is at x = 83 px, 27.7 dp), centred on the text line. Its target is the strip's
-  height and 48 dp wide from the edge (`StripLayout.backTarget`): past where the status starts, over
-  the status's first 11 dp, which takes no touches. It calls `goBack`, as
-  system back does; its label is "Back". Every board has it in every state: a Puzzle, the computer's
-  Game, a Correspondence Game, a replayed Game.
-- The status starts 2.8 grid units in (37 dp, 112 px), 13 dp inside the board's edge; without the
-  arrow (the invite page, the Play a friend list, whose top bars have one), at the board's edge.
-- The Menu mark is three solid squares, 8 by 7 px, 28 px apart centre to centre, drawn as shapes (a
-  full stop differs between Roboto and Akkurat). Its ink ends 16 dp (48 px) from the right edge, the
-  arrow's mirror. It is centred on the x-height of the `Copy` text in the font in use: the label's
-  baseline, from Compose's text layout, less half the ink height of an "x", from the font's own
-  glyph (`Paint.getTextBounds`). Its target is 48 dp wide, the strip's full height, at the right
-  edge; its label is "Open the Menu". The last text button ends at the target, its right padding
-  under it (the target takes those touches), which "Rematch?" beside Accept and Decline needs.
-- Without the mark, the last text button's label ends 16 dp from the edge, so whatever sits
-  rightmost ends at the same place.
+Superseded (D's strip, N3 and N4 on the boards, before layout E): the boards had this strip under
+the board, with the back arrow at its left (ink at pixels 48 to 82, a 48 dp target, the status from
+112 px) and the Captured Pieces in its top band. E1 and E2 replaced it; the arrow is the top bar's.
 
-The status wraps to a second line instead of being cut short. On the LP3, in LightOS's font
-(Akkurat), a one-line status lost its end: "Tap a piece, then a squ…" next to Menu. Measured the same
-way, "White to move" next to Hint, Solution and Menu and "Review · 12 of 14" next to Latest, Next
-and Menu don't fit on one line either, so they show as "White to / move" and "Review · / 12 of 14".
-The strip is always two lines tall, so the board never moves when a status wraps.
+`StripFitTest` checks every state the boards and pages can show, from their own strip functions
+(`PuzzleStrip`, `GameStrip`, `FriendStrip`), with the widest numbers ("Failed −999", "Review · 99 of
+99", "Review · 9999 of 9999"): each board status in the top bar's 240 dp `Fine` title in at most two
+lines (E3), each board's buttons in the action row beside the Captured Pieces (E2, E4), and each
+page strip's status in the room its buttons and the mark leave at the LP3's 360 dp. Akkurat can't
+ship with the repo, so the test measures with a stand-in: Helvetica's advance widths with the narrow
+letters widened (i and j to 280/1000 em, t to 325), scaled by 1.14, at `Copy` size for a 389 dp tall
+screen (19.45 sp), and at `Fine` size with its 0.03 em letter spacing for a title. It is calibrated
+on LP3 screencaps of v1 and v2 (1080 px wide, 3 px per dp, the strip from x 72 to 1008), three ways:
+twelve strings measured there (ink plus 3 dp of side bearings) are each at least 1 dp narrower than
+the stand-in; the room before the first button, from where its ink starts, is wider than the
+stand-in's for five button sets; and the stand-in wraps "Your move" next to Takeback, Hint and Menu
+and "Computer thinking" next to Move now and Menu, as the LP3 did, and keeps "Your move" next to Hint
+and Menu and "Review · 4 of 6" next to Latest and Menu on one line, as the LP3 did. The v1 stand-in
+(Helvetica × 1.15) fell short on "Hint" and "Latest" (Akkurat's i and t are wider). The calibration
+is in the layout those screencaps show (the strip as wide as the board, "Menu" as text). A new
+string or state goes into the test.
 
-`StripFitTest` checks every strip the boards and pages can show, from their own strip functions
-(`PuzzleStrip`, `GameStrip`, `FriendStrip`): each button on one line, each status in the room its
-buttons, the arrow and the mark leave at the LP3's 360 dp, in at most two lines (one for a game
-status but a Result, R4.16), with the widest numbers ("Failed −999", "Review · 99 of 99", "Review ·
-9999 of 9999"). Akkurat can't ship with the repo, so the test measures with a stand-in: Helvetica's advance
-widths with the narrow letters widened (i and j to 280/1000 em, t to 325), scaled by 1.14, at `Copy`
-size for a 389 dp tall screen (19.45 sp). It is calibrated on LP3 screencaps (1080 px wide, 3 px per
-dp, the strip from x 72 to 1008), three ways: twelve strings measured there (ink plus 3 dp of side
-bearings) are each at least 1 dp narrower than the stand-in; the room before the first button,
-from where its ink starts, is wider than the stand-in's for five button sets; and the stand-in wraps
-"Your move" next to Takeback, Hint and Menu and "Computer thinking" next to Move now and Menu, as the
-LP3 did, and keeps "Your move" next to Hint and Menu and "Review · 4 of 6" next to Latest and Menu on
-one line, as the LP3 did. The v1 stand-in (Helvetica × 1.15) fell short on "Hint" and "Latest"
-(Akkurat's i and t are wider); a wider scale would put "White to move" on three lines next to Hint,
-Solution and Menu, where v1 has it on two (not yet seen on the LP3). The calibration is in the
-layout those screencaps show (the strip as wide as the board, "Menu" as text); the strips themselves
-are measured in N3's and N4's. A new strip string or state goes into the test.
-
-The Puzzle board's buttons by context (`PuzzleStrip`), each after the back arrow; the Puzzle board
-has no Menu (N5):
+The Puzzle board's buttons by context (`PuzzleStrip`), in the action row; the Puzzle board has no
+Menu (N5):
 
 | When | Buttons |
 |---|---|
@@ -264,7 +266,7 @@ and writes the file; the two screens' view models are views onto it.
 All copy lives in `UiCopy`. The board's accessibility label is "Chess board"; "board" is fine in UI
 copy for the object on screen, while code names the chess state a Position.
 
-- The strip: "White to move" or "Black to move" (A5); "Tap a piece, then a square" on the very first
+- The status (the top bar's title, E1): "White to move" or "Black to move" (A5); "Tap a piece, then a square" on the very first
   Puzzle until its first Move (F6); "Try again" after a wrong Move; "Correct" while the reply is
   pending; "Solution" while it plays; "Review · $ply of $latest" in Review.
 - Results (D1): "Solved +12", "Failed −9" (a real minus sign), "Solved, unrated" for a Hinted Attempt,
@@ -321,8 +323,8 @@ process-wide owner that runs the computer on `EngineHost.shared`, the clock and 
   board. Leaving the board for Home stops the computer's search until the board shows again
   (`GameScreen.onScreenDestroy`); its Menu and the Menu's pages don't. A page opened from Home, New
   game included, sits over no board and never starts a search (`MenuScreen`'s `overGame`). A Game
-  Hint being found when the board leaves is dropped, and one on show goes, so the strip offers Hint
-  again on return (`GameOwner.pause`, `GameOwnerTest`).
+  Hint being found when the board leaves is dropped, and one on show goes, so the action row offers
+  Hint again on return (`GameOwner.pause`, `GameOwnerTest`).
 - The new-game page: "Level" with 1 to 8 on one line, "Play as" with "White", "Black" and "Random",
   and "Think Time" with "3 s", "10 s" and "30 s" at Level 8 only. The chosen option is in the content
   colour, the others lightened. "Start" starts; with a Game in progress it reads "Tap again to
@@ -332,15 +334,15 @@ process-wide owner that runs the computer on `EngineHost.shared`, the clock and 
   or a quick Level doesn't land with the user's own, and slides in over 200 ms (F11). The user's Moves
   are instant. The board takes no Move while the computer thinks (contradiction 3); the wheel still
   reviews.
-- Game Hint: a Level 8 search at the default Think Time (3 s); the strip reads "Finding a Game Hint"
-  with Menu while it runs, and the board stays live (a Move stops the search, uncounted). Then the
+- Game Hint: a Level 8 search at the default Think Time (3 s); the title reads "Finding a Game Hint"
+  with the mark while it runs, and the board stays live (a Move stops the search, uncounted). Then the
   Puzzle Hint's ring on the piece and a target mark on its square (the dot, or the capture ring over a
   piece) show for 5 s or until the user's Move. It counts once shown.
 - Keep the screen on while the computer thinks, and on the user's Move while the last touch or wheel
   event was under 5 minutes ago (contradiction 4), in the Menu too.
 
-Buttons by context (contradiction 2), each after the back arrow (N3); "the mark" is the Menu mark
-(N4):
+The top bar's title and the action row's buttons by context (contradiction 2, E1, E2); the back
+arrow is always in the top bar, and "the mark" is the Menu mark at its right (N4):
 
 | When | Status | Buttons |
 |---|---|---|
@@ -356,33 +358,33 @@ Games Review), never on a Puzzle's. `CapturedPieces` (rules core) reads them fro
 Ply on screen, en passant included, a promoted pawn taken later as the piece it became; `CapturedRow`
 draws them and `CapturedRowTest` checks the layout:
 
-- One row in the strip's top band. Left end: what the Side at the bottom has taken; right end: the
-  other Side's; each from the board's edge inwards, both reading pawn, knight, bishop, rook, queen from
+- One row at the action row's left (E4). Left end: what the Side at the bottom has taken, from the
+  board's left edge; right end: the other Side's, inwards from 4 dp before the first button (at
+  most the board's right edge); both reading pawn, knight, bishop, rook, queen from
   left to right (pawns at the left edge, queens at the right). One kind fans out, 5.5 dp a piece; the
-  next kind starts 16.5 dp on; drawings are 17 dp. The widest row (fifteen a side, "+103") fits.
+  next kind starts 16.5 dp on; drawings are 17 dp. The widest row (fifteen a side, "+103") fits the
+  board's width as it is; beside buttons, `CapturedRowLayout.fit` shrinks every step by one factor
+  until the ends are 4 dp apart, so every piece is still drawn.
 - The Material Lead, "+7", in Superfine and the secondary content colour just inside the leading
   Side's end; nothing when even. From the material on the board, so a promotion counts.
 - A captured white piece is its board drawing; a captured black one the white drawing with a gray
   body (`CAPTURED_BLACK_BODY`), generated for both Piece Sets by `scripts/build-pieces.py`.
-- The strip: on every Game board, from its first Position (the owner's choice: the text never moves
-  when the first piece is taken or when Review steps across it), the status and buttons centre below
-  the row's band (10 dp lower than in a Puzzle), whether or not the band holds pieces yet. A two-line
-  status's lines are set to half the room below the row, so a Result still fits in two lines. The
-  buttons' padding above and below drops from 8 dp to 4, so a label's line fits the 38 dp there
-  unclipped (a 37 dp target). The strip keeps its size.
+- The buttons stay at the action row's right whether or not the row holds pieces yet, so nothing
+  moves when the first piece is taken or when Review steps across it. (P3's band in D's strip, with
+  the text lowered below it, is superseded by E4.)
 - Its label: "Captured by White: two pawns, a queen. Captured by Black: a knight. White is ahead by
   7.", the bottom Side first; "Material is even." when neither leads.
 
-Every game status holds one line on the LP3, but a Result, which may take the strip's second
-(R4.16): in Akkurat, "Your move" wrapped next to Takeback, Hint and Menu, and "Computer thinking" next
-to Move now and Menu. So Takeback is in the Menu only, the computer's think reads "Thinking", and
+Every game status holds one line of the top bar's title in the stand-in, Results included (E3).
+R4.16 set the copy when the status shared D's strip with the buttons: in Akkurat, "Your move"
+wrapped next to Takeback, Hint and Menu, and "Computer thinking" next to Move now and Menu. So Takeback is in the Menu only, the computer's think reads "Thinking", and
 Review keeps Latest alone, which leaves room for "Review · 9999 of 9999".
 
 "Game Hint" and "New game" don't fit as labels: next to Takeback and Menu, "Game Hint" leaves no
 room for any status, and "New game" leaves too little for a Result. The labels are "Hint" and "Next";
 their semantics labels are "Game Hint: show the computer's best Move" and "Start a new game". The
 others: "Move now: the computer plays at once". Next opens the new-game page. A replayed Game's
-arrow returns to the Games (N3: it replaces the old "Back" button).
+arrow returns to the Games (N3, in the top bar since E1: it replaces the old "Back" button).
 
 Results, from the user's view: "You won by checkmate", "You lost by checkmate", "You resigned", "You
 won by resignation" (never, since the computer never resigns, F8, but a hand-edited file can say so),
@@ -410,7 +412,7 @@ The Menu while a Game shows, top to bottom (`GameMenu`; only this board's action
 
 Games, on Home, lists the finished Games, newest first, at most 50 (B7): "2026.09.28 · Level 3 · Won"
 (Won, Lost, Draw or Unfinished); "No finished Games yet" when empty. A tap opens the Game at its
-Result; the wheel reviews its Moves, and Back (the strip's arrow or the system's) returns to the list.
+Result; the wheel reviews its Moves, and Back (the top bar's arrow or the system's) returns to the list.
 
 ## Play a friend (v3 PR 2)
 
@@ -444,8 +446,8 @@ set (`RelayConfig`, W8).
 - Enter code: LightOS's text editor with the LP3 keyboard, "Join" to submit; the title reads "Enter
   code", then "Sending", then the answer: "Not a code", "No such code", "Code already used", "Try
   again in a minute", "No connection".
-- The board: the user's Side at the bottom, no flip. The strip, each after the back arrow (N3);
-  "the mark" is the Menu mark (N4):
+- The board: the user's Side at the bottom, no flip. The top bar's title and the action row's
+  buttons (E1, E2); "the mark" is the Menu mark at the top bar's right (N4):
 
 | When | Status | Buttons |
 |---|---|---|

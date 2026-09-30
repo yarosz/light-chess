@@ -12,6 +12,18 @@ client and Play a friend are on main (#3), and so is the Captured Pieces row (P3
 v2 + v3 + P3) is released. v0.3.1 is the open release PR, carrying the v3 review follow-ups: the
 Relay's limits and plain-HTTP refusal (#13, L1-L5) and Play a friend's Time Left and deleted Game
 (#14, W12, W13). Next: v3 PR 3 (the live WebSocket).
+HANDOFF (Layout E, feat/layout-e from main 65eb451, 2026-09-30): the owner chose layout E over D's
+board strip (trial #17, closed); this PR supersedes it. Decision log "Layout E (owner, 2026-09-30)"
+E1-E5 (they SUPERSEDE N3's strip arrow and N4's strip placement on the boards; N4's mark geometry
+holds, in the top bar), DESIGN.md "Layout". The boards draw `BoardTopBar` (light-sdk's `LightTopBar`
+with the arrow and the mark as a painter, and the status as a two-line `Fine` title) and `ActionRow`
+(the buttons at the right, and on Game boards the Captured Pieces at the left, tightened by
+`CapturedRowLayout.fit`). `Strip` lost its `back` and `captured` paths (and `StripLayout`'s arrow and
+band measures, with their tests): it is the invite page's and the Play a friend list's only.
+`release-drive.py` reads the board's place from its "Chess board" node (under the top bar since E),
+falling back to D's and older builds' fixed place. To check on the LP3: the title in Akkurat (the
+widest, "Tap a piece, then a square", is 234 of 240 dp in the stand-in), the mark centred on the
+arrow's line, and the Captured Pieces beside Accept and Decline.
 HANDOFF (Navigation D, feat/navigation from main 04ae74a, 2026-09-30): the owner's navigation model,
 decision log "Navigation D" N1-N10, DESIGN.md "Navigation". `HomeScreen` is the root (the
 `@InitialScreen`; `ChessScreen` is gone, split into `PuzzleScreen` and `GameScreen`), and the place in

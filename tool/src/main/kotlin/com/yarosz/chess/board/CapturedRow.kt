@@ -24,8 +24,8 @@ import com.yarosz.chess.rules.Side
 
 /**
  * The captured-pieces row's measures and placement (P3), in dp, pure so `CapturedRowTest` can check
- * that the widest row fits the board. The row sits in the strip's top band, under the board: at the
- * left end the pieces the Side at the bottom has taken, at the right end the other Side's, each end
+ * that the widest row fits the board. The row sits at the left of the action row under the board
+ * (E4), tightened by [fit] to the room the buttons leave: at the left end the pieces the Side at the bottom has taken, at the right end the other Side's, each end
  * growing inwards from the board's edge. Both ends read pawn, knight, bishop, rook, queen from left
  * to right, so the left end has its pawns at the edge and the right end its queens. Pieces of one kind
  * overlap like a fanned hand; the Material Lead ("+7") sits just inside the leading Side's end.
@@ -43,10 +43,10 @@ object CapturedRowLayout {
     /** Between an end's last piece and its Material Lead. */
     const val LEAD_GAP = 1f
 
-    /** The drawings' top, from the strip's top: the row is centred in the 23 dp above today's text. */
+    /** The drawings' top, inside the row's canvas (`ActionRow` lifts the canvas by half of it, E4). */
     const val TOP = 3f
 
-    /** Where the row ends, from the strip's top: the strip's text centres in what is left below. */
+    /** The row's canvas height: the drawings and the room above them. */
     const val BOTTOM = TOP + SIZE
 
     /** The two ends, their Material Lead included, never come closer than this. */
@@ -59,14 +59,38 @@ object CapturedRowLayout {
      * Where everything goes: [pieces] in the order they are drawn (each end from its board edge
      * inwards, so the inner piece of a pair is painted over the outer), then the Material Lead's
      * [lead] text with its left edge at [leadX]. [leftEnd] and [rightStart] bound the two ends.
+     * [steps] scales [SAME_STEP] and [KIND_STEP]: 1 but where [fit] had to tighten the row.
      */
-    data class Row(val pieces: List<Placed>, val lead: String?, val leadX: Float, val leftEnd: Float, val rightStart: Float)
+    data class Row(val pieces: List<Placed>, val lead: String?, val leadX: Float, val leftEnd: Float, val rightStart: Float, val steps: Float = 1f)
 
     /** The lead's text: "+7" for the Side ahead, by any amount; null when level. */
     fun leadText(captured: CapturedPieces): String? = captured.lead.takeIf { it != 0 }?.let { "+${kotlin.math.abs(it)}" }
 
-    /** Places [captured] on a board [width] wide with [bottom] at the bottom; [textWidth] measures the lead. */
-    fun place(captured: CapturedPieces, bottom: Side, width: Float, textWidth: (String) -> Float): Row {
+    /**
+     * [place] in a room [width] wide, tightened where it must be (E4): at the board's full width the
+     * widest row keeps its ends [MIN_GAP] apart as placed (`CapturedRowTest`); in layout E's narrower
+     * room beside the buttons, when they would come closer, every step shrinks by the one factor that
+     * keeps them [MIN_GAP] apart, as a fanned hand closes. Nothing is dropped and nothing wraps.
+     */
+    fun fit(captured: CapturedPieces, bottom: Side, width: Float, textWidth: (String) -> Float): Row {
+        val natural = place(captured, bottom, width, textWidth)
+        if (natural.leftEnd + MIN_GAP <= natural.rightStart) return natural
+        // The gap between the ends is linear in the steps' scale: solve for MIN_GAP.
+        val closed = place(captured, bottom, width, textWidth, steps = 0f)
+        val open = natural.rightStart - natural.leftEnd
+        val shut = closed.rightStart - closed.leftEnd
+        if (shut <= open) return natural
+        val steps = ((shut - MIN_GAP) / (shut - open)).coerceIn(0f, 1f)
+        return place(captured, bottom, width, textWidth, steps)
+    }
+
+    /**
+     * Places [captured] on a board [width] wide with [bottom] at the bottom; [textWidth] measures the
+     * lead; [steps] scales the steps between pieces ([fit]).
+     */
+    fun place(captured: CapturedPieces, bottom: Side, width: Float, textWidth: (String) -> Float, steps: Float = 1f): Row {
+        val sameStep = SAME_STEP * steps
+        val kindStep = KIND_STEP * steps
         val pieces = mutableListOf<Placed>()
         val top = bottom.opponent
         // Left end: what the bottom Side took (the top Side's pieces), from the left edge inwards.
@@ -77,7 +101,7 @@ object CapturedRowLayout {
             repeat(n) { i ->
                 pieces += Placed(Piece.of(top, kind), x)
                 leftEnd = x + SIZE
-                x += if (i < n - 1) SAME_STEP else KIND_STEP
+                x += if (i < n - 1) sameStep else kindStep
             }
         }
         // Right end: what the top Side took, from the right edge inwards, queens outermost.
@@ -88,7 +112,7 @@ object CapturedRowLayout {
             repeat(n) { i ->
                 pieces += Placed(Piece.of(bottom, kind), x)
                 rightStart = x
-                x -= if (i < n - 1) SAME_STEP else KIND_STEP
+                x -= if (i < n - 1) sameStep else kindStep
             }
         }
         val lead = leadText(captured)
@@ -104,19 +128,19 @@ object CapturedRowLayout {
                 rightStart = leadX
             }
         }
-        return Row(pieces, lead, leadX, leftEnd, rightStart)
+        return Row(pieces, lead, leadX, leftEnd, rightStart, steps)
     }
 }
 
 /**
- * What the strip needs to draw the captured-pieces row (P3): the Game's [captured] pieces at the Ply
- * on screen, the Side at the [bottom] of the board and the player's [pieceSet]. [description] is the
- * row's accessibility label.
+ * What the action row needs to draw the captured-pieces row (P3, E4): the Game's [captured] pieces
+ * at the Ply on screen, the Side at the [bottom] of the board and the player's [pieceSet].
+ * [description] is the row's accessibility label.
  */
 data class CapturedRowState(val captured: CapturedPieces, val bottom: Side, val pieceSet: PieceSet, val description: String) {
     /**
-     * The row's pieces show once something is captured (or the material is not level). Its band is
-     * reserved on a Game board either way (`StripLayout.textTop`), so the strip's text never moves.
+     * The row's pieces show once something is captured (or the material is not level). The buttons
+     * sit at the action row's right either way, so nothing moves when the first piece is taken.
      */
     val shown: Boolean get() = !captured.isEmpty
 }
@@ -139,7 +163,7 @@ fun CapturedRow(state: CapturedRowState, width: Dp, modifier: Modifier = Modifie
             .semantics { contentDescription = state.description }
     ) {
         val dp = 1.dp.toPx()
-        val row = CapturedRowLayout.place(state.captured, state.bottom, size.width / dp) { text ->
+        val row = CapturedRowLayout.fit(state.captured, state.bottom, size.width / dp) { text ->
             measurer.measure(text, style).size.width / dp
         }
         val box = CapturedRowLayout.SIZE * dp
