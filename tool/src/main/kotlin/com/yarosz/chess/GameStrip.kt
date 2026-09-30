@@ -54,10 +54,11 @@ data class GameStrip(
 
         /**
          * The strip of a finished Game replayed from the Games page, showing Ply [reviewPly] (null: its
-         * end). The back arrow returns to the Games (N3); a replay has no Menu.
+         * end). The back arrow returns to the Games (N3); the Menu mark, with Pieces, shows at the end
+         * (N17), and Review keeps Latest alone (R4.16).
          */
         fun replay(record: GameRecord, reviewPly: Int?): GameStrip =
-            if (reviewPly == null) result(record, emptyList(), menu = false)
+            if (reviewPly == null) result(record, emptyList(), menu = true)
             else review(record, reviewPly)
 
         private fun result(record: GameRecord, buttons: List<GameButton>, menu: Boolean) =

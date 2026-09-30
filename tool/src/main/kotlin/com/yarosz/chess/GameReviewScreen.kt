@@ -97,8 +97,13 @@ class GameReviewScreen(
                 Strip(
                     strip.status, buttons,
                     captured = rememberCapturedRow(record.game, shown, record.userSide, pieceSet ?: PieceSet.DEFAULT),
-                    // N3: the arrow returns to the Games, as system back does; a replay has no Menu.
+                    // N3: the arrow returns to the Games, as system back does.
                     back = StripButton(UiCopy.BACK_DESCRIPTION) { goBack() },
+                    // N17: Pieces, at the latest Position (R4.16 keeps Review to Latest alone).
+                    menu = StripButton(UiCopy.MENU_DESCRIPTION) {
+                        game.touched()
+                        navigateTo({ MenuScreen(it, MenuPage.REPLAY_MENU, overGame = false) })
+                    }.takeIf { strip.menu },
                 )
             }
         }

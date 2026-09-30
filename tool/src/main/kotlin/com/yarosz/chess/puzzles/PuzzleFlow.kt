@@ -135,12 +135,42 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
         return session.copy(current = puzzle?.let(::Attempt), currentDelta = null, upNext = null)
     }
 
-    /** Replays a Missed Puzzle, unrated, on top of the rated one (D2). */
+    /**
+     * Replays a Missed Puzzle, unrated, on top of the rated one (D2). The same [session], unchanged,
+     * when [id] isn't in Missed or the Pack no longer has it (N13): the caller tells by identity.
+     */
     fun replayMissed(session: PuzzleState, id: String): PuzzleState {
         val entry = session.data.missed.firstOrNull { it.id == id } ?: return session
         val puzzle = pack.puzzle(entry.id, entry.puzzleRating) ?: return session
         return session.copy(replay = Attempt(puzzle))
     }
+
+    /**
+     * "Back to the rated puzzle" (N12): the Missed replay ends where it stands, whatever its stage, and
+     * the rated Attempt below it shows again as it was ([PuzzleState.attempt] is `replay ?: current`).
+     * A replay left under way stays in Missed (F4 takes a Puzzle out only after a clean replay).
+     */
+    fun endReplay(session: PuzzleState): PuzzleState = if (session.replay == null) session else session.copy(replay = null)
+
+    /**
+     * The Puzzles page's first row (N12): the rated Puzzle, ready for its board. A Missed replay ends
+     * ([endReplay]); a rated Attempt at its Result gives way to the next Puzzle ([next]); one under way,
+     * Try Mode included, stays; and before the seed screen is answered nothing changes (the board asks
+     * it, D4). With the Pack used up there is no rated Puzzle and nothing changes either.
+     */
+    fun toRated(session: PuzzleState): PuzzleState = when {
+        session.needsSeed -> session
+        session.replay != null -> endReplay(session)
+        session.current != null && !session.current.underWay -> next(session)
+        else -> session
+    }
+
+    /**
+     * The Missed Puzzles the Pack no longer has (N13), by Lichess id. F1's carry-over drops them when a
+     * new Pack is noticed; this finds any it couldn't see. Reads Band files: for a background thread.
+     */
+    fun missingFromPack(session: PuzzleState): Set<String> =
+        session.data.missed.filter { pack.puzzle(it.id, it.puzzleRating) == null }.mapTo(HashSet()) { it.id }
 
     /**
      * A Puzzle for the Player Rating (A7): a random one within ±100, the window widening by 100

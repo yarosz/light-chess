@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -112,7 +113,29 @@ class PuzzleOwner(
 
     fun next() = act(flow::next)
 
-    fun replayMissed(id: String) = act { flow.replayMissed(it, id) }
+    /**
+     * A Missed row's tap: true when the replay started. False when the Pack no longer has the Puzzle
+     * (N13): its row is marked [missedGone], and the page stays where it is.
+     */
+    fun replayMissed(id: String): Boolean {
+        val session = sessions.value ?: return false
+        val next = flow.replayMissed(session, id)
+        if (next === session) {
+            gone.value = gone.value + id
+            return false
+        }
+        touched()
+        set(next)
+        return true
+    }
+
+    /** The Puzzles page's first row (N12): the rated Puzzle, ready for the board it opens. */
+    fun toRated() = act(flow::toRated)
+
+    private val gone = MutableStateFlow<Set<String>>(emptySet())
+
+    /** Missed Puzzles the Pack no longer has (N13): their rows are lightened and do nothing. */
+    val missedGone: StateFlow<Set<String>> = gone
 
     fun resetRating() = act(flow::resetRating)
 
@@ -121,11 +144,23 @@ class PuzzleOwner(
         if (sessions.value == null) pieceSets.value = pieceSets.value?.next else act(flow::nextPieceSet)
     }
 
-    /** The Missed page is open: read its Puzzles ahead, so a tap on one reads no file (D2). */
+    /**
+     * The Missed page is open: read its Puzzles ahead, so a tap on one reads no file (D2), and find the
+     * ones the Pack no longer has (N13), so their rows show lightened.
+     */
     fun prefetchMissed() {
         val session = sessions.value ?: return
-        scope.launch(Dispatchers.Default) { prefetch { flow.prefetchMissed(session) } }
+        scope.launch {
+            val missing = withContext(Dispatchers.Default) {
+                prefetch { flow.prefetchMissed(session) }
+                runCatching { flow.missingFromPack(session) }.getOrDefault(emptySet())
+            }
+            if (missing.isNotEmpty()) gone.value = gone.value + missing
+        }
     }
+
+    /** Stops this owner's work (its clock, its saves): for tests, which make owners of their own. */
+    internal fun close() = scope.cancel()
 
     /** A touch or a wheel event: restarts D3's five minutes. */
     fun touched() {

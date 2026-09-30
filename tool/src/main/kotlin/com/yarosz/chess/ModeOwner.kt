@@ -37,5 +37,10 @@ class ModeOwner private constructor(dir: File) {
 
         fun of(filesDir: File): ModeOwner =
             synchronized(owners) { owners.getOrPut(filesDir.canonicalPath) { ModeOwner(filesDir) } }
+
+        /** Drops [filesDir]'s owner: for tests, whose temporary directories come and go. */
+        internal fun forget(filesDir: File) {
+            synchronized(owners) { owners.remove(filesDir.canonicalPath) }
+        }
     }
 }

@@ -101,9 +101,9 @@ class PuzzleViewModel(private val owner: PuzzleOwner) : WheelViewModel<Unit>() {
 }
 
 /**
- * The Puzzle board (N2: a place, one step from Home): the seed screen first (D4), then the current
- * Puzzle, or the end of the Pack. It has no Menu (N5): its strip is the back arrow, the status and
- * Hint, Solution, Next or Latest.
+ * The Puzzle board (N16: one step above the Puzzles page): the seed screen first (D4), then the current
+ * Puzzle, or the end of the Pack. Its strip is the back arrow, the status, Hint, Solution, Next or
+ * Latest, and the Menu mark (N17), whose Menu has Pieces and the Puzzle's id (N18).
  */
 class PuzzleScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, PuzzleViewModel>(sealedActivity) {
 
@@ -116,6 +116,12 @@ class PuzzleScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Puzz
 
     /** N3: the arrow does what system back does. */
     private val back = StripButton(UiCopy.BACK_DESCRIPTION) { goBack() }
+
+    /** N17: the board's Menu, over no Game, so nothing thinks behind it. */
+    private val menu = StripButton(UiCopy.MENU_DESCRIPTION) {
+        owner.touched()
+        navigateTo({ MenuScreen(it, MenuPage.PUZZLE_MENU, overGame = false) })
+    }
 
     @Composable
     override fun Content() {
@@ -170,7 +176,7 @@ class PuzzleScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Puzz
                 motion = motion.takeIf { review.ply == null },
                 pieceSet = session.data.pieceSet,
             )
-            Strip(strip.status, buttons, back = back)
+            Strip(strip.status, buttons, back = back, menu = menu.takeIf { strip.menu })
         }
         LaunchedEffect(Unit) {
             withFrameNanos {}

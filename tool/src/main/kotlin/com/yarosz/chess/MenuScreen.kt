@@ -29,6 +29,7 @@ import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
+import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.engine.ThinkTime
 import com.yarosz.chess.games.Confirm
@@ -41,17 +42,29 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
 /**
- * The pages opened from Home (N1) and from the computer's board (N5). Each page is its own
- * [MenuScreen] on the SDK's back stack: system Back never reaches a screen (LightActivity pops the
- * stack itself), so a sub-page that were only state inside one screen would skip a level (S3, N6).
- * Whether a page sits over the computer's board depends on who opened it, not on the page: New game
- * opens from Home and from the board (see [MenuScreen]'s overGame).
+ * The pages opened from Home (N1, N11), from the Puzzles page (N12) and from a board's Menu mark (N5,
+ * N17). Each page is its own [MenuScreen] on the SDK's back stack: system Back never reaches a screen
+ * (LightActivity pops the stack itself), so a sub-page that were only state inside one screen would
+ * skip a level (S3, N6). Whether a page sits over the computer's board depends on who opened it, not
+ * on the page: New game opens from Home and from the board (see [MenuScreen]'s overGame). [scrolls]:
+ * the page can be longer than the screen, so it takes the wheel (F3); one that always fits leaves it
+ * with LightOS (N20).
  */
 enum class MenuPage(val title: String, val scrolls: Boolean) {
-    /** The computer's Menu: only this board's actions (N5). */
+    /** The computer's Menu: this board's actions, then Pieces (N5, N17). */
     MENU(UiCopy.MENU_TITLE, true),
-    RATING(UiCopy.PLAYER_RATING, true),
+
+    /** The Puzzle board's Menu: Pieces and the Puzzle's id (N17, N18). */
+    PUZZLE_MENU(UiCopy.MENU_TITLE, false),
+
+    /** A replayed Game's Menu: Pieces (N17). */
+    REPLAY_MENU(UiCopy.MENU_TITLE, false),
+
+    /** The Puzzles page (N12): a place under Home. */
+    PUZZLES(UiCopy.PUZZLES, false),
+    RATING(UiCopy.PLAYER_RATING, false),
     MISSED(UiCopy.MISSED, true),
+    PAST_PUZZLES(UiCopy.PAST_PUZZLES, true),
     ABOUT(UiCopy.ABOUT, true),
     NEW_GAME(UiCopy.NEW_GAME, true),
     GAMES(UiCopy.GAMES, true),
@@ -108,10 +121,19 @@ class MenuViewModel(
         return true
     }
 
-    /** A Missed replay: the Puzzle board opens on it (N2). */
-    fun replay(id: String) {
-        owner.replayMissed(id)
+    /** A Missed replay: true when it started, and the Puzzle board opens on it (N2); false for a Puzzle the Pack lost (N13). */
+    fun replay(id: String): Boolean {
+        owner.touched()
+        if (!owner.replayMissed(id)) return false
         modes.set(Mode.PUZZLES)
+        return true
+    }
+
+    /** A Pieces row (N17): the next Piece Set, and the Menu stays. */
+    fun nextPieceSet() {
+        owner.touched()
+        game.touched()
+        owner.nextPieceSet()
     }
 
     fun choose(next: GameChoices) {
@@ -185,6 +207,9 @@ class MenuScreen(
 
     override fun createViewModel() = MenuViewModel(owner, game, modes, page, overGame)
 
+    /** The Puzzles page's places and pages (N16): over it, never over a board. */
+    private val navigator by lazy { HomeNavigator(modes::set) { place, overGame, onDone -> pushPlace(place, overGame, onDone) } }
+
     /** A page over this one: over the board when this one is. */
     private fun open(next: MenuPage) {
         viewModel.leaving()
@@ -201,6 +226,8 @@ class MenuScreen(
         val gameState by game.state.collectAsState()
         val history by game.history.collectAsState()
         val gameAwake by game.awake.collectAsState()
+        val pieceSet by owner.pieceSet.collectAsState()
+        val gone by owner.missedGone.collectAsState()
         // Play a friend exists only once the Relay URL is set (W8).
         val friendState = friends?.state?.collectAsState()?.value
         val vm = viewModel
@@ -220,28 +247,23 @@ class MenuScreen(
                 }
                 LightScrollView(Modifier.weight(1f).fillMaxWidth(), scrollState = scrollState) {
                     when (page) {
-                        MenuPage.MENU -> gameState?.takeIf { it.record != null }?.let { GameMenuRows(it) }
+                        MenuPage.MENU -> gameState?.takeIf { it.record != null }?.let { GameMenuRows(it, pieceSet) }
+                        // The Puzzle on screen, a Missed replay's own (N18).
+                        MenuPage.PUZZLE_MENU -> MenuItems(PuzzleMenu.of(session?.attempt, pieceSet)) { vm.nextPieceSet() }
+                        MenuPage.REPLAY_MENU -> MenuItems(ReplayMenu.of(pieceSet)) { vm.nextPieceSet() }
+                        MenuPage.PUZZLES -> for (row in PuzzlesRows.of(session)) {
+                            if (row.tappable) MenuRow(row.text) { tapPuzzles(row.entry) } else MenuLine(row.text, lighten = true)
+                        }
                         MenuPage.RATING -> if (data != null) {
-                            MenuLine(data.player.text)
-                            MenuRow(if (vm.confirmingReset) UiCopy.RESET_CONFIRM else UiCopy.RESET_RATING) {
-                                if (vm.tapReset()) done()
-                            }
-                            if (data.history.isEmpty()) MenuLine(UiCopy.NO_HISTORY, lighten = true)
-                            for (entry in data.history) {
-                                MenuLine(UiCopy.historyRow(entry.puzzleRating, entry.state, entry.delta, entry.solutionShown), lighten = true)
-                            }
+                            MenuItems(PuzzlesPages.rating(data.player, vm.confirmingReset)) { if (vm.tapReset()) done() }
                         }
+                        // A row the Pack lost is a lightened line; a tap that finds it lost stays here (N13).
                         MenuPage.MISSED -> if (data != null) {
-                            if (data.missed.isEmpty()) MenuLine(UiCopy.NO_MISSED, lighten = true)
-                            for (entry in data.missed) {
-                                MenuRow(UiCopy.missedRow(entry.puzzleRating, entry.state)) {
-                                    vm.replay(entry.id)
-                                    done()
-                                }
-                            }
+                            MenuItems(PuzzlesPages.missed(data.missed, gone)) { id -> if (vm.replay(id)) done() }
                         }
+                        MenuPage.PAST_PUZZLES -> if (data != null) MenuItems(PuzzlesPages.past(data.history)) {}
                         MenuPage.ABOUT -> {
-                            val about = UiCopy.about(owner.packDate, owner.notices, friends = friendState != null, puzzleId = session?.attempt?.puzzle?.id)
+                            val about = UiCopy.about(owner.packDate, owner.notices, friends = friendState != null)
                             for ((i, paragraph) in about.withIndex()) MenuLine(paragraph, lighten = i > 0)
                         }
                         MenuPage.NEW_GAME -> NewGame(gameState)
@@ -263,35 +285,39 @@ class MenuScreen(
         }
     }
 
-    /** The computer's Menu (N5): this board's actions only, from [GameMenu]. */
+    /**
+     * The Puzzles page's rows (N12, N16): the first readies the rated Puzzle and opens its board over
+     * this page; the others open their pages, Missed and Player Rating to be replaced by the board.
+     */
+    private fun tapPuzzles(entry: PuzzlesEntry) {
+        owner.touched()
+        if (entry == PuzzlesEntry.START) owner.toRated()
+        navigator.open(PuzzlesRows.open(entry))
+    }
+
+    /** The computer's Menu (N5, N17): this board's actions, then Pieces, from [GameMenu]. */
     @Composable
-    private fun GameMenuRows(state: GameState) {
+    private fun GameMenuRows(state: GameState, pieceSet: PieceSet?) {
         val vm = viewModel
-        for (item in GameMenu.of(state)) {
-            val entry = item.entry
-            if (entry == null) {
-                MenuLine(item.text, item.lighten)
-                continue
-            }
-            MenuRow(item.text) {
-                when (entry) {
-                    GameMenuEntry.OFFER_DRAW -> {
-                        game.offerDraw()
-                        if (game.state.value?.phase == Phase.OVER) goBack()
-                    }
-                    GameMenuEntry.RESIGN -> if (game.resign()) goBack()
-                    GameMenuEntry.TAKEBACK -> {
-                        game.takeback()
-                        goBack()
-                    }
-                    GameMenuEntry.FLIP -> {
-                        game.flip()
-                        goBack()
-                    }
-                    GameMenuEntry.MOVES -> open(MenuPage.MOVES)
-                    GameMenuEntry.THINK_TIME -> vm.nextThinkTime(GameMenu.thinkTimeSeconds(state))
-                    GameMenuEntry.NEW_GAME -> open(MenuPage.NEW_GAME)
+        MenuItems(GameMenu.of(state, pieceSet)) { entry ->
+            when (entry) {
+                GameMenuEntry.OFFER_DRAW -> {
+                    game.offerDraw()
+                    if (game.state.value?.phase == Phase.OVER) goBack()
                 }
+                GameMenuEntry.RESIGN -> if (game.resign()) goBack()
+                GameMenuEntry.TAKEBACK -> {
+                    game.takeback()
+                    goBack()
+                }
+                GameMenuEntry.FLIP -> {
+                    game.flip()
+                    goBack()
+                }
+                GameMenuEntry.MOVES -> open(MenuPage.MOVES)
+                GameMenuEntry.THINK_TIME -> vm.nextThinkTime(GameMenu.thinkTimeSeconds(state))
+                GameMenuEntry.NEW_GAME -> open(MenuPage.NEW_GAME)
+                GameMenuEntry.PIECES -> vm.nextPieceSet()
             }
         }
     }

@@ -25,7 +25,7 @@ data class PuzzleData(
     val current: InProgress? = null,
     /** Newest first, at most [MISSED_CAP] (D2). */
     val missed: List<MissedEntry> = emptyList(),
-    /** Newest first, at most [HISTORY_CAP] (F11). */
+    /** Newest first, at most [HISTORY_CAP] (F11): Past puzzles (N14). */
     val history: List<HistoryEntry> = emptyList(),
     /**
      * The Piece Set the board draws (P2). A Tool-wide choice kept here because this is v1's only save
@@ -44,7 +44,8 @@ data class PuzzleData(
     companion object {
         const val SCHEMA_VERSION = 1
         const val MISSED_CAP = 100
-        const val HISTORY_CAP = 50
+        /** 50 before N14; a file of 50 still reads and grows to 100 as Attempts are scored. */
+        const val HISTORY_CAP = 100
 
         private val json = Json {
             ignoreUnknownKeys = true
@@ -83,7 +84,7 @@ data class InProgress(
 data class MissedEntry(val id: String, val puzzleRating: Int, val state: AttemptState = AttemptState.FAILED)
 
 /**
- * One scored Attempt: the Rating screen's text list (F11). [delta] is 0 when unrated. An unknown
+ * One scored Attempt: a Past puzzles row (F11, N14). [delta] is 0 when unrated. An unknown
  * [state] reads as Failed, as in [MissedEntry].
  */
 @Serializable

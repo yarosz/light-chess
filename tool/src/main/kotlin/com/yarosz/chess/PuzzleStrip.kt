@@ -5,7 +5,7 @@ import com.yarosz.chess.puzzles.PuzzleState
 import com.yarosz.chess.puzzles.Stage
 import com.yarosz.chess.rules.Side
 
-/** The Puzzle board's strip buttons. The back arrow is not among them (N3), and there is no Menu (N5). */
+/** The Puzzle board's strip buttons. The back arrow (N3) and the Menu mark (N17) are not among them. */
 enum class PuzzleButton(val label: String, val description: String) {
     HINT(UiCopy.HINT, UiCopy.HINT_DESCRIPTION),
     SOLUTION(UiCopy.SOLUTION, UiCopy.SOLUTION_DESCRIPTION),
@@ -15,13 +15,13 @@ enum class PuzzleButton(val label: String, val description: String) {
 
 /**
  * What the Puzzle board's strip shows (R1.8, D1, F6), as pure data so `StripFitTest` checks every
- * case: the back arrow, the status, and Hint and Solution, Next, or Latest (then Next at the result).
- * DESIGN.md "The strip" holds the table.
+ * case: the back arrow, the status, Hint and Solution, Next, or Latest (then Next at the result), and
+ * the Menu mark ([menu], N17) in every state that draws a board. DESIGN.md "The strip" holds the table.
  */
-data class PuzzleStrip(val status: String, val buttons: List<PuzzleButton>) {
+data class PuzzleStrip(val status: String, val buttons: List<PuzzleButton>, val menu: Boolean = true) {
     companion object {
-        /** Every Puzzle in the Pack is finished: the arrow and the status only. */
-        val FINISHED = PuzzleStrip(UiCopy.PACK_FINISHED, emptyList())
+        /** Every Puzzle in the Pack is finished: the arrow and the status only; no board, so no Menu (N17). */
+        val FINISHED = PuzzleStrip(UiCopy.PACK_FINISHED, emptyList(), menu = false)
 
         /** The strip for [attempt] in [session], with Review showing Ply [reviewPly] (null: the latest Position). */
         fun of(session: PuzzleState, attempt: Attempt, reviewPly: Int?): PuzzleStrip = of(

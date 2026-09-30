@@ -210,7 +210,7 @@ class FriendGameScreen(
         }
         val menu = StripButton(UiCopy.MENU_DESCRIPTION) {
             vm.touched()
-            navigateTo({ FriendScreen(it, FriendPage.MENU, gameId) }) { exit -> if (exit != null) goBack(exit) }
+            navigateTo({ FriendScreen(it, FriendPage.MENU, gameId, overBoard = true) }) { exit -> if (exit != null) goBack(exit) }
         }
         Column(
             Modifier.fillMaxSize().padding(top = 12.dp),
