@@ -25,8 +25,9 @@ import com.yarosz.chess.rules.Side
 /**
  * The captured-pieces row's measures and placement (P3), in dp, pure so `CapturedRowTest` can check
  * that the widest row fits the board. The row sits at the left of the action row under the board
- * (E4), tightened by [fit] to the room the buttons leave: at the left end the pieces the Side at the bottom has taken, at the right end the other Side's, each end
- * growing inwards from the board's edge. Both ends read pawn, knight, bishop, rook, queen from left
+ * (E4), tightened by [fit] to the room the board's widest button set leaves (E6, `BarLayout.capturedRoom`),
+ * which is the same whatever buttons are shown: at the left end the pieces the Side at the bottom has
+ * taken, at the right end the other Side's, each end growing inwards from its edge of that room. Both ends read pawn, knight, bishop, rook, queen from left
  * to right, so the left end has its pawns at the edge and the right end its queens. Pieces of one kind
  * overlap like a fanned hand; the Material Lead ("+7") sits just inside the leading Side's end.
  */
@@ -69,7 +70,7 @@ object CapturedRowLayout {
     /**
      * [place] in a room [width] wide, tightened where it must be (E4): at the board's full width the
      * widest row keeps its ends [MIN_GAP] apart as placed (`CapturedRowTest`); in layout E's narrower
-     * room beside the buttons, when they would come closer, every step shrinks by the one factor that
+     * room beside the board's widest button set (E6), when they would come closer, every step shrinks by the one factor that
      * keeps them [MIN_GAP] apart, as a fanned hand closes. Nothing is dropped and nothing wraps.
      */
     fun fit(captured: CapturedPieces, bottom: Side, width: Float, textWidth: (String) -> Float): Row {

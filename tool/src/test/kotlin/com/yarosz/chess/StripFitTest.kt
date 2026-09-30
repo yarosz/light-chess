@@ -202,7 +202,10 @@ class StripFitTest {
         if (GameButton.LATEST in strip.buttons) strip.copy(status = UiCopy.review(9999, 9999)) else strip
     }
 
-    private fun gameStripsAsShown(): List<GameStrip> = buildList {
+    private fun gameStripsAsShown(): List<GameStrip> = computerStripsAsShown() + replayStripsAsShown()
+
+    /** The computer's board: [gameStripsAsShown] but the replays. */
+    private fun computerStripsAsShown(): List<GameStrip> = buildList {
         val fresh = GameFlow.start(GameState(), GameChoices(level = 8, side = SideChoice.WHITE), 1L, "2026.09.28")
         add(GameStrip.of(fresh, null))
         val thinking = GameFlow.play(fresh, fresh.record!!.game.position.moveFromUci("e2e4")!!)
@@ -218,8 +221,12 @@ class StripFitTest {
             val record = GameRecord(Game.of(), side)
             add(GameStrip.of(GameState(GameData(), recordWith(record, result)), null))
             add(GameStrip.of(GameState(GameData(), recordWith(record, result)), 99))
-            add(GameStrip.replay(recordWith(record, result), null))
         }
+    }
+
+    /** A replayed Game from the Games page: at its end, for every Result, and in Review. */
+    private fun replayStripsAsShown(): List<GameStrip> = buildList {
+        for (side in Side.entries) for (result in results) add(GameStrip.replay(recordWith(GameRecord(Game.of(), side), result), null))
         add(GameStrip.replay(GameRecord(Game.of(), Side.WHITE), null))
         add(GameStrip.replay(GameRecord(Game.of(), Side.WHITE), 99))
     }
@@ -553,12 +560,25 @@ class StripFitTest {
     private val actionRowHeight: Float
         get() = AkkuratProxy.LP3_SCREEN_HEIGHT_DP - BarLayout.topBarHeight(LP3_WIDTH_DP.dp).value - POSITION_VIEW_SIZE.value
 
-    /** The room left of [buttons] for the Captured Pieces, from the board's left edge, never past its right (E4). */
-    private fun capturedRoom(buttons: List<String>): Float = minOf(
-        POSITION_VIEW_SIZE.value,
-        LP3_WIDTH_DP - BarLayout.boardSide(LP3_WIDTH_DP.dp).value - BarLayout.BUTTONS_END.value -
-            BarLayout.CAPTURED_GAP.value - buttonsWidth(buttons),
-    )
+    /**
+     * The Captured Pieces' room on a board whose button sets are [buttonSets] (E6), from the board's
+     * left edge to just before the widest set, never past the board's right edge, in the stand-in.
+     */
+    private fun capturedRoom(buttonSets: List<List<String>>): Float =
+        BarLayout.capturedRoom(LP3_WIDTH_DP.dp, buttonSets) { AkkuratProxy.width(it).dp }.value
+
+    /** The room beside [buttons] alone, as on a board that could show nothing wider (E4's measure). */
+    private fun roomBeside(buttons: List<String>): Float = capturedRoom(listOf(buttons))
+
+    /** Each board with Captured Pieces (E6): its button sets, and the sets its strips are seen to show. */
+    private val capturedBoards: Map<String, Pair<List<List<String>>, List<List<String>>>> by lazy {
+        fun <T> labels(sets: List<List<T>>, label: (T) -> String) = sets.map { set -> set.map(label) }
+        mapOf(
+            "the computer's board" to (labels(GameStrip.BOARD_BUTTONS) { it.label } to computerStripsAsShown().map { s -> s.buttons.map { it.label } }),
+            "a replay" to (labels(GameStrip.REPLAY_BUTTONS) { it.label } to replayStripsAsShown().map { s -> s.buttons.map { it.label } }),
+            "a Correspondence Game's board" to (labels(FriendStrip.BOARD_BUTTONS) { it.label } to friendStrips.map { s -> s.buttons.map { it.label } }),
+        )
+    }
 
     /**
      * E2: the action row under the board is at least one `Copy` line tall on the LP3 (37 of 389 dp,
@@ -572,7 +592,7 @@ class StripFitTest {
         assertTrue(line <= actionRowHeight, "a $line dp line in a $actionRowHeight dp row")
         for (case in boardCases) {
             assertTrue(case.buttons.size <= 3)
-            assertTrue(capturedRoom(case.buttons) >= 0f, "${case.buttons} in the row")
+            assertTrue(roomBeside(case.buttons) >= 0f, "${case.buttons} in the row")
             // Nothing is left of the board's edge, so the buttons end within the row.
             assertTrue(LP3_WIDTH_DP - BarLayout.boardSide(LP3_WIDTH_DP.dp).value - BarLayout.BUTTONS_END.value >= buttonsWidth(case.buttons))
         }
@@ -593,7 +613,7 @@ class StripFitTest {
         val buttonSets = gameCases.map { it.buttons }.distinct()
         assertTrue(listOf(UiCopy.ACCEPT, UiCopy.DECLINE) in buttonSets && listOf(UiCopy.MOVE_NOW) in buttonSets)
         for (buttons in buttonSets) {
-            val room = capturedRoom(buttons)
+            val room = roomBeside(buttons)
             for (lead in listOf(-103, 0, 103)) for (bottom in Side.entries) {
                 val row = CapturedRowLayout.fit(CapturedPieces(fifteen, fifteen, lead), bottom, room, ::leadWidth)
                 assertEquals(30, row.pieces.size, "every piece is drawn beside $buttons")
@@ -602,11 +622,69 @@ class StripFitTest {
             }
         }
         for (button in listOf(UiCopy.HINT, UiCopy.MOVE_NOW, UiCopy.NEXT, UiCopy.LATEST)) {
-            val row = CapturedRowLayout.fit(CapturedPieces(eight, eight, 0), Side.WHITE, capturedRoom(listOf(button)), ::leadWidth)
+            val row = CapturedRowLayout.fit(CapturedPieces(eight, eight, 0), Side.WHITE, roomBeside(listOf(button)), ::leadWidth)
             assertEquals(1f, row.steps, "eight a side beside $button keeps its steps")
         }
         // At the board's full width (no buttons) nothing ever tightens: P3's own test holds there.
         assertEquals(1f, CapturedRowLayout.fit(CapturedPieces(fifteen, fifteen, 103), Side.WHITE, POSITION_VIEW_SIZE.value, ::leadWidth).steps)
+    }
+
+    /**
+     * E6: each board's Captured Pieces keep one room, beside the widest button set it can show, so
+     * neither end nor the steps move as buttons come and go (Thinking · Move now, Your move · Hint, a
+     * Game Hint being found, Next; Send and Undo; Latest in Review). Each board's list of sets is
+     * whole, the room is the same beside every set, it never overlaps any set, and the crowded rows
+     * still fit it with their ends apart. The Puzzle board has no Captured Pieces (P3), so no room.
+     */
+    @Test
+    fun theCapturedPiecesStayStillAsTheButtonsChange() {
+        val fifteen = List(8) { PieceType.PAWN } + List(2) { PieceType.KNIGHT } + List(2) { PieceType.BISHOP } +
+            List(2) { PieceType.ROOK } + PieceType.QUEEN
+        val eight = List(5) { PieceType.PAWN } + PieceType.KNIGHT + PieceType.BISHOP + PieceType.ROOK
+        val samples = listOf(
+            CapturedPieces(listOf(PieceType.PAWN), emptyList(), 1),
+            CapturedPieces(eight, listOf(PieceType.QUEEN, PieceType.PAWN), -3),
+            CapturedPieces(eight, eight, 0),
+            CapturedPieces(fifteen, fifteen, 103),
+            CapturedPieces(fifteen, fifteen, -103),
+        )
+        val rowWidth = LP3_WIDTH_DP - BarLayout.boardSide(LP3_WIDTH_DP.dp).value - BarLayout.BUTTONS_END.value
+        val rooms = mutableMapOf<String, Float>()
+        for ((board, sets) in capturedBoards) {
+            val (buttonSets, shown) = sets
+            for (buttons in shown.distinct()) assertTrue(buttons in buttonSets, "$board shows $buttons, missing from its button sets")
+            // ActionRow counts the set shown with the board's sets: the room is the same beside each.
+            val room = capturedRoom(buttonSets)
+            for (buttons in buttonSets) {
+                assertEquals(room, capturedRoom(buttonSets + listOf(buttons)), "$board's room beside $buttons")
+                assertTrue(room + BarLayout.CAPTURED_GAP.value + buttonsWidth(buttons) <= rowWidth + 0.01f, "$board's room clears $buttons")
+            }
+            for (captured in samples) for (bottom in Side.entries) {
+                val rows = buttonSets.map { CapturedRowLayout.fit(captured, bottom, capturedRoom(buttonSets + listOf(it)), ::leadWidth) }
+                assertTrue(rows.all { it == rows.first() }, "$board's row is the same beside every set: $captured")
+                val row = rows.first()
+                assertEquals(captured.by(Side.WHITE).size + captured.by(Side.BLACK).size, row.pieces.size, "every piece drawn on $board")
+                assertTrue(row.pieces.all { it.x >= 0f && it.x + CapturedRowLayout.SIZE <= room + 0.01f }, "inside $room dp on $board")
+                assertTrue(row.leftEnd + CapturedRowLayout.MIN_GAP <= row.rightStart + 0.01f, "ends apart on $board: $row")
+            }
+            rooms[board] = room
+        }
+        // The widest sets in the stand-in: Move now, Latest, Accept and Decline.
+        assertEquals(roomBeside(listOf(UiCopy.MOVE_NOW)), rooms.getValue("the computer's board"))
+        assertEquals(roomBeside(listOf(UiCopy.LATEST)), rooms.getValue("a replay"))
+        assertEquals(roomBeside(listOf(UiCopy.ACCEPT, UiCopy.DECLINE)), rooms.getValue("a Correspondence Game's board"))
+        // E6's numbers: each room in dp, then the steps kept by eight and by fifteen pieces a Side.
+        for ((board, expected) in mapOf(
+            "the computer's board" to listOf(207f, 1f, 0.70f),
+            "a replay" to listOf(245.5f, 1f, 0.86f),
+            "a Correspondence Game's board" to listOf(148f, 0.77f, 0.45f),
+        )) {
+            val room = rooms.getValue(board)
+            assertEquals(expected[0], room, 0.5f, "$board's room")
+            for ((i, pieces) in listOf(eight, fifteen).withIndex()) {
+                assertEquals(expected[i + 1], CapturedRowLayout.fit(CapturedPieces(pieces, pieces, 0), Side.WHITE, room, ::leadWidth).steps, 0.01f, "$board, ${pieces.size} a Side")
+            }
+        }
     }
 
     /** The Material Lead's width: LightOS Superfine (16 design px), as `CapturedRowTest` measures it. */

@@ -178,7 +178,11 @@ class GameScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, GameVi
                 motion = motion.takeIf { live },
                 pieceSet = pieceSet,
             )
-            ActionRow(buttons, Modifier.weight(1f), captured = rememberCapturedRow(record.game, shown, state.bottom, pieceSet))
+            ActionRow(
+                buttons, Modifier.weight(1f),
+                captured = rememberCapturedRow(record.game, shown, state.bottom, pieceSet),
+                buttonSets = GameStrip.BOARD_BUTTONS.map { set -> set.map { it.label } },
+            )
         }
     }
 }
