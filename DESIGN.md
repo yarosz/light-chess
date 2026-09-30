@@ -77,12 +77,13 @@ to bottom (decision log "Layout E"):
     tall (`BarLayout.PIECES_LINE`), across the board's full width. The bottom Side's end files in
     from the board's left edge, the top Side's from its right edge. It depends on nothing but the
     captures and the Ply shown, so it moves only when a piece is taken or Review steps.
-  - The buttons' line (E13), the remaining 19.33 dp: this moment's buttons (the tables below), in
-    `Copy`, centred as a group on the screen, each target the line's full height. The labels' ink,
-    0.964 em (19.45 dp `Copy`: its tallest letter 0.75 em above the baseline, a descender 0.214 em
-    below, measured on Roboto), is centred in the line (`BarLayout.labelBaseline`), about 0.3 dp from
-    the drawings' box above and from the app area's bottom edge. The drawings' own ink ends 2 dp
-    higher than their box (every piece stops at 38.7 of its 45 units).
+  - The buttons' line (E13), under it: this moment's buttons (the tables below), in `Copy`, centred
+    as a group on the screen, each target the row's full height (the pieces take no touches). The
+    labels' ink, 0.964 em (19.45 dp `Copy`: its tallest letter 0.75 em above the baseline, a
+    descender 0.214 em below, measured on Roboto), is centred between the drawings' own ink, which
+    stops 2.1 dp above their box (every piece at 38.7 of its 45 units, `CapturedRowLayout.INK_BOTTOM`),
+    and the app area's bottom edge (`BarLayout.buttonLine`): about 1.34 dp clear of each. Akkurat
+    touches only with an ascent past 0.819 em or a descent past 0.283 em.
   On the Puzzle board, which has no Captured Pieces, the buttons' line is the whole row: the same
   centred group, the ink in the row's middle, each target the row's height (E14).
 - When every Puzzle is finished: the top bar alone.

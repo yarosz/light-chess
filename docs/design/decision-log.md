@@ -1463,45 +1463,57 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   `CapturedRow(captured, POSITION_VIEW_SIZE, ...)`.
 - E13 The buttons' line and the vertical budget. AMENDS E2 (the buttons at the right, the last
   label's ink 16 dp from the edge, each target the row's height) and P3's sizes. RULING: on a Game's
-  board the buttons have their own line at the bottom of the action row, under the Captured Pieces'
-  line, CENTRED as a group horizontally on the screen (which centres them on the board), each a
-  target the full height of its line, with their labels, semantics labels and the Button role as
-  before. The budget, on the LP3: the app area is 1168 px, so the row is 1168 - 120 - 936 = 112 px,
-  37.33 dp. The Captured Pieces' line is 3 dp plus the drawings; the buttons' line is the rest. A
-  label's ink in `Copy` (30 design px, 19.45 dp) runs from its tallest letter, 0.750 em above the
-  baseline ("l", "d", "h"), to a descender, 0.214 em below ("p" in Accept, "y" in Retry): 0.964 em,
-  18.75 dp, measured on the emulator's Roboto. At P3's 17 dp the lines would need 3 + 17 + 18.75 =
-  38.75 dp, and at 16 dp 37.75: neither fits. The drawings are therefore 15 dp (45 px), the largest
-  whole size that fits: the pieces' line is 18 dp, the buttons' line 19.33 dp, and the labels' ink is
-  centred in it (`BarLayout.labelBaseline`, placed by the text's first baseline), about 0.3 dp clear
-  of the drawings' box above and of the app area's bottom edge below, so nothing overlaps and nothing
-  is clipped. The drawings' ink ends 2 dp above their box (every piece stops at 38.7 of 45 units), so
-  the visible gap under the pieces is about 2.4 dp. The steps keep the owner's mock-up's proportions
-  (17 and 50 px beside its 52 px drawing), rounded to half a dp at 15 dp: 5 dp within a kind, 14.5
-  dp to the next (P3's 5.5 and 16.5 at 17). The buttons' line starts under the pieces' line on every
-  Game's board, before the first capture too, so the labels never move. Akkurat's ink on the LP3 is
-  unmeasured (the emulator has Roboto): a label taller than 0.994 em would touch the drawings' box;
-  check it on the LP3 with a descender label (Accept, Retry) beside crowded pieces.
+  board the buttons' labels have their own line at the bottom of the action row, under the Captured
+  Pieces' line, CENTRED as a group horizontally on the screen (which centres them on the board). Each
+  button's target is the row's full height, 37.33 dp, as E2 had it: the Captured Pieces take no
+  touches, so a target reaches up over them (`BarLayout.buttonLine`). Their labels, semantics labels
+  and the Button role are as before. The budget, on the LP3: the app area is 1168 px, so the row is
+  1168 - 120 - 936 = 112 px, 37.33 dp. The Captured Pieces' line is 3 dp plus the drawings. A label's
+  ink in `Copy` (30 design px, 19.45 dp) runs from its tallest letter, 0.750 em above the baseline
+  ("l", "d", "h"), to a descender, 0.214 em below ("p" in Accept, "y" in Retry): 0.964 em, 18.75 dp,
+  measured on the emulator's Roboto. At P3's 17 dp the drawings' box and the ink would need 3 + 17 +
+  18.75 = 38.75 dp, and at 16 dp 37.75: neither fits. The drawings are therefore 15 dp (45 px), the
+  largest whole size whose box leaves room for the ink: the pieces' line is 18 dp. The drawings' own
+  ink stops higher, 2.1 dp above their box (every piece stops at 38.7 of 45 units: its base plus half
+  its outline, `CapturedRowLayout.INK_BOTTOM`, 15.9 dp from the board), and the labels' ink is
+  centred between that and the row's bottom (`BarLayout.labelRoomTop`, placed by the text's first
+  baseline, 31.83 dp from the row's top): about 1.34 dp clear of the drawings' ink above and of the
+  app area's bottom edge below, so nothing overlaps and nothing is clipped. (Centred between the box
+  and the row's bottom instead, the ink had only 0.3 dp either side.) The Material Lead's whole text
+  box, Superfine centred on the drawings, ends at 16.7 dp, above the ink's 17.24. The steps keep the
+  owner's mock-up's proportions (17 and 50 px beside its 52 px drawing), rounded to half a dp at 15
+  dp: 5 dp within a kind, 14.5 dp to the next (P3's 5.5 and 16.5 at 17). The labels sit at the same
+  baseline on every Game's board, before the first capture too, so they never move. Akkurat's ink on
+  the LP3 is unmeasured (the emulator has Roboto), and the placement is fixed by Roboto's constants,
+  so what matters is each side on its own, not the total: Akkurat's tallest letter would touch the
+  drawings' ink only past 0.819 em above the baseline, and a descender would be clipped by the app
+  area's bottom edge only past 0.283 em below. Check it on the LP3 with a descender label (Accept,
+  Retry) beside crowded pieces.
 - E14 The Puzzle board's buttons (orchestrator's choice). RULING: the Puzzle board has no Captured
   Pieces (P3), so its buttons' line is the whole action row: Hint, Solution, Next and Latest centred
   as a group horizontally, like a Game's board, and their ink centred vertically in the row, each
   target the row's height. Rejected: the bottom line, as on a Game's board, which would leave 18 dp
   of empty row between the board and the labels for pieces that never come; the labels would read
   as fallen away from the board. The horizontal centring is what the boards share.
-- E15 Tests. `StripFitTest`: `everyActionRowFitsUnderTheBoard` (every board's buttons, centred, stay
-  within the board's edges with equal margins), `thePiecesAndTheButtonsEachHaveTheirLine` (the row is
-  37.33 dp; the pieces' line is 3 + 15 dp; the labels' ink lies inside the buttons' line, clear of
-  the drawings and the app area's bottom, centred; a 16 dp drawing would not fit; the Puzzle board's
-  ink is centred in the whole row), `theCapturedPiecesRunFromEachEdgeOfTheBoard` (fifteen a Side,
-  lead -103, 0 and 103, both Sides at the bottom: P3's steps, every piece inside the board, the
-  bottom Side's end at the left edge, the top Side's at the right, the lead after the leading end),
-  `theCapturedPiecesDontDependOnTheButtons` (`ActionRow` places the row at the board's width and the
-  buttons' line by the board alone, and no room is left; each Game board shows several sets). They
-  replace `theCapturedPiecesShareTheActionRow`, `theCapturedPiecesStayStillAsTheButtonsChange` and
-  `everyBoardButtonIsInItsBoardsButtonSets`. `CapturedRowTest.theDrawingsKeepTheOwnersMockUpsProportions`
-  replaces `theDrawingsMatchTheOwnersMockUp`. Accessibility is unchanged: the row's label
-  (`CapturedRowTest.theRowsLabelReadsBothEndsAndTheLead`) and each button's label and role are as
-  before, the row read before the buttons.
+- E15 Tests. `StripFitTest`: `everyActionRowFitsUnderTheBoard` (every board's buttons, centred on
+  the screen, stay within the board's edges), `everyButtonsTargetIsTheWholeRow` (on a Game's board
+  and on the Puzzle board each target runs from the row's top to its bottom; the labels' baselines,
+  31.83 and 23.88 dp from the row's top), `thePiecesAndTheButtonsEachHaveTheirLine` (the row is 37.33
+  dp; the pieces' line is 3 + 15 dp; the labels' ink is centred between the drawings' ink, 15.9 dp,
+  and the app area's bottom, 1.34 dp clear of each, and the Material Lead's box ends above it;
+  Akkurat's ascent may reach 0.819 em and its descent 0.283 em; a 16 dp box would not leave room for
+  the ink; the Puzzle board's ink is centred in the whole row), `theCapturedPiecesRunFromEachEdgeOfTheBoard`
+  (fifteen a Side, lead -103, 0 and 103, both Sides at the bottom: P3's steps, every piece inside the
+  board, the bottom Side's end at the left edge, the top Side's at the right, the lead after the
+  leading end), `theCapturedPiecesDontDependOnTheButtons` (each Game board shows several sets, and
+  beside every one the same pieces are placed identically at the board's width and the labels'
+  baseline is the same). They replace `theCapturedPiecesShareTheActionRow`,
+  `theCapturedPiecesStayStillAsTheButtonsChange` and `everyBoardButtonIsInItsBoardsButtonSets`.
+  `CapturedRowTest.theDrawingsKeepTheOwnersMockUpsProportions` replaces `theDrawingsMatchTheOwnersMockUp`,
+  and `CapturedRowTest.theDrawingsInkStopsAboveTheirBox` reads every drawing in `art/pieces` for
+  its lowest ink (38.7 of 45 units). Accessibility is unchanged: the row's label
+  (`CapturedRowTest.theRowsLabelReadsBothEndsAndTheLead`) and each button's label, role and
+  full-height target are as before, the row read before the buttons.
 
 ## Puzzles page and Pieces (owner, 2026-09-30)
 After an adversarial review of Navigation D. Home had eight rows and scrolled on the LP3, three of

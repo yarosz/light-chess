@@ -42,8 +42,9 @@ import com.thelightphone.sdk.ui.lightClickable
 /**
  * Layout E's board bars (decision log "Layout E", E1-E3, E12-E14): LightOS's top bar over the board,
  * with the back arrow, the status as its title and the Menu mark; and the action row under the board:
- * on a Game's board, the Captured Pieces across the board's width at its top and the buttons centred
- * on a line below them; on the Puzzle board, the buttons centred in the row. `StripFitTest` reads
+ * on a Game's board, the Captured Pieces across the board's width at its top and the buttons' labels
+ * centred below them; on the Puzzle board, the labels centred in the row. Every button's target is the
+ * row's full height. `StripFitTest` reads
  * these values to check that every status and every row fits the LP3.
  */
 object BarLayout {
@@ -75,8 +76,9 @@ object BarLayout {
 
     /**
      * E12: the Captured Pieces' line at the top of the action row, from the board's bottom edge to the
-     * drawings' bottom: P3's 3 dp, then the drawings ([CapturedRowLayout.BOTTOM], 3 + 15 dp). On a
-     * Game's board the buttons' line is the rest of the row, below it.
+     * drawings' bottom: P3's 3 dp, then the drawings ([CapturedRowLayout.BOTTOM], 3 + 15 dp). The
+     * drawings' ink stops higher, at [CapturedRowLayout.INK_BOTTOM]; the labels' ink is centred below
+     * that ([buttonLine]).
      */
     val PIECES_LINE: Dp = CapturedRowLayout.BOTTOM.dp
 
@@ -84,7 +86,8 @@ object BarLayout {
      * E13: LightOS `Copy`'s ink around the baseline, in em, for every label the action row can show:
      * the tallest letter's top ("l", "d", "h" in Solution, Undo, Rematch) [COPY_INK_ASCENT] above it,
      * the descender's bottom ("p", "y" in Accept, Retry) [COPY_INK_DESCENT] below. Measured on the
-     * emulator's Roboto (0.750 and 0.213 em); the LP3's Akkurat is a grotesque of the same build.
+     * emulator's Roboto (0.750 and 0.214 em). Akkurat on the LP3 is unmeasured: its ink clears the
+     * drawings' up to 0.819 em above the baseline and the app area's bottom to 0.283 em below (E13).
      */
     const val COPY_INK_ASCENT = 0.75f
     const val COPY_INK_DESCENT = 0.214f
@@ -99,18 +102,29 @@ object BarLayout {
     fun boardSide(screenWidth: Dp): Dp = (screenWidth - POSITION_VIEW_SIZE) / 2
 
     /**
-     * E13: where the buttons' line starts in the action row: under the Captured Pieces' line on a Game's
-     * board ([captured]), whether or not anything is taken yet, so the labels never move; at the row's
-     * top on the Puzzle board, which has no Captured Pieces (P3).
+     * E13: the top of the room a label's ink is centred in: on a Game's board ([captured]) the Captured
+     * Pieces' ink bottom ([CapturedRowLayout.INK_BOTTOM], 15.9 dp), whether or not anything is taken
+     * yet, so the labels never move; the row's top on the Puzzle board, which has no Captured Pieces
+     * (P3, E14).
      */
-    fun buttonsLineTop(captured: Boolean): Dp = if (captured) PIECES_LINE else 0.dp
+    fun labelRoomTop(captured: Boolean): Dp = if (captured) CapturedRowLayout.INK_BOTTOM.dp else 0.dp
 
     /**
-     * E13: the labels' baseline, from the top of a buttons' line [lineHeight] tall, for `Copy` [em]
-     * tall: their ink, [COPY_INK_ASCENT] + [COPY_INK_DESCENT] em, is centred in the line.
+     * E13, E14: one button in an action row: its target from [targetTop] to [targetBottom] and its
+     * label's baseline at [labelBaseline], all from the row's top.
      */
-    fun labelBaseline(lineHeight: Dp, em: Dp): Dp =
-        (lineHeight - em * (COPY_INK_ASCENT + COPY_INK_DESCENT)) / 2 + em * COPY_INK_ASCENT
+    data class ButtonLine(val targetTop: Dp, val targetBottom: Dp, val labelBaseline: Dp)
+
+    /**
+     * E13, E14: a button in an action row [rowHeight] tall, for `Copy` [em] tall: its target is the
+     * row's full height on every board; its label's ink, [COPY_INK_ASCENT] + [COPY_INK_DESCENT] em, is
+     * centred between [labelRoomTop] and the row's bottom.
+     */
+    fun buttonLine(rowHeight: Dp, em: Dp, captured: Boolean): ButtonLine {
+        val top = labelRoomTop(captured)
+        val baseline = top + (rowHeight - top - em * (COPY_INK_ASCENT + COPY_INK_DESCENT)) / 2 + em * COPY_INK_ASCENT
+        return ButtonLine(targetTop = 0.dp, targetBottom = rowHeight, labelBaseline = baseline)
+    }
 }
 
 /**
@@ -173,26 +187,22 @@ private class MenuMarkPainter(private val color: Color, private val inset: Dp) :
  * E12-E14: the row under the board. On a Game's board ([captured] set), the Captured Pieces' line at its
  * top ([BarLayout.PIECES_LINE]): the drawings 3 dp under the board, the bottom Side's end from the
  * board's left edge and the other's from its right edge, placed across the board's width
- * ([CapturedRowLayout.fit]) whatever the buttons. Below it, the buttons' line: this moment's
- * [buttons] (at most three, contradiction 2) in LightOS `Copy`, centred as a group, each a target the
- * line's full height, their ink centred in the line ([BarLayout.labelBaseline]). On the Puzzle board,
- * which has no Captured Pieces, the buttons' line is the whole row (E14).
+ * ([CapturedRowLayout.fit]) whatever the buttons. Below them, this moment's [buttons] (at most three,
+ * contradiction 2) in LightOS `Copy`, centred as a group, each a target the row's full height, their
+ * ink centred between the drawings' ink and the row's bottom ([BarLayout.buttonLine]). On the Puzzle
+ * board, which has no Captured Pieces, the ink is centred in the whole row (E14).
  */
 @Composable
 fun ActionRow(buttons: List<StripButton>, modifier: Modifier = Modifier, captured: CapturedRowState? = null) {
     require(buttons.size <= 3) { "the action row holds at most 3 buttons" }
     val copy = LightThemeTokens.typography.copy
     val em = with(LocalDensity.current) { copy.fontSize.value.designVerticalPxToSp().toDp() }
+    val gameBoard = captured != null
     Box(modifier.fillMaxWidth()) {
         if (captured != null && captured.shown) {
             CapturedRow(captured, POSITION_VIEW_SIZE, Modifier.align(Alignment.TopCenter))
         }
-        Row(
-            Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxHeight()
-                .padding(top = BarLayout.buttonsLineTop(captured != null)),
-        ) {
+        Row(Modifier.align(Alignment.Center).fillMaxHeight()) {
             for (button in buttons) {
                 Box(
                     Modifier
@@ -206,7 +216,7 @@ fun ActionRow(buttons: List<StripButton>, modifier: Modifier = Modifier, capture
                         variant = LightTextVariant.Copy,
                         lighten = !button.enabled,
                         maxLines = 1,
-                        modifier = Modifier.labelLine(em),
+                        modifier = Modifier.labelLine(em, gameBoard),
                     )
                 }
             }
@@ -216,12 +226,15 @@ fun ActionRow(buttons: List<StripButton>, modifier: Modifier = Modifier, capture
 
 /**
  * E13: lays a label out at its full text height and places it so its baseline is
- * [BarLayout.labelBaseline] from the top of its line, whose height it takes: the text's box may run
- * past the line (its leading is empty), its ink stays inside.
+ * [BarLayout.buttonLine]'s from the top of its target, which is the row's full height and which it
+ * takes: the text's box may run past the row (its leading is empty), its ink stays inside. Where the
+ * height is unbounded (no row to centre in), the label takes its own height.
  */
-private fun Modifier.labelLine(em: Dp): Modifier = layout { measurable, constraints ->
+private fun Modifier.labelLine(em: Dp, captured: Boolean): Modifier = layout { measurable, constraints ->
     val text = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
+    if (!constraints.hasBoundedHeight) return@layout layout(text.width, text.height) { text.place(0, 0) }
     val height = constraints.maxHeight
-    val baseline = BarLayout.labelBaseline(height.toDp(), em).roundToPx()
+    val line = BarLayout.buttonLine(height.toDp(), em, captured)
+    val baseline = (line.labelBaseline - line.targetTop).roundToPx()
     layout(text.width, height) { text.place(0, baseline - text[FirstBaseline]) }
 }

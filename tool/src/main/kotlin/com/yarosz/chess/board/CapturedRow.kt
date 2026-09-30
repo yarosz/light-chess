@@ -56,6 +56,22 @@ object CapturedRowLayout {
     /** The row's canvas height: the drawings and the room above them. */
     const val BOTTOM = TOP + SIZE
 
+    /**
+     * Where the drawings' ink stops, in their 45-unit viewport: 38.7, every piece's base (35.17 in a
+     * white drawing, 37 in a black one) plus half its outline (`CapturedRowTest` reads it from
+     * `art/pieces`). Nothing is drawn lower.
+     */
+    const val INK_BOTTOM_UNITS = 38.7f
+
+    /** The drawings' viewport, in units: 45 by 45 (`PieceVectors`). */
+    const val VIEWPORT_UNITS = 45f
+
+    /**
+     * The drawings' ink bottom inside the row's canvas: 15.9 dp, 2.1 dp above their box. The labels'
+     * ink below is centred between this and the action row's bottom (E13).
+     */
+    const val INK_BOTTOM = TOP + SIZE * INK_BOTTOM_UNITS / VIEWPORT_UNITS
+
     /** The two ends, their Material Lead included, never come closer than this. */
     const val MIN_GAP = 4f
 

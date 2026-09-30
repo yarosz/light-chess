@@ -15,6 +15,13 @@ import com.yarosz.chess.rules.PieceType.PAWN
 import com.yarosz.chess.rules.PieceType.QUEEN
 import com.yarosz.chess.rules.PieceType.ROOK
 import com.yarosz.chess.rules.Side
+import java.io.File
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -132,6 +139,100 @@ class CapturedRowTest {
         assertTrue(CapturedRowLayout.KIND_STEP < CapturedRowLayout.SIZE && CapturedRowLayout.SAME_STEP < CapturedRowLayout.SIZE / 2)
     }
 
+    /**
+     * E13: every drawing's ink stops at [CapturedRowLayout.INK_BOTTOM_UNITS] of its 45 units, 2.1 dp
+     * above the 15 dp box, which is where the labels' room under the pieces starts. Read from the
+     * source drawings in `art/pieces` (which `PieceVectors` is generated from): each path's lowest
+     * point, curves and arcs sampled, plus half its outline (every join and cap is round).
+     */
+    @Test
+    fun theDrawingsInkStopsAboveTheirBox() {
+        val files = File("../art/pieces").walk().filter { it.extension == "svg" }.toList()
+        assertEquals(24, files.size, "both sets, twelve drawings each")
+        val bottoms = files.associate { file ->
+            val svg = file.readText()
+            assertTrue("viewBox=\"0 0 45 45\"" in svg, file.name)
+            file.name to Regex("""<path ([^>]*)>""").findAll(svg).maxOf { path ->
+                val attrs = path.groupValues[1]
+                val d = Regex("""\bd="([^"]*)"""").find(attrs)!!.groupValues[1]
+                val stroke = Regex("""stroke-width="([0-9.]+)"""").find(attrs)?.groupValues?.get(1)?.toFloat() ?: 0f
+                assertFalse("miter" in attrs || "square" in attrs || "transform" in attrs, "${file.name}: $attrs")
+                lowestY(d) + stroke / 2
+            }
+        }
+        assertEquals(CapturedRowLayout.INK_BOTTOM_UNITS, bottoms.values.max(), 0.01f, "the lowest ink: $bottoms")
+        assertEquals(45f, CapturedRowLayout.VIEWPORT_UNITS)
+        assertEquals(15.9f, CapturedRowLayout.INK_BOTTOM, 0.001f)
+        assertEquals(2.1f, CapturedRowLayout.BOTTOM - CapturedRowLayout.INK_BOTTOM, 0.001f)
+    }
+
+    /** The lowest point of an SVG path of absolute M, L, H, V, C, Q, A and Z commands (the pieces' only ones). */
+    private fun lowestY(d: String): Float {
+        val tokens = Regex("""[A-Za-z]|-?[0-9]*\.?[0-9]+""").findAll(d).map { it.value }.toList()
+        var i = 0
+        fun num() = tokens[i++].toDouble()
+        var x = 0.0
+        var y = 0.0
+        var low = Double.NEGATIVE_INFINITY
+        var command = 'M'
+        fun at(py: Double) { low = maxOf(low, py) }
+        while (i < tokens.size) {
+            if (tokens[i][0].isLetter()) command = tokens[i++][0]
+            when (command) {
+                'M', 'L' -> { x = num(); y = num(); at(y) }
+                'H' -> x = num()
+                'V' -> { y = num(); at(y) }
+                'Z' -> {}
+                'C', 'Q' -> {
+                    val n = if (command == 'C') 3 else 2
+                    val ys = DoubleArray(n + 1).also { it[0] = y }
+                    for (k in 1..n) { x = num(); ys[k] = num() }
+                    for (step in 0..SAMPLES) {
+                        val t = step.toDouble() / SAMPLES
+                        // De Casteljau on the y coordinates.
+                        val b = ys.copyOf()
+                        for (level in n downTo 1) for (k in 0 until level) b[k] = b[k] * (1 - t) + b[k + 1] * t
+                        at(b[0])
+                    }
+                    y = ys[n]
+                }
+                'A' -> {
+                    var rx = abs(num())
+                    var ry = abs(num())
+                    val phi = Math.toRadians(num())
+                    val large = num() != 0.0
+                    val sweep = num() != 0.0
+                    val x2 = num()
+                    val y2 = num()
+                    // The endpoint-to-centre conversion of SVG 1.1's implementation notes (F.6.5).
+                    val c = cos(phi)
+                    val s = sin(phi)
+                    val x1p = c * (x - x2) / 2 + s * (y - y2) / 2
+                    val y1p = -s * (x - x2) / 2 + c * (y - y2) / 2
+                    val scale = x1p * x1p / (rx * rx) + y1p * y1p / (ry * ry)
+                    if (scale > 1) { rx *= sqrt(scale); ry *= sqrt(scale) }
+                    val root = sqrt(maxOf(0.0, (rx * rx * ry * ry - rx * rx * y1p * y1p - ry * ry * x1p * x1p) / (rx * rx * y1p * y1p + ry * ry * x1p * x1p)))
+                    val coef = if (large == sweep) -root else root
+                    val cxp = coef * rx * y1p / ry
+                    val cyp = -coef * ry * x1p / rx
+                    val cy = s * cxp + c * cyp + (y + y2) / 2
+                    val t1 = atan2((y1p - cyp) / ry, (x1p - cxp) / rx)
+                    var dt = atan2((-y1p - cyp) / ry, (-x1p - cxp) / rx) - t1
+                    if (sweep && dt < 0) dt += 2 * PI
+                    if (!sweep && dt > 0) dt -= 2 * PI
+                    for (step in 0..SAMPLES) {
+                        val t = t1 + dt * step / SAMPLES
+                        at(cy + s * rx * cos(t) + c * ry * sin(t))
+                    }
+                    x = x2
+                    y = y2
+                }
+                else -> error("unexpected command '$command' in $d")
+            }
+        }
+        return low.toFloat()
+    }
+
     @Test
     fun theRowShowsOnceSomethingIsCaptured() {
         val start = capturedRow(Game.of(), 0, Side.WHITE, PieceSet.DEFAULT)
@@ -163,5 +264,8 @@ class CapturedRowTest {
     private companion object {
         /** LightOS Superfine: 16 design px (light-sdk `LightTheme.kt`). */
         const val SUPERFINE_DESIGN_PX = 16f
+
+        /** Points sampled along each curve and arc of a drawing. */
+        const val SAMPLES = 400
     }
 }
