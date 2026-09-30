@@ -587,7 +587,7 @@ class StripFitTest {
         List(2) { PieceType.ROOK } + PieceType.QUEEN
 
     /**
-     * E8: every board's buttons fit their line, at most three, and centred as a group they stay within
+     * E13: every board's buttons fit their line, at most three, and centred as a group they stay within
      * the board's edges, the same margin either side.
      */
     @Test
@@ -605,11 +605,11 @@ class StripFitTest {
     }
 
     /**
-     * E8's vertical budget: on a Game's board the Captured Pieces' line (3 dp, then the 15 dp drawings)
+     * E13's vertical budget: on a Game's board the Captured Pieces' line (3 dp, then the 15 dp drawings)
      * and the buttons' line below it share the 37.33 dp row with no overlap: a label's ink, `Copy` from
      * its tallest letter to its descender, lies inside the buttons' line, clear of the drawings above
      * and of the app area's bottom edge. 15 dp is the largest whole size that allows it: at 16 dp the
-     * ink would not fit. On the Puzzle board (E9) the line is the whole row, the ink centred in it.
+     * ink would not fit. On the Puzzle board (E14) the line is the whole row, the ink centred in it.
      */
     @Test
     fun thePiecesAndTheButtonsEachHaveTheirLine() {
@@ -636,7 +636,7 @@ class StripFitTest {
     }
 
     /**
-     * E7: the Captured Pieces run across the board's full width, the bottom Side's end from its left
+     * E12: the Captured Pieces run across the board's full width, the bottom Side's end from its left
      * edge and the other's from its right edge. The crowded rows (fifteen a Side, a lead of 103 either
      * way) keep P3's own steps there, with every piece drawn and the ends apart: `fit` never has to
      * tighten on the LP3, and stays for anything wider.
@@ -667,7 +667,7 @@ class StripFitTest {
     }
 
     /**
-     * E7, SUPERSEDING E6's room: the Captured Pieces don't depend on the buttons. `ActionRow` places
+     * E12, SUPERSEDING E6's room: the Captured Pieces don't depend on the buttons. `ActionRow` places
      * them at the board's width, whatever is shown, and the buttons' line starts under them on every
      * Game's board, with or without buttons, before and after the first capture; so neither end, nor
      * the steps, nor the labels' line moves as buttons come and go.
@@ -715,7 +715,7 @@ object AkkuratProxy {
     /** The LP3's app area is 1168 px tall at 480 dpi: Configuration.screenHeightDp = 389. */
     const val LP3_SCREEN_HEIGHT_DP = 389f
 
-    /** The app area's height in px: 389.33 dp, which the board's Column fills (E2's row, E8). */
+    /** The app area's height in px: 389.33 dp, which the board's Column fills (E2's row, E13). */
     const val LP3_APP_HEIGHT_PX = 1168f
 
     /**

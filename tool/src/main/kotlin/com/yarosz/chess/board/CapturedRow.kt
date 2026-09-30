@@ -25,7 +25,7 @@ import com.yarosz.chess.rules.Side
 /**
  * The captured-pieces row's measures and placement (P3), in dp, pure so `CapturedRowTest` can check
  * that the widest row fits the board. The row is the top line of the action row under the board
- * (E7), across the board's full width whatever buttons are shown: at the left end the pieces the Side
+ * (E12), across the board's full width whatever buttons are shown: at the left end the pieces the Side
  * at the bottom has taken, from the board's left edge, at the right end the other Side's, from the
  * board's right edge, each end growing inwards. Both ends read pawn, knight, bishop, rook, queen from
  * left to right, so the left end has its pawns at the edge and the right end its queens. Pieces of one kind
@@ -33,14 +33,14 @@ import com.yarosz.chess.rules.Side
  */
 object CapturedRowLayout {
     /**
-     * The drawing's box: 45 px on the LP3 (E8; P3's 17 dp, the owner's mock-up's 52 px, left too little
+     * The drawing's box: 45 px on the LP3 (E13; P3's 17 dp, the owner's mock-up's 52 px, left too little
      * of the 37 dp row for a `Copy` label's ink under the drawings).
      */
     const val SIZE = 15f
 
     /**
      * From one piece to the next of the same kind: the mock-up's 17 px beside its 52 px drawing, scaled
-     * to the 15 dp drawing (4.9 dp) and rounded to half a dp (E8; P3's 5.5 dp at 17 dp).
+     * to the 15 dp drawing (4.9 dp) and rounded to half a dp (E13; P3's 5.5 dp at 17 dp).
      */
     const val SAME_STEP = 5f
 
@@ -50,7 +50,7 @@ object CapturedRowLayout {
     /** Between an end's last piece and its Material Lead. */
     const val LEAD_GAP = 1f
 
-    /** The drawings' top, inside the row's canvas, which starts at the board's bottom edge: P3's 3 dp (E7). */
+    /** The drawings' top, inside the row's canvas, which starts at the board's bottom edge: P3's 3 dp (E12). */
     const val TOP = 3f
 
     /** The row's canvas height: the drawings and the room above them. */
@@ -74,7 +74,7 @@ object CapturedRowLayout {
     fun leadText(captured: CapturedPieces): String? = captured.lead.takeIf { it != 0 }?.let { "+${kotlin.math.abs(it)}" }
 
     /**
-     * [place] in a room [width] wide, tightened where it must be (E4, E7): at the board's full width,
+     * [place] in a room [width] wide, tightened where it must be (E4, E12): at the board's full width,
      * where `ActionRow` places it, the widest row keeps its ends [MIN_GAP] apart as placed
      * (`CapturedRowTest`); in a narrower room, when they would come closer, every step shrinks by the
      * one factor that keeps them [MIN_GAP] apart, as a fanned hand closes. Nothing is dropped and
@@ -141,14 +141,14 @@ object CapturedRowLayout {
 }
 
 /**
- * What the action row needs to draw the captured-pieces row (P3, E7): the Game's [captured] pieces
+ * What the action row needs to draw the captured-pieces row (P3, E12): the Game's [captured] pieces
  * at the Ply on screen, the Side at the [bottom] of the board and the player's [pieceSet].
  * [description] is the row's accessibility label.
  */
 data class CapturedRowState(val captured: CapturedPieces, val bottom: Side, val pieceSet: PieceSet, val description: String) {
     /**
      * The row's pieces show once something is captured (or the material is not level). The buttons
-     * sit on their line below it either way (E8), so nothing moves when the first piece is taken.
+     * sit on their line below it either way (E13), so nothing moves when the first piece is taken.
      */
     val shown: Boolean get() = !captured.isEmpty
 }

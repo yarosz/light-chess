@@ -40,7 +40,7 @@ import com.thelightphone.sdk.ui.designVerticalPxToSp
 import com.thelightphone.sdk.ui.lightClickable
 
 /**
- * Layout E's board bars (decision log "Layout E", E1-E3, E7-E9): LightOS's top bar over the board,
+ * Layout E's board bars (decision log "Layout E", E1-E3, E12-E14): LightOS's top bar over the board,
  * with the back arrow, the status as its title and the Menu mark; and the action row under the board:
  * on a Game's board, the Captured Pieces across the board's width at its top and the buttons centred
  * on a line below them; on the Puzzle board, the buttons centred in the row. `StripFitTest` reads
@@ -74,14 +74,14 @@ object BarLayout {
     const val MARK_TARGET_UNITS = 3f
 
     /**
-     * E7: the Captured Pieces' line at the top of the action row, from the board's bottom edge to the
+     * E12: the Captured Pieces' line at the top of the action row, from the board's bottom edge to the
      * drawings' bottom: P3's 3 dp, then the drawings ([CapturedRowLayout.BOTTOM], 3 + 15 dp). On a
      * Game's board the buttons' line is the rest of the row, below it.
      */
     val PIECES_LINE: Dp = CapturedRowLayout.BOTTOM.dp
 
     /**
-     * E8: LightOS `Copy`'s ink around the baseline, in em, for every label the action row can show:
+     * E13: LightOS `Copy`'s ink around the baseline, in em, for every label the action row can show:
      * the tallest letter's top ("l", "d", "h" in Solution, Undo, Rematch) [COPY_INK_ASCENT] above it,
      * the descender's bottom ("p", "y" in Accept, Retry) [COPY_INK_DESCENT] below. Measured on the
      * emulator's Roboto (0.750 and 0.213 em); the LP3's Akkurat is a grotesque of the same build.
@@ -95,18 +95,18 @@ object BarLayout {
 
     fun titleMaxWidth(screenWidth: Dp): Dp = unit(screenWidth) * TITLE_MAX_WIDTH_UNITS
 
-    /** The board's left edge, where the bottom Side's Captured Pieces start (P3, E7). */
+    /** The board's left edge, where the bottom Side's Captured Pieces start (P3, E12). */
     fun boardSide(screenWidth: Dp): Dp = (screenWidth - POSITION_VIEW_SIZE) / 2
 
     /**
-     * E8: where the buttons' line starts in the action row: under the Captured Pieces' line on a Game's
+     * E13: where the buttons' line starts in the action row: under the Captured Pieces' line on a Game's
      * board ([captured]), whether or not anything is taken yet, so the labels never move; at the row's
      * top on the Puzzle board, which has no Captured Pieces (P3).
      */
     fun buttonsLineTop(captured: Boolean): Dp = if (captured) PIECES_LINE else 0.dp
 
     /**
-     * E8: the labels' baseline, from the top of a buttons' line [lineHeight] tall, for `Copy` [em]
+     * E13: the labels' baseline, from the top of a buttons' line [lineHeight] tall, for `Copy` [em]
      * tall: their ink, [COPY_INK_ASCENT] + [COPY_INK_DESCENT] em, is centred in the line.
      */
     fun labelBaseline(lineHeight: Dp, em: Dp): Dp =
@@ -170,13 +170,13 @@ private class MenuMarkPainter(private val color: Color, private val inset: Dp) :
 }
 
 /**
- * E7-E9: the row under the board. On a Game's board ([captured] set), the Captured Pieces' line at its
+ * E12-E14: the row under the board. On a Game's board ([captured] set), the Captured Pieces' line at its
  * top ([BarLayout.PIECES_LINE]): the drawings 3 dp under the board, the bottom Side's end from the
  * board's left edge and the other's from its right edge, placed across the board's width
  * ([CapturedRowLayout.fit]) whatever the buttons. Below it, the buttons' line: this moment's
  * [buttons] (at most three, contradiction 2) in LightOS `Copy`, centred as a group, each a target the
  * line's full height, their ink centred in the line ([BarLayout.labelBaseline]). On the Puzzle board,
- * which has no Captured Pieces, the buttons' line is the whole row (E9).
+ * which has no Captured Pieces, the buttons' line is the whole row (E14).
  */
 @Composable
 fun ActionRow(buttons: List<StripButton>, modifier: Modifier = Modifier, captured: CapturedRowState? = null) {
@@ -215,7 +215,7 @@ fun ActionRow(buttons: List<StripButton>, modifier: Modifier = Modifier, capture
 }
 
 /**
- * E8: lays a label out at its full text height and places it so its baseline is
+ * E13: lays a label out at its full text height and places it so its baseline is
  * [BarLayout.labelBaseline] from the top of its line, whose height it takes: the text's box may run
  * past the line (its leading is empty), its ink stays inside.
  */

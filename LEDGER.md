@@ -13,12 +13,12 @@ v2 + v3 + P3) is released. v0.3.1 is the open release PR, carrying the v3 review
 Relay's limits and plain-HTTP refusal (#13, L1-L5) and Play a friend's Time Left and deleted Game
 (#14, W12, W13). Next: v3 PR 3 (the live WebSocket).
 HANDOFF (Captured Pieces from each edge, feat/captured-edges from main 826aac0, 2026-09-30): the
-owner chose, from mocks, a two-line action row; decision log "Layout E" E7-E10 (E7 supersedes E6 and
-E4's place, E8 amends E2 and P3's sizes). On a Game's board the Captured Pieces are the row's top
+owner chose, from mocks, a two-line action row; decision log "Layout E" E12-E15 (E12 supersedes E6 and
+E4's place, E13 amends E2 and P3's sizes). On a Game's board the Captured Pieces are the row's top
 line, 3 dp under the board across its 312 dp, each Side's end from its own board edge; the buttons are
 centred on their own line below (`BarLayout.labelBaseline` centres the labels' ink). The drawings are
 15 dp (from 17) so a `Copy` label's ink (0.964 em, Roboto) fits the 37.33 dp row under them; steps 5
-and 14.5 dp. The Puzzle board's buttons are centred in the whole row (E9). E6's room, `buttonSets`
+and 14.5 dp. The Puzzle board's buttons are centred in the whole row (E14). E6's room, `buttonSets`
 and the `BOARD_BUTTONS`/`REPLAY_BUTTONS` lists are gone, so #19's two open nits (the row's real
 width, a compile-time `buttonSets` pairing) are moot. Checked on the emulator (Roboto; its window
 runs to 1240 px, so its row is 61 dp, not the LP3's 37.33): pieces at both board edges, Hint and

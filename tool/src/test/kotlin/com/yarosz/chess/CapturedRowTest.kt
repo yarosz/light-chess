@@ -24,7 +24,7 @@ import kotlin.test.assertTrue
 /**
  * The captured-pieces row (P3): where each end's pieces and the Material Lead go, that the widest
  * row fits the board without its two ends meeting, and its accessibility label. Its room in the
- * action row, across the board's width above the buttons' line, is `StripFitTest`'s (E7, E8).
+ * action row, across the board's width above the buttons' line, is `StripFitTest`'s (E12, E13).
  */
 class CapturedRowTest {
 
@@ -123,7 +123,7 @@ class CapturedRowTest {
 
     @Test
     fun theDrawingsKeepTheOwnersMockUpsProportions() {
-        // E8: 15 dp drawings (45 px on the LP3), where the mock-up drew 52 px and P3 had 17 dp; the steps
+        // E13: 15 dp drawings (45 px on the LP3), where the mock-up drew 52 px and P3 had 17 dp; the steps
         // keep the mock-up's proportions, 17 and 50 px beside its 52 px drawing, to half a dp.
         assertEquals(15f, CapturedRowLayout.SIZE)
         assertEquals(CapturedRowLayout.SIZE * 17f / 52f, CapturedRowLayout.SAME_STEP, 0.25f)
