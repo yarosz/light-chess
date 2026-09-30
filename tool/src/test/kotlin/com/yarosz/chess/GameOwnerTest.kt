@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -51,12 +52,21 @@ class GameOwnerTest {
     private val engine = HeldEngine()
     private val host = EngineHost { engine }
 
+    /** The owners a test made, stopped before [dir] goes: a late save would write into a deleted directory. */
+    private val puzzleOwners = mutableListOf<PuzzleOwner>()
+
     @AfterTest
     fun cleanUp() {
         host.stop()
         host.shutdown()
+        for (owner in puzzleOwners) owner.close()
+        ModeOwner.forget(dir)
         dir.deleteRecursively()
     }
+
+    private fun puzzleOwner(): PuzzleOwner =
+        PuzzleOwner(dir, { File("src/test/resources/fixture-pack", it).readBytes() }, CoroutineScope(SupervisorJob() + Dispatchers.Unconfined))
+            .also { puzzleOwners += it }
 
     private fun owner(): GameOwner {
         val owner = GameOwner(dir, { error("no asset $it") }, host, CoroutineScope(SupervisorJob() + Dispatchers.Unconfined))
@@ -95,7 +105,7 @@ class GameOwnerTest {
         val game = owner()
         // The user plays Black: the computer is to move as soon as something resumes the Game.
         assertTrue(game.start(GameChoices(level = 1, side = SideChoice.BLACK)))
-        val puzzles = PuzzleOwner(dir, { File("src/test/resources/fixture-pack", it).readBytes() }, CoroutineScope(SupervisorJob() + Dispatchers.Unconfined))
+        val puzzles = puzzleOwner()
         val modes = ModeOwner.of(dir)
 
         // Home's Play the computer before games.json is read, or with no Game in progress, opens New game.
@@ -106,6 +116,11 @@ class GameOwnerTest {
         MenuViewModel(puzzles, game, modes, MenuPage.NEW_GAME, overGame = true).shown()
         assertTrue(engine.searches.tryAcquire(5, TimeUnit.SECONDS), "the computer thinks behind a page over its board")
         game.pause()
+    }
+
+    @Test
+    fun `the shared engine thread can't be shut down`() {
+        assertFailsWith<IllegalStateException> { EngineHost.shared.shutdown(0) }
     }
 
     companion object {

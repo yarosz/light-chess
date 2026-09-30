@@ -59,8 +59,9 @@ class StripFitTest {
     private val strips: List<Case> by lazy { stripCases() }
 
     private fun stripCases(): List<Case> = buildList {
-        for (strip in puzzleStrips()) add(Case(strip.status, strip.buttons.map { it.label }))
-        add(Case(PuzzleStrip.FINISHED.status, PuzzleStrip.FINISHED.buttons.map { it.label }))
+        // N17: the Puzzle board's mark in every state; the end of the Pack draws no board and has none.
+        for (strip in puzzleStrips()) add(Case(strip.status, strip.buttons.map { it.label }, menu = strip.menu))
+        add(Case(PuzzleStrip.FINISHED.status, PuzzleStrip.FINISHED.buttons.map { it.label }, menu = PuzzleStrip.FINISHED.menu))
         for (strip in gameStrips()) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, menu = strip.menu))
         for (strip in friendStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, menu = strip.menu))
         // The invite page has LightOS's top bar, with its back arrow: its strip has none (N3).
@@ -283,6 +284,24 @@ class StripFitTest {
         }
     }
 
+    /**
+     * N3: wherever a strip has the back arrow, the room it leaves for the status reaches at least the
+     * end of the arrow's target, even with no status, so no button ever sits under that target, whose
+     * touches go to the arrow.
+     */
+    @Test
+    fun noButtonSitsUnderTheArrowsTarget() {
+        val under = StripLayout.backTarget(LP3_WIDTH_DP.dp).value - StripLayout.statusStart(LP3_WIDTH_DP.dp, back = true).value
+        assertTrue(under > 0f, "the target runs $under dp into the status")
+        val withArrow = strips.filter { it.back }
+        assertTrue(withArrow.any { it.menu && it.buttons.size == withArrow.maxOf { c -> c.buttons.size } }, "the widest strips are checked")
+        // The room is the status's weight in the Row, the same whatever the status reads, empty included.
+        for ((status, buttons, _, back, menu) in withArrow) {
+            val room = statusRoom(buttons, back, menu)
+            assertTrue(room >= under, "\"$status\" beside $buttons${if (menu) " and the mark" else ""}: $room dp, the arrow's target needs $under")
+        }
+    }
+
     /** N9's two offers, each on one line: "Draw? · Accept · Decline · ⋯" and "Rematch? · Accept · Decline · ⋯". */
     @Test
     fun theOffersHoldOneLineWithTheMenu() {
@@ -350,17 +369,17 @@ class StripFitTest {
     }
 
     /**
-     * About's Puzzle lines (A9 with D7, N8): a page line is the LP3's 360 dp less 24 dp either side.
-     * With the widest 5-character Lichess id, each of its two lines fits whole, so Android never breaks
-     * the address (it would at a slash: seen on the emulator when the address shared a line).
+     * The Puzzle board's Menu's lines (A9 with D7, N18): a page line is the LP3's 360 dp less 24 dp
+     * either side. With the widest 5-character Lichess id, each of its two lines fits whole, so Android
+     * never breaks the address (it would at a slash: seen on the emulator when the address shared a
+     * line). About no longer carries them.
      */
     @Test
-    fun theAboutPuzzleLinesFit() {
-        assertEquals(UiCopy.puzzleRow("00sHx"), UiCopy.about(null, "", puzzleId = "00sHx").last(), "About ends with the Puzzle (N8)")
-        assertTrue(UiCopy.about(null, "").none { it.startsWith("Puzzle ") }, "and says nothing of one before a Puzzle shows")
+    fun thePuzzleMenuLinesFit() {
+        assertTrue(UiCopy.about(null, "").none { it.startsWith("Puzzle ") || "lichess.org/training" in it }, "About names no Puzzle (N18)")
         val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
         for (id in listOf("WWWWW", "mmmmm", "00sHx")) {
-            val lines = UiCopy.puzzleRow(id).split('\n')
+            val lines = UiCopy.puzzleLines(id)
             assertEquals(listOf("Puzzle $id", "lichess.org/training/$id"), lines)
             for (l in lines) assertTrue(AkkuratProxy.width(l) <= room, "\"$l\" (${AkkuratProxy.width(l)} dp) in $room dp")
         }
@@ -379,7 +398,7 @@ class StripFitTest {
         }
     }
 
-    /** The Menu's Pieces row (P2): "Pieces · <set>" for every Piece Set, each on one Menu line. */
+    /** A board Menu's Pieces row (P2, N17): "Pieces · <set>" for every Piece Set, each on one Menu line. */
     @Test
     fun theMenuPiecesRowNamesEverySetOnOneLine() {
         val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
