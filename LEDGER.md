@@ -12,6 +12,19 @@ client and Play a friend are on main (#3), and so is the Captured Pieces row (P3
 v2 + v3 + P3) is released. v0.3.1 is the open release PR, carrying the v3 review follow-ups: the
 Relay's limits and plain-HTTP refusal (#13, L1-L5) and Play a friend's Time Left and deleted Game
 (#14, W12, W13). Next: v3 PR 3 (the live WebSocket).
+HANDOFF (Navigation D, feat/navigation from main 04ae74a, 2026-09-30): the owner's navigation model,
+decision log "Navigation D" N1-N10, DESIGN.md "Navigation". `HomeScreen` is the root (the
+`@InitialScreen`; `ChessScreen` is gone, split into `PuzzleScreen` and `GameScreen`), and the place in
+`mode.txt` is pushed over it in `willShow` on the activity's first show. `FriendListScreen` is the Play
+a friend list (top bar, no Menu). `Strip` spans the screen and takes `back` and `menu`: LightOS's
+arrow at its top-bar place and the three-square Menu mark, centred on the font's x-height. Menus hold
+only their board's actions (`GameMenu`, `FriendMenu`); Pieces and the Puzzle id moved to Home and
+About. Pure parts and their tests: `HomeRows`/`Navigation` (HomeTest), `GameMenu`/`FriendMenu`/strip
+flags (MenuTest), `PuzzleStrip` (StripFitTest now builds every puzzle strip from it and measures all
+strips with the arrow and the mark). `release-drive.py` reaches the rating and About through Home (or
+an older build's Menu, for `upgrade`). Checked on the emulator (geometry, not glyphs: it draws
+Roboto). To check on the LP3: the arrow at 48-83 px and the mark's x-height centring in Akkurat,
+"Rematch? · Accept · Decline" on one line with the mark, Home's wheel scroll.
 HANDOFF (0.3.1 release PR, release/0.3.1 from main b7e4caa, 2026-09-29): versionName 0.3.1,
 versionCode 4, `UiCopy.VERSION` with it; notes in `docs/release-notes/0.3.1.md` (the Pack is
 unchanged). The Relay at b7e4caa is deployed (version 23b28619): `/health` over HTTPS answers ok,
@@ -51,9 +64,8 @@ log "Forward merge" M1-M3 and M5-M6: the Piece Set stays in `puzzles.json` and e
 About in every Menu (puzzle, game, Play a friend, a Correspondence Game's); New game, Games and Moves
 are their own Menu screens (S3); the game owner takes V4. Checked on the emulator: the Menus, a
 Puzzle and a Game in the rounded set; not Play a friend (the emulator build has no Relay URL). To
-re-check on the LP3: the rounded set on a Correspondence Game. Open (M6): the Correspondence Game's
-Menu (FriendScreen) keeps Moves and Rename as pages inside one screen, so system Back there skips to
-the board, the bug S3 fixed for the other Menus; give each its own screen.
+re-check on the LP3: the rounded set on a Correspondence Game. (M6, the Correspondence Game's Menu
+keeping Moves and Rename inside one screen, is fixed by N6 in Navigation D.)
 HANDOFF (0.2.0 release PR, release/0.2.0 from main, 2026-09-29): versionName 0.2.0, versionCode 2,
 `UiCopy.VERSION` with it; notes in `docs/release-notes/0.2.0.md` (the Pack is unchanged since v0.1.0,
 only the Book is new, so the notes say nothing of the Pack). `release-check.sh scan` now allows the
@@ -99,7 +111,7 @@ Fixed in L1-L5 (a Relay deploy, relay/README.md, puts them live): the limits key
 (10/60 s), plain HTTP gets 426 with `Upgrade: TLS/1.0, HTTP/1.1`, `parseSync` shape-checks
 seatSecret. After deploying, check `curl -si http://chess-relay.yarosz.com/health`: a 426 with an
 `Upgrade` header and no `Location`.
-LAST SESSION: 2026-09-29
+LAST SESSION: 2026-09-30
 
 ## HANDOFF (read first when resuming)
 - Branches, all signed and unpushed (there is no remote yet):

@@ -254,29 +254,29 @@ class MenuScreen(
     private fun GameMenuRows(state: GameState) {
         val vm = viewModel
         for (item in GameMenu.of(state)) {
-            val action = item.action
-            if (action == null) {
+            val entry = item.entry
+            if (entry == null) {
                 MenuLine(item.text, item.lighten)
                 continue
             }
             MenuRow(item.text) {
-                when (action) {
-                    GameAction.OFFER_DRAW -> {
+                when (entry) {
+                    GameMenuEntry.OFFER_DRAW -> {
                         game.offerDraw()
                         if (game.state.value?.phase == Phase.OVER) goBack()
                     }
-                    GameAction.RESIGN -> if (game.resign()) goBack()
-                    GameAction.TAKEBACK -> {
+                    GameMenuEntry.RESIGN -> if (game.resign()) goBack()
+                    GameMenuEntry.TAKEBACK -> {
                         game.takeback()
                         goBack()
                     }
-                    GameAction.FLIP -> {
+                    GameMenuEntry.FLIP -> {
                         game.flip()
                         goBack()
                     }
-                    GameAction.MOVES -> open(MenuPage.MOVES)
-                    GameAction.THINK_TIME -> vm.nextThinkTime(GameMenu.thinkTimeSeconds(state))
-                    GameAction.NEW_GAME -> open(MenuPage.NEW_GAME)
+                    GameMenuEntry.MOVES -> open(MenuPage.MOVES)
+                    GameMenuEntry.THINK_TIME -> vm.nextThinkTime(GameMenu.thinkTimeSeconds(state))
+                    GameMenuEntry.NEW_GAME -> open(MenuPage.NEW_GAME)
                 }
             }
         }

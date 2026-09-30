@@ -329,28 +329,28 @@ class FriendScreen(
         val vm = viewModel
         val id = game.gameId
         for (item in FriendMenu.of(game, state, vm.confirming)) {
-            val action = item.action
-            if (action == null) {
+            val entry = item.entry
+            if (entry == null) {
                 MenuLine(item.text, item.lighten)
                 continue
             }
             MenuRow(item.text) {
-                when (action) {
-                    FriendAction.SEND_AND_OFFER_DRAW -> {
+                when (entry) {
+                    FriendMenuEntry.SEND_AND_OFFER_DRAW -> {
                         friends.send(id, offerDraw = true)
                         goBack()
                     }
-                    FriendAction.OFFER_DRAW -> {
+                    FriendMenuEntry.OFFER_DRAW -> {
                         friends.offerDraw(id)
                         goBack()
                     }
-                    FriendAction.RESIGN -> if (vm.confirm(FriendConfirm.RESIGN)) {
+                    FriendMenuEntry.RESIGN -> if (vm.confirm(FriendConfirm.RESIGN)) {
                         friends.resign(id)
                         goBack()
                     }
-                    FriendAction.MOVES -> open(FriendPage.MOVES)
-                    FriendAction.RENAME -> open(FriendPage.RENAME)
-                    FriendAction.FORGET -> if (vm.confirm(FriendConfirm.FORGET)) friends.forget(id) { goBack(FriendExit()) }
+                    FriendMenuEntry.MOVES -> open(FriendPage.MOVES)
+                    FriendMenuEntry.RENAME -> open(FriendPage.RENAME)
+                    FriendMenuEntry.FORGET -> if (vm.confirm(FriendConfirm.FORGET)) friends.forget(id) { goBack(FriendExit()) }
                 }
             }
         }

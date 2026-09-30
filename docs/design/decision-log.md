@@ -183,7 +183,8 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
   re-asked, except through "Reset rating" in the rating screen.
 - D5 The pool grows only through Tool updates; v1.x declares NO INTERNET permission.
 - D6 One Tool "Chess"; the Menu grows by version; one saved-state file per mode; open on the mode
-  LAST USED; the v3 menu entry shows "Your move: N".
+  LAST USED; the v3 menu entry shows "Your move: N". (The root SUPERSEDED by N1-N2: Home is the
+  root and the last-used place opens over it.)
 - D7 About: GPLv3-or-later + source URL as text; Lichess CC0 + dump date; cburnett; Apache-2.0
   notices for bundled libraries; later Pirarucu (ratosh, GPLv3) and the book's provenance.
   (The cburnett credit SUPERSEDED by P1: one line crediting Chess's own CC0 pieces, reworded by P2.)
@@ -562,7 +563,8 @@ Rulings the log didn't make, each chosen as the one most consistent with it:
   (Next leads on). "Play the computer" in the puzzle Menu returns to the Game in progress, else opens
   the new-game page. "Puzzles" in the game Menu stops the computer's search until the game mode
   shows again; the Menu itself doesn't stop it, and keeps the screen on while it thinks
-  (contradiction 4).
+  (contradiction 4). (The Menus' "Play the computer" and "Puzzles" SUPERSEDED by N1-N2: Home's
+  rows; leaving the board for Home stops the search.)
 - R4.12 The new-game page names the Side choice "Play as" (White, Black, Random): CONTEXT.md avoids
   "colour". Think Time is offered on it only at Level 8, and in the game Menu only for a Level 8 Game,
   where it applies from the computer's next Move; the record's ThinkTime tag keeps the latest value.
@@ -888,6 +890,7 @@ Rulings the log didn't make, each the one most consistent with it, taken while b
   Play a friend page the Tool's first screen, as the game mode makes the Game's board. With the URL
   empty the friend mode shows Puzzles. The page's Menu is in the top bar: New game and Enter code
   leave the strip no room for it; that Menu offers Puzzles, Play the computer, Games and About.
+  (SUPERSEDED by N2 and N7: the page opens over Home, and has no Menu.)
 - Y7 A chosen Move's strip has four buttons (SAN, Send, Undo, Menu): W4 names Send and Undo, W2 puts
   "Send and offer draw" in the Menu while the Move waits, and StripFitTest holds it to one line. It is
   the only strip past contradiction 2's three.
@@ -926,7 +929,8 @@ Rulings the log didn't make, each the one most consistent with it, taken while b
   About, "Puzzle <id>" over "lichess.org/training/<id>", for the Attempt on screen (a Missed replay's
   own id). Text only, never a link: the phone has no browser and Chess never uses the network (D5).
   The address gets its own line because Android broke it at a slash when it shared one with the id
-  (emulator); each line fits 360 dp whole with the widest id (`StripFitTest`).
+  (emulator); each line fits 360 dp whole with the widest id (`StripFitTest`). (The placement
+  SUPERSEDED by N8: the lines end About.)
 - S2 The save file keeps up with every result (A8, "written on every result"): a background save
   follows every change to what the file keeps except the Moves of the Attempt on screen, which is
   the Attempt's state, `done`, `solutionShown` and "Try again". Seen on the emulator: after a wrong
@@ -937,6 +941,7 @@ Rulings the log didn't make, each the one most consistent with it, taken while b
   from Player Rating, Missed or About returns to the Menu, as the arrow does, and the Menu returns to
   the Puzzle. System Back can't be intercepted by a screen (PLATFORM.md), which is why pages that were
   only state inside one screen skipped the Menu. Back from the puzzle screen still closes the Tool.
+  (That last sentence SUPERSEDED by N2: it goes to Home.)
 
 ## Pieces: an original CC0 set (2026-09-29)
 - P1 SUPERSEDES R1.7's piece source (cburnett), D7's cburnett credit, and F11's "cburnett only" and
@@ -1049,7 +1054,7 @@ feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 an
 - M6 M2's pages: the Play a friend Menu's Play the computer opens the new-game page as its own
   screen when no Game is in progress (R4.11), and Games and About are their own screens (S3). The
   Correspondence Game's own Menu (FriendScreen: Moves, Rename) still keeps its pages as state in one
-  screen, so system Back there skips to the board: S3 isn't applied to it yet (LEDGER.md).
+  screen, so system Back there skips to the board: S3 isn't applied to it yet (LEDGER.md). (FIXED by N6.)
 - M7 M4 reaches Play a friend (the merge of main after 0.2.0): the Correspondence Game's board and
   its Menu's Pieces row read the Piece Set the puzzle owner publishes before any Band, as the game
   screen does, and so do the Play a friend page's Menu and the game Menu's row.
@@ -1279,8 +1284,11 @@ Home), RIGHT always opens this board's actions, and a fixed Home list goes place
   screen's edge (the back arrow's mirror), with a 48 dp wide target the strip's full height. Its
   label stays `UiCopy.MENU_DESCRIPTION` ("Open the Menu"), so a script that taps "Menu" still finds
   it. It replaces every strip "Menu" button: the computer's board, a Correspondence Game's board,
-  the invite page. Text buttons sit to its left, at most three (contradiction 2, Y7's four is now
-  SAN, Send, Undo and the mark).
+  the invite page. Text buttons sit to its left, at most three (contradiction 2; Y7's four are now
+  SAN, Send, Undo and the mark). The last one's label ends where the target starts, its right
+  padding under the target, which takes those touches: "Rematch?" beside Accept and Decline needs
+  those 8 dp (N9). Without the mark, the last label's ink ends 16 dp from the edge, where the
+  mark's would.
 - N5 A Menu holds only this board's actions. SUPERSEDES B5's, M1's, M2's, M5's and M7's Menu rows
   for places and settings, P2's and M1's Pieces row in every Menu (it is on Home), S1's Puzzle id
   row (N8), and Y6's and W6's Play a friend Menu. RULING: the computer's Menu: Offer draw, Resign,

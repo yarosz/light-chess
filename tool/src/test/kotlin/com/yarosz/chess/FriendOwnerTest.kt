@@ -221,8 +221,8 @@ class FriendOwnerTest {
         val menu = FriendViewModel(owner, FriendPage.MENU, id)
         // Moves and Rename are actions that open a screen of their own over the Menu, not pages of it.
         val game = assertNotNull(owner.state.value.game(id))
-        val actions = FriendMenu.of(game, owner.state.value, menu.confirming).mapNotNull { it.action }
-        assertTrue(FriendAction.MOVES in actions && FriendAction.RENAME in actions, "$actions")
+        val actions = FriendMenu.of(game, owner.state.value, menu.confirming).mapNotNull { it.entry }
+        assertTrue(FriendMenuEntry.MOVES in actions && FriendMenuEntry.RENAME in actions, "$actions")
         assertFalse(menu.confirm(FriendConfirm.RESIGN))
         menu.leaving()
         assertNull(menu.confirming, "Moves opening over the Menu drops \"Tap again to resign\"")

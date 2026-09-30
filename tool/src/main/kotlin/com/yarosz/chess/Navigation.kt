@@ -80,11 +80,11 @@ object Navigation {
     }
 }
 
-/** One row of a Menu page: tappable when it has an [action], else a plain line ([lighten]ed when it can't act now). */
-data class MenuItem<A>(val text: String, val action: A? = null, val lighten: Boolean = false)
+/** One row of a Menu page: tappable when it has an [entry], else a plain line ([lighten]ed when it can't act now). */
+data class MenuItem<A>(val text: String, val entry: A? = null, val lighten: Boolean = false)
 
 /** The computer's Menu rows (N5). */
-enum class GameAction { OFFER_DRAW, RESIGN, TAKEBACK, FLIP, MOVES, THINK_TIME, NEW_GAME }
+enum class GameMenuEntry { OFFER_DRAW, RESIGN, TAKEBACK, FLIP, MOVES, THINK_TIME, NEW_GAME }
 
 /**
  * The Menu of a Game against the computer (B5, D10, contradiction 2, N5): only this board's actions,
@@ -92,24 +92,24 @@ enum class GameAction { OFFER_DRAW, RESIGN, TAKEBACK, FLIP, MOVES, THINK_TIME, N
  * 8, New game. No place and no setting: those are on Home.
  */
 object GameMenu {
-    fun of(state: GameState): List<MenuItem<GameAction>> = buildList {
+    fun of(state: GameState): List<MenuItem<GameMenuEntry>> = buildList {
         val record = state.record ?: return@buildList
         if (state.phase != Phase.OVER) {
             add(
                 when {
-                    state.canOfferDraw -> MenuItem(UiCopy.OFFER_DRAW, GameAction.OFFER_DRAW)
+                    state.canOfferDraw -> MenuItem(UiCopy.OFFER_DRAW, GameMenuEntry.OFFER_DRAW)
                     state.drawResponse == DrawResponse.DECLINED -> MenuItem(UiCopy.DRAW_DECLINED)
                     state.phase == Phase.COMPUTER -> MenuItem(UiCopy.OFFER_DRAW_ON_YOUR_MOVE, lighten = true)
                     else -> MenuItem(UiCopy.offerDrawFrom(state.drawOfferFromMove), lighten = true)
                 },
             )
-            add(MenuItem(if (state.confirming == Confirm.RESIGN) UiCopy.RESIGN_CONFIRM else UiCopy.RESIGN, GameAction.RESIGN))
-            if (state.canTakeBack) add(MenuItem(UiCopy.TAKEBACK, GameAction.TAKEBACK))
+            add(MenuItem(if (state.confirming == Confirm.RESIGN) UiCopy.RESIGN_CONFIRM else UiCopy.RESIGN, GameMenuEntry.RESIGN))
+            if (state.canTakeBack) add(MenuItem(UiCopy.TAKEBACK, GameMenuEntry.TAKEBACK))
         }
-        add(MenuItem(UiCopy.FLIP_BOARD, GameAction.FLIP))
-        add(MenuItem(UiCopy.MOVES, GameAction.MOVES))
-        if (record.level == 8) add(MenuItem(UiCopy.thinkTimeRow(thinkTimeSeconds(state)), GameAction.THINK_TIME))
-        add(MenuItem(UiCopy.NEW_GAME, GameAction.NEW_GAME))
+        add(MenuItem(UiCopy.FLIP_BOARD, GameMenuEntry.FLIP))
+        add(MenuItem(UiCopy.MOVES, GameMenuEntry.MOVES))
+        if (record.level == 8) add(MenuItem(UiCopy.thinkTimeRow(thinkTimeSeconds(state)), GameMenuEntry.THINK_TIME))
+        add(MenuItem(UiCopy.NEW_GAME, GameMenuEntry.NEW_GAME))
     }
 
     /** Level 8's Think Time for this Game: its own, else the new-game choice. */
@@ -117,7 +117,7 @@ object GameMenu {
 }
 
 /** A Correspondence Game's Menu rows (N5). */
-enum class FriendAction { SEND_AND_OFFER_DRAW, OFFER_DRAW, RESIGN, MOVES, RENAME, FORGET }
+enum class FriendMenuEntry { SEND_AND_OFFER_DRAW, OFFER_DRAW, RESIGN, MOVES, RENAME, FORGET }
 
 /**
  * A Correspondence Game's Menu, or an invite's (W2, W4, W6, W13, N5): why it stopped, then the Game's
@@ -126,7 +126,7 @@ enum class FriendAction { SEND_AND_OFFER_DRAW, OFFER_DRAW, RESIGN, MOVES, RENAME
  * is the second tap the page waits for.
  */
 object FriendMenu {
-    fun of(game: CorrespondenceGame, state: FriendState, confirming: FriendConfirm?): List<MenuItem<FriendAction>> = buildList {
+    fun of(game: CorrespondenceGame, state: FriendState, confirming: FriendConfirm?): List<MenuItem<FriendMenuEntry>> = buildList {
         val id = game.gameId
         val log = game.log
         when (game.halt?.reason) {
@@ -139,16 +139,16 @@ object FriendMenu {
         val idle = game.halt == null && game.pending == null && id !in state.sending
         if (log != null && game.stage == Stage.ACTIVE && idle) {
             when {
-                id in state.chosen -> add(MenuItem(UiCopy.SEND_AND_OFFER_DRAW, FriendAction.SEND_AND_OFFER_DRAW))
-                log.draft(game.seat.side, EntryKind.DRAW_OFFER) != null -> add(MenuItem(UiCopy.OFFER_DRAW, FriendAction.OFFER_DRAW))
+                id in state.chosen -> add(MenuItem(UiCopy.SEND_AND_OFFER_DRAW, FriendMenuEntry.SEND_AND_OFFER_DRAW))
+                log.draft(game.seat.side, EntryKind.DRAW_OFFER) != null -> add(MenuItem(UiCopy.OFFER_DRAW, FriendMenuEntry.OFFER_DRAW))
                 game.yourMove -> add(MenuItem(UiCopy.OFFER_DRAW_AFTER_MOVE, lighten = true))
             }
-            add(MenuItem(if (confirming == FriendConfirm.RESIGN) UiCopy.RESIGN_CONFIRM else UiCopy.RESIGN, FriendAction.RESIGN))
+            add(MenuItem(if (confirming == FriendConfirm.RESIGN) UiCopy.RESIGN_CONFIRM else UiCopy.RESIGN, FriendMenuEntry.RESIGN))
         }
-        if (log != null) add(MenuItem(UiCopy.MOVES, FriendAction.MOVES))
-        add(MenuItem(UiCopy.RENAME, FriendAction.RENAME))
+        if (log != null) add(MenuItem(UiCopy.MOVES, FriendMenuEntry.MOVES))
+        add(MenuItem(UiCopy.RENAME, FriendMenuEntry.RENAME))
         if (game.stage == Stage.OVER || game.halt != null) {
-            add(MenuItem(if (confirming == FriendConfirm.FORGET) UiCopy.FORGET_CONFIRM else UiCopy.FORGET_GAME, FriendAction.FORGET))
+            add(MenuItem(if (confirming == FriendConfirm.FORGET) UiCopy.FORGET_CONFIRM else UiCopy.FORGET_GAME, FriendMenuEntry.FORGET))
         }
     }
 }

@@ -4,8 +4,8 @@
   release-drive.py skip           answer the seed screen with Skip
   release-drive.py solve          play the user's Moves of the Puzzle on screen, from the Pack
   release-drive.py next           tap Next and wait for the next Puzzle
-  release-drive.py state          print the Menu's rating, Missed count and rated history as JSON
-  release-drive.py about          open Menu > About and print its text
+  release-drive.py state          print Home's rating, Missed count and rated history as JSON
+  release-drive.py about          open Home > About and print its text
   release-drive.py wait TEXT      wait until TEXT shows
   release-drive.py shot PATH      save a screenshot
 
@@ -134,8 +134,20 @@ def solve():
     print(json.dumps({"puzzle": pid, "result": result}, ensure_ascii=False))
 
 
+def open_list():
+    """From the puzzle screen to the list of the rating, Missed and About: Home since Navigation D
+    (back from the Puzzle), the puzzle Menu before it (an older build, for `upgrade`)."""
+    if any(t == "Menu" for t in texts()):
+        tap_label("Menu")
+    else:
+        focused()
+        adb("shell", "input", "keyevent", "KEYCODE_BACK")
+        time.sleep(0.8)
+    wait_for(r"^Player Rating ·")
+
+
 def state():
-    tap_label("Menu")
+    open_list()
     rows = texts()
     rating = next(t for t in rows if t.startswith("Player Rating ·"))
     missed = next(t for t in rows if t.startswith("Missed ·"))
@@ -150,12 +162,16 @@ def on_puzzle():
 
 
 def back_to_puzzle():
-    """Back, until the puzzle screen shows. Never from the puzzle screen itself: that closes the Tool."""
-    for _ in range(3):
+    """Back, until the puzzle screen shows; from Home, its Puzzles row. Never back from the puzzle
+    screen of an older build, nor from Home: either closes the Tool."""
+    for _ in range(4):
         if on_puzzle():
             return
         focused()
-        adb("shell", "input", "keyevent", "KEYCODE_BACK")
+        if "Puzzles" in texts():
+            tap_label("Puzzles")
+        else:
+            adb("shell", "input", "keyevent", "KEYCODE_BACK")
         time.sleep(0.8)
     if not on_puzzle():
         sys.exit(f"release-drive: not back on the puzzle screen: {texts()}")
@@ -176,7 +192,7 @@ def main(argv):
     elif cmd == "state":
         state()
     elif cmd == "about":
-        tap_label("Menu")
+        open_list()
         tap_label("About")
         wait_for(r"^Chess \d")
         # About scrolls, and v3's privacy line pushes the Puzzles line below the fold: scroll by touch

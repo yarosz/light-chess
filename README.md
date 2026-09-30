@@ -13,11 +13,15 @@ few days per Move. No account and nothing tracked; only Games with a friend use 
 
 Questions or bugs: https://github.com/yarosz/light-chess/issues
 
-<!-- Screenshots: LP3 photos go in docs/screenshots/ (first Puzzle, a result, the Menu, About). -->
+<!-- Screenshots: LP3 photos go in docs/screenshots/ (Home, first Puzzle, a result, a Game and its Menu, About). -->
 _Screenshots from a Light Phone III are coming._
 
 ## What it does
 
+- **Home.** Chess opens where you left off, with Home underneath: a list of Puzzles, Player Rating,
+  Missed, Play the computer, Play a friend, Games, Pieces and About. On a board, the arrow at the left
+  of the strip goes back, as the phone's back does, and the three squares at the right open that
+  board's Menu.
 - **Puzzles.** Tap a piece, then a square, or drag it. A wrong Move is taken back and you can try again.
   "Hint" marks the piece to move; "Solution" plays the line for you.
 - **Player Rating.** A Glicko-2 rating, like Lichess's own, picks each Puzzle near your level. Answer
@@ -34,7 +38,7 @@ _Screenshots from a Light Phone III are coming._
   Offer draw and Resign; a finished Game offers a rematch. Moves pass through Chess's Relay, with no
   name or account.
 - **Review.** Turn the scroll wheel back to step through the Moves of the Puzzle or Game on screen.
-- **Pieces.** Two sets, geometric and rounded; choose one in the Menu.
+- **Pieces.** Two sets, geometric and rounded; choose one on Home.
 - **Captured Pieces.** In a Game, a row under the board shows the pieces each Side has taken, and
   "+3" for the Side ahead in material.
 - The screen stays on while you think, for up to five minutes without a touch.

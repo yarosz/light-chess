@@ -46,8 +46,8 @@ class MenuTest {
         val yours = GameFlow.computerMoved(thinking, turn, "e7e5", 0)
         val menu = GameMenu.of(yours)
         assertEquals(
-            listOf(GameAction.OFFER_DRAW, GameAction.RESIGN, GameAction.TAKEBACK, GameAction.FLIP, GameAction.MOVES, GameAction.THINK_TIME, GameAction.NEW_GAME),
-            menu.mapNotNull { it.action },
+            listOf(GameMenuEntry.OFFER_DRAW, GameMenuEntry.RESIGN, GameMenuEntry.TAKEBACK, GameMenuEntry.FLIP, GameMenuEntry.MOVES, GameMenuEntry.THINK_TIME, GameMenuEntry.NEW_GAME),
+            menu.mapNotNull { it.entry },
         )
         assertEquals(listOf("Offer draw", "Resign", "Takeback", "Flip board", "Moves", "Think Time · 3 s", "New game"), menu.map { it.text })
         noPlaces(menu.map { it.text })
@@ -57,16 +57,16 @@ class MenuTest {
     fun `while the computer thinks, the draw offer waits for the user's Move, lightened`() {
         val thinking = GameFlow.play(level8, level8.record!!.game.position.moveFromUci("e2e4")!!)
         val first = GameMenu.of(thinking).first()
-        assertEquals(MenuItem<GameAction>(UiCopy.OFFER_DRAW_ON_YOUR_MOVE, lighten = true), first)
+        assertEquals(MenuItem<GameMenuEntry>(UiCopy.OFFER_DRAW_ON_YOUR_MOVE, lighten = true), first)
         noPlaces(GameMenu.of(thinking).map { it.text })
     }
 
     @Test
     fun `Resign asks for a second tap in place, and a Game that is over keeps only what still applies`() {
         val asking = level8.copy(confirming = Confirm.RESIGN)
-        assertTrue(GameMenu.of(asking).any { it.text == UiCopy.RESIGN_CONFIRM && it.action == GameAction.RESIGN })
+        assertTrue(GameMenu.of(asking).any { it.text == UiCopy.RESIGN_CONFIRM && it.entry == GameMenuEntry.RESIGN })
         val over = GameState(GameData(), GameRecord(Game.of() + Resignation(Side.WHITE), Side.WHITE, level = 3))
-        assertEquals(listOf(GameAction.FLIP, GameAction.MOVES, GameAction.NEW_GAME), GameMenu.of(over).mapNotNull { it.action })
+        assertEquals(listOf(GameMenuEntry.FLIP, GameMenuEntry.MOVES, GameMenuEntry.NEW_GAME), GameMenu.of(over).mapNotNull { it.entry })
         assertTrue(GameMenu.of(GameState()).isEmpty(), "no Game, no Menu")
     }
 
@@ -74,18 +74,18 @@ class MenuTest {
     fun `a Correspondence Game's Menu holds its actions, Moves and Rename, and no place (N5)`() {
         val yours = scenes.yourMove()
         val menu = FriendMenu.of(yours, FriendState(games = listOf(yours)), confirming = null)
-        assertEquals(listOf(FriendAction.RESIGN, FriendAction.MOVES, FriendAction.RENAME), menu.mapNotNull { it.action })
+        assertEquals(listOf(FriendMenuEntry.RESIGN, FriendMenuEntry.MOVES, FriendMenuEntry.RENAME), menu.mapNotNull { it.entry })
         assertEquals(UiCopy.OFFER_DRAW_AFTER_MOVE, menu.first().text, "no draw offer before the user's Move (W2)")
         noPlaces(menu.map { it.text })
 
         val theirs = scenes.theirMove()
         assertEquals(
-            listOf(FriendAction.OFFER_DRAW, FriendAction.RESIGN, FriendAction.MOVES, FriendAction.RENAME),
-            FriendMenu.of(theirs, FriendState(games = listOf(theirs)), null).mapNotNull { it.action },
+            listOf(FriendMenuEntry.OFFER_DRAW, FriendMenuEntry.RESIGN, FriendMenuEntry.MOVES, FriendMenuEntry.RENAME),
+            FriendMenu.of(theirs, FriendState(games = listOf(theirs)), null).mapNotNull { it.entry },
         )
         val chosen = FriendState(games = listOf(yours), chosen = mapOf(yours.gameId to yours.log!!.game.position.moveFromUci("e2e4")!!))
-        assertEquals(FriendAction.SEND_AND_OFFER_DRAW, FriendMenu.of(yours, chosen, null).first().action)
-        assertEquals(UiCopy.RESIGN_CONFIRM, FriendMenu.of(yours, FriendState(games = listOf(yours)), FriendConfirm.RESIGN).first { it.action == FriendAction.RESIGN }.text)
+        assertEquals(FriendMenuEntry.SEND_AND_OFFER_DRAW, FriendMenu.of(yours, chosen, null).first().entry)
+        assertEquals(UiCopy.RESIGN_CONFIRM, FriendMenu.of(yours, FriendState(games = listOf(yours)), FriendConfirm.RESIGN).first { it.entry == FriendMenuEntry.RESIGN }.text)
     }
 
     @Test
@@ -93,12 +93,12 @@ class MenuTest {
         for (reason in HaltReason.entries) {
             val stopped = scenes.stopped(reason)
             val menu = FriendMenu.of(stopped, FriendState(games = listOf(stopped)), null)
-            assertEquals(null, menu.first().action, "the halt line first")
-            assertEquals(listOf(FriendAction.MOVES, FriendAction.RENAME, FriendAction.FORGET), menu.mapNotNull { it.action })
+            assertEquals(null, menu.first().entry, "the halt line first")
+            assertEquals(listOf(FriendMenuEntry.MOVES, FriendMenuEntry.RENAME, FriendMenuEntry.FORGET), menu.mapNotNull { it.entry })
             noPlaces(menu.map { it.text })
         }
         val over = scenes.over()
-        assertEquals(listOf(FriendAction.MOVES, FriendAction.RENAME, FriendAction.FORGET), FriendMenu.of(over, FriendState(games = listOf(over)), null).mapNotNull { it.action })
+        assertEquals(listOf(FriendMenuEntry.MOVES, FriendMenuEntry.RENAME, FriendMenuEntry.FORGET), FriendMenu.of(over, FriendState(games = listOf(over)), null).mapNotNull { it.entry })
         val forgetting = FriendMenu.of(over, FriendState(games = listOf(over)), FriendConfirm.FORGET)
         assertEquals(UiCopy.FORGET_CONFIRM, forgetting.last().text)
     }
@@ -107,7 +107,7 @@ class MenuTest {
     fun `an invite's Menu has Rename and nothing that is a place (N5)`() {
         val invite = scenes.waiting()
         val menu = FriendMenu.of(invite, FriendState(games = listOf(invite)), null)
-        assertEquals(listOf(FriendAction.RENAME), menu.mapNotNull { it.action })
+        assertEquals(listOf(FriendMenuEntry.RENAME), menu.mapNotNull { it.entry })
         noPlaces(menu.map { it.text })
     }
 
