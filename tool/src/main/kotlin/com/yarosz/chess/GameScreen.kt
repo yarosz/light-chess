@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,7 +27,8 @@ import com.yarosz.chess.board.MoveInput
 import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.PositionView
 import com.yarosz.chess.board.Review
-import com.yarosz.chess.board.Strip
+import com.yarosz.chess.board.ActionRow
+import com.yarosz.chess.board.BoardTopBar
 import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Touch
 import com.yarosz.chess.board.Wheel
@@ -98,7 +98,7 @@ class GameViewModel(private val game: GameOwner) : WheelViewModel<Unit>() {
 
 /**
  * The computer's board (v2 PR 4; N2: a place, one step from Home): the user's Side at the bottom, the
- * strip by context with the back arrow and the Menu mark (N3, N4). With no Game at all (a lost file)
+ * top bar's arrow, status and Menu mark and the action row's buttons by context (layout E, E1-E2). With no Game at all (a lost file)
  * it goes back to Home.
  */
 class GameScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, GameViewModel>(sealedActivity) {
@@ -159,11 +159,13 @@ class GameScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, GameVi
         }
         val menu = StripButton(UiCopy.MENU_DESCRIPTION) { game.touched(); navigateTo({ MenuScreen(it, MenuPage.MENU) }) }
         val live = review.ply == null
+        // E1, E2: the top bar (the arrow, the status, the Menu mark), the board, then the action row.
         Column(
-            Modifier.fillMaxSize().padding(top = 12.dp),
+            Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
+            BoardTopBar(strip.status, StripButton(UiCopy.BACK_DESCRIPTION) { goBack() }, menu.takeIf { strip.menu })
             PositionView(
                 position = positions[shown],
                 lastMove = record.game.moves.getOrNull(shown - 1),
@@ -176,12 +178,7 @@ class GameScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, GameVi
                 motion = motion.takeIf { live },
                 pieceSet = pieceSet,
             )
-            Strip(
-                strip.status, buttons,
-                captured = rememberCapturedRow(record.game, shown, state.bottom, pieceSet),
-                back = StripButton(UiCopy.BACK_DESCRIPTION) { goBack() },
-                menu = menu.takeIf { strip.menu },
-            )
+            ActionRow(buttons, Modifier.weight(1f), captured = rememberCapturedRow(record.game, shown, state.bottom, pieceSet))
         }
     }
 }

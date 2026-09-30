@@ -1,5 +1,8 @@
 package com.yarosz.chess
 
+import com.thelightphone.sdk.ui.LightBarButtonDefaults
+import com.yarosz.chess.board.BoardBarLayout
+import com.yarosz.chess.board.CapturedRowLayout
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
 import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.StripLayout
@@ -15,16 +18,19 @@ import com.yarosz.chess.relay.Protocol
 import com.yarosz.chess.puzzles.AttemptState
 import com.yarosz.chess.puzzles.Stage
 import androidx.compose.ui.unit.dp
+import com.yarosz.chess.rules.CapturedPieces
 import com.yarosz.chess.rules.DrawAcceptance
 import com.yarosz.chess.rules.DrawOffer
 import com.yarosz.chess.rules.DrawReason
 import com.yarosz.chess.rules.Game
+import com.yarosz.chess.rules.PieceType
 import com.yarosz.chess.rules.Position
 import com.yarosz.chess.rules.Resignation
 import com.yarosz.chess.rules.Result
 import com.yarosz.chess.rules.Side
 import com.yarosz.chess.rules.TimeoutClaim
 import com.yarosz.chess.rules.WinReason
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -40,6 +46,11 @@ import kotlin.test.assertTrue
  * Helvetica's advance widths with the narrow letters widened, scaled up until no string is narrower
  * than the same string on LP3 screencaps ([proxyIsNeverNarrowerThanTheLp3]) and no room wider
  * ([roomIsNeverWiderThanOnTheLp3]); it wraps where the LP3 wrapped ([proxyWrapsWhereTheLp3Did]).
+ *
+ * Layout E (decision log "Layout E", on trial) moves a board's status into the top bar's title and its
+ * buttons into the action row under the board: the tests from [theTopBarIsLightOsTopBar] on measure
+ * every board state there. The strip tests before them measure D's strip for the same states; the
+ * invite page and the Play a friend list keep that strip in both layouts.
  */
 class StripFitTest {
 
@@ -452,6 +463,155 @@ class StripFitTest {
         assertEquals(2, wrap(UiCopy.FIRST_PUZZLE, calibratedRoom(listOf(menu))).size)
     }
 
+    // Layout E (decision log "Layout E", E1-E5): the status in the top bar's title, the buttons and the
+    // Captured Pieces in the action row under the board.
+
+    /** Every status a board can show (E3): each Puzzle, computer, replay and Correspondence Game strip's. */
+    private val boardCases: List<Case> by lazy { strips.filter { it.back } }
+
+    /** A title's width in dp: LightOS `Fine` in the stand-in, with its 0.03 em between letters. */
+    private fun titleWidth(text: String): Float =
+        AkkuratProxy.width(text, BoardBarLayout.TITLE_DESIGN_PX) +
+            text.length * AkkuratProxy.size(BoardBarLayout.TITLE_DESIGN_PX * BoardBarLayout.TITLE_LETTER_SPACING)
+
+    /** Greedy word wrap as [wrap], measured by [measure]. */
+    private fun wrapBy(text: String, room: Float, measure: (String) -> Float): List<String> {
+        val lines = mutableListOf<String>()
+        var line = ""
+        for (word in text.split(' ')) {
+            val longer = if (line.isEmpty()) word else "$line $word"
+            if (line.isEmpty() || measure(longer) <= room) line = longer else {
+                lines += line
+                line = word
+            }
+        }
+        return lines + line
+    }
+
+    /**
+     * E1: the board's top bar is light-sdk's `LightTopBar`, and our title keeps its measures, read from
+     * the SDK's own source: 3 grid units tall, 1 unit of padding, a `Fine` title at most 18 units wide
+     * (`CENTER_MAX_WIDTH_UNITS`), and `Fine` at 25 design px, 1.15 line height, 0.03 em spacing.
+     */
+    @Test
+    fun theTopBarIsLightOsTopBar() {
+        val sdk = "../light-sdk/sdk/ui/src/main/kotlin/com/thelightphone/sdk/ui"
+        val bar = File("$sdk/LightTopBar.kt").readText()
+        fun constant(name: String) = Regex("""const val $name = ([0-9.]+)f""").find(bar)?.groupValues?.get(1)?.toFloat()
+        assertEquals(BoardBarLayout.TOP_BAR_UNITS, constant("TOPBAR_HEIGHT_UNITS"))
+        assertEquals(BoardBarLayout.TOP_BAR_PADDING_UNITS, constant("HORIZONTAL_PADDING_UNITS"))
+        assertEquals(BoardBarLayout.TITLE_MAX_WIDTH_UNITS, constant("CENTER_MAX_WIDTH_UNITS"))
+        assertTrue("TOPBAR_CENTER_TEXT_VARIANT = LightTextVariant.Fine" in bar, "the SDK's title is Fine")
+        assertEquals(StripLayout.BACK_SIZE_UNITS, LightBarButtonDefaults.ICON_SIZE_UNITS, "the arrow is the SDK's 2-unit icon")
+        val theme = File("$sdk/LightTheme.kt").readText()
+        val fine = Regex("""fine = TextStyle\((.*?)\n    \)""", RegexOption.DOT_MATCHES_ALL).find(theme)!!.groupValues[1]
+        assertTrue("fontSize = 25.sp" in fine, fine)
+        assertTrue("letterSpacing = (25 * 0.03).sp" in fine, fine)
+        assertTrue("lineHeight = (25 * 1.15).sp" in fine, fine)
+        assertEquals(25f, BoardBarLayout.TITLE_DESIGN_PX)
+        assertEquals(0.03f, BoardBarLayout.TITLE_LETTER_SPACING)
+        assertEquals(1.15f, BoardBarLayout.TITLE_LINE_HEIGHT)
+        // On the LP3: a 40 dp bar, a 240 dp title, and the title's box clear of both 40 dp targets.
+        val bar40 = BoardBarLayout.topBarHeight(LP3_WIDTH_DP.dp).value
+        val title = BoardBarLayout.titleMaxWidth(LP3_WIDTH_DP.dp).value
+        assertEquals(40f, bar40, 0.01f)
+        assertEquals(240f, title, 0.01f)
+        val target = BoardBarLayout.unit(LP3_WIDTH_DP.dp).value * (BoardBarLayout.TOP_BAR_PADDING_UNITS + BoardBarLayout.MARK_TARGET_UNITS)
+        assertTrue((LP3_WIDTH_DP - title) / 2 >= target, "the title starts at ${(LP3_WIDTH_DP - title) / 2} dp, the targets end at $target dp")
+        // The mark's ink ends 16 dp from the edge, inside its box (which ends one grid unit in).
+        assertTrue(StripLayout.MENU_INK_END.value >= BoardBarLayout.unit(LP3_WIDTH_DP.dp).value)
+    }
+
+    /**
+     * E3: every status a board can show fits the top bar's title on the LP3, in `Fine`, at most 240 dp
+     * wide, in at most two lines, and two such lines fit the 40 dp bar. Most take one line.
+     */
+    @Test
+    fun everyBoardStatusFitsTheTopBarTitle() {
+        val room = BoardBarLayout.titleMaxWidth(LP3_WIDTH_DP.dp).value
+        val twoLines = mutableSetOf<String>()
+        for (case in boardCases) {
+            val lines = wrapBy(case.status, room, ::titleWidth)
+            assertTrue(lines.size <= BoardBarLayout.TITLE_MAX_LINES, "\"${case.status}\" needs ${lines.size} title lines: $lines")
+            for (line in lines) assertTrue(titleWidth(line) <= room, "\"$line\" (${titleWidth(line)} dp) in a $room dp title")
+            if (lines.size == 2) twoLines += case.status
+        }
+        val lines = AkkuratProxy.size(BoardBarLayout.TITLE_DESIGN_PX * BoardBarLayout.TITLE_LINE_HEIGHT) * BoardBarLayout.TITLE_MAX_LINES
+        assertTrue(lines <= BoardBarLayout.topBarHeight(LP3_WIDTH_DP.dp).value, "two title lines are $lines dp")
+        // Everything the owner named reads on one line: the first Puzzle, the long Results, Time Left.
+        for (status in listOf(
+            UiCopy.FIRST_PUZZLE, UiCopy.review(9999, 9999), UiCopy.yourMoveLeft(47 * 3_600_000L),
+            UiCopy.gameResult(Result.Draw(DrawReason.FIFTY_MOVE_RULE), Side.WHITE),
+            UiCopy.gameResult(Result.Win(Side.WHITE, WinReason.RESIGNATION), Side.WHITE),
+        )) assertTrue(status in boardCases.map { it.status } && status !in twoLines, "\"$status\" on one title line")
+        // Today every status takes one line in the stand-in (the widest, "Tap a piece, then a square", 234
+        // of 240 dp): the second line is E3's margin for Akkurat and for new copy.
+        assertTrue(twoLines.size * 10 < boardCases.map { it.status }.distinct().size, "two lines are rare: $twoLines")
+    }
+
+    /** The action row's height on the LP3: the app area less the top bar and the board (E2). */
+    private val actionRowHeight: Float
+        get() = AkkuratProxy.LP3_SCREEN_HEIGHT_DP - BoardBarLayout.topBarHeight(LP3_WIDTH_DP.dp).value - POSITION_VIEW_SIZE.value
+
+    /** The room left of [buttons] for the Captured Pieces, from the board's left edge, never past its right (E4). */
+    private fun capturedRoom(buttons: List<String>): Float = minOf(
+        POSITION_VIEW_SIZE.value,
+        LP3_WIDTH_DP - BoardBarLayout.boardSide(LP3_WIDTH_DP.dp).value - BoardBarLayout.BUTTONS_END.value -
+            BoardBarLayout.CAPTURED_GAP.value - buttonsWidth(buttons),
+    )
+
+    /**
+     * E2: the action row under the board is at least one `Copy` line tall on the LP3 (37 of 389 dp,
+     * under the 40 dp bar and the 312 dp board), and every board's buttons fit it on one line, from
+     * the board's left edge to 16 dp from the screen's.
+     */
+    @Test
+    fun everyActionRowFitsUnderTheBoard() {
+        val line = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX * StripLayout.COPY_LINE_HEIGHT)
+        assertEquals(37f, actionRowHeight, 0.5f)
+        assertTrue(line <= actionRowHeight, "a $line dp line in a $actionRowHeight dp row")
+        for (case in boardCases) {
+            assertTrue(case.buttons.size <= 3)
+            assertTrue(capturedRoom(case.buttons) >= 0f, "${case.buttons} in the row")
+            // Nothing is left of the board's edge, so the buttons end within the row.
+            assertTrue(LP3_WIDTH_DP - BoardBarLayout.boardSide(LP3_WIDTH_DP.dp).value - BoardBarLayout.BUTTONS_END.value >= buttonsWidth(case.buttons))
+        }
+    }
+
+    /**
+     * E4: on a Game's board the Captured Pieces share the action row, left of the buttons. Beside
+     * every Game board's buttons the widest row (fifteen pieces at each end, a +103 lead) still draws
+     * every piece inside its room with its ends apart, tightened; beside a computer board's one button,
+     * a Game with eight pieces taken each side keeps P3's own steps.
+     */
+    @Test
+    fun theCapturedPiecesShareTheActionRow() {
+        val fifteen = List(8) { PieceType.PAWN } + List(2) { PieceType.KNIGHT } + List(2) { PieceType.BISHOP } +
+            List(2) { PieceType.ROOK } + PieceType.QUEEN
+        val eight = List(5) { PieceType.PAWN } + PieceType.KNIGHT + PieceType.BISHOP + PieceType.ROOK
+        val gameCases = boardCases.filter { c -> gameStrips().any { it.status == c.status } || friendStrips.any { it.status == c.status } }
+        val buttonSets = gameCases.map { it.buttons }.distinct()
+        assertTrue(listOf(UiCopy.ACCEPT, UiCopy.DECLINE) in buttonSets && listOf(UiCopy.MOVE_NOW) in buttonSets)
+        for (buttons in buttonSets) {
+            val room = capturedRoom(buttons)
+            for (lead in listOf(-103, 0, 103)) for (bottom in Side.entries) {
+                val row = CapturedRowLayout.fit(CapturedPieces(fifteen, fifteen, lead), bottom, room, ::leadWidth)
+                assertEquals(30, row.pieces.size, "every piece is drawn beside $buttons")
+                assertTrue(row.pieces.all { it.x >= 0f && it.x + CapturedRowLayout.SIZE <= room + 0.01f }, "inside $room dp beside $buttons")
+                assertTrue(row.leftEnd + CapturedRowLayout.MIN_GAP <= row.rightStart + 0.01f, "ends apart beside $buttons: $row")
+            }
+        }
+        for (button in listOf(UiCopy.HINT, UiCopy.MOVE_NOW, UiCopy.NEXT, UiCopy.LATEST)) {
+            val row = CapturedRowLayout.fit(CapturedPieces(eight, eight, 0), Side.WHITE, capturedRoom(listOf(button)), ::leadWidth)
+            assertEquals(1f, row.steps, "eight a side beside $button keeps its steps")
+        }
+        // At the board's full width (D's strip) nothing ever tightens: P3's own test holds there.
+        assertEquals(1f, CapturedRowLayout.fit(CapturedPieces(fifteen, fifteen, 103), Side.WHITE, POSITION_VIEW_SIZE.value, ::leadWidth).steps)
+    }
+
+    /** The Material Lead's width: LightOS Superfine (16 design px), as `CapturedRowTest` measures it. */
+    private fun leadWidth(text: String) = AkkuratProxy.width(text, 16f)
+
     private companion object {
         /** The strip's "Menu" text button on the calibration screencaps (the v2 layout, before N4's mark). */
         const val menu = "Menu"
@@ -475,7 +635,7 @@ private val results: List<Result> =
 /** A conservative stand-in for Akkurat at LightOS `Copy` size on the LP3. */
 object AkkuratProxy {
     /** The LP3's app area is 1168 px tall at 480 dpi: Configuration.screenHeightDp = 389. */
-    private const val LP3_SCREEN_HEIGHT_DP = 389f
+    const val LP3_SCREEN_HEIGHT_DP = 389f
 
     /**
      * Akkurat against Helvetica (with [NARROW] widened), with margin: every measured string clears its
