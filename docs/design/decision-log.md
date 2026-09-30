@@ -27,6 +27,8 @@
   Tune shades on the LP3 (start: #D8D8D8 / #8C8C8C). Last move = shade + outline, check = ring,
   selection = heavy border, coordinates inside the edge squares. Exclude staunty and maestro (NC).
 - R1.8 Layout: 312 dp board (39 dp = 117 px squares) plus a 48 dp strip: status + up to 3 text buttons.
+  (The strip's width SUPERSEDED by N3: it spans the screen, with the back arrow at its left; its
+  "Menu" text button SUPERSEDED by N4's mark, beside at most three text buttons.)
 - R1.9 Keys: the wheel browses history in review AND mid-game (a "live" tap returns); otherwise return
   false. Volume and shutter stay with LightOS.
 - R1.10 Identity: "Chess", com.yarosz.chess, github.com/yarosz/light-chess, light-reader template;
@@ -119,7 +121,9 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
 - A9 About: Lichess credit + per-puzzle lichess.org/training/<id> as text; the piece-set author and
   licence.
 - A10 Open straight into the current puzzle; visible Menu (rating/history, About); themes v1.x,
-  "Play the computer" v2.
+  "Play the computer" v2. (The "visible Menu" SUPERSEDED by N1 and N5: the rating, its history and
+  About are Home's rows, and the Puzzle board has no Menu. "Open straight into the current puzzle"
+  KEPT by N2, with Home underneath.)
 
 ## Reconciliation
 - Puzzle pool: A1/A2 over R1.4 (counted data; text reuses the core parsers).
@@ -183,7 +187,8 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
   re-asked, except through "Reset rating" in the rating screen.
 - D5 The pool grows only through Tool updates; v1.x declares NO INTERNET permission.
 - D6 One Tool "Chess"; the Menu grows by version; one saved-state file per mode; open on the mode
-  LAST USED; the v3 menu entry shows "Your move: N".
+  LAST USED; the v3 menu entry shows "Your move: N". (The root SUPERSEDED by N1-N2: Home is the
+  root and the last-used place opens over it.)
 - D7 About: GPLv3-or-later + source URL as text; Lichess CC0 + dump date; cburnett; Apache-2.0
   notices for bundled libraries; later Pirarucu (ratosh, GPLv3) and the book's provenance.
   (The cburnett credit SUPERSEDED by P1: one line crediting Chess's own CC0 pieces, reworded by P2.)
@@ -241,7 +246,8 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
 Contradictions resolved:
  1 No theme filter in v1 (R1.5's filter moves to v1.x).
  2 The strip shows <= 3 buttons chosen by context: your turn = Takeback, Game Hint, Menu; engine
-   thinking = Move now, Menu; Resign and Draw offer live in the Menu.
+   thinking = Move now, Menu; Resign and Draw offer live in the Menu. (AMENDED by N3 and N4: the
+   back arrow at the left and the Menu mark at the right are not among the three text buttons.)
  3 While the engine thinks the board is locked; the strip stays live.
  4 One screen-on rule everywhere: 5 min since the last touch/wheel event (supersedes B6's rule).
  5 The save file uses "Open"; the schema includes Missed + rating history, both capped.
@@ -557,12 +563,14 @@ Rulings the log didn't make, each chosen as the one most consistent with it:
 - R4.10 The last mode lives in `mode.txt` (one word; missing = Puzzles), not in either mode's file: it
   is read before either mode loads (D6). The new-game choices (Level, Side, Think Time; first time
   Level 1, White, 3 s) and the board flip are new fields of `games.json`, schemaVersion still 1
-  (fields only added).
+  (fields only added). (KEPT by N2, file and words; AMENDED by N1-N2: the last mode's place opens
+  over Home, not as the root.)
 - R4.11 On relaunch with no Game in progress, the game mode shows the last finished Game at its Result
   (Next leads on). "Play the computer" in the puzzle Menu returns to the Game in progress, else opens
   the new-game page. "Puzzles" in the game Menu stops the computer's search until the game mode
   shows again; the Menu itself doesn't stop it, and keeps the screen on while it thinks
-  (contradiction 4).
+  (contradiction 4). (The Menus' "Play the computer" and "Puzzles" SUPERSEDED by N1-N2: Home's
+  rows; leaving the board for Home stops the search.)
 - R4.12 The new-game page names the Side choice "Play as" (White, Black, Random): CONTEXT.md avoids
   "colour". Think Time is offered on it only at Level 8, and in the game Menu only for a Level 8 Game,
   where it applies from the computer's next Move; the record's ThinkTime tag keeps the latest value.
@@ -572,6 +580,7 @@ Rulings the log didn't make, each chosen as the one most consistent with it:
   Menu).
 - R4.14 Games rows read "2026.09.28 · Level 3 · Won" (Won, Lost, Draw, Unfinished). A tap opens that
   Game at its Result, with the user's Side at the bottom, for Review by the wheel; Back returns.
+  (The "Back" text button SUPERSEDED by N3: the strip's back arrow.)
 - R4.15 "Play from here" (F7) is deferred to v2.x: it needs its own entry on the puzzle screen, a
   "decided Position" test (an eval before the Game starts) and the "Ends your current game" copy.
   LEDGER.md lists it. GameData.startNew already saves the replaced Game as unfinished.
@@ -589,7 +598,7 @@ Rulings the log didn't make, each chosen as the one most consistent with it:
     board: R1.9, F2) away. Next to Latest and Menu even "Review · 99 of 99" needs two lines, and a
     Game passes 100 Plies at move 50.
   - Unchanged: "Finding a Game Hint" with Menu, "New game" with Menu, a Result with Next and Menu
-    (R4.1) or with Back.
+    (R4.1) or with Back. (Back SUPERSEDED by N3's arrow, Menu by N4's mark.)
   StripFitTest checks the game strips at one line (`GameStrip.statusLines`: 2 only for a Result) with
   "Review · 9999 of 9999". Its stand-in was recalibrated on the LP3 screencaps of v2 PR 4 (DESIGN.md
   "The strip"): it reproduces both wraps and both one-line strips, measures every string at least
@@ -804,6 +813,7 @@ A fresh chess-expert agent's rulings on v3 PR 1's open questions (LEDGER.md "Ope
   in its own file. A finished Game stays in the Play a friend list only during V10's rematch window.
 - W6 Screens:
   - The Menu entry "Play a friend", or "Play a friend · Your move: 2" when that count is above 0.
+    (The entry SUPERSEDED by N1 and N5: it is Home's row, with the same words, and no Menu has it.)
   - The Play a friend page lists, in E7's order: your Move first, soonest time left first; then their
     move; then invites; then stopped Games. Rows look like "ABCD · Your move · 2d". The bottom buttons
     are "New game" and "Enter code".
@@ -888,9 +898,11 @@ Rulings the log didn't make, each the one most consistent with it, taken while b
   Play a friend page the Tool's first screen, as the game mode makes the Game's board. With the URL
   empty the friend mode shows Puzzles. The page's Menu is in the top bar: New game and Enter code
   leave the strip no room for it; that Menu offers Puzzles, Play the computer, Games and About.
+  (SUPERSEDED by N2 and N7: the page opens over Home, and has no Menu.)
 - Y7 A chosen Move's strip has four buttons (SAN, Send, Undo, Menu): W4 names Send and Undo, W2 puts
   "Send and offer draw" in the Menu while the Move waits, and StripFitTest holds it to one line. It is
-  the only strip past contradiction 2's three.
+  the only strip past contradiction 2's three. (AMENDED by N4: Menu is the mark, so the SAN sits
+  beside two text buttons, Send and Undo, within contradiction 2's three.)
 - Y8 Second taps (Cancel, Forget game, Resign) stand until the second tap or another page, as Resign
   does against the computer. "Tap again to cancel" shows next to Cancel alone: next to Cancel and
   Menu it needs two lines.
@@ -926,7 +938,8 @@ Rulings the log didn't make, each the one most consistent with it, taken while b
   About, "Puzzle <id>" over "lichess.org/training/<id>", for the Attempt on screen (a Missed replay's
   own id). Text only, never a link: the phone has no browser and Chess never uses the network (D5).
   The address gets its own line because Android broke it at a slash when it shared one with the id
-  (emulator); each line fits 360 dp whole with the widest id (`StripFitTest`).
+  (emulator); each line fits 360 dp whole with the widest id (`StripFitTest`). (The placement
+  SUPERSEDED by N8: the lines end About.)
 - S2 The save file keeps up with every result (A8, "written on every result"): a background save
   follows every change to what the file keeps except the Moves of the Attempt on screen, which is
   the Attempt's state, `done`, `solutionShown` and "Try again". Seen on the emulator: after a wrong
@@ -937,6 +950,7 @@ Rulings the log didn't make, each the one most consistent with it, taken while b
   from Player Rating, Missed or About returns to the Menu, as the arrow does, and the Menu returns to
   the Puzzle. System Back can't be intercepted by a screen (PLATFORM.md), which is why pages that were
   only state inside one screen skipped the Menu. Back from the puzzle screen still closes the Tool.
+  (That last sentence SUPERSEDED by N2: it goes to Home.)
 
 ## Pieces: an original CC0 set (2026-09-29)
 - P1 SUPERSEDES R1.7's piece source (cburnett), D7's cburnett credit, and F11's "cburnett only" and
@@ -995,6 +1009,8 @@ Rulings the log didn't make, each the one most consistent with it, taken while b
   - The Menu shows the choice as a row, "Pieces · Geometric", between Missed and About; a tap moves to
     the next set ("Pieces · Rounded", then back) and stays on the Menu. The Puzzle id row stays the
     Menu's last row (S1). The Menu page doesn't scroll, so the row takes no wheel key (R4.17).
+    (The placement SUPERSEDED by N1 and N5: the row is Home's, between Games and About, and no Menu
+    has it; the Puzzle id by N8; the wheel by N10, as Home scrolls on the LP3.)
   - The board and the promotion picker draw the chosen set. It changes nothing about play.
   - Saved: `pieceSet` in `puzzles.json`, v1's only save file, written at once like every other kept
     change (S2). It outlasts a relaunch and Reset rating (F5 resets only the Player Rating). A file
@@ -1024,11 +1040,14 @@ review follow-ups (V1-V5). Two rulings reconcile them with v2's Menus and save f
   "Pieces · Geometric", sits just above About in both Menus: the puzzle Menu reads Player Rating,
   Missed, Play the computer, Pieces, About, then the Puzzle id row, still last (S1); the game Menu
   ends New game, Games, Puzzles, Pieces, About. A tap moves to the next set and stays on the Menu.
+  (The row's place SUPERSEDED by N1 and N5: it is Home's, and neither Menu has Pieces, Games,
+  Puzzles, About or the Puzzle id, N8. The Tool-wide choice and every board drawing it stand.)
 - M2 Applies S3 to v2's pages: New game, Games and Moves are each their own Menu screen on the back
   stack, so Back (the arrow or the system's) goes one page up to the Menu. Start leaves the Menu for
   the board, as a reset or a Missed replay does. New game opened from the Result's Next is its own
   screen over the board, so Back returns to the board. A finished Game opened from Games goes back to
-  Games.
+  Games. (AMENDED by N2 and N5: Games is Home's page, not the Menu's; New game opened from Home is
+  replaced by the board on Start, and sits over no board until then.)
 - M3 V4 holds for the game owner too: `GameOwner` reads the Book through the latest screen that asked
   for it, as `PuzzleOwner` reads the Pack, so a relaunch releases the old activity.
 - M4 Fixes M1 on a cold start into the game mode (PR 2 review): the game screen waited only for
@@ -1045,14 +1064,17 @@ feat/v3 takes feat/v2-play after its forward merge above (M1-M3). These were M4 
 feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 and M6 here.
 - M5 M1 reaches Play a friend: the Correspondence Game's board draws the Piece Set, and its Menu
   has the Pieces row just above About; the Play a friend page's Menu (MenuScreen) has it above About
-  too, as the puzzle and game Menus do. Still one choice, kept in `puzzles.json`.
+  too, as the puzzle and game Menus do. Still one choice, kept in `puzzles.json`. (The Pieces rows
+  SUPERSEDED by N1, N5 and N7: the row is Home's, and the Play a friend page has no Menu.)
 - M6 M2's pages: the Play a friend Menu's Play the computer opens the new-game page as its own
   screen when no Game is in progress (R4.11), and Games and About are their own screens (S3). The
   Correspondence Game's own Menu (FriendScreen: Moves, Rename) still keeps its pages as state in one
-  screen, so system Back there skips to the board: S3 isn't applied to it yet (LEDGER.md).
+  screen, so system Back there skips to the board: S3 isn't applied to it yet (LEDGER.md). (FIXED by N6.)
+  (The Play a friend Menu SUPERSEDED by N7: Home opens the new-game page, Games and About.)
 - M7 M4 reaches Play a friend (the merge of main after 0.2.0): the Correspondence Game's board and
   its Menu's Pieces row read the Piece Set the puzzle owner publishes before any Band, as the game
-  screen does, and so do the Play a friend page's Menu and the game Menu's row.
+  screen does, and so do the Play a friend page's Menu and the game Menu's row. (The rows
+  SUPERSEDED by N1 and N5: Home's Pieces row reads the set the same way, waiting for it, M4.)
 
 ## Stockfish calibration (2026-09-29; docs/levels.md "The Stockfish gauntlet")
 - Facts: Stockfish 19 (Homebrew; 17.x no longer offered), Mac only, run as a UCI process from
@@ -1221,3 +1243,105 @@ docs/protocol.md; the Tool is unchanged (it speaks HTTPS only, RelayConfig.URL, 
   unredeemed Games per /48 are alive at once, each deleted after 48 hours. Why 100: ten /64s' worth,
   so a /48 that is one site (a household, an office) with several phones behind it is never the
   limit before each phone's own /64 is.
+
+## Navigation D (owner, 2026-09-30)
+The owner chose navigation model "D" after a UX review, a fresh-eyes diagnosis, a look at lichess,
+chess.com and LightOS, and interactive mocks. The diagnosis: Chess had no fixed home. Its root screen
+was whichever mode was used last (D6, R4.10, Y6), so system back from a Game against the computer
+closed Chess. "Menu" meant four different lists that mixed actions, places and settings (B5, M1, M2,
+M5, Y6). And the three activities were each built differently. The research: lichess and chess.com
+keep a game's actions apart from the app's navigation; LightOS is a vertical list plus back; a
+hidden gesture is found about half as often as a visible control; and a swipe on the board would
+collide with drag Moves and with the system's edge back. The rule of D: LEFT always leaves (toward
+Home), RIGHT always opens this board's actions, and a fixed Home list goes places. No gestures.
+- N1 Home. SUPERSEDES D6's "open on the mode LAST USED" as the root, R4.10's and Y6's first screen,
+  and A10's "visible Menu (rating/history, About)". RULING: the root screen is a list titled
+  "Chess", with no back arrow; system back from it closes Chess. Its rows, in order: "Puzzles",
+  "Player Rating · 1727?", "Missed · 3", "Play the computer", "Play a friend" (with "· Your move: 2"
+  while that count is above 0, W6; absent while the Relay URL is empty, W8), "Games", "Pieces ·
+  Geometric", "About". The rating has its own row, directly under Puzzles, as on the puzzle Menu
+  before: the number shows once, on the row that opens it, the way a LightOS list puts a value on
+  its own row. "Puzzles · 1727?" over "Player Rating · 1727?" would show it twice. Puzzles opens
+  the Puzzle board. Player Rating, Missed, Games and About open their pages over Home. Play the
+  computer keeps R4.11's behaviour: it returns to the Game in progress, else it opens the new-game
+  page. Games is always there, Puzzles included, and so are Pieces (P2) and About. `HomeRows`
+  holds the rows as data (`HomeTest`).
+- N2 Launch and depth. KEEPS A10 and D6's resume. SUPERSEDES S3's "Back from the puzzle screen
+  closes the Tool". RULING: Chess opens on the last-used place (`mode.txt`, R4.10's file and words),
+  pushed on top of Home. A cold start in Puzzles opens straight into the current Puzzle, with Home
+  underneath, and back from the Puzzle goes to Home. A cold start in the computer mode opens the
+  Game's board (R4.11: the last finished Game at its Result when none is in progress), and the
+  friend mode opens the Play a friend list. With the Relay URL empty it opens the Puzzle instead
+  (Y6). Opening a place from Home writes its mode; the pages (Player Rating, Missed, Games,
+  About) don't. A Missed replay and Reset rating write Puzzles. Every place is at most root, then
+  place, then detail: Home, then the Puzzle board; Home, then the computer's board (the new-game
+  page, when Home opens it, is replaced by the board on Start, so back from the board goes to Home,
+  not to the form); Home, then Play a friend, then a Correspondence Game's board or an invite;
+  Home, then Games, then a replayed Game; Home, then Missed, Player Rating or About. A Missed replay
+  and Reset rating replace their page with the Puzzle board, as Start replaces the new-game page.
+  Leaving the computer's board for Home stops its search until the board shows again (R4.11's
+  "Puzzles" rule, which it replaces); the board's Menu and its pages don't stop it (contradiction 3).
+  A page opened from Home, New game included, sits over no board, so it never starts the
+  computer's search; only one opened from the board or from a page over it does (`MenuScreen`'s
+  `overGame`). A Game Hint being found when the board leaves is dropped, and one on show goes, so the
+  strip offers Hint again on return (`GameOwner.pause`). `Navigation` holds the launch stack and
+  where each Home row leads, and `HomeNavigator` what opens over what and what replaces a page once
+  done (`HomeTest`, `GameOwnerTest`).
+- N3 The back arrow on every board. SUPERSEDES the Games replay's "Back" text button (v2 PR 4) and
+  R1.8's "the strip is exactly as wide as the board". RULING: every board's strip (a Puzzle, a Game
+  against the computer, a Correspondence Game, a replayed Game) has LightOS's back arrow
+  (`LightIcons.BACK`) at its left, in every state, drawn where LightOS's top bar draws it: one grid
+  unit in from the screen's edge, two grid units square, so its ink covers pixels 48 to 82 of 1080
+  on the LP3 (the last inked pixel is 82; its right edge is at x = 83 px, 27.7 dp), as measured on
+  LightOS screenshots, centred on the strip's text line. It does what system back does (`goBack`),
+  and its label is "Back". The strip now spans the screen: the status starts 2.8 grid units in
+  (37 dp, 112 px), inside the board's content area. The target covers the strip's height and is 48
+  dp wide from the screen's edge (`StripLayout.backTarget`), as the mark's is: it runs about 11 dp
+  over the start of the status, which takes no touches, and the ink stays where it is. The Captured
+  Pieces row (P3) stays aligned with the board.
+- N4 The Menu mark. SUPERSEDES the strip's "Menu" text button (R1.8, contradiction 2, Y7). RULING:
+  the Menu is three solid squares, LightOS's "more" mark as the Album tool draws it: each about 2.67
+  by 2.33 dp (8 by 7 px on the LP3), 9.33 dp (28 px) apart centre to centre. They are drawn as
+  shapes, not typed as a font's full stops, because the emulator (Roboto) and the LP3 (Akkurat)
+  draw full stops differently. They are centred on the strip text's x-height, measured from the font
+  in use, not on the baseline. The mark sits at the strip's right, its ink ending 16 dp from the
+  screen's edge (the back arrow's mirror), with a 48 dp wide target the strip's full height. Its
+  label stays `UiCopy.MENU_DESCRIPTION` ("Open the Menu"), so a script that taps "Menu" still finds
+  it. It replaces every strip "Menu" button: the computer's board, a Correspondence Game's board,
+  the invite page. Text buttons sit to its left, at most three (contradiction 2; Y7's four are now
+  SAN, Send, Undo and the mark). The last one's label ends where the target starts, its right
+  padding under the target, which takes those touches: "Rematch?" beside Accept and Decline needs
+  those 8 dp (N9). Without the mark, the last label's ink ends 16 dp from the edge, where the
+  mark's would.
+- N5 A Menu holds only this board's actions. SUPERSEDES B5's, M1's, M2's, M5's and M7's Menu rows
+  for places and settings, P2's and M1's Pieces row in every Menu (it is on Home), S1's Puzzle id
+  row (N8), and Y6's and W6's Play a friend Menu. RULING: the computer's Menu: Offer draw, Resign,
+  Takeback, Flip board, Moves, Think Time (Level 8), New game, each as before (G1's lines, the
+  second taps). A Correspondence Game's Menu: why it stopped (the halt line, W13), Send and offer
+  draw or Offer draw (or its lightened line), Resign, Moves, Rename, Forget game (over or stopped).
+  An invite's Menu: the halt line, Rename, Forget game (stopped). None has Puzzles, Play the
+  computer, Play a friend, Games, Pieces, About, Player Rating or Missed. The Puzzle board has no
+  Menu: its strip is the arrow, the status and Hint, Solution, Next or Latest as before. `GameMenu`
+  and `FriendMenu` hold the rows as data (`MenuTest`).
+- N6 S3 everywhere. FIXES M6's open issue. RULING: every Menu page is its own screen on the back
+  stack, so system back pops one level: a Correspondence Game's Moves and Rename now open as screens
+  over its Menu, as the computer's Moves and New game already did (M2). A second tap ("Tap again to
+  resign", "Tap again to forget") is a row that changes in place, not a page, so it needs no screen.
+  New game on the Play a friend list becomes its invite in place once the code is made: the invite
+  replaces the form, so back from the invite goes to the list.
+- N7 The Play a friend list. SUPERSEDES W6's and Y6's top-right "Menu". RULING: a LightOS top bar
+  with the back arrow (to Home) and the title "Play a friend", and no Menu: Home has everything it
+  offered. Its strip (New game, Enter code) is unchanged, and so is its order (E7). A deleted
+  Game's row still opens that Game's Menu (W13).
+- N8 About carries the Puzzle's id. SUPERSEDES S1's placement (the Menu's last row), keeps A9's
+  intent. RULING: About ends with the Puzzle last shown: "Puzzle 00sHx" over
+  "lichess.org/training/00sHx", as text (D5, D7). About is opened from Home, whose Puzzles row
+  opens that Puzzle.
+- N9 Copy. RULING: a draw offer's strip reads "Draw?" (`UiCopy.DRAW_QUESTION`). The Play a friend
+  row keeps "Draw offered". The draw offer's and the rematch offer's strips gain the Menu mark:
+  "Draw? · Accept · Decline · Menu" and "Rematch? · Accept · Decline · Menu". `StripFitTest`
+  measures every strip with the arrow and the mark, at the LP3's width.
+- N10 The wheel. KEEPS R1.9, F2, F3 and R4.17 on every board and page. RULING: Home is a list page.
+  While it scrolls (on the LP3 its eight rows under the top bar need more than the app area's 389
+  dp), it takes the wheel one row per detent and takes every event, a click included (F3). If
+  all its rows fit, the wheel stays with LightOS, as it did on the puzzle Menu (P2).

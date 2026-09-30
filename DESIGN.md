@@ -4,11 +4,36 @@ Tunable values and the rules behind them. Rulings live in `docs/design/decision-
 this file holds the constants we expect to adjust from measurements on the Light Phone III, and the
 small decisions v1 PRs 3 and 4 made that the log doesn't cover.
 
+## Navigation (N1-N10)
+
+LEFT always leaves (toward Home), RIGHT always opens this board's actions, and a fixed Home list goes
+places. No gestures. Rulings: decision log "Navigation D".
+
+- Home (`HomeScreen`, the `@InitialScreen`): LightOS's top bar titled "Chess" with no back arrow, then
+  the rows `HomeRows` gives: "Puzzles", "Player Rating · 1727?", "Missed · 3", "Play the computer",
+  "Play a friend" or "Play a friend · Your move: 2" (only with the Relay URL set), "Games", "Pieces ·
+  Geometric", "About". Before `puzzles.json` is read the rating and Missed rows show no status and
+  Pieces is hidden (M4). System back from Home closes Chess.
+- Launch (`Navigation.launch`): the place last used (`mode.txt`) is pushed over Home on the
+  activity's first show, before Home is drawn: the Puzzle board, the computer's board, or the Play a
+  friend list (the Puzzle when the Relay URL is empty). The launch doesn't write `mode.txt`; opening a
+  place from Home does.
+- Depth: Home, then a place (the Puzzle board, the computer's board, Play a friend), then a detail (a
+  Correspondence Game's board or an invite, a replayed Game, a board's Menu and its pages). Player
+  Rating, Missed, Games and About are pages over Home. Play the computer with no Game in progress
+  opens the new-game page, and Start replaces it with the board; Reset rating and a Missed replay
+  replace their page with the Puzzle board.
+- Every Menu page is its own screen (S3, N6): the computer's Moves and New game, a Correspondence
+  Game's Moves and Rename. A second tap ("Tap again to resign") changes its row in place.
+- Home scrolls on the LP3 (eight 53 dp rows under a 40 dp top bar in 389 dp), so it takes the wheel,
+  one row per detent, every event (F3). It measures that from its own layout: if its rows ever fit,
+  the wheel stays with LightOS.
+
 ## Layout (R1.8)
 
 The LP3's app area is 1080 × 1168 px at 480 dpi: 360 dp wide, about 389 dp tall. The board is 312 dp
 square (8 × 39 dp, 117 px squares), centred, 12 dp below the top of the app area, with 24 dp either
-side. The strip is exactly as wide as the board, directly under it, and two `Copy` lines tall (90
+side. The strip spans the screen directly under it (N3), and is two `Copy` lines tall (90
 design px, 58 dp on the LP3; never under 48 dp). About 7 dp stay free at the bottom. In a Game, the
 strip's top band is kept for the Captured Pieces row (P3; "The game screen" below): 17 dp drawings 3 dp
 under the board once something is taken, and from the first Position the strip's text centred in the
@@ -17,6 +42,7 @@ under the board once something is taken, and from the first Position the strip's
 The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). The puzzle
 flow puts the side to move after the setup Move at the bottom (A5). The game screen puts the user's
 Side at the bottom; "Flip board" in the Menu turns it (D10, v2), and the flip is kept in `games.json`.
+The Captured Pieces row stays aligned with the board, 24 dp from either edge.
 
 ## Palette (D10)
 
@@ -57,16 +83,14 @@ README there has the design rules), converted to ImageVector code at build time 
 silhouette in white over a wider black outline, so it keeps an edge on the light square (216) as well
 as the dark one. Each piece is drawn in its square with a small inset.
 
-The player's Piece Set is geometric until changed. The Menu's "Pieces · Geometric" row moves to the
-next set on each tap ("Pieces · Rounded", then back), and every board and its promotion picker draw
-it from then on: the Puzzle, the Game with the computer and a finished Game from Games (M1). The row
-is in the puzzle Menu and the game Menu, just above About. The choice is saved once, in
-`puzzles.json` (`pieceSet`), so it outlasts a relaunch and Reset rating; a set this build doesn't know
-reads as geometric. The puzzle owner reads it from the file before any Band (M4): a cold start
-into a Game draws its first frame in the chosen set, and the game Menu has the row at once. The row
-is a tap target only: the puzzle Menu doesn't scroll, so the wheel stays with LightOS there (R1.9,
-R4.17); the game Menu scrolls, so there the wheel moves the page one row per detent and takes every
-wheel event, a click included (F3).
+The player's Piece Set is geometric until changed. Home's "Pieces · Geometric" row (N1, N5: no
+Menu has it any more) moves to the next set on each tap ("Pieces · Rounded", then back), and every
+board and its promotion picker draw it from then on: the Puzzle, the Game with the computer, a
+Correspondence Game and a finished Game from Games (M1). The row sits just above About. The choice is
+saved once, in `puzzles.json` (`pieceSet`), so it outlasts a relaunch and Reset rating; a set this
+build doesn't know reads as geometric. The puzzle owner reads it from the file before any Band (M4):
+a cold start into a Game draws its first frame in the chosen set. The row is a tap target only; the
+wheel scrolls Home (N10).
 
 ## Marks (R1.6, R1.7, A5)
 
@@ -121,11 +145,33 @@ maps touches to squares. Every legality question goes to the rules core.
 
 ## The strip (R1.8, F11, contradiction 2)
 
-A status line on the left and up to three text buttons on the right, as in Reader's footer: LightOS
-`Copy` text, the status in the secondary content colour, buttons in the content colour with LightOS's
+On every board, LightOS's back arrow at the left (N3), a status line, up to three text buttons, and
+the Menu mark at the right where the board has a Menu (N4), as in Reader's footer: LightOS `Copy`
+text, the status in the secondary content colour, buttons in the content colour with LightOS's
 press without a ripple, 8 dp padding around each button. Every button carries a semantics label and
 the Button role (F11). The buttons sit edge to edge, 4 dp after the status: with 4 dp between them,
 "White to move" was cut short next to Hint, Solution and Menu on the emulator.
+
+The strip spans the screen (`StripLayout`, values on the LP3's 1080 px):
+
+- The back arrow is `LightIcons.BACK` where LightOS's top bar draws it: one grid unit (a 27th of the
+  width) in, two grid units square, so its ink covers pixels 48 to 82 (the last inked pixel is 82;
+  its right edge is at x = 83 px, 27.7 dp), centred on the text line. Its target is the strip's
+  height and 48 dp wide from the edge (`StripLayout.backTarget`): past where the status starts, over
+  the status's first 11 dp, which takes no touches. It calls `goBack`, as
+  system back does; its label is "Back". Every board has it in every state: a Puzzle, the computer's
+  Game, a Correspondence Game, a replayed Game.
+- The status starts 2.8 grid units in (37 dp, 112 px), 13 dp inside the board's edge; without the
+  arrow (the invite page, the Play a friend list, whose top bars have one), at the board's edge.
+- The Menu mark is three solid squares, 8 by 7 px, 28 px apart centre to centre, drawn as shapes (a
+  full stop differs between Roboto and Akkurat). Its ink ends 16 dp (48 px) from the right edge, the
+  arrow's mirror. It is centred on the x-height of the `Copy` text in the font in use: the label's
+  baseline, from Compose's text layout, less half the ink height of an "x", from the font's own
+  glyph (`Paint.getTextBounds`). Its target is 48 dp wide, the strip's full height, at the right
+  edge; its label is "Open the Menu". The last text button ends at the target, its right padding
+  under it (the target takes those touches), which "Rematch?" beside Accept and Decline needs.
+- Without the mark, the last text button's label ends 16 dp from the edge, so whatever sits
+  rightmost ends at the same place.
 
 The status wraps to a second line instead of being cut short. On the LP3, in LightOS's font
 (Akkurat), a one-line status lost its end: "Tap a piece, then a squ…" next to Menu. Measured the same
@@ -133,10 +179,11 @@ way, "White to move" next to Hint, Solution and Menu and "Review · 12 of 14" ne
 and Menu don't fit on one line either, so they show as "White to / move" and "Review · / 12 of 14".
 The strip is always two lines tall, so the board never moves when a status wraps.
 
-`StripFitTest` checks every strip in the table below and in the game screen's: each button on one
-line, each status in the room its buttons leave, in at most two lines (one for a game status but a
-Result, R4.16), with the widest numbers ("Failed −999", "Review · 99 of 99", "Review · 9999 of
-9999"). Akkurat can't ship with the repo, so the test measures with a stand-in: Helvetica's advance
+`StripFitTest` checks every strip the boards and pages can show, from their own strip functions
+(`PuzzleStrip`, `GameStrip`, `FriendStrip`): each button on one line, each status in the room its
+buttons, the arrow and the mark leave at the LP3's 360 dp, in at most two lines (one for a game
+status but a Result, R4.16), with the widest numbers ("Failed −999", "Review · 99 of 99", "Review ·
+9999 of 9999"). Akkurat can't ship with the repo, so the test measures with a stand-in: Helvetica's advance
 widths with the narrow letters widened (i and j to 280/1000 em, t to 325), scaled by 1.14, at `Copy`
 size for a 389 dp tall screen (19.45 sp). It is calibrated on LP3 screencaps (1080 px wide, 3 px per
 dp, the strip from x 72 to 1008), three ways: twelve strings measured there (ink plus 3 dp of side
@@ -146,18 +193,21 @@ from where its ink starts, is wider than the stand-in's for five button sets; an
 LP3 did, and keeps "Your move" next to Hint and Menu and "Review · 4 of 6" next to Latest and Menu on
 one line, as the LP3 did. The v1 stand-in (Helvetica × 1.15) fell short on "Hint" and "Latest"
 (Akkurat's i and t are wider); a wider scale would put "White to move" on three lines next to Hint,
-Solution and Menu, where v1 has it on two (not yet seen on the LP3). A new strip string or state goes
-into the test.
+Solution and Menu, where v1 has it on two (not yet seen on the LP3). The calibration is in the
+layout those screencaps show (the strip as wide as the board, "Menu" as text); the strips themselves
+are measured in N3's and N4's. A new strip string or state goes into the test.
 
-Buttons by context:
+The Puzzle board's buttons by context (`PuzzleStrip`), each after the back arrow; the Puzzle board
+has no Menu (N5):
 
 | When | Buttons |
 |---|---|
-| The user's Move, the Solution's reply pending | Hint, Solution, Menu |
-| The very first Puzzle, before its first Move (F6) | Menu |
-| The Solution playing | Menu |
-| The result (D1) | Next, Menu |
-| Review | Latest, then Next at the result, then Menu |
+| The user's Move, the Solution's reply pending | Hint, Solution |
+| The very first Puzzle, before its first Move (F6) | none |
+| The Solution playing | none |
+| The result (D1) | Next |
+| Review | Latest, then Next at the result |
+| Every Puzzle is finished | none |
 
 ## The puzzle flow (A3-A8, D1-D4, F1-F6)
 
@@ -200,8 +250,8 @@ and writes the file; the two screens' view models are views onto it.
   that outruns the read ahead reads the file itself, as before.
 - The stage clock (A5) starts again only when the Attempt on screen changed, so a tap that changes
   nothing (Hint while the reply is pending) doesn't delay the reply. A slide (setup, reply, Solution)
-  is cleared once it has played, and whenever its Move is no longer the latest, so a return from the
-  Menu doesn't play it again.
+  is cleared once it has played, and whenever its Move is no longer the latest, so a return to the
+  Puzzle board from Home doesn't play it again.
 - The owner reads assets through the latest screen that asked for it (`PuzzleOwner.of`): the SDK
   reads them only through a screen's activity, so keeping the first screen's reader kept the first
   activity alive after a relaunch.
@@ -221,21 +271,19 @@ copy for the object on screen, while code names the chess state a Position.
   "Hinted, unrated" for a Hinted one whose Solution was shown, and for a Missed replay "Solved,
   unrated" or "Failed, unrated". "Every Puzzle is finished" when the Pack runs out.
 - Buttons and their labels: "Hint" ("Puzzle Hint: mark the piece to move"), "Solution" ("Play the
-  Solution"), "Next" ("Next Puzzle"), "Menu" ("Open the Menu"), "Latest" ("Back to the latest
-  position").
+  Solution"), "Next" ("Next Puzzle"), "Latest" ("Back to the latest position"); the back arrow
+  ("Back") and the Menu mark ("Open the Menu") have no text (N3, N4).
 - The seed screen (D4): "How well do you play chess?", then "I'm new to chess" (800), "I play now and
   then" (1200), "I play often and study the game" (1600), "I play in a club or in tournaments" (2000),
   and "Skip" (1500).
-- The Menu: "Menu", "Player Rating · 1500?", "Missed · 3", "Play the computer", "Pieces · Geometric"
-  or "Pieces · Rounded" (P2, M1; a tap moves to the next set and stays on the Menu), "About", then a
-  plain row (not a button) for the Puzzle on screen, "Puzzle 00sHx" over "lichess.org/training/00sHx"
-  (A9 with D7, v1 smoke fixes). The Puzzle row stays last. The address has its own line, since Android
-  breaks it at a slash; `StripFitTest` checks that each line, and each Pieces row, fits 360 dp. Each
-  page is its own screen (the game Menu's New game, Games and Moves too: M2), so Back, the arrow or
-  the system's, goes from a page to the Menu and from the Menu to the board; Reset rating and a Missed
-  replay go straight to the puzzle screen. The rating page: "Player Rating", the rating, "Reset
-  rating" then "Tap again to reset" (F5), and rows "1523 · Solved +12"; "No rated Puzzles yet" when
-  empty. Missed: rows "1541 · Failed" or "1541 · Hinted"; "Nothing missed yet".
+- Home (N1): the title "Chess", then "Puzzles", "Player Rating · 1500?", "Missed · 3", "Play the
+  computer", "Play a friend · Your move: 2", "Games", "Pieces · Geometric" or "Pieces · Rounded" (P2,
+  M1; a tap moves to the next set and stays on Home), "About". `HomeTest` checks that each row fits
+  one line. Each page is its own screen, so Back, the arrow or the system's, goes from a page to Home
+  (or to the board it was opened over); Reset rating and a Missed replay go straight to the Puzzle
+  board. The rating page: "Player Rating", the rating, "Reset rating" then "Tap again to reset"
+  (F5), and rows "1523 · Solved +12"; "No rated Puzzles yet" when empty. Missed: rows "1541 · Failed"
+  or "1541 · Hinted"; "Nothing missed yet".
 - About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).
   - "Chess $VERSION" (0.3.1, equal to `versionName`)
   - "Copyright 2026 Nicolas Yarosz."
@@ -256,6 +304,9 @@ copy for the object on screen, while code names the chess state a Position.
     notice. NOTICE names the same libraries.
   - "Engine: Pirarucu by Raoni Campos (ratosh), GPL-3.0." (D7, v2 PR 4), before the Book's line.
     NOTICE carries the longer credit.
+  - Last, the Puzzle last shown, "Puzzle 00sHx" over "lichess.org/training/00sHx" (A9 with D7, S1,
+    N8: it was the puzzle Menu's last row). The address has its own line, since Android breaks it at
+    a slash; `StripFitTest` checks that each line fits 360 dp.
 
 ## The game screen (v2 PR 4)
 
@@ -265,9 +316,13 @@ Hints, draw offers, Resign, what the computer does next), with `GameFlowTest`. `
 process-wide owner that runs the computer on `EngineHost.shared`, the clock and `games.json`;
 `GameStrip` picks the strip. Rulings: decision log "v2 PR 4".
 
-- The Tool opens on the mode last used (D6), kept in `mode.txt`. "Play the computer" in the puzzle
-  Menu returns to the Game in progress, or opens the new-game page; "Puzzles" in the game Menu goes
-  back and stops the computer's search until the game mode shows again.
+- The Tool opens on the mode last used (D6, N2), kept in `mode.txt`, over Home. "Play the computer"
+  on Home returns to the Game in progress, or opens the new-game page, which Start replaces with the
+  board. Leaving the board for Home stops the computer's search until the board shows again
+  (`GameScreen.onScreenDestroy`); its Menu and the Menu's pages don't. A page opened from Home, New
+  game included, sits over no board and never starts a search (`MenuScreen`'s `overGame`). A Game
+  Hint being found when the board leaves is dropped, and one on show goes, so the strip offers Hint
+  again on return (`GameOwner.pause`, `GameOwnerTest`).
 - The new-game page: "Level" with 1 to 8 on one line, "Play as" with "White", "Black" and "Random",
   and "Think Time" with "3 s", "10 s" and "30 s" at Level 8 only. The chosen option is in the content
   colour, the others lightened. "Start" starts; with a Game in progress it reads "Tap again to
@@ -284,16 +339,17 @@ process-wide owner that runs the computer on `EngineHost.shared`, the clock and 
 - Keep the screen on while the computer thinks, and on the user's Move while the last touch or wheel
   event was under 5 minutes ago (contradiction 4), in the Menu too.
 
-Buttons by context (contradiction 2):
+Buttons by context (contradiction 2), each after the back arrow (N3); "the mark" is the Menu mark
+(N4):
 
 | When | Status | Buttons |
 |---|---|---|
-| The user's Move | "Your move" | Hint, Menu |
-| A Game Hint being found | "Finding a Game Hint" | Menu |
-| The computer thinking | "Thinking" | Move now, Menu |
-| The Result | the Result | Next, Menu |
+| The user's Move | "Your move" | Hint, the mark |
+| A Game Hint being found | "Finding a Game Hint" | the mark |
+| The computer thinking | "Thinking" | Move now, the mark |
+| The Result | the Result | Next, the mark |
 | Review | "Review · 12 of 40" | Latest |
-| A finished Game from Games | the Result, or Review | Back at the Result, Latest in Review |
+| A finished Game from Games | the Result, or Review | none at the Result, Latest in Review |
 
 The Captured Pieces (P3), on every board in a Game (this screen, a Correspondence Game's board and
 Games Review), never on a Puzzle's. `CapturedPieces` (rules core) reads them from the Moves up to the
@@ -325,7 +381,8 @@ Review keeps Latest alone, which leaves room for "Review · 9999 of 9999".
 "Game Hint" and "New game" don't fit as labels: next to Takeback and Menu, "Game Hint" leaves no
 room for any status, and "New game" leaves too little for a Result. The labels are "Hint" and "Next";
 their semantics labels are "Game Hint: show the computer's best Move" and "Start a new game". The
-others: "Move now: the computer plays at once", "Back to the Games". Next opens the new-game page.
+others: "Move now: the computer plays at once". Next opens the new-game page. A replayed Game's
+arrow returns to the Games (N3: it replaces the old "Back" button).
 
 Results, from the user's view: "You won by checkmate", "You lost by checkmate", "You resigned", "You
 won by resignation" (never, since the computer never resigns, F8, but a hand-edited file can say so),
@@ -333,7 +390,7 @@ won by resignation" (never, since the computer never resigns, F8, but a hand-edi
 insufficient material" ("Draw by insufficient material" needs three lines next to Next and Menu).
 A Game replaced before its end shows "Unfinished".
 
-The Menu while a Game shows, top to bottom:
+The Menu while a Game shows, top to bottom (`GameMenu`; only this board's actions, N5):
 
 - "Offer draw" on the user's Move. The answer comes at once, in place: "Draw declined", or back to the
   board with "Draw agreed". While the computer thinks it reads "Offer draw on your move"; after an
@@ -347,13 +404,13 @@ The Menu while a Game shows, top to bottom:
   before the first.
 - "Think Time · 3 s" at Level 8: each tap goes to the next of 3, 10 and 30 s, for the computer's next
   Move and the next Games.
-- "New game", "Games", "Puzzles", "Pieces · Geometric" (the Piece Set, as on the puzzle Menu: M1),
-  "About". The page scrolls by the wheel, one row per detent; it takes every wheel event there, a
-  click included, which does nothing (F3).
+- "New game": the new-game page, its own screen over the Menu; Start returns to the board. The page
+  scrolls by the wheel, one row per detent; it takes every wheel event there, a click included,
+  which does nothing (F3).
 
-Games lists the finished Games, newest first, at most 50 (B7): "2026.09.28 · Level 3 · Won" (Won, Lost,
-Draw or Unfinished); "No finished Games yet" when empty. A tap opens the Game at its Result; the
-wheel reviews its Moves, and Back returns to the list.
+Games, on Home, lists the finished Games, newest first, at most 50 (B7): "2026.09.28 · Level 3 · Won"
+(Won, Lost, Draw or Unfinished); "No finished Games yet" when empty. A tap opens the Game at its
+Result; the wheel reviews its Moves, and Back (the strip's arrow or the system's) returns to the list.
 
 ## Play a friend (v3 PR 2)
 
@@ -363,10 +420,10 @@ and `FinishedGames` (the Games page's merge), each checked by StripFitTest or Fr
 `FriendOwner` is the process-wide owner over the sync engine; it exists only once the Relay URL is
 set (`RelayConfig`, W8).
 
-- The Menu entry: "Play a friend", or "Play a friend · Your move: 2". It sets the friend mode: the
-  Tool's first screen becomes the Play a friend page (mode.txt `FRIEND`).
-- The Play a friend page: the title "Play a friend" with "Menu" at the right of the top bar (next to
-  "New game" and "Enter code" the strip has no room for it), the rows in E7's order ("ABCD · Your
+- Home's row: "Play a friend", or "Play a friend · Your move: 2". It sets the friend mode: the Tool
+  then opens on the Play a friend page, over Home (mode.txt `FRIEND`, N2).
+- The Play a friend page (`FriendListScreen`, N7): LightOS's top bar with the back arrow (to Home) and
+  the title "Play a friend", and no Menu (Home has everything it offered); the rows in E7's order ("ABCD · Your
   move · 2d", "ABCD · Their move · 2d", "ABCD-EFGH · Expires in 47h", "ABCD · Rematch sent", "ABCD ·
   Won", "ABCD · Out of sync", a Seat being taken as "ABCD-EFGH · Not sent"), and "No games yet.
   Create a code for a friend, or enter theirs." when empty. At the cap both buttons are lightened
@@ -379,39 +436,44 @@ set (`RelayConfig`, W8).
   with "Time is up" (W12).
 - New game: "Play as" (White, Black, Random), "Days per move" (1, 3, 7), "Create code". The invite
   page shows the code in LightOS Subtitle, alone on its line, then "Tell your friend this code. It
-  works once, for 48 hours." Its strip: "Expires in 48h" with Cancel and Menu; the first Cancel
-  shows "Tap again to cancel" next to Cancel alone; an unconfirmed cancel shows "Not sent" with Retry.
+  works once, for 48 hours." Once the code is made the invite replaces New game, so back from it goes
+  to the list (N6). Its top bar has the back arrow; its strip: "Expires in 48h" with Cancel and the
+  Menu mark; the first Cancel shows "Tap again to cancel" next to Cancel alone; an unconfirmed cancel
+  shows "Not sent" with Retry and the mark. The invite's Menu: the halt line, "Rename", "Forget game"
+  when stopped.
 - Enter code: LightOS's text editor with the LP3 keyboard, "Join" to submit; the title reads "Enter
   code", then "Sending", then the answer: "Not a code", "No such code", "Code already used", "Try
   again in a minute", "No connection".
-- The board: the user's Side at the bottom, no flip. The strip:
+- The board: the user's Side at the bottom, no flip. The strip, each after the back arrow (N3);
+  "the mark" is the Menu mark (N4):
 
 | When | Status | Buttons |
 |---|---|---|
-| The user's Move | "Your move · 2d" | Menu |
-| A Move chosen, not sent (F11) | its SAN, such as "Nf3" | Send, Undo, Menu |
-| Sending | "Sending" | Menu |
-| Saved, not sent | "Not sent" | Retry, Menu |
-| Their move | "Their move · 2d" | Menu |
-| Their Deadline passed | "Time is up" | "Claim win" ("Claim win on time"), Menu |
-| Their draw offer | "Draw offered" | Accept, Decline |
-| Stopped | "Out of sync", "Update Chess", "Game deleted" or "Seat lost" | Menu |
-| The Result | R4.13's copy, "You won on time", "You lost on time", "Draw: dead position" | Rematch, Menu |
-| Our rematch offer | "Rematch sent" | Menu |
-| Theirs | "Rematch?" | Accept, Decline |
-| For 5 s after a rollback or refusal | "Not yet", "Offer not sent", or the Refusal's copy | Menu |
+| The user's Move | "Your move · 2d" | the mark |
+| A Move chosen, not sent (F11) | its SAN, such as "Nf3" | Send, Undo, the mark |
+| Sending | "Sending" | the mark |
+| Saved, not sent | "Not sent" | Retry, the mark |
+| Their move | "Their move · 2d" | the mark |
+| Their Deadline passed | "Time is up" | "Claim win" ("Claim win on time"), the mark |
+| Their draw offer | "Draw?" (N9) | Accept, Decline, the mark |
+| Stopped | "Out of sync", "Update Chess", "Game deleted" or "Seat lost" | the mark |
+| The Result | R4.13's copy, "You won on time", "You lost on time", "Draw: dead position" | Rematch, the mark |
+| Our rematch offer | "Rematch sent" | the mark |
+| Theirs | "Rematch?" | Accept, Decline, the mark |
+| For 5 s after a rollback or refusal | "Not yet", "Offer not sent", or the Refusal's copy | the mark |
 | Review | "Review · 12 of 40" | Latest |
 
-  The chosen Move's strip is the one with four buttons: Menu there holds "Send and offer draw".
-  "Draw: dead position" replaces "Draw: insufficient material", which needs three lines next to
-  Rematch and Menu.
+  With a Move chosen, the Menu holds "Send and offer draw". "Draw: dead position" replaces "Draw:
+  insufficient material", which needs three lines next to Rematch and Menu. The list's row for a draw
+  offer keeps "Draw offered".
 - The Refusals' copy: "Not allowed now", "Finish a game first", "Game deleted", "This game stopped",
   "Not a code", "No such code", "Code already used", "Your friend joined", "Try again in a minute",
   "Update Chess", "No connection", "The game moved on", "Not yet", "Couldn't save".
-- The game's Menu: "This game stopped: the two phones disagree." or "Update Chess to continue this
-  game" first when stopped, then "Send and offer draw" (a Move chosen), "Offer draw" (after one's own
-  Move) or "Offer draw after your move", "Resign" / "Tap again to resign", "Moves", "Rename", "Forget
-  game" / "Tap again to forget" (over or stopped), "Play a friend", "Pieces · Geometric" (M4), "About".
+- The game's Menu (`FriendMenu`, N5: this Game's actions only): "This game stopped: the two phones
+  disagree." or "Update Chess to continue this game" first when stopped, then "Send and offer draw"
+  (a Move chosen), "Offer draw" (after one's own Move) or "Offer draw after your move", "Resign" /
+  "Tap again to resign", "Moves", "Rename", "Forget game" / "Tap again to forget" (over or stopped).
+  Moves and Rename are screens of their own over the Menu (N6), so system back returns to it.
 - Button labels: "Send" ("Send this Move"), "Undo" ("Take this Move back before it is sent"),
   "Retry" ("Send it again"), "Accept" ("Accept the draw", "Accept the rematch"), "Decline" ("Decline
   the draw", "Decline the rematch"), "Rematch" ("Offer a rematch, Sides swapped"), "Cancel" ("Cancel

@@ -26,23 +26,22 @@ enum class FriendButton(val label: String, val description: String) {
     DECLINE_REMATCH(UiCopy.DECLINE, "Decline the rematch"),
     CANCEL(UiCopy.CANCEL, UiCopy.CANCEL_DESCRIPTION),
     LATEST(UiCopy.LATEST, UiCopy.LATEST_DESCRIPTION),
-    MENU(UiCopy.MENU, UiCopy.MENU_DESCRIPTION),
 }
 
 /**
  * What a Correspondence Game's strip shows (W4), as pure data so `StripFitTest` checks every case:
- * one line each but for a Result (R4.16). The invite page's strip is [invite].
+ * one line each but for a Result (R4.16). The invite page's strip is [invite]. A board's strip has the
+ * back arrow at its left (N3); [menu] is whether the Menu mark sits at its right (N4).
  */
-data class FriendStrip(val status: String, val buttons: List<FriendButton>, val statusLines: Int = 1) {
+data class FriendStrip(val status: String, val buttons: List<FriendButton>, val statusLines: Int = 1, val menu: Boolean = true) {
     companion object {
         /**
          * The strip for [game] at the Relay time [now] (the phone's estimate, V14). [chosen] is the Move
          * waiting for Send or Undo (F11); [sending] a request in flight; [notice] a few seconds' line.
          */
         fun of(game: CorrespondenceGame, now: Long, chosen: Move? = null, sending: Boolean = false, notice: String? = null, reviewPly: Int? = null): FriendStrip {
-            val menu = FriendButton.MENU
             val log = game.log
-            if (reviewPly != null && log != null) return FriendStrip(UiCopy.review(reviewPly, log.game.ply), listOf(FriendButton.LATEST))
+            if (reviewPly != null && log != null) return FriendStrip(UiCopy.review(reviewPly, log.game.ply), listOf(FriendButton.LATEST), menu = false)
             game.halt?.let { halt ->
                 val status = when (halt.reason) {
                     HaltReason.OUT_OF_SYNC -> UiCopy.OUT_OF_SYNC
@@ -50,47 +49,50 @@ data class FriendStrip(val status: String, val buttons: List<FriendButton>, val 
                     HaltReason.GONE -> UiCopy.GAME_DELETED
                     HaltReason.SEAT_LOST -> UiCopy.SEAT_LOST
                 }
-                return FriendStrip(status, listOf(menu))
+                return FriendStrip(status, emptyList())
             }
-            if (sending) return FriendStrip(UiCopy.SENDING, listOf(menu))
-            if (game.pending != null) return FriendStrip(UiCopy.NOT_SENT, listOf(FriendButton.RETRY, menu))
-            if (notice != null) return FriendStrip(notice, listOf(menu))
+            if (sending) return FriendStrip(UiCopy.SENDING, emptyList())
+            if (game.pending != null) return FriendStrip(UiCopy.NOT_SENT, listOf(FriendButton.RETRY))
+            if (notice != null) return FriendStrip(notice, emptyList())
             if (log == null) return invite(game, now)
             val position = log.game.position
             if (log.closed) {
                 val rematch = log.rematch
                 return when {
-                    rematch == null -> FriendStrip(UiCopy.friendResult(log.game.result, game.seat.side), listOf(FriendButton.REMATCH, menu), StripLayout.STATUS_MAX_LINES)
-                    rematch.accepted != null -> FriendStrip(UiCopy.friendResult(log.game.result, game.seat.side), listOf(menu), StripLayout.STATUS_MAX_LINES)
-                    rematch.offeredBy == game.seat.side -> FriendStrip(UiCopy.REMATCH_SENT, listOf(menu))
+                    rematch == null -> FriendStrip(UiCopy.friendResult(log.game.result, game.seat.side), listOf(FriendButton.REMATCH), StripLayout.STATUS_MAX_LINES)
+                    rematch.accepted != null -> FriendStrip(UiCopy.friendResult(log.game.result, game.seat.side), emptyList(), StripLayout.STATUS_MAX_LINES)
+                    rematch.offeredBy == game.seat.side -> FriendStrip(UiCopy.REMATCH_SENT, emptyList())
+                    // N9: "Rematch? · Accept · Decline", and the Menu mark.
                     else -> FriendStrip(UiCopy.REMATCH_OFFERED, listOf(FriendButton.ACCEPT_REMATCH, FriendButton.DECLINE_REMATCH))
                 }
             }
-            // W4's SAN + Send + Undo, plus Menu for W2's "Send and offer draw": the one strip with four
-            // buttons (decision log "v3 PR 2 (implementation)"); StripFitTest holds it to one line.
-            if (chosen != null) return FriendStrip(position.san(chosen), listOf(FriendButton.SEND, FriendButton.UNDO, menu))
+            // W4's SAN + Send + Undo, and the Menu for W2's "Send and offer draw" (Y7, N4); StripFitTest
+            // holds it to one line.
+            if (chosen != null) return FriendStrip(position.san(chosen), listOf(FriendButton.SEND, FriendButton.UNDO))
             val left = (log.deadline ?: now) - now
             return when {
+                // N9: "Draw? · Accept · Decline", and the Menu mark.
                 position.sideToMove == game.seat.side && log.game.openDrawOffer == game.seat.side.opponent ->
-                    FriendStrip(UiCopy.DRAW_OFFERED, listOf(FriendButton.ACCEPT_DRAW, FriendButton.DECLINE_DRAW))
-                position.sideToMove == game.seat.side -> FriendStrip(UiCopy.yourMoveLeft(left), listOf(menu))
-                left <= 0 -> FriendStrip(UiCopy.TIME_IS_UP, listOf(FriendButton.CLAIM, menu))
-                else -> FriendStrip(UiCopy.theirMoveLeft(left), listOf(menu))
+                    FriendStrip(UiCopy.DRAW_QUESTION, listOf(FriendButton.ACCEPT_DRAW, FriendButton.DECLINE_DRAW))
+                position.sideToMove == game.seat.side -> FriendStrip(UiCopy.yourMoveLeft(left), emptyList())
+                left <= 0 -> FriendStrip(UiCopy.TIME_IS_UP, listOf(FriendButton.CLAIM))
+                else -> FriendStrip(UiCopy.theirMoveLeft(left), emptyList())
             }
         }
 
         /**
-         * The invite page's strip (W4, G2): "Expires in 48h" with Cancel and Menu; after one tap on
-         * Cancel ([confirming]), "Tap again to cancel" next to Cancel alone, which is what fits one
-         * line; a cancel the Relay hasn't confirmed, "Not sent" with Retry.
+         * The invite page's strip (W4, G2): "Expires in 48h" with Cancel and the Menu mark; after one
+         * tap on Cancel ([confirming]), "Tap again to cancel" next to Cancel alone; a cancel the Relay
+         * hasn't confirmed, "Not sent" with Retry. The page's top bar has the back arrow, so its strip
+         * has none.
          */
         fun invite(game: CorrespondenceGame, now: Long, confirming: Boolean = false, notice: String? = null): FriendStrip {
             val invite = game.invite
             return when {
-                invite?.cancelling == true -> FriendStrip(UiCopy.NOT_SENT, listOf(FriendButton.RETRY, FriendButton.MENU))
-                notice != null -> FriendStrip(notice, listOf(FriendButton.MENU))
-                confirming -> FriendStrip(UiCopy.CANCEL_CONFIRM, listOf(FriendButton.CANCEL))
-                else -> FriendStrip(UiCopy.expiresIn((invite?.expiresAt ?: now) - now), listOf(FriendButton.CANCEL, FriendButton.MENU))
+                invite?.cancelling == true -> FriendStrip(UiCopy.NOT_SENT, listOf(FriendButton.RETRY))
+                notice != null -> FriendStrip(notice, emptyList())
+                confirming -> FriendStrip(UiCopy.CANCEL_CONFIRM, listOf(FriendButton.CANCEL), menu = false)
+                else -> FriendStrip(UiCopy.expiresIn((invite?.expiresAt ?: now) - now), listOf(FriendButton.CANCEL))
             }
         }
     }

@@ -2,9 +2,29 @@
 # One name per line, matched exactly. Domain terms go in CONTEXT.md instead. See AGENTS.md
 # "Domain language".
 
-# Tool shell (LightScreen / LightViewModel)
-ChessScreen
-ChessViewModel
+# Navigation D (decision log N1-N10): Home, the places and pages, the screens that show them, and
+# what each Menu row is. UI vocabulary: Home is the Tool's root list, not a domain concept.
+HomeScreen
+HomeViewModel
+HomeEntry
+HomeRow
+HomeRows
+HomeNavigator
+Navigation
+Place
+PuzzleScreen
+PuzzleViewModel
+PuzzleStrip
+PuzzleButton
+GameScreen
+GameViewModel
+FriendListScreen
+FriendListViewModel
+MenuItem
+GameMenu
+GameMenuEntry
+FriendMenu
+FriendMenuEntry
 
 # Rules core: standard chess vocabulary that names parts of a Position, not new domain concepts
 Square

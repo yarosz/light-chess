@@ -46,8 +46,12 @@ private const val TAG = "Chess"
  * alive for the life of the process after LightOS relaunches a new one.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class PuzzleOwner(filesDir: File, @Volatile private var readAsset: (String) -> ByteArray) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+class PuzzleOwner(
+    filesDir: File,
+    @Volatile private var readAsset: (String) -> ByteArray,
+    /** The main thread; a test passes an unconfined scope (`GameOwnerTest`). */
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
+) {
     private val io = Dispatchers.IO.limitedParallelism(1)
     private val pack = Pack { path -> readAsset(path) }
     private val flow = PuzzleFlow(pack)

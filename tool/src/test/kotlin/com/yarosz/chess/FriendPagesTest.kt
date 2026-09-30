@@ -126,7 +126,7 @@ class FriendPagesTest {
         assertEquals(UiCopy.theirMoveLeft(1), FriendStrip.of(timeUp, deadline - 1).status)
         assertEquals("${UiCopy.THEIR_MOVE} · 1m", FriendStrip.of(timeUp, deadline - 1).status)
         assertEquals(UiCopy.TIME_IS_UP, FriendStrip.of(timeUp, deadline).status)
-        assertEquals(listOf(FriendButton.CLAIM, FriendButton.MENU), FriendStrip.of(timeUp, deadline).buttons)
+        assertEquals(listOf(FriendButton.CLAIM), FriendStrip.of(timeUp, deadline).buttons)
     }
 
     @Test

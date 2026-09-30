@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -28,7 +27,6 @@ import com.thelightphone.sdk.ui.LightTheme
 import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
 import com.yarosz.chess.board.MoveInput
-import com.yarosz.chess.board.POSITION_VIEW_SIZE
 import com.yarosz.chess.board.PositionView
 import com.yarosz.chess.board.Review
 import com.yarosz.chess.board.Strip
@@ -207,11 +205,12 @@ class FriendGameScreen(
                     FriendButton.DECLINE_REMATCH -> friends.declineRematch(gameId)
                     FriendButton.CANCEL -> {}
                     FriendButton.LATEST -> vm.leaveReview()
-                    FriendButton.MENU -> navigateTo({ FriendScreen(it, FriendPage.MENU, gameId) }) { exit ->
-                        if (exit != null) goBack(exit)
-                    }
                 }
             }
+        }
+        val menu = StripButton(UiCopy.MENU_DESCRIPTION) {
+            vm.touched()
+            navigateTo({ FriendScreen(it, FriendPage.MENU, gameId) }) { exit -> if (exit != null) goBack(exit) }
         }
         Column(
             Modifier.fillMaxSize().padding(top = 12.dp),
@@ -229,7 +228,12 @@ class FriendGameScreen(
             )
             // A chosen Move not yet sent counts as shown (F11): its capture is in the row at once.
             val captured = rememberCapturedRow(shownGame ?: played, shownGame?.ply ?: shown, game.seat.side, pieceSet)
-            Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE), captured = captured)
+            Strip(
+                strip.status, buttons,
+                captured = captured,
+                back = StripButton(UiCopy.BACK_DESCRIPTION) { goBack() },
+                menu = menu.takeIf { strip.menu },
+            )
         }
     }
 
