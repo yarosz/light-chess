@@ -26,7 +26,7 @@ enum class GameButton(val label: String, val description: String) {
  * strip has the back arrow at its left (N3); [menu] is whether the Menu mark sits at its right (N4).
  *
  * Every status but a Result reads on one line on the LP3 (R4.16): Takeback is in the Menu, and in
- * Review the strip holds Latest alone, so the widest Ply numbers fit next to it.
+ * Review the strip holds Latest alone.
  */
 data class GameStrip(
     val status: String,
@@ -40,7 +40,7 @@ data class GameStrip(
         fun of(state: GameState, reviewPly: Int?): GameStrip {
             val record = state.record ?: return GameStrip(UiCopy.NEW_GAME, emptyList(), menu = false)
             val phase = state.phase
-            if (reviewPly != null) return review(record, reviewPly)
+            if (reviewPly != null) return review(record, reviewPly, menu = false)
             return when (phase) {
                 Phase.OVER -> result(record, listOf(GameButton.NEXT), menu = true)
                 Phase.COMPUTER -> GameStrip(UiCopy.THINKING, listOf(GameButton.MOVE_NOW))
@@ -54,19 +54,23 @@ data class GameStrip(
 
         /**
          * The strip of a finished Game replayed from the Games page, showing Ply [reviewPly] (null: its
-         * end). The back arrow returns to the Games (N3); the Menu mark, with Pieces, shows at the end
-         * (N17), and Review keeps Latest alone (R4.16).
+         * end). The back arrow returns to the Games (N3); the Menu mark shows in Review too (N21), as
+         * the replay's Menu holds only Pieces, which acts on no Game.
          */
         fun replay(record: GameRecord, reviewPly: Int?): GameStrip =
             if (reviewPly == null) result(record, emptyList(), menu = true)
-            else review(record, reviewPly)
+            else review(record, reviewPly, menu = true)
 
         private fun result(record: GameRecord, buttons: List<GameButton>, menu: Boolean) =
             GameStrip(UiCopy.gameResult(record.game.result, record.userSide), buttons, StripLayout.STATUS_MAX_LINES, menu)
 
-        /** Review, on the game screen and in a replay alike: the rest of the strip is back at the latest Position. */
-        private fun review(record: GameRecord, reviewPly: Int) =
-            GameStrip(UiCopy.review(reviewPly, record.game.ply), listOf(GameButton.LATEST), menu = false)
+        /**
+         * Review, on the game screen and in a replay alike: the rest of the strip is back at the latest
+         * Position. [menu]: the computer's board hides its mark in Review (N21), since its Menu's
+         * actions (Takeback, Resign, Offer draw, ...) act on the live Game, not the Position shown.
+         */
+        private fun review(record: GameRecord, reviewPly: Int, menu: Boolean) =
+            GameStrip(UiCopy.review(reviewPly, record.game.ply), listOf(GameButton.LATEST), menu = menu)
 
         /**
          * Every button set [of] can show on the computer's board (E6): the Captured Pieces keep the

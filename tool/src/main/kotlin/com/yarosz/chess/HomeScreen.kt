@@ -69,14 +69,13 @@ class HomeViewModel(
 }
 
 /**
- * [place]'s screen over the top one (N2, N16), opened by Home or the Puzzles page: [overGame] is
- * whether it sits over the computer's board (never, from either: none of their pages lets the computer
- * think). [onDone] runs once its page goes back with a result (Start, Reset rating, a Missed replay),
- * after the page is popped.
+ * [place]'s screen over the top one (N2, N16), opened by Home or the Puzzles page. Its pages sit over
+ * no board, so none lets the computer think (overGame false, New game included). [onDone] runs once
+ * its page goes back with a result (Start, Reset rating, a Missed replay), after the page is popped.
  */
-fun SimpleLightScreen<*>.pushPlace(place: Place, overGame: Boolean, onDone: (() -> Unit)?) {
+fun SimpleLightScreen<*>.pushPlace(place: Place, onDone: (() -> Unit)?) {
     val done: ((Unit) -> Unit)? = onDone?.let { run -> { run() } }
-    fun page(page: MenuPage) = navigateTo({ MenuScreen(it, page, overGame) }, done)
+    fun page(page: MenuPage) = navigateTo({ MenuScreen(it, page, overGame = false) }, done)
     when (place) {
         Place.HOME -> {}
         Place.PUZZLES -> page(MenuPage.PUZZLES)
@@ -126,7 +125,7 @@ class HomeScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, HomeVi
     }
 
     /** Which place opens over which, and what replaces a page once done (N2, N16): `HomeTest`. */
-    private val navigator by lazy { HomeNavigator(modes::set) { place, overGame, onDone -> pushPlace(place, overGame, onDone) } }
+    private val navigator by lazy { HomeNavigator(modes::set, this::pushPlace) }
 
     private fun tap(entry: HomeEntry) {
         owner.touched()

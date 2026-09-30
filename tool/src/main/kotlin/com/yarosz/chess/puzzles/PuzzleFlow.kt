@@ -25,6 +25,12 @@ data class PuzzleState(
     /** The seed screen comes first (D4, F6). */
     val needsSeed: Boolean get() = !data.seeded
 
+    /**
+     * The board shows the seed screen: before the seed is answered, unless a Missed replay is on
+     * screen, which is unrated and needs no rating; the seed screen follows when it ends.
+     */
+    val seedScreen: Boolean get() = needsSeed && replay == null
+
     /** No Puzzle has ever been scored: the strip teaches the input until the first Move (F6). */
     val firstPuzzle: Boolean get() = data.finished.isEmpty() && data.history.isEmpty()
 
@@ -146,7 +152,7 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
     }
 
     /**
-     * "Back to the rated puzzle" (N12): the Missed replay ends where it stands, whatever its stage, and
+     * "Back to the rated Puzzle" (N12): the Missed replay ends where it stands, whatever its stage, and
      * the rated Attempt below it shows again as it was ([PuzzleState.attempt] is `replay ?: current`).
      * A replay left under way stays in Missed (F4 takes a Puzzle out only after a clean replay).
      */
@@ -154,23 +160,17 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
 
     /**
      * The Puzzles page's first row (N12): the rated Puzzle, ready for its board. A Missed replay ends
-     * ([endReplay]); a rated Attempt at its Result gives way to the next Puzzle ([next]); one under way,
-     * Try Mode included, stays; and before the seed screen is answered nothing changes (the board asks
-     * it, D4). With the Pack used up there is no rated Puzzle and nothing changes either.
+     * ([endReplay]), before the seed is answered too, so the board then asks it (D4); a rated Attempt
+     * at its Result gives way to the next Puzzle ([next]); one under way, Try Mode included, stays;
+     * and before the seed screen is answered nothing else changes. With the Pack used up the row is
+     * a plain line and isn't tapped.
      */
     fun toRated(session: PuzzleState): PuzzleState = when {
-        session.needsSeed -> session
         session.replay != null -> endReplay(session)
+        session.needsSeed -> session
         session.current != null && !session.current.underWay -> next(session)
         else -> session
     }
-
-    /**
-     * The Missed Puzzles the Pack no longer has (N13), by Lichess id. F1's carry-over drops them when a
-     * new Pack is noticed; this finds any it couldn't see. Reads Band files: for a background thread.
-     */
-    fun missingFromPack(session: PuzzleState): Set<String> =
-        session.data.missed.filter { pack.puzzle(it.id, it.puzzleRating) == null }.mapTo(HashSet()) { it.id }
 
     /**
      * A Puzzle for the Player Rating (A7): a random one within ±100, the window widening by 100
@@ -202,8 +202,17 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
         for (rating in ratings) pack.candidates(rating.roundToInt(), exclude)
     }
 
-    /** Reads ahead every Missed Puzzle, so that [replayMissed] reads no file (D2). For a background thread. */
-    fun prefetchMissed(session: PuzzleState) = pack.prefetch(session.data.missed.associate { it.id to it.puzzleRating })
+    /**
+     * Reads ahead the Missed Puzzles, so that [replayMissed] reads no file (D2), and returns those the
+     * Pack no longer has, by Lichess id (N13). F1's carry-over drops such rows when a new Pack is
+     * noticed; this finds any it couldn't see. [known] are ids already found gone, left out. Each Band
+     * file is read at most once ([Pack.prefetch]). For a background thread.
+     */
+    fun prefetchMissed(session: PuzzleState, known: Set<String> = emptySet()): Set<String> =
+        pack.prefetch(session.data.missed.filter { it.id !in known }.associate { it.id to it.puzzleRating })
+
+    /** Whether the last [prefetchMissed] read [id]'s Puzzle, so that [replayMissed] reads no file. */
+    fun readAhead(id: String): Boolean = pack.cached(id) != null
 
     private fun step(session: PuzzleState, change: (Attempt) -> Attempt): PuzzleState {
         val replay = session.replay

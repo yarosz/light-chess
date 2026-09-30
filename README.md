@@ -20,7 +20,7 @@ _Screenshots from a Light Phone III are coming._
 
 - **Home.** Chess opens where you left off, with Home underneath: Puzzles (with your Player Rating),
   Play the computer, Play a friend, Games and About. Puzzles opens a page of its own: continue the
-  Puzzle on screen, Missed, Past puzzles and your Player Rating. On a board, the top bar says what is
+  Puzzle on screen, Missed, Past Puzzles and your Player Rating. On a board, the top bar says what is
   happening: its arrow goes back, as the phone's back does, and the three squares at its right open
   the board's Menu, with Pieces. The buttons for the moment sit under the board.
 - **Puzzles.** Tap a piece, then a square, or drag it. A wrong Move is taken back and you can try again.

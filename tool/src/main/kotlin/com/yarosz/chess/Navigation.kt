@@ -50,10 +50,13 @@ enum class PuzzlesStart {
     /** A Missed replay is on screen: it ends, and the board opens on the rated Puzzle. */
     BACK_TO_RATED,
 
-    /** Before the seed screen is answered, or after Reset rating: the board, which asks it (D4). */
+    /**
+     * Before the seed screen is answered, or after Reset rating: the board, which asks it (D4). A Missed
+     * replay started meanwhile ends first.
+     */
     START,
 
-    /** The Pack is used up: a plain line. */
+    /** The Pack is used up: a plain line, a Missed replay or not. */
     FINISHED,
 }
 
@@ -65,29 +68,39 @@ data class PuzzlesRow(val text: String, val entry: PuzzlesEntry, val tappable: B
 
 /**
  * The Puzzles page (N12), as pure data for `PuzzlesPageTest`: the first row from [start], then
- * "Missed · 3", "Past puzzles" and "Player Rating · 1176?". [session] is null until `puzzles.json` is
- * read: the first row then reads "Continue puzzle" (the board waits for the file) and the others
+ * "Missed · 3", "Past Puzzles" and "Player Rating · 1176?". [session] is null until `puzzles.json` is
+ * read: the first row then reads "Continue Puzzle" (the board waits for the file) and the others
  * show no status.
  */
 object PuzzlesRows {
+    /**
+     * The first row's action. Before the seed is answered it is Start even over a Missed replay: the
+     * tap ends the replay and the board asks the seed, which a replay (unrated) doesn't wait for. With
+     * the Pack used up it is the finished line even over a replay: there is no rated Puzzle to go
+     * back to, and the replay, never saved, is left where it is (a Missed tap replaces it).
+     */
     fun start(session: PuzzleState?): PuzzlesStart {
         if (session == null) return PuzzlesStart.CONTINUE
         val current = session.current
         return when {
             session.needsSeed -> PuzzlesStart.START
-            session.replay != null -> PuzzlesStart.BACK_TO_RATED
             current == null -> PuzzlesStart.FINISHED
+            session.replay != null -> PuzzlesStart.BACK_TO_RATED
             current.underWay -> PuzzlesStart.CONTINUE
             else -> PuzzlesStart.NEXT
         }
     }
 
-    fun of(session: PuzzleState?): List<PuzzlesRow> {
+    /**
+     * The page's rows. [gone]: the Missed Puzzles the Pack no longer has ([PuzzleOwner.missedGone]),
+     * which Missed's count leaves out, as it counts only the rows that replay (N13).
+     */
+    fun of(session: PuzzleState?, gone: Set<String> = emptySet()): List<PuzzlesRow> {
         val start = start(session)
         val data = session?.data
         return listOf(
             PuzzlesRow(UiCopy.puzzlesStart(start), PuzzlesEntry.START, tappable = start != PuzzlesStart.FINISHED),
-            PuzzlesRow(data?.missed?.size?.let(UiCopy::missedCount) ?: UiCopy.MISSED, PuzzlesEntry.MISSED),
+            PuzzlesRow(data?.missed?.count { it.id !in gone }?.let(UiCopy::missedCount) ?: UiCopy.MISSED, PuzzlesEntry.MISSED),
             PuzzlesRow(UiCopy.PAST_PUZZLES, PuzzlesEntry.PAST_PUZZLES),
             PuzzlesRow(data?.player?.text?.let(UiCopy::ratingRow) ?: UiCopy.PLAYER_RATING, PuzzlesEntry.PLAYER_RATING),
         )
@@ -130,7 +143,7 @@ object PuzzlesPages {
             if (entry.id in gone) MenuItem(text, lighten = true) else MenuItem(text, entry.id)
         }
 
-    /** Past puzzles (N14): the rated Attempts, newest first, as lightened lines; nothing to tap. */
+    /** Past Puzzles (N14): the rated Attempts, newest first, as lightened lines; nothing to tap. */
     fun past(history: List<HistoryEntry>): List<MenuItem<Nothing>> =
         if (history.isEmpty()) listOf(MenuItem(UiCopy.NO_HISTORY, lighten = true))
         else history.map { MenuItem(UiCopy.historyRow(it.puzzleRating, it.state, it.delta, it.solutionShown), lighten = true) }
@@ -139,7 +152,7 @@ object PuzzlesPages {
 /**
  * The places and pages of Chess (N2, N16): Home is the root; a place is one step from it (the Puzzles
  * page, the computer's board, Play a friend, Games, About); a page or board one step further (the
- * Puzzle board, Missed, Past puzzles, Player Rating, a replayed Game, a Correspondence Game's board);
+ * Puzzle board, Missed, Past Puzzles, Player Rating, a replayed Game, a Correspondence Game's board);
  * and a detail over that (a board's Menu and its pages).
  */
 enum class Place { HOME, PUZZLES, PUZZLE, COMPUTER, NEW_GAME, PLAY_FRIEND, PLAYER_RATING, MISSED, PAST_PUZZLES, GAMES, ABOUT }
@@ -196,13 +209,13 @@ object Navigation {
 /**
  * One level's side of the back stack (N2, N16), apart from the screens so `HomeTest` drives it on a
  * stand-in stack. Home has one, and so does the Puzzles page: each opens its places over itself.
- * [push] puts a place's screen over the top one, saying whether it sits over a board (never, from
- * Home or the Puzzles page: no page they open lets the computer think, N2), with what to run once
- * that page goes back with a result (null: nothing); [setMode] writes `mode.txt`.
+ * [push] puts a place's screen over the top one, with what to run once that page goes back with a
+ * result (null: nothing); [setMode] writes `mode.txt`. Nothing either opens sits over the computer's
+ * board, so none of their pages lets the computer think (N2): [pushPlace] opens them all that way.
  */
 class HomeNavigator(
     private val setMode: (Mode) -> Unit,
-    private val push: (Place, overGame: Boolean, onDone: (() -> Unit)?) -> Unit,
+    private val push: (Place, onDone: (() -> Unit)?) -> Unit,
 ) {
     /** The launch stack over Home, as it stands: read from `mode.txt`, never written back. */
     fun launch(mode: Mode, friendsOn: Boolean) {
@@ -214,7 +227,7 @@ class HomeNavigator(
         if (place == Place.HOME) return
         if (writeMode) Navigation.mode(place)?.let(setMode)
         val next = Navigation.replacedBy(place)
-        push(place, false, next?.let { { open(it) } })
+        push(place, next?.let { { open(it) } })
     }
 }
 

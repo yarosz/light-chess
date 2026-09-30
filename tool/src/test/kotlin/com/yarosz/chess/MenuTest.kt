@@ -220,19 +220,21 @@ class MenuTest {
     }
 
     @Test
-    fun `the computer's strip has the Menu mark, but not in Review or a replay (N4)`() {
+    fun `the computer's strip has the Menu mark but in Review, and a replay's has it in Review too (N4, N21)`() {
         assertTrue(GameStrip.of(level8, null).menu)
         assertEquals(listOf(GameButton.HINT), GameStrip.of(level8, null).buttons)
         val thinking = GameFlow.play(level8, level8.record!!.game.position.moveFromUci("e2e4")!!)
         assertTrue(GameStrip.of(thinking, null).menu)
         assertEquals(listOf(GameButton.MOVE_NOW), GameStrip.of(thinking, null).buttons)
-        assertFalse(GameStrip.of(thinking, 0).menu, "Review keeps Latest alone (R4.16)")
+        assertFalse(GameStrip.of(thinking, 0).menu, "Review hides the Menu, whose actions act on the live Game (N21)")
         val over = GameRecord(Game.of() + Resignation(Side.WHITE), Side.WHITE, level = 3)
         assertEquals(listOf(GameButton.NEXT), GameStrip.of(GameState(GameData(), over), null).buttons)
         assertTrue(GameStrip.of(GameState(GameData(), over), null).menu)
         val replay = GameStrip.replay(over, null)
         assertTrue(replay.buttons.isEmpty() && replay.menu, "a replay's strip is the arrow, the Result and the mark (N3, N17)")
-        assertFalse(GameStrip.replay(over, 0).menu, "Review in a replay keeps Latest alone (R4.16)")
+        val reviewing = GameStrip.replay(over, 0)
+        assertTrue(reviewing.menu, "a replay's Menu is Pieces alone, which acts on no Game: the mark stays in Review (N21)")
+        assertEquals(listOf(GameButton.LATEST), reviewing.buttons)
     }
 
     @Test
@@ -252,7 +254,7 @@ class MenuTest {
         assertTrue(FriendStrip.of(yours, now).menu)
         assertTrue(FriendStrip.of(yours, now, chosen = yours.log!!.game.position.moveFromUci("e2e4")).let { it.menu && it.buttons == listOf(FriendButton.SEND, FriendButton.UNDO) })
         for (reason in HaltReason.entries) assertTrue(FriendStrip.of(scenes.stopped(reason), now).menu)
-        assertFalse(FriendStrip.of(scenes.theirMove(), now, reviewPly = 0).menu)
+        assertFalse(FriendStrip.of(scenes.theirMove(), now, reviewPly = 0).menu, "Review hides the Menu, whose actions act on the live Game (N21)")
         // The Play a friend list's row keeps "Draw offered" (N9).
         val drawRow = FriendRows.of(listOf(scenes.drawOffered()), emptyList(), now).single().text
         assertTrue(drawRow.endsWith(UiCopy.DRAW_OFFERED), drawRow)

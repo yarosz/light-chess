@@ -167,6 +167,7 @@ private class MenuMarkPainter(private val color: Color, private val inset: Dp) :
  * from the edge. On a Game's board, [captured] (P3) at the left, in a room that never changes on that
  * board: from the board's left edge to just before the widest of its [buttonSets], every set of labels
  * it can show ([BarLayout.capturedRoom]), tightened to fit that room ([CapturedRowLayout.fit]).
+ * [buttonSets] must come with [captured]: without them the room would follow the buttons shown.
  */
 @Composable
 fun ActionRow(
@@ -176,6 +177,7 @@ fun ActionRow(
     buttonSets: List<List<String>> = emptyList(),
 ) {
     require(buttons.size <= 3) { "the action row holds at most 3 buttons" }
+    require(captured == null || buttonSets.isNotEmpty()) { "a row with Captured Pieces keeps its room beside its board's button sets (E6)" }
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     Row(
         modifier

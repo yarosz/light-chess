@@ -97,8 +97,9 @@ class MenuViewModel(
     val scroll: SharedFlow<Int> = steps
 
     init {
-        // The Missed page reads its Puzzles ahead, so a tap on a row reads no file on the main thread.
-        if (page == MenuPage.MISSED) owner.prefetchMissed()
+        // The Missed Puzzles are read ahead, so a tap on a row reads no file on the main thread, and the
+        // ones the Pack lost are found: the Puzzles page's count and Missed's rows leave them out (N13).
+        if (page == MenuPage.MISSED || page == MenuPage.PUZZLES) owner.prefetchMissed()
     }
 
     /** Before another page opens over this one: a pending second tap is dropped. */
@@ -208,7 +209,7 @@ class MenuScreen(
     override fun createViewModel() = MenuViewModel(owner, game, modes, page, overGame)
 
     /** The Puzzles page's places and pages (N16): over it, never over a board. */
-    private val navigator by lazy { HomeNavigator(modes::set) { place, overGame, onDone -> pushPlace(place, overGame, onDone) } }
+    private val navigator by lazy { HomeNavigator(modes::set, this::pushPlace) }
 
     /** A page over this one: over the board when this one is. */
     private fun open(next: MenuPage) {
@@ -251,7 +252,7 @@ class MenuScreen(
                         // The Puzzle on screen, a Missed replay's own (N18).
                         MenuPage.PUZZLE_MENU -> MenuItems(PuzzleMenu.of(session?.attempt, pieceSet)) { vm.nextPieceSet() }
                         MenuPage.GAME_REVIEW_MENU -> MenuItems(GameReviewMenu.of(pieceSet)) { vm.nextPieceSet() }
-                        MenuPage.PUZZLES -> for (row in PuzzlesRows.of(session)) {
+                        MenuPage.PUZZLES -> for (row in PuzzlesRows.of(session, gone)) {
                             if (row.tappable) MenuRow(row.text) { tapPuzzles(row.entry) } else MenuLine(row.text, lighten = true)
                         }
                         MenuPage.RATING -> if (data != null) {

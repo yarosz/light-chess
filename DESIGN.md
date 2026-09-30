@@ -15,22 +15,26 @@ places. No gestures. Rulings: decision log "Navigation D" and "Puzzles page and 
   `puzzles.json` is read the Puzzles row reads "Puzzles". System back from Home closes Chess.
 - The Puzzles page (`MenuPage.PUZZLES`, rows from `PuzzlesRows`, N12): the top bar with the back
   arrow and the title "Puzzles", then a first row that says what it does, "Missed · 3", "Past
-  puzzles" and "Player Rating · 1176?". The first row, from the Puzzle flow's state
+  Puzzles" and "Player Rating · 1176?". The first row, from the Puzzle flow's state
   (`PuzzlesRows.start`, then `PuzzleFlow.toRated` on a tap):
 
   | State | Row | A tap |
   |---|---|---|
-  | An Attempt under way, Try Mode included | "Continue puzzle" | opens the board |
-  | The rated Attempt at its Result | "Next puzzle" | the next Puzzle, then the board |
-  | A Missed replay on screen | "Back to the rated puzzle" | ends the replay, then the board |
-  | Before the seed, or after Reset rating | "Start" | the board, which asks the seed (D4) |
-  | The Pack used up | "Every Puzzle is finished" | nothing: a plain line |
-  | `puzzles.json` not read yet | "Continue puzzle" | the board, which waits for it |
+  | An Attempt under way, Try Mode included | "Continue Puzzle" | opens the board |
+  | The rated Attempt at its Result | "Next Puzzle" | the next Puzzle, then the board |
+  | A Missed replay on screen | "Back to the rated Puzzle" | ends the replay, then the board |
+  | Before the seed, or after Reset rating | "Start" | ends a Missed replay, then the board, which asks the seed (D4, N22) |
+  | The Pack used up, a Missed replay or not | "Every Puzzle is finished" | nothing: a plain line (N22) |
+  | `puzzles.json` not read yet | "Continue Puzzle" | the board, which waits for it |
 
-- Missed (N13): as before, but a row whose Puzzle the Pack no longer has is a lightened line. The
-  page's background read (`prefetchMissed`) finds such rows; a tap that finds one first marks it and
-  stays on the page.
-- Past puzzles (N14): the rated Attempts, newest first, read-only, up to 100 (`HISTORY_CAP`).
+  "Missed · 3" counts only the rows that replay: a Puzzle the Pack lost is left out (N13, N23).
+
+- Missed (N13, N23): as before, but a row whose Puzzle the Pack no longer has is a lightened line.
+  The background read (`PuzzleOwner.prefetchMissed`, when the Puzzles page or Missed opens) finds
+  such rows, reading each Band file at most once, and never looks for one again in the process. A
+  tap reads no file: on a lost row, or one the read hasn't reached yet, it starts nothing and the
+  page stays.
+- Past Puzzles (N14): the rated Attempts, newest first, read-only, up to 100 (`HISTORY_CAP`).
 - Player Rating (N15): the rating, "The ? goes after about 50 rated Puzzles." while it is
   provisional, and Reset rating ("Tap again to reset").
 - Launch (`Navigation.launch`, N16): the place last used (`mode.txt`) is pushed over Home on the
@@ -39,7 +43,7 @@ places. No gestures. Rulings: decision log "Navigation D" and "Puzzles page and 
   a friend list (the Puzzle when the Relay URL is empty). The launch doesn't write `mode.txt`; opening
   the Puzzles page, the board, the computer's board or Play a friend does.
 - Depth (N16): Home; a place (the Puzzles page, the computer's board, Play a friend, Games, About); a
-  page or board over it (the Puzzle board, Missed, Past puzzles, Player Rating, a Correspondence
+  page or board over it (the Puzzle board, Missed, Past Puzzles, Player Rating, a Correspondence
   Game's board or an invite, a replayed Game); a detail over that (a board's Menu and its pages).
   Play the computer with no Game in progress opens the new-game page, and Start replaces it with the
   board; Reset rating and a Missed replay replace their page with the Puzzle board, over the Puzzles
@@ -50,7 +54,7 @@ places. No gestures. Rulings: decision log "Navigation D" and "Puzzles page and 
 - The wheel (N10, N20): Home's five rows fit the LP3 (40 dp top bar plus five 53 dp rows in 389 dp),
   so it leaves the wheel with LightOS; it still measures, and would take the wheel if a row ever
   overflowed. So do the Puzzles page, the Player Rating page and the Puzzle board's and a replay's
-  Menus, which always fit. Missed, Past puzzles and the Game Menus may scroll and take it (F3).
+  Menus, which always fit. Missed, Past Puzzles and the Game Menus may scroll and take it (F3).
 
 ## Layout (R1.8, layout E: E1-E4)
 
@@ -237,8 +241,9 @@ string or state goes into the test.
 The Puzzle board's buttons by context (`PuzzleStrip`), in the action row, and the Menu mark in the
 top bar in every state but the end of the Pack, which draws no board (N17, E1). Its Menu: "Pieces ·
 Geometric", then "Puzzle 00sHx" over "lichess.org/training/00sHx" in grey, for the Puzzle on screen,
-a Missed replay's own (N18). A replayed Game's top bar has the mark at its latest Position, and its
-Menu is Pieces alone.
+a Missed replay's own (N18). A replayed Game's top bar has the mark, in Review too, and its Menu is
+Pieces alone (N21). A Missed replay started before the seed shows first; the seed screen follows it
+(N22).
 
 | When | Buttons |
 |---|---|
@@ -320,10 +325,10 @@ copy for the object on screen, while code names the chess state a Position.
   move: 2", "Games", "About". `HomeTest` checks that each row fits one line. Each page is its own
   screen, so Back, the arrow or the system's, goes from a page one level down (N16); Reset rating
   and a Missed replay go straight to the Puzzle board, over the Puzzles page.
-- The Puzzles page (N12): the title "Puzzles", then "Continue puzzle", "Next puzzle", "Back to the
-  rated puzzle", "Start" or "Every Puzzle is finished" (a plain line), then "Missed · 3", "Past
-  puzzles", "Player Rating · 1500?". The Player Rating page: the rating, "The ? goes after about 50
-  rated Puzzles." while it ends in "?", "Reset rating" then "Tap again to reset" (F5). Past puzzles:
+- The Puzzles page (N12): the title "Puzzles", then "Continue Puzzle", "Next Puzzle", "Back to the
+  rated Puzzle", "Start" or "Every Puzzle is finished" (a plain line), then "Missed · 3", "Past
+  Puzzles", "Player Rating · 1500?". The Player Rating page: the rating, "The ? goes after about 50
+  rated Puzzles." while it ends in "?", "Reset rating" then "Tap again to reset" (F5). Past Puzzles:
   rows "1523 · Solved +12", "1541 · Failed −9"; "No rated Puzzles yet" when empty. Missed: rows
   "1541 · Failed" or "1541 · Hinted", lightened for a Puzzle the Pack lost; "Nothing missed yet".
 - A board's Menu (N17-N19): "Pieces · Geometric" or "Pieces · Rounded" with the set drawn beside it
@@ -393,8 +398,8 @@ arrow is always in the top bar, and "the mark" is the Menu mark at its right (N4
 | A Game Hint being found | "Finding a Game Hint" | the mark |
 | The computer thinking | "Thinking" | Move now, the mark |
 | The Result | the Result | Next, the mark |
-| Review | "Review · 12 of 40" | Latest |
-| A finished Game from Games | the Result, or Review | none at the Result, Latest in Review |
+| Review | "Review · 12 of 40" | Latest (no mark: the Menu's actions act on the live Game, N21) |
+| A finished Game from Games | the Result, or Review | the mark, and Latest in Review (N21) |
 
 The Captured Pieces (P3), on every board in a Game (this screen, a Correspondence Game's board and
 Games Review), never on a Puzzle's. `CapturedPieces` (rules core) reads them from the Moves up to the

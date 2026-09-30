@@ -58,6 +58,7 @@ data class FriendStrip(val status: String, val buttons: List<FriendButton>, val 
          */
         fun of(game: CorrespondenceGame, now: Long, chosen: Move? = null, sending: Boolean = false, notice: String? = null, reviewPly: Int? = null): FriendStrip {
             val log = game.log
+            // Review hides the Menu mark (N21): the Menu's actions (Resign, Offer draw) act on the live Game.
             if (reviewPly != null && log != null) return FriendStrip(UiCopy.review(reviewPly, log.game.ply), listOf(FriendButton.LATEST), menu = false)
             game.halt?.let { halt ->
                 val status = when (halt.reason) {

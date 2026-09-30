@@ -105,22 +105,45 @@ class Pack(private val readAsset: (String) -> ByteArray) {
     }
 
     /**
-     * Reads ahead the Puzzles [wanted] names (Lichess id to Puzzle Rating), so that [puzzle] finds them
-     * without reading a file: each Band file is read once, only for the Bands their ratings name and
-     * not yet loaded, and only the matching lines are parsed. Replaces what the last call found. For a
-     * background thread (Missed, D2); a Puzzle it misses is still found by [puzzle].
+     * Reads ahead the Puzzles [wanted] names (Lichess id to Puzzle Rating), so that [puzzle] and
+     * [cached] find them without reading a file, and returns the ids the Pack doesn't have. First the
+     * Bands their ratings name: those Puzzles are found as soon as that pass ends, replacing what the
+     * last call found (one found by an earlier call is kept without a read). Then, for any still
+     * missing, the other Bands. Each Band file is read at most once in the call, whatever the number
+     * of ids, and only the matching lines are parsed. For a background thread (Missed, D2, N13).
      */
-    fun prefetch(wanted: Map<String, Int>) {
+    fun prefetch(wanted: Map<String, Int>): Set<String> {
         val out = HashMap<String, Puzzle>()
-        for ((band, ids) in wanted.keys.groupBy { bandFor(wanted.getValue(it)) }) {
-            if (synchronized(loaded) { band.band in loaded }) continue
-            val text = readAsset("$DIR/${band.file}").decodeToString()
-            for (id in ids) lineOf(text, id)?.let { out[id] = Puzzle.parse(it) }
+        synchronized(found) { for (id in wanted.keys) found[id]?.let { out[id] = it } }
+        val searched = HashSet<Int>()
+        for ((band, ids) in wanted.keys.filter { it !in out }.groupBy { bandFor(wanted.getValue(it)) }) {
+            searched += band.band
+            out += find(band, ids)
         }
         synchronized(found) {
             found.clear()
             found.putAll(out)
         }
+        val missing = wanted.keys.filterTo(HashSet()) { it !in out }
+        for (band in bands) {
+            if (missing.isEmpty()) break
+            if (!searched.add(band.band)) continue
+            val hits = find(band, missing)
+            missing -= hits.keys
+            synchronized(found) { found.putAll(hits) }
+        }
+        return missing
+    }
+
+    /** The Puzzle with this Lichess id if the last [prefetch] found it: reads no file. */
+    fun cached(id: String): Puzzle? = synchronized(found) { found[id] }
+
+    /** Those of [ids] in [band]: from its Puzzles when loaded, else from one read of its file. */
+    private fun find(band: Band, ids: Collection<String>): Map<String, Puzzle> {
+        val cached = synchronized(loaded) { loaded[band.band] }
+        if (cached != null) return ids.toHashSet().let { want -> cached.filter { it.id in want }.associateBy { it.id } }
+        val text = readAsset("$DIR/${band.file}").decodeToString()
+        return ids.mapNotNull { id -> lineOf(text, id)?.let { id to Puzzle.parse(it) } }.toMap()
     }
 
     /** The line of [text] (a Band file) for [id], or null. */

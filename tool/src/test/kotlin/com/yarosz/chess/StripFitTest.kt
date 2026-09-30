@@ -688,6 +688,18 @@ class StripFitTest {
         }
     }
 
+    /**
+     * E6's guard for a new button: every one a Game's board can show is in its board's sets, so the
+     * room is measured beside it. A new GameButton or FriendButton that no set names fails here, even
+     * before a strip case shows it.
+     */
+    @Test
+    fun everyBoardButtonIsInItsBoardsButtonSets() {
+        val game = (GameStrip.BOARD_BUTTONS + GameStrip.REPLAY_BUTTONS).flatten().toSet()
+        assertEquals(GameButton.entries.toSet(), game, "GameButtons missing from GameStrip's sets")
+        assertEquals(FriendButton.entries.toSet(), FriendStrip.BOARD_BUTTONS.flatten().toSet(), "FriendButtons missing from FriendStrip.BOARD_BUTTONS")
+    }
+
     /** The Material Lead's width: LightOS Superfine (16 design px), as `CapturedRowTest` measures it. */
     private fun leadWidth(text: String) = AkkuratProxy.width(text, 16f)
 

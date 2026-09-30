@@ -25,7 +25,7 @@ data class PuzzleData(
     val current: InProgress? = null,
     /** Newest first, at most [MISSED_CAP] (D2). */
     val missed: List<MissedEntry> = emptyList(),
-    /** Newest first, at most [HISTORY_CAP] (F11): Past puzzles (N14). */
+    /** Newest first, at most [HISTORY_CAP] (F11): Past Puzzles (N14). */
     val history: List<HistoryEntry> = emptyList(),
     /**
      * The Piece Set the board draws (P2). A Tool-wide choice kept here because this is v1's only save
@@ -84,7 +84,7 @@ data class InProgress(
 data class MissedEntry(val id: String, val puzzleRating: Int, val state: AttemptState = AttemptState.FAILED)
 
 /**
- * One scored Attempt: a Past puzzles row (F11, N14). [delta] is 0 when unrated. An unknown
+ * One scored Attempt: a Past Puzzles row (F11, N14). [delta] is 0 when unrated. An unknown
  * [state] reads as Failed, as in [MissedEntry].
  */
 @Serializable

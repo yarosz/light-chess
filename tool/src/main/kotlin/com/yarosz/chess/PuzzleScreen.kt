@@ -88,7 +88,7 @@ class PuzzleViewModel(private val owner: PuzzleOwner) : WheelViewModel<Unit>() {
     override fun onWheel(key: Wheel): Boolean {
         val session = owner.session.value ?: return false
         // The seed screen and the end of the Pack draw no board: the wheel stays with LightOS (F3).
-        if (session.needsSeed) return false
+        if (session.seedScreen) return false
         // A board takes every turn, even one that moves nothing, the held start included (N20).
         val attempt = session.attempt ?: return false
         val next = review(attempt).wheel(key, attempt.positions.lastIndex) ?: return false
@@ -103,7 +103,7 @@ class PuzzleViewModel(private val owner: PuzzleOwner) : WheelViewModel<Unit>() {
 
 /**
  * The Puzzle board (N16: one step above the Puzzles page): the seed screen first (D4), then the current
- * Puzzle, or the end of the Pack. Its top bar is the back arrow, the status and the Menu mark (E1,
+ * Puzzle, or the end of the Pack; a Missed replay started before the seed goes before it (N22). Its top bar is the back arrow, the status and the Menu mark (E1,
  * N17), whose Menu has Pieces and the Puzzle's id (N18); its action row Hint, Solution, Next or
  * Latest (E2).
  */
@@ -136,7 +136,8 @@ class PuzzleScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Puzz
                 AndroidView(factory = { View(it) }, modifier = Modifier.size(0.dp), update = { it.keepScreenOn = awake })
                 val s = session ?: return@Box
                 when {
-                    s.needsSeed -> SeedView()
+                    // A Missed replay started before the seed shows first; the seed screen follows it.
+                    s.seedScreen -> SeedView()
                     s.attempt == null -> Finished()
                     else -> PuzzleView(s, s.attempt!!)
                 }
@@ -162,7 +163,7 @@ class PuzzleScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Puzz
                 }
             }
         }
-        // E1, E2: the top bar (the arrow and the status; no Menu, N5), the board under it, the buttons below.
+        // E1, E2: the top bar (the arrow, the status, the Menu mark in every state, N17), the board, the buttons below.
         Column(
             Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,

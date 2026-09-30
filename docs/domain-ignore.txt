@@ -26,7 +26,7 @@ GameMenuEntry
 FriendMenu
 FriendMenuEntry
 # Puzzles page and Pieces (decision log N11-N19): the Puzzles page's rows and pages, and the Menus
-# of the Puzzle board and a replayed Game. UI vocabulary, like Home's. "Past puzzles" names a page
+# of the Puzzle board and a replayed Game. UI vocabulary, like Home's. "Past Puzzles" names a page
 # (N14): its rows are Attempts, and the list is the history PuzzleData already keeps, so it is not a
 # domain concept of its own.
 PuzzlesRows
@@ -38,7 +38,7 @@ PuzzleMenu
 PiecesMenuEntry
 GameReviewMenu
 PlayerRatingEntry
-Past puzzles
+Past Puzzles
 $PUZZLES · $playerRating
 Puzzle $id
 

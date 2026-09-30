@@ -61,10 +61,10 @@ object UiCopy {
     const val NO_MISSED = "Nothing missed yet"
 
     // The Puzzles page (N12-N15).
-    const val PAST_PUZZLES = "Past puzzles"
-    const val CONTINUE_PUZZLE = "Continue puzzle"
-    const val NEXT_PUZZLE = "Next puzzle"
-    const val BACK_TO_RATED = "Back to the rated puzzle"
+    const val PAST_PUZZLES = "Past Puzzles"
+    const val CONTINUE_PUZZLE = "Continue Puzzle"
+    const val NEXT_PUZZLE = "Next Puzzle"
+    const val BACK_TO_RATED = "Back to the rated Puzzle"
 
     /**
      * The Player Rating page's line while the rating is provisional (N15). Static on purpose: Glicko's

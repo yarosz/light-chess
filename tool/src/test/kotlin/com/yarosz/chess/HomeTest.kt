@@ -121,16 +121,14 @@ class HomeTest {
      * callback its page runs when it goes back with a result; [done] is that (a page popped, then its
      * callback), [back] system Back (popped, no result). Each screen that opens places (Home, the
      * Puzzles page) has a navigator of its own, pushing onto the same stack. [modes] records what
-     * reaches `mode.txt`, [overGame] whether each push sat over a board.
+     * reaches `mode.txt`.
      */
     private class Stack {
         val places = mutableListOf(Place.HOME)
         val modes = mutableListOf<Mode>()
-        val overGame = mutableListOf<Boolean>()
         private val callbacks = mutableListOf<(() -> Unit)?>(null)
-        private fun navigator() = HomeNavigator(setMode = { modes += it }) { place, over, onDone ->
+        private fun navigator() = HomeNavigator(setMode = { modes += it }) { place, onDone ->
             places += place
-            overGame += over
             callbacks += onDone
         }
 
@@ -163,20 +161,6 @@ class HomeTest {
             }
             assertEquals(listOf(Place.HOME), stack.places)
         }
-    }
-
-    @Test
-    fun `nothing Home or the Puzzles page opens sits over a board, New game included (N2)`() {
-        val stack = Stack()
-        stack.home.open(Place.NEW_GAME)
-        assertEquals(listOf(false), stack.overGame, "New game from Home passes overGame = false")
-        stack.back()
-        for (place in Place.entries) {
-            stack.home.open(place)
-            stack.puzzles.open(place)
-        }
-        stack.home.launch(Mode.GAME, friendsOn = true)
-        assertTrue(stack.overGame.none { it }, "every push from Home or the Puzzles page: ${stack.overGame}")
     }
 
     @Test
@@ -215,7 +199,7 @@ class HomeTest {
     }
 
     @Test
-    fun `the Puzzles page's first row puts the board over it, and Past puzzles only goes back (N16)`() {
+    fun `the Puzzles page's first row puts the board over it, and Past Puzzles only goes back (N16)`() {
         val stack = Stack()
         stack.home.open(Place.PUZZLES)
         stack.puzzles.open(PuzzlesRows.open(PuzzlesEntry.START))
@@ -223,7 +207,7 @@ class HomeTest {
         stack.back()
         stack.puzzles.open(Place.PAST_PUZZLES)
         stack.done()
-        assertEquals(listOf(Place.HOME, Place.PUZZLES), stack.places, "Past puzzles replaces nothing")
+        assertEquals(listOf(Place.HOME, Place.PUZZLES), stack.places, "Past Puzzles replaces nothing")
     }
 
     @Test

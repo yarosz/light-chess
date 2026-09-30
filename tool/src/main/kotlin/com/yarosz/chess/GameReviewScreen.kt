@@ -88,7 +88,7 @@ class GameReviewScreen(
                 BoardTopBar(
                     strip.status,
                     StripButton(UiCopy.BACK_DESCRIPTION) { goBack() },
-                    // N17: Pieces, at the latest Position (R4.16, E1: Review keeps no Menu).
+                    // N17, N21: Pieces, in Review too: the replay's Menu acts on no Game.
                     StripButton(UiCopy.MENU_DESCRIPTION) {
                         game.touched()
                         navigateTo({ MenuScreen(it, MenuPage.GAME_REVIEW_MENU, overGame = false) })

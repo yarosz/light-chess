@@ -114,16 +114,20 @@ class PuzzleOwner(
     fun next() = act(flow::next)
 
     /**
-     * A Missed row's tap: true when the replay started. False when the Pack no longer has the Puzzle
-     * (N13): its row is marked [missedGone], and the page stays where it is.
+     * A Missed row's tap: true when the replay started. False, and the page stays where it is, for a
+     * Puzzle the Pack no longer has ([missedGone], N13) and for one the read ahead hasn't reached yet:
+     * the main thread never reads a Band file, so that tap waits for [prefetchMissed], after which the
+     * row either replays or shows lightened.
      */
     fun replayMissed(id: String): Boolean {
         val session = sessions.value ?: return false
-        val next = flow.replayMissed(session, id)
-        if (next === session) {
-            gone.value = gone.value + id
+        if (id in gone.value) return false
+        if (!flow.readAhead(id)) {
+            if (missedCheck?.isActive != true) prefetchMissed()
             return false
         }
+        val next = flow.replayMissed(session, id)
+        if (next === session) return false
         touched()
         set(next)
         return true
@@ -144,16 +148,26 @@ class PuzzleOwner(
         if (sessions.value == null) pieceSets.value = pieceSets.value?.next else act(flow::nextPieceSet)
     }
 
+    /** The last [prefetchMissed], while it runs. */
+    private var missedCheck: Job? = null
+
     /**
-     * The Missed page is open: read its Puzzles ahead, so a tap on one reads no file (D2), and find the
-     * ones the Pack no longer has (N13), so their rows show lightened.
+     * The Puzzles page or Missed is open: read the Missed Puzzles ahead, so a tap on one reads no file
+     * (D2), and find the ones the Pack no longer has (N13), so their rows show lightened and the count
+     * leaves them out. An id found gone is never looked for again in this process (the Pack is the
+     * Tool's own assets), so once every row is known each open reads at most the Bands of the rows
+     * still there, and none when the last call found them. A call while one runs does nothing.
      */
     fun prefetchMissed() {
         val session = sessions.value ?: return
-        scope.launch {
+        // One check at a time: the Missed list changes only on the board, never under these pages.
+        if (missedCheck?.isActive == true) return
+        val known = gone.value
+        missedCheck = scope.launch {
             val missing = withContext(Dispatchers.Default) {
-                prefetch { flow.prefetchMissed(session) }
-                runCatching { flow.missingFromPack(session) }.getOrDefault(emptySet())
+                runCatching { flow.prefetchMissed(session, known) }
+                    .onFailure { Log.w(TAG, "prefetch failed", it) }
+                    .getOrDefault(emptySet())
             }
             if (missing.isNotEmpty()) gone.value = gone.value + missing
         }
