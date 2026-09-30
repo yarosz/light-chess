@@ -20,8 +20,11 @@ import xml.etree.ElementTree as ET
 HERE = os.path.dirname(os.path.abspath(__file__))
 PACK = os.path.join(HERE, "..", "tool", "src", "main", "assets", "pack")
 PKG = "com.yarosz.chess"
-# The board's squares on a 1080 px wide LP3-shaped screen: 12 dp from the top, 24 dp from the left, 39 dp squares.
+# The board's squares on a 1080 px wide LP3-shaped screen, where the board's own node doesn't say:
+# 24 dp from the left, 39 dp squares, and 12 dp from the top as before layout E (E2 puts it under the
+# 40 dp top bar, 120 px down, which `board()` reads from the board's bounds).
 LEFT, TOP, CELL = 72, 36, 117
+BOARD = "Chess board"
 
 
 def adb(*args, binary=False):
@@ -42,7 +45,7 @@ def focused():
     sys.exit(f"release-drive: the Tool doesn't hold the focus: {line.strip()}")
 
 
-def nodes():
+def nodes(bounds=False):
     for _ in range(5):
         xml = (adb("exec-out", "uiautomator", "dump", "/dev/tty") or "").split("UI hierchary dumped")[0]
         if xml.lstrip().startswith("<?xml"):
@@ -54,7 +57,7 @@ def nodes():
         x1, y1, x2, y2 = map(int, re.findall(r"\d+", n.get("bounds")))
         text = n.get("text", "") or n.get("content-desc", "")
         if text:
-            yield text, ((x1 + x2) // 2, (y1 + y2) // 2)
+            yield text, ((x1, y1, x2, y2) if bounds else ((x1 + x2) // 2, (y1 + y2) // 2))
 
 
 def texts():
@@ -106,18 +109,29 @@ def line_of(pid):
     sys.exit(f"release-drive: {pid} is not in the Pack")
 
 
-def square(sq, solver):
+def board():
+    """The board's left, top and square size in px, from its node's bounds (layout E puts it under
+    the top bar); an older build without the node gets the fixed place it had."""
+    box = next((b for t, b in nodes(bounds=True) if t == BOARD), None)
+    if box is None:
+        return LEFT, TOP, CELL
+    x1, y1, x2, _ = box
+    return x1, y1, (x2 - x1) // 8
+
+
+def square(sq, solver, at):
+    left, top, cell = at
     f, r = ord(sq[0]) - ord("a"), int(sq[1]) - 1
     col, row = (f, 7 - r) if solver == "white" else (7 - f, r)
-    return LEFT + col * CELL + CELL // 2, TOP + row * CELL + CELL // 2
+    return left + col * cell + cell // 2, top + row * cell + cell // 2
 
 
-def play(uci, solver):
-    tap(*square(uci[:2], solver))
-    tap(*square(uci[2:4], solver))
+def play(uci, solver, at):
+    tap(*square(uci[:2], solver, at))
+    tap(*square(uci[2:4], solver, at))
     if len(uci) == 5:  # the picker stacks queen, rook, bishop, knight from the promotion square inward
         step = -1 if uci[3] == "8" else 1
-        tap(*square(uci[2] + str(int(uci[3]) + step * "qrbn".index(uci[4])), solver))
+        tap(*square(uci[2] + str(int(uci[3]) + step * "qrbn".index(uci[4])), solver, at))
 
 
 def solve():
@@ -127,8 +141,9 @@ def solve():
     solver = "black" if fields[1].split()[1] == "w" else "white"  # the setup Move is the opponent's
     moves = fields[2].split()
     time.sleep(1.2)  # the setup Move: 500 ms hold, 250 ms slide
+    at = board()
     for uci in moves[1::2]:
-        play(uci, solver)
+        play(uci, solver, at)
         time.sleep(1.0)  # the reply lands 300 ms after the user's Move, then slides for 250 ms
     result = wait_for(r"^Solved")
     print(json.dumps({"puzzle": pid, "result": result}, ensure_ascii=False))

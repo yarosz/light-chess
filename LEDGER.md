@@ -18,6 +18,18 @@ now takes every turn on a board, at either end and before any Move, and still le
 the live Position to LightOS; `PuzzleViewModel` no longer hands LightOS the turns of the held start.
 Pages that aren't boards are unchanged (F3). To check on the LP3: a fast scrub back to the present
 leaves the brightness alone, and the click on the live Position still toggles the flashlight.
+HANDOFF (Layout E, feat/layout-e from main 65eb451, 2026-09-30): the owner chose layout E over D's
+board strip (trial #17, closed); this PR supersedes it. Decision log "Layout E (owner, 2026-09-30)"
+E1-E5 (they SUPERSEDE N3's strip arrow and N4's strip placement on the boards; N4's mark geometry
+holds, in the top bar), DESIGN.md "Layout". The boards draw `BoardTopBar` (light-sdk's `LightTopBar`
+with the arrow and the mark as a painter, and the status as a two-line `Fine` title) and `ActionRow`
+(the buttons at the right, and on Game boards the Captured Pieces at the left, tightened by
+`CapturedRowLayout.fit`). `Strip` lost its `back` and `captured` paths (and `StripLayout`'s arrow and
+band measures, with their tests): it is the invite page's and the Play a friend list's only.
+`release-drive.py` reads the board's place from its "Chess board" node (under the top bar since E),
+falling back to D's and older builds' fixed place. To check on the LP3: the title in Akkurat (the
+widest, "Tap a piece, then a square", is 234 of 240 dp in the stand-in), the mark centred on the
+arrow's line, and the Captured Pieces beside Accept and Decline.
 HANDOFF (Navigation D, feat/navigation from main 04ae74a, 2026-09-30): the owner's navigation model,
 decision log "Navigation D" N1-N10, DESIGN.md "Navigation". `HomeScreen` is the root (the
 `@InitialScreen`; `ChessScreen` is gone, split into `PuzzleScreen` and `GameScreen`), and the place in

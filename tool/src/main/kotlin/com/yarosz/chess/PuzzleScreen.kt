@@ -31,10 +31,11 @@ import com.thelightphone.sdk.ui.LightTheme
 import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.lightClickable
+import com.yarosz.chess.board.ActionRow
+import com.yarosz.chess.board.BoardTopBar
 import com.yarosz.chess.board.MoveInput
 import com.yarosz.chess.board.PositionView
 import com.yarosz.chess.board.Review
-import com.yarosz.chess.board.Strip
 import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Touch
 import com.yarosz.chess.board.Wheel
@@ -102,8 +103,9 @@ class PuzzleViewModel(private val owner: PuzzleOwner) : WheelViewModel<Unit>() {
 
 /**
  * The Puzzle board (N16: one step above the Puzzles page): the seed screen first (D4), then the current
- * Puzzle, or the end of the Pack. Its strip is the back arrow, the status, Hint, Solution, Next or
- * Latest, and the Menu mark (N17), whose Menu has Pieces and the Puzzle's id (N18).
+ * Puzzle, or the end of the Pack. Its top bar is the back arrow, the status and the Menu mark (E1,
+ * N17), whose Menu has Pieces and the Puzzle's id (N18); its action row Hint, Solution, Next or
+ * Latest (E2).
  */
 class PuzzleScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, PuzzleViewModel>(sealedActivity) {
 
@@ -160,11 +162,13 @@ class PuzzleScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Puzz
                 }
             }
         }
+        // E1, E2: the top bar (the arrow and the status; no Menu, N5), the board under it, the buttons below.
         Column(
-            Modifier.fillMaxSize().padding(top = 12.dp),
+            Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
+            BoardTopBar(strip.status, back, menu.takeIf { strip.menu })
             PositionView(
                 position = positions[shown],
                 lastMove = attempt.moves.getOrNull(shown - 1),
@@ -176,7 +180,7 @@ class PuzzleScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Puzz
                 motion = motion.takeIf { review.ply == null },
                 pieceSet = session.data.pieceSet,
             )
-            Strip(strip.status, buttons, back = back, menu = menu.takeIf { strip.menu })
+            ActionRow(buttons, Modifier.weight(1f))
         }
         LaunchedEffect(Unit) {
             withFrameNanos {}
@@ -210,11 +214,11 @@ class PuzzleScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, Puzz
         )
     }
 
-    /** Every Puzzle in the Pack is finished: the strip says so, and the arrow goes Home. */
+    /** Every Puzzle in the Pack is finished: the top bar says so, and its arrow goes Home. */
     @Composable
     private fun Finished() {
-        Column(Modifier.fillMaxSize().padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Strip(PuzzleStrip.FINISHED.status, emptyList(), back = back)
+        Column(Modifier.fillMaxSize()) {
+            BoardTopBar(PuzzleStrip.FINISHED.status, back)
         }
     }
 }

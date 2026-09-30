@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +28,8 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.yarosz.chess.board.MoveInput
 import com.yarosz.chess.board.PositionView
 import com.yarosz.chess.board.Review
-import com.yarosz.chess.board.Strip
+import com.yarosz.chess.board.ActionRow
+import com.yarosz.chess.board.BoardTopBar
 import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Touch
 import com.yarosz.chess.board.Wheel
@@ -212,11 +212,13 @@ class FriendGameScreen(
             vm.touched()
             navigateTo({ FriendScreen(it, FriendPage.MENU, gameId, overBoard = true) }) { exit -> if (exit != null) goBack(exit) }
         }
+        // E1, E2: the top bar (the arrow, the status, the Menu mark), the board, then the action row.
         Column(
-            Modifier.fillMaxSize().padding(top = 12.dp),
+            Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
+            BoardTopBar(strip.status, StripButton(UiCopy.BACK_DESCRIPTION) { goBack() }, menu.takeIf { strip.menu })
             PositionView(
                 position = shownGame?.position ?: positions[shown],
                 lastMove = chosen ?: played.moves.getOrNull(shown - 1),
@@ -228,12 +230,7 @@ class FriendGameScreen(
             )
             // A chosen Move not yet sent counts as shown (F11): its capture is in the row at once.
             val captured = rememberCapturedRow(shownGame ?: played, shownGame?.ply ?: shown, game.seat.side, pieceSet)
-            Strip(
-                strip.status, buttons,
-                captured = captured,
-                back = StripButton(UiCopy.BACK_DESCRIPTION) { goBack() },
-                menu = menu.takeIf { strip.menu },
-            )
+            ActionRow(buttons, Modifier.weight(1f), captured = captured)
         }
     }
 
