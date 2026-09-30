@@ -60,9 +60,11 @@ out of type names.
   (`LightSdkPlugin.kt`, `LightToolMetadata.kt`). Reach files through the screen's `filesDir`.
 - Reflection is blocked, including `.javaClass`. Native code (NDK/JNI) is disallowed by Light policy.
 - The plugin generates the manifest from `tool/lighttool.toml`; cleartext HTTP is therefore off.
-- v1 declares no permissions at all, so no INTERNET of its own (D5). `ToolMetadataTest` guards it.
-  Light's SDK libraries still merge INTERNET, CAMERA and others into the APK's manifest;
-  `scripts/release-check.sh apk` pins that set, and the Tool's code never opens a connection.
+- Chess declares one permission, INTERNET, for the Relay and only for Games with a friend (ADR 0004,
+  W1; v1 declared none, D5). `ToolMetadataTest` guards it, and `scripts/release-check.sh relay`
+  refuses a release that declares it with no Relay URL (W8). Light's SDK libraries also merge
+  INTERNET, CAMERA and others into the APK's manifest; `scripts/release-check.sh apk` pins that set.
+  Puzzles and Games against the computer never open a connection.
 - `serverPackage` in `tool/lighttool.toml` stays `"com.lightos"` (LightOS on the phone): Light builds
   releases from the committed file. Emulator builds swap it at build time via `scripts/emulator-build.sh`
   (`mise run tool` and `mise run ci` already do). A unit test and `light-build.sh` enforce this.
