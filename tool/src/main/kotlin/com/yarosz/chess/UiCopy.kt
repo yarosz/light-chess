@@ -29,7 +29,8 @@ object UiCopy {
     const val SOLUTION_DESCRIPTION = "Play the Solution"
     const val NEXT = "Next"
     const val NEXT_DESCRIPTION = "Next Puzzle"
-    const val MENU = "Menu"
+
+    /** The Menu mark's label (N4): three squares, no text. */
     const val MENU_DESCRIPTION = "Open the Menu"
     const val UNRATED_SOLVED = "Solved, unrated"
     const val UNRATED_HINTED = "Hinted, unrated"
@@ -47,7 +48,8 @@ object UiCopy {
     const val SEED_SKIP = "Skip"
     const val SEED_SKIP_RATING = 1500.0
 
-    // The Menu (A10, F4, F5, F11).
+    // Home (N1) and the pages it opens (A10, F4, F5, F11).
+    const val HOME_TITLE = "Chess"
     const val MENU_TITLE = "Menu"
     const val MISSED = "Missed"
     const val ABOUT = "About"
@@ -68,13 +70,11 @@ object UiCopy {
     const val MOVE_NOW = "Move now"
     const val MOVE_NOW_DESCRIPTION = "Move now: the computer plays at once"
     const val NEW_GAME_DESCRIPTION = "Start a new game"
-    const val BACK = "Back"
-    const val GAMES_BACK_DESCRIPTION = "Back to the Games"
     const val DRAW_AGREED = "Draw agreed"
     const val DRAW_DECLINED = "Draw declined"
     const val UNFINISHED = "Unfinished"
 
-    // The Menu in the game mode (D6, B5, F11).
+    // Home's rows and the computer's Menu (D6, B5, F11, N1, N5).
     const val PLAY_COMPUTER = "Play the computer"
     const val PUZZLES = "Puzzles"
     const val NEW_GAME = "New game"
@@ -125,8 +125,9 @@ object UiCopy {
      * was built from (`source.date` in the Pack manifest); [notices] is [NOTICES_ASSET]'s text, whose
      * paragraphs (split at blank lines) follow: the pieces' CC0 credit and the release APK's libraries.
      * [friends] is whether Play a friend is on (the Relay URL is set, W1/W8), which changes the privacy line.
+     * [puzzleId] is the Puzzle last shown, whose id and address end the page (A9, N8).
      */
-    fun about(packDate: String?, notices: String, friends: Boolean = false): List<String> = listOf(
+    fun about(packDate: String?, notices: String, friends: Boolean = false, puzzleId: String? = null): List<String> = listOf(
         "Chess $VERSION",
         ABOUT_COPYRIGHT,
         ABOUT_LICENCE,
@@ -136,7 +137,8 @@ object UiCopy {
         else "Puzzles: the Lichess puzzle database (lichess.org), CC0, from the dump of $packDate.",
         ABOUT_ENGINE,
         ABOUT_BOOK,
-    ) + notices.split(Regex("\\n\\s*\\n")).map { it.trim().replace(Regex("\\s*\\n\\s*"), " ") }.filter { it.isNotEmpty() }
+    ) + notices.split(Regex("\\n\\s*\\n")).map { it.trim().replace(Regex("\\s*\\n\\s*"), " ") }.filter { it.isNotEmpty() } +
+        listOfNotNull(puzzleId?.let(::puzzleRow))
 
     // Playing a friend (v3 PR 2: W1, W2, W4, W6, W10). Shown only once the Relay URL is set (W8).
 
@@ -159,7 +161,11 @@ object UiCopy {
     const val NOT_SENT = "Not sent"
     const val RETRY = "Retry"
     const val RETRY_DESCRIPTION = "Send it again"
+    /** A draw offer on the Play a friend list's row (W6). */
     const val DRAW_OFFERED = "Draw offered"
+
+    /** A draw offer in the board's strip, beside Accept, Decline and the Menu mark (N9). */
+    const val DRAW_QUESTION = "Draw?"
     const val ACCEPT = "Accept"
     const val DECLINE = "Decline"
     const val TIME_IS_UP = "Time is up"
@@ -341,9 +347,9 @@ object UiCopy {
     fun piecesRow(set: PieceSet) = "$PIECES · ${pieceSetName(set)}"
 
     /**
-     * The Menu's last row (A9 with D7, "v1 smoke fixes"): the Puzzle on screen by its Lichess id, then
-     * its page on lichess.org on a line of its own, since Android would otherwise break the address
-     * at a slash. Text, not a link: the phone has no browser and Chess never uses the network (D5).
+     * About's last lines (A9 with D7, S1, N8): the Puzzle last shown by its Lichess id, then its page on
+     * lichess.org on a line of its own, since Android would otherwise break the address at a slash.
+     * Text, not a link: the phone has no browser and Chess never uses the network (D5).
      */
     fun puzzleRow(id: String) = "Puzzle $id\nlichess.org/training/$id"
 

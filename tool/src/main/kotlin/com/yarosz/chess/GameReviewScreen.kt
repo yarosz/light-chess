@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,7 +18,6 @@ import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.ui.LightTheme
 import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
-import com.yarosz.chess.board.POSITION_VIEW_SIZE
 import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.PositionView
 import com.yarosz.chess.board.Review
@@ -78,7 +76,7 @@ class GameReviewScreen(
         val strip = GameStrip.replay(record, vm.review.ply)
         val buttons = strip.buttons.map { button ->
             StripButton(button.label, button.description) {
-                if (button == GameButton.LATEST) vm.latest() else goBack()
+                if (button == GameButton.LATEST) vm.latest()
             }
         }
         LightTheme(colors = themeColors) {
@@ -97,8 +95,10 @@ class GameReviewScreen(
                     pieceSet = pieceSet ?: PieceSet.DEFAULT,
                 )
                 Strip(
-                    strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE),
+                    strip.status, buttons,
                     captured = rememberCapturedRow(record.game, shown, record.userSide, pieceSet ?: PieceSet.DEFAULT),
+                    // N3: the arrow returns to the Games, as system back does; a replay has no Menu.
+                    back = StripButton(UiCopy.BACK_DESCRIPTION) { goBack() },
                 )
             }
         }

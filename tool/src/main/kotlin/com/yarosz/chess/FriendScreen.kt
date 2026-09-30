@@ -34,28 +34,27 @@ import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
-import com.yarosz.chess.board.POSITION_VIEW_SIZE
 import com.yarosz.chess.board.Strip
 import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.correspondence.CorrespondenceGame
 import com.yarosz.chess.correspondence.Delivery
-import com.yarosz.chess.correspondence.HaltReason
 import com.yarosz.chess.correspondence.Refusal
 import com.yarosz.chess.correspondence.Stage
 import com.yarosz.chess.games.SideChoice
-import com.yarosz.chess.relay.EntryKind
 import com.yarosz.chess.relay.InviteCodes
 import com.yarosz.chess.relay.Protocol
 import com.yarosz.chess.rules.Side
-import androidx.compose.foundation.layout.width
 import kotlin.random.Random
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
-/** The Play a friend pages that aren't the list or a board (W6). */
+/**
+ * The Play a friend pages that aren't the list or a board (W6). Each is its own [FriendScreen] on the
+ * back stack, so system back pops one level (S3, N6); only New game turns into its invite in place.
+ */
 enum class FriendPage(val title: String, val scrolls: Boolean) {
     NEW(UiCopy.NEW_GAME, true),
     INVITE(UiCopy.INVITE, false),
@@ -69,9 +68,7 @@ enum class FriendPage(val title: String, val scrolls: Boolean) {
 enum class FriendConfirm { CANCEL, FORGET, RESIGN }
 
 class FriendViewModel(private val friends: FriendOwner, startPage: FriendPage, startGame: String?) : WheelViewModel<FriendExit?>() {
-    /** The page Back leaves from: New game becomes its invite once the code is made. */
-    var home by mutableStateOf(startPage)
-        private set
+    /** The page on screen: New game becomes its invite once the code is made, so back from the invite goes to the list (N6). */
     var page by mutableStateOf(startPage)
         private set
     var gameId by mutableStateOf(startGame)
@@ -94,12 +91,6 @@ class FriendViewModel(private val friends: FriendOwner, startPage: FriendPage, s
     private val steps = MutableSharedFlow<Int>(extraBufferCapacity = 16, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val scroll: SharedFlow<Int> = steps
 
-    fun open(next: FriendPage) {
-        confirming = null
-        error = null
-        page = next
-    }
-
     /**
      * A first tap asks for a second (true on the second, which acts). As with Resign against the
      * computer, the ask stands until the second tap or another page.
@@ -111,6 +102,11 @@ class FriendViewModel(private val friends: FriendOwner, startPage: FriendPage, s
         }
         confirming = what
         return false
+    }
+
+    /** Another page opens over this one: a pending second tap is dropped. */
+    fun leaving() {
+        confirming = null
     }
 
     fun create() {
@@ -127,8 +123,8 @@ class FriendViewModel(private val friends: FriendOwner, startPage: FriendPage, s
             val game = (delivery as? Delivery.Done)?.game
             if (game != null) {
                 gameId = game.gameId
-                home = FriendPage.INVITE
-                open(FriendPage.INVITE)
+                confirming = null
+                page = FriendPage.INVITE
             } else {
                 error = (delivery as? Delivery.Refused)?.let { UiCopy.refusal(it.reason) }
             }
@@ -176,10 +172,14 @@ class FriendScreen(
 
     private val friends: FriendOwner by lazy { checkNotNull(FriendOwner.of(lightContext)) { "Play a friend is off" } }
 
-    /** For the Piece Set's row only: it is kept in `puzzles.json` (P2, M1). */
-    private val owner: PuzzleOwner by lazy { PuzzleOwner.of(lightContext.filesDir, lightContext::readAsset) }
-
     override fun createViewModel() = FriendViewModel(friends, startPage, startGame)
+
+    /** Opens [page] for this page's Game over this one; an exit it hands back leaves this page too. */
+    private fun open(page: FriendPage) {
+        viewModel.leaving()
+        val id = viewModel.gameId
+        navigateTo({ FriendScreen(it, page, id) }) { exit -> if (exit != null) goBack(exit) }
+    }
 
     @Composable
     override fun Content() {
@@ -188,14 +188,13 @@ class FriendScreen(
         val vm = viewModel
         val page = vm.page
         val game = vm.gameId?.let(state::game)
-        val back = { if (page == vm.home) goBack() else vm.open(vm.home) }
         LightTheme(colors = themeColors) {
             when (page) {
-                FriendPage.ENTER_CODE -> EnterCode(back)
-                FriendPage.RENAME -> if (game != null) Rename(game) else LaunchedEffect(Unit) { back() }
+                FriendPage.ENTER_CODE -> EnterCode()
+                FriendPage.RENAME -> if (game != null) Rename(game) else LaunchedEffect(Unit) { goBack() }
                 else -> Column(Modifier.fillMaxSize().background(LightThemeTokens.colors.background)) {
                     LightTopBar(
-                        leftButton = LightBarButton.LightIcon(icon = LightIcons.BACK, onClick = back),
+                        leftButton = LightBarButton.LightIcon(icon = LightIcons.BACK, onClick = { goBack() }, contentDescription = UiCopy.BACK_DESCRIPTION),
                         center = LightTopBarCenter.Text(page.title),
                     )
                     when (page) {
@@ -241,7 +240,7 @@ class FriendScreen(
     /**
      * The invite (W6, G2): the code as ABCD-EFGH, the largest text on the page and alone on its line (in
      * LightOS Subtitle: Title is too wide for nine characters on the LP3),
-     * the note below it, and the strip. Once the friend takes the Seat, the board opens.
+     * the note below it, and the strip with the Menu mark (N4). Once the friend takes the Seat, the board opens.
      */
     @Composable
     private fun Invite(game: CorrespondenceGame, state: FriendState) {
@@ -254,8 +253,8 @@ class FriendScreen(
         }
         LaunchedEffect(game.stage) { if (game.stage != Stage.WAITING) goBack(FriendExit(game.gameId)) }
         val code = game.invite?.code
-        Column(Modifier.fillMaxSize().padding(horizontal = 24.dp)) {
-            Column(Modifier.weight(1f).fillMaxWidth().padding(top = 24.dp)) {
+        Column(Modifier.fillMaxSize()) {
+            Column(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 24.dp).padding(top = 24.dp)) {
                 if (code != null) {
                     LightText(
                         text = InviteCodes.display(code),
@@ -275,25 +274,25 @@ class FriendScreen(
                     when (button) {
                         FriendButton.CANCEL -> if (vm.confirm(FriendConfirm.CANCEL)) friends.cancelInvite(game.gameId)
                         FriendButton.RETRY -> friends.cancelInvite(game.gameId)
-                        FriendButton.MENU -> vm.open(FriendPage.MENU)
                         else -> {}
                     }
                 }
             }
-            Strip(strip.status, buttons, Modifier.width(POSITION_VIEW_SIZE).padding(bottom = 8.dp))
+            val menu = StripButton(UiCopy.MENU_DESCRIPTION) { open(FriendPage.MENU) }
+            Strip(strip.status, buttons, Modifier.padding(bottom = 8.dp), menu = menu.takeIf { strip.menu })
         }
     }
 
     /** Enter code (W6): one field on the LP3 keyboard, then Join; the title carries the answer. */
     @Composable
-    private fun EnterCode(back: () -> Unit) {
+    private fun EnterCode() {
         val vm = viewModel
         val text = rememberTextFieldState()
         LightTextInputEditor(
             title = if (vm.busy) UiCopy.SENDING else vm.error ?: UiCopy.ENTER_CODE,
             state = text,
             onSubmit = { typed -> vm.redeem(typed.toString()) { id -> goBack(FriendExit(id)) } },
-            onBack = back,
+            onBack = { goBack() },
             keyboardOptionsFlow = rememberKeyboardOptions(),
             modifier = Modifier.background(LightThemeTokens.colors.background),
             submitLabel = UiCopy.JOIN,
@@ -302,19 +301,18 @@ class FriendScreen(
         )
     }
 
-    /** Rename (W6, F11): the Opponent Label, on this phone only. */
+    /** Rename (W6, F11): the Opponent Label, on this phone only; its own screen over the Menu (N6). */
     @Composable
     private fun Rename(game: CorrespondenceGame) {
-        val vm = viewModel
         val text = rememberTextFieldState(game.label)
         LightTextInputEditor(
             title = UiCopy.RENAME,
             state = text,
             onSubmit = { typed ->
                 friends.rename(game.gameId, typed.toString())
-                vm.open(FriendPage.MENU)
+                goBack()
             },
-            onBack = { vm.open(FriendPage.MENU) },
+            onBack = { goBack() },
             keyboardOptionsFlow = rememberKeyboardOptions(),
             modifier = Modifier.background(LightThemeTokens.colors.background),
             submitLabel = UiCopy.SAVE,
@@ -323,82 +321,38 @@ class FriendScreen(
     }
 
     /**
-     * The Correspondence Game's Menu (W2, W4, W6), top to bottom: why it stopped, the Game's actions,
-     * Moves, Rename, Forget game, then back to Play a friend, Pieces and About. No Game Hint, no Takeback, no
-     * flip (W10, G3).
+     * The Correspondence Game's Menu, or an invite's (N5): only this Game's actions, from [FriendMenu].
+     * Moves and Rename open as their own screens (N6).
      */
     @Composable
     private fun GameMenu(game: CorrespondenceGame, state: FriendState) {
         val vm = viewModel
         val id = game.gameId
-        val log = game.log
-        when (game.halt?.reason) {
-            HaltReason.OUT_OF_SYNC -> MenuLine(UiCopy.OUT_OF_SYNC_ROW)
-            HaltReason.NEEDS_UPDATE -> MenuLine(UiCopy.UPDATE_CHESS_ROW)
-            HaltReason.GONE -> MenuLine(UiCopy.GAME_DELETED_ROW)
-            HaltReason.SEAT_LOST -> MenuLine(UiCopy.SEAT_LOST)
-            null -> {}
-        }
-        val idle = game.halt == null && game.pending == null && id !in state.sending
-        if (log != null && game.stage == Stage.ACTIVE && idle) {
-            when {
-                id in state.chosen -> MenuRow(UiCopy.SEND_AND_OFFER_DRAW) {
-                    friends.send(id, offerDraw = true)
-                    goBack()
-                }
-                log.draft(game.seat.side, EntryKind.DRAW_OFFER) != null -> MenuRow(UiCopy.OFFER_DRAW) {
-                    friends.offerDraw(id)
-                    goBack()
-                }
-                game.yourMove -> MenuLine(UiCopy.OFFER_DRAW_AFTER_MOVE, lighten = true)
+        for (item in FriendMenu.of(game, state, vm.confirming)) {
+            val action = item.action
+            if (action == null) {
+                MenuLine(item.text, item.lighten)
+                continue
             }
-            MenuRow(if (vm.confirming == FriendConfirm.RESIGN) UiCopy.RESIGN_CONFIRM else UiCopy.RESIGN) {
-                if (vm.confirm(FriendConfirm.RESIGN)) {
-                    friends.resign(id)
-                    goBack()
+            MenuRow(item.text) {
+                when (action) {
+                    FriendAction.SEND_AND_OFFER_DRAW -> {
+                        friends.send(id, offerDraw = true)
+                        goBack()
+                    }
+                    FriendAction.OFFER_DRAW -> {
+                        friends.offerDraw(id)
+                        goBack()
+                    }
+                    FriendAction.RESIGN -> if (vm.confirm(FriendConfirm.RESIGN)) {
+                        friends.resign(id)
+                        goBack()
+                    }
+                    FriendAction.MOVES -> open(FriendPage.MOVES)
+                    FriendAction.RENAME -> open(FriendPage.RENAME)
+                    FriendAction.FORGET -> if (vm.confirm(FriendConfirm.FORGET)) friends.forget(id) { goBack(FriendExit()) }
                 }
             }
         }
-        if (log != null) MenuRow(UiCopy.MOVES) { vm.open(FriendPage.MOVES) }
-        MenuRow(UiCopy.RENAME) { vm.open(FriendPage.RENAME) }
-        if (game.stage == Stage.OVER || game.halt != null) {
-            MenuRow(if (vm.confirming == FriendConfirm.FORGET) UiCopy.FORGET_CONFIRM else UiCopy.FORGET_GAME) {
-                if (vm.confirm(FriendConfirm.FORGET)) friends.forget(id) { goBack(FriendExit()) }
-            }
-        }
-        MenuRow(UiCopy.PLAY_FRIEND) { goBack(FriendExit()) }
-        // P2, M1: the one Piece Set, just above About as in every Menu.
-        val pieceSet = owner.pieceSet.collectAsState().value
-        if (pieceSet != null) MenuRow(UiCopy.piecesRow(pieceSet)) { owner.nextPieceSet() }
-        MenuRow(UiCopy.ABOUT) { navigateTo({ MenuScreen(it, MenuPage.ABOUT) }) }
-    }
-}
-
-/**
- * The Play a friend page (W6), the Tool's first screen in the friend mode: the Games in E7's order,
- * then New game and Enter code, lightened with "Finish a game first" at the cap of five. The Menu is
- * in the top bar: next to New game and Enter code the strip has no room for it.
- */
-@Composable
-fun FriendList(state: FriendState, now: Long, onRow: (FriendRow) -> Unit, onNew: () -> Unit, onEnterCode: () -> Unit, onMenu: () -> Unit) {
-    val rows = FriendRows.of(state.games, state.seats, now)
-    Column(Modifier.fillMaxSize()) {
-        LightTopBar(
-            center = LightTopBarCenter.Text(UiCopy.PLAY_FRIEND),
-            rightButton = LightBarButton.Text(UiCopy.MENU, contentDescription = UiCopy.MENU_DESCRIPTION, onClick = onMenu),
-        )
-        LightScrollView(Modifier.weight(1f).fillMaxWidth()) {
-            if (rows.isEmpty()) MenuLine(UiCopy.NO_FRIEND_GAMES, lighten = true)
-            for (row in rows) MenuRow(row.text) { onRow(row) }
-        }
-        if (state.full) MenuLine(UiCopy.refusal(Refusal.CAP_REACHED), lighten = true)
-        Strip(
-            "",
-            listOf(
-                StripButton(UiCopy.NEW_GAME, UiCopy.NEW_GAME_DESCRIPTION, enabled = !state.full, onClick = onNew),
-                StripButton(UiCopy.ENTER_CODE, UiCopy.ENTER_CODE, enabled = !state.full, onClick = onEnterCode),
-            ),
-            Modifier.padding(horizontal = 24.dp).width(POSITION_VIEW_SIZE),
-        )
     }
 }
