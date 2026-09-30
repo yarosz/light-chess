@@ -106,25 +106,26 @@ class Pack(private val readAsset: (String) -> ByteArray) {
 
     /**
      * Reads ahead the Puzzles [wanted] names (Lichess id to Puzzle Rating), so that [puzzle] and
-     * [cached] find them without reading a file, and returns the ids the Pack doesn't have. First the
-     * Bands their ratings name: those Puzzles are found as soon as that pass ends, replacing what the
-     * last call found (one found by an earlier call is kept without a read). Then, for any still
-     * missing, the other Bands. Each Band file is read at most once in the call, whatever the number
-     * of ids, and only the matching lines are parsed. For a background thread (Missed, D2, N13).
+     * [cached] find them without reading a file, and returns the ids the Pack doesn't have. What the
+     * last call found is kept for the ids still wanted (without a read) and dropped for the others.
+     * First the Bands their ratings name, then, for any still missing, the other Bands; the Puzzles in
+     * each Band are found as soon as that Band is read. Each Band file is read at most once in the
+     * call, whatever the number of ids, and only the matching lines are parsed. For a background
+     * thread (Missed, D2, N13, N23).
      */
     fun prefetch(wanted: Map<String, Int>): Set<String> {
-        val out = HashMap<String, Puzzle>()
-        synchronized(found) { for (id in wanted.keys) found[id]?.let { out[id] = it } }
-        val searched = HashSet<Int>()
-        for ((band, ids) in wanted.keys.filter { it !in out }.groupBy { bandFor(wanted.getValue(it)) }) {
-            searched += band.band
-            out += find(band, ids)
-        }
+        val missing = HashSet<String>()
         synchronized(found) {
-            found.clear()
-            found.putAll(out)
+            found.keys.retainAll(wanted.keys)
+            wanted.keys.filterTo(missing) { it !in found }
         }
-        val missing = wanted.keys.filterTo(HashSet()) { it !in out }
+        val searched = HashSet<Int>()
+        for ((band, ids) in missing.groupBy { bandFor(wanted.getValue(it)) }) {
+            searched += band.band
+            val hits = find(band, ids)
+            missing -= hits.keys
+            synchronized(found) { found.putAll(hits) }
+        }
         for (band in bands) {
             if (missing.isEmpty()) break
             if (!searched.add(band.band)) continue

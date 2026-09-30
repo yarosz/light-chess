@@ -115,23 +115,42 @@ class PuzzleOwner(
 
     /**
      * A Missed row's tap: true when the replay started. False, and the page stays where it is, for a
-     * Puzzle the Pack no longer has ([missedGone], N13) and for one the read ahead hasn't reached yet:
-     * the main thread never reads a Band file, so that tap waits for [prefetchMissed], after which the
-     * row either replays or shows lightened.
+     * Puzzle the Pack no longer has ([missedGone], N13) and for one the Missed check hasn't read yet:
+     * the main thread never reads a Band file (D2, N23), so that tap is kept, the latest one only, and
+     * the check lands it: when the check ends, the replay starts and [whenLanded] runs (the page goes
+     * to the board), or, for a Puzzle the check found gone, nothing starts and the row lightens. A tap
+     * kept for a page that is left is dropped with [dropPendingReplay].
      */
-    fun replayMissed(id: String): Boolean {
+    fun replayMissed(id: String, whenLanded: (() -> Unit)? = null): Boolean {
         val session = sessions.value ?: return false
         if (id in gone.value) return false
         if (!flow.readAhead(id)) {
-            if (missedCheck?.isActive != true) prefetchMissed()
+            pendingTap = whenLanded?.let { PendingTap(id, it) }
+            prefetchMissed()
             return false
         }
+        pendingTap = null
+        return startReplay(session, id)
+    }
+
+    /** The page that tapped with [whenLanded] is left: its kept tap, if it is still the one kept, replays nothing. */
+    fun dropPendingReplay(whenLanded: () -> Unit) {
+        if (pendingTap?.whenLanded === whenLanded) pendingTap = null
+    }
+
+    private fun startReplay(session: PuzzleState, id: String): Boolean {
         val next = flow.replayMissed(session, id)
         if (next === session) return false
         touched()
         set(next)
         return true
     }
+
+    /** A Missed tap the running check hasn't reached yet: [id], and what to do once it replays. */
+    private class PendingTap(val id: String, val whenLanded: () -> Unit)
+
+    @Volatile
+    private var pendingTap: PendingTap? = null
 
     /** The Puzzles page's first row (N12): the rated Puzzle, ready for the board it opens. */
     fun toRated() = act(flow::toRated)
@@ -151,30 +170,62 @@ class PuzzleOwner(
     /** The last [prefetchMissed], while it runs. */
     private var missedCheck: Job? = null
 
+    /** The Missed ids the running check was started on. */
+    @Volatile
+    private var checking: List<String>? = null
+
+    /** The Missed list changed while the check ran, and a page asked again: check once more. */
+    @Volatile
+    private var checkAgain = false
+
     /**
      * The Puzzles page or Missed is open: read the Missed Puzzles ahead, so a tap on one reads no file
      * (D2), and find the ones the Pack no longer has (N13), so their rows show lightened and the count
      * leaves them out. An id found gone is never looked for again in this process (the Pack is the
      * Tool's own assets), so once every row is known each open reads at most the Bands of the rows
-     * still there, and none when the last call found them. A call while one runs does nothing.
+     * still there, and none when the last call found them. A call while a check runs on the same
+     * Missed ids does nothing; one after the list changed (on the board, while a check started from
+     * the Puzzles page still ran) makes the check run again on the new list when it ends. A kept tap
+     * ([replayMissed]) lands once the last run ends.
      */
     fun prefetchMissed() {
         val session = sessions.value ?: return
-        // One check at a time: the Missed list changes only on the board, never under these pages.
-        if (missedCheck?.isActive == true) return
-        val known = gone.value
-        missedCheck = scope.launch {
-            val missing = withContext(Dispatchers.Default) {
-                runCatching { flow.prefetchMissed(session, known) }
-                    .onFailure { Log.w(TAG, "prefetch failed", it) }
-                    .getOrDefault(emptySet())
-            }
-            if (missing.isNotEmpty()) gone.value = gone.value + missing
+        if (missedCheck?.isActive == true) {
+            if (session.missedIds != checking) checkAgain = true
+            return
         }
+        missedCheck = scope.launch {
+            do {
+                checkAgain = false
+                val latest = sessions.value ?: break
+                checking = latest.missedIds
+                val known = gone.value
+                val missing = withContext(Dispatchers.Default) {
+                    runCatching { flow.prefetchMissed(latest, known) }
+                        .onFailure { Log.w(TAG, "prefetch failed", it) }
+                        .getOrDefault(emptySet())
+                }
+                if (missing.isNotEmpty()) gone.value = gone.value + missing
+            } while (checkAgain)
+            checking = null
+            landPendingTap()
+        }
+    }
+
+    /** The check ended: the kept tap replays if its Puzzle was read, and does nothing if it is gone. */
+    private fun landPendingTap() {
+        val tap = pendingTap ?: return
+        pendingTap = null
+        val session = sessions.value ?: return
+        if (tap.id in gone.value || !flow.readAhead(tap.id)) return
+        if (startReplay(session, tap.id)) tap.whenLanded()
     }
 
     /** Stops this owner's work (its clock, its saves): for tests, which make owners of their own. */
     internal fun close() = scope.cancel()
+
+    /** A Missed check is running, its kept tap not landed yet: for tests. */
+    internal val missedChecking: Boolean get() = missedCheck?.isActive == true
 
     /** A touch or a wheel event: restarts D3's five minutes. */
     fun touched() {
@@ -319,3 +370,6 @@ internal fun slideAfter(was: Attempt?, now: Attempt?, current: Motion?, id: Int)
  * nothing, like Hint while the reply is pending, leaves the running wait alone instead of delaying it.
  */
 internal fun restartsClock(was: Attempt?, now: Attempt?): Boolean = now != was
+
+/** The Missed list's ids, in order: what a Missed check reads ahead. */
+private val PuzzleState.missedIds: List<String> get() = data.missed.map { it.id }

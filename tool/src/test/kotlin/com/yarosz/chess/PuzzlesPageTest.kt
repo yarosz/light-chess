@@ -274,6 +274,14 @@ class PuzzlesPageTest {
     }
 
     @Test
+    fun `a file of 50 Past Puzzles, the old cap, still reads and grows (N14)`() {
+        val fifty = PuzzleData(seeded = true, packSha256 = "A", history = (1..50).map { HistoryEntry("h$it", 1500, AttemptState.SOLVED, 5) })
+        val read = PuzzleData.decode(fifty.encode())!!
+        assertEquals(fifty.history, read.history)
+        assertEquals(51, solve(ready(flow.open(read))).data.history.size)
+    }
+
+    @Test
     fun `the save file stays small with 100 Past Puzzles and 100 Missed`() {
         val full = PuzzleData(
             seeded = true,
