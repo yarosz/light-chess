@@ -1443,3 +1443,19 @@ Puzzle board a step above it; Pieces moves into the Menu of every board, where i
   knight beside its label, at the row text's height, from the same `PieceVectors` the board uses, so a
   tap shows the change without leaving the Menu. The row stays one line at the LP3's 360 dp with the
   widest set's name (`MenuTest`), and its semantics label is its text.
+
+## The wheel on a board (owner, 2026-09-30)
+Seen on the LP3: scrubbing the Moves with the wheel also changed LightOS's brightness. A board took a
+turn only when it changed the Position shown: `Review.wheel` returned null for a clockwise turn at the
+latest Position and a counter-clockwise one with no Moves, so the board's view model returned false
+and LightActivity handed the turn to LightOS. A fast scrub back to the present overshoots the end, and
+every detent past it changed the brightness.
+- N20 A board takes every turn. AMENDS R1.9's "otherwise return false" for boards; KEEPS F2, F3,
+  R4.17 and `TakenKeys` as they are. RULING: a board (a Puzzle, a Game against the computer, a
+  Correspondence Game, a replayed Game) takes every counter-clockwise and clockwise turn, even one that
+  moves nothing: at the latest Position, at Ply 0, and before any Move (the Puzzle's held start
+  included), a turn is taken and changes nothing. The click keeps F2: in Review it returns to the
+  latest Position; on the latest Position it goes to LightOS, for the flashlight. Pages that are not
+  boards keep F3: one that scrolls takes the wheel, one that fits leaves it with LightOS (Home, a
+  Menu that fits, the lists), so brightness still works there. The seed screen and the end of the
+  Pack draw no board and leave the wheel with LightOS. `Review.wheel` holds the rule (`ReviewTest`).

@@ -128,12 +128,15 @@ maps touches to squares. Every legality question goes to the rules core.
   promotion square inward: queen, rook, bishop, knight. The next tap picks a piece; a tap anywhere
   else cancels and deselects. Underpromotion is one tap, like the queen.
 
-## Wheel and Review (R1.9, F2)
+## Wheel and Review (R1.9, F2, N20)
 
 - Counter-clockwise enters Review one Ply back, then steps back to the start. Clockwise steps forward;
   reaching the latest Position leaves Review. A click returns to the latest Position.
-- Outside Review, clockwise and click return false, as does counter-clockwise before any Move, so
-  LightOS keeps brightness and the flashlight.
+- A board takes every turn (N20), even one that moves nothing: clockwise at the latest Position,
+  counter-clockwise at Ply 0 or before any Move. A fast scrub back to the present overshoots the end,
+  and each detent past it used to change LightOS's brightness. The click outside Review returns false,
+  so LightOS keeps the flashlight. Pages that aren't boards keep F3 (one that fits leaves the wheel
+  with LightOS, brightness included); so do the seed screen and the end of the Pack.
 - A key's up and repeats go where its down went (R4.17): LightActivity asks the screen about each
   separately and hands LightOS every wheel event the screen doesn't take, so a screen that took only
   the down turned the flashlight on with the up of a click it had used (seen on the LP3). Every view

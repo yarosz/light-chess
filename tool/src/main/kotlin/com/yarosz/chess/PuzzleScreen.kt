@@ -40,7 +40,6 @@ import com.yarosz.chess.board.Touch
 import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.puzzles.Attempt
 import com.yarosz.chess.puzzles.PuzzleState
-import com.yarosz.chess.puzzles.Stage
 
 /**
  * The Puzzle board's touches in progress ([MoveInput]) and Review, over the process's [PuzzleOwner];
@@ -87,8 +86,10 @@ class PuzzleViewModel(private val owner: PuzzleOwner) : WheelViewModel<Unit>() {
 
     override fun onWheel(key: Wheel): Boolean {
         val session = owner.session.value ?: return false
+        // The seed screen and the end of the Pack draw no board: the wheel stays with LightOS (F3).
+        if (session.needsSeed) return false
+        // A board takes every turn, even one that moves nothing, the held start included (N20).
         val attempt = session.attempt ?: return false
-        if (session.needsSeed || attempt.stage == Stage.HOLD) return false
         val next = review(attempt).wheel(key, attempt.positions.lastIndex) ?: return false
         owner.touched()
         review = next

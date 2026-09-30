@@ -12,6 +12,12 @@ client and Play a friend are on main (#3), and so is the Captured Pieces row (P3
 v2 + v3 + P3) is released. v0.3.1 is the open release PR, carrying the v3 review follow-ups: the
 Relay's limits and plain-HTTP refusal (#13, L1-L5) and Play a friend's Time Left and deleted Game
 (#14, W12, W13). Next: v3 PR 3 (the live WebSocket).
+HANDOFF (Puzzles page and Pieces, feat/puzzles-page from main 65eb451, 2026-09-30): the wheel on a
+board (N20, owner-reported on the LP3: scrubbing the Moves changed the brightness). `Review.wheel`
+now takes every turn on a board, at either end and before any Move, and still leaves the click on
+the live Position to LightOS; `PuzzleViewModel` no longer hands LightOS the turns of the held start.
+Pages that aren't boards are unchanged (F3). To check on the LP3: a fast scrub back to the present
+leaves the brightness alone, and the click on the live Position still toggles the flashlight.
 HANDOFF (Navigation D, feat/navigation from main 04ae74a, 2026-09-30): the owner's navigation model,
 decision log "Navigation D" N1-N10, DESIGN.md "Navigation". `HomeScreen` is the root (the
 `@InitialScreen`; `ChessScreen` is gone, split into `PuzzleScreen` and `GameScreen`), and the place in

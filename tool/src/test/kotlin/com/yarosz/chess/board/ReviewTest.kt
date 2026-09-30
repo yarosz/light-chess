@@ -39,13 +39,24 @@ class ReviewTest {
     }
 
     @Test
-    fun outsideReviewForwardAndClickAreLeftToLightOS() {
-        assertNull(live.wheel(Wheel.FORWARD, 5))
-        assertNull(live.wheel(Wheel.CLICK, 5))
+    fun aTurnAtTheLatestPositionIsTakenAndChangesNothing() {
+        // N20: a fast scrub back to the present overshoots; the extra detents stay with the board.
+        assertEquals(live, live.wheel(Wheel.FORWARD, 5))
+        assertEquals(live, Review(4).wheel(Wheel.FORWARD, 5)?.wheel(Wheel.FORWARD, 5)?.wheel(Wheel.FORWARD, 5))
     }
 
     @Test
-    fun withNoMovesPlayedBackIsLeftToLightOS() {
-        assertNull(live.wheel(Wheel.BACK, 0))
+    fun aTurnAtPlyZeroIsTakenAndChangesNothing() {
+        assertEquals(Review(0), Review(0).wheel(Wheel.BACK, 5))
+        // No Moves played yet: the Position shown is both ends, and both turns are the board's.
+        assertEquals(live, live.wheel(Wheel.BACK, 0))
+        assertEquals(live, live.wheel(Wheel.FORWARD, 0))
+    }
+
+    @Test
+    fun theClickOnTheLivePositionIsLeftToLightOS() {
+        // F2: the flashlight stays LightOS's while nothing is being reviewed.
+        assertNull(live.wheel(Wheel.CLICK, 5))
+        assertNull(live.wheel(Wheel.CLICK, 0))
     }
 }
