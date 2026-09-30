@@ -13,8 +13,13 @@ few days per Move. No account and nothing tracked; only Games with a friend use 
 
 Questions or bugs: https://github.com/yarosz/light-chess/issues
 
-<!-- Screenshots: LP3 photos go in docs/screenshots/ (Home, first Puzzle, a result, a Game and its Menu, About). -->
-_Screenshots from a Light Phone III are coming._
+<p>
+  <img src="docs/screenshots/home.png" width="32%" alt="Home: Puzzles with the Player Rating, Play the computer, Play a friend, Games and About">
+  <img src="docs/screenshots/puzzle.png" width="32%" alt="A Puzzle: White to move, with Hint and Solution under the board">
+  <img src="docs/screenshots/game.png" width="32%" alt="A Game against the computer: the Captured Pieces under the board, White ahead by two">
+</p>
+
+_Home, a Puzzle and a Game against the computer. The "?" after the Player Rating shows it has not settled yet._
 
 ## What it does
 
