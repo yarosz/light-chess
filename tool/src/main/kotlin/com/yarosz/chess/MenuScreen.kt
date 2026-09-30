@@ -122,13 +122,33 @@ class MenuViewModel(
         return true
     }
 
-    /** A Missed replay: true when it started, and the Puzzle board opens on it (N2); false for a Puzzle the Pack lost (N13). */
+    /**
+     * A Missed replay: true when it started, and the Puzzle board opens on it (N2); false for a Puzzle
+     * the Pack lost (N13), and for one the Missed check hasn't read yet: that tap replays when the
+     * check lands, unless the page was left first, and [replayed] turns true for the page to go (N23).
+     */
     fun replay(id: String): Boolean {
         owner.touched()
-        if (!owner.replayMissed(id)) return false
+        if (!owner.replayMissed(id, landed)) return false
         modes.set(Mode.PUZZLES)
         return true
     }
+
+    /** A tap kept while the Missed check ran has replayed: the page goes to the board. */
+    var replayed by mutableStateOf(false)
+        private set
+
+    private val landed: () -> Unit = {
+        modes.set(Mode.PUZZLES)
+        replayed = true
+    }
+
+    /** The page is left (hidden or gone): a tap kept for it replays nothing. */
+    fun hidden() = owner.dropPendingReplay(landed)
+
+    override fun onScreenHide(screen: SimpleLightScreen<Unit>) = hidden()
+
+    override fun onCleared() = hidden()
 
     /** A Pieces row (N17): the next Piece Set, and the Menu stays. */
     fun nextPieceSet() {
@@ -260,6 +280,8 @@ class MenuScreen(
                         }
                         // A row the Pack lost is a lightened line; a tap that finds it lost stays here (N13).
                         MenuPage.MISSED -> if (data != null) {
+                            // A tap the Missed check hadn't reached replays when it lands (N23).
+                            LaunchedEffect(vm.replayed) { if (vm.replayed) done() }
                             MenuItems(PuzzlesPages.missed(data.missed, gone)) { id -> if (vm.replay(id)) done() }
                         }
                         MenuPage.PAST_PUZZLES -> if (data != null) MenuItems(PuzzlesPages.past(data.history)) {}

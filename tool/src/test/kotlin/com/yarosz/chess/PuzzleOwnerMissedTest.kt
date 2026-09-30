@@ -6,6 +6,7 @@ import com.yarosz.chess.puzzles.AttemptState
 import com.yarosz.chess.puzzles.MissedEntry
 import com.yarosz.chess.puzzles.PuzzleData
 import com.yarosz.chess.puzzles.PuzzleStore
+import com.yarosz.chess.puzzles.Stage
 import com.yarosz.chess.puzzles.TestPacks
 import java.io.File
 import java.nio.file.Files
@@ -41,25 +42,26 @@ class PuzzleOwnerMissedTest {
         dir.deleteRecursively()
     }
 
-    private val lines = (1300..1700 step 50).map { TestPacks.line("p$it", it) }
+    /** "far" sits in a Band no Puzzle window reaches, so the check reads its file, which [hold] can hold. */
+    private val lines = (1300..1700 step 50).map { TestPacks.line("p$it", it) } + TestPacks.line("far", 2500)
     private val assets = TestPacks.assets("A", lines)
 
     /** Every Band file read, with the thread that read it. */
     private val reads = Collections.synchronizedList(mutableListOf<Pair<String, Thread>>())
 
-    /** While set, a Band read waits for it: the Missed check is still running. */
+    /** While set, a read of "far"'s Band waits for it: the Missed check is still running. */
     @Volatile
     private var hold: CountDownLatch? = null
 
     private val missed = listOf(MissedEntry("p1500", 1500, AttemptState.FAILED), MissedEntry("lost", 1500, AttemptState.HINTED))
 
     /** An owner on a save file with [missed] in the same Pack, so no carry-over drops "lost" (F1). */
-    private fun owner(): PuzzleOwner {
+    private fun owner(missed: List<MissedEntry> = this.missed): PuzzleOwner {
         PuzzleStore(dir).save(PuzzleData(seeded = true, packSha256 = "A", finished = missed.map { it.id }, missed = missed))
         val owner = PuzzleOwner(dir, { path ->
             if (path.endsWith(".txt")) {
                 reads += path to Thread.currentThread()
-                hold?.await(5, TimeUnit.SECONDS)
+                if (path.endsWith("2500.txt")) hold?.await(5, TimeUnit.SECONDS)
             }
             assets(path)
         }, CoroutineScope(SupervisorJob() + Dispatchers.Unconfined))
@@ -68,11 +70,11 @@ class PuzzleOwnerMissedTest {
         return owner
     }
 
-    private fun missedPage(owner: PuzzleOwner, modes: ModeOwner): MenuViewModel {
+    private fun missedPage(owner: PuzzleOwner, modes: ModeOwner, page: MenuPage = MenuPage.MISSED): MenuViewModel {
         val game = game ?: GameOwner(dir, { error("no asset $it") }, host, CoroutineScope(SupervisorJob() + Dispatchers.Unconfined))
             .also { game = it }
         waitFor("games.json read") { game.state.value != null }
-        return MenuViewModel(owner, game, modes, MenuPage.MISSED, overGame = false)
+        return MenuViewModel(owner, game, modes, page, overGame = false)
     }
 
     @Test
@@ -114,5 +116,81 @@ class PuzzleOwnerMissedTest {
         assertTrue(page.replay("p1500"))
         assertTrue(synchronized(reads) { reads.none { it.second == tapper } }, "the replay itself reads nothing on the tapping thread")
         assertEquals("p1500", owner.session.value!!.replay!!.puzzle.id)
+    }
+
+    private val farMissed = listOf(MissedEntry("far", 2500, AttemptState.FAILED), MissedEntry("lost", 1500, AttemptState.HINTED))
+
+    @Test
+    fun `a tap the Missed check hasn't reached replays when the check lands (N23)`() {
+        val owner = owner(farMissed)
+        val modes = ModeOwner.of(dir)
+        modes.set(Mode.GAME)
+        val gate = CountDownLatch(1)
+        hold = gate
+        val page = missedPage(owner, modes)
+        val tapper = Thread.currentThread()
+        reads.clear()
+        assertFalse(page.replay("far"), "not read yet: the page stays")
+        assertNull(owner.session.value!!.replay)
+        assertFalse(page.replayed)
+        gate.countDown()
+        waitFor("the kept tap to land") { page.replayed }
+        assertEquals("far", owner.session.value!!.replay!!.puzzle.id)
+        assertEquals(Mode.PUZZLES, modes.mode.value)
+        assertTrue(synchronized(reads) { reads.none { it.second == tapper } }, "no Band file read on the tapping thread: $reads")
+    }
+
+    @Test
+    fun `a tap kept for a page that is then left replays nothing`() {
+        val owner = owner(farMissed)
+        val modes = ModeOwner.of(dir)
+        modes.set(Mode.GAME)
+        val gate = CountDownLatch(1)
+        hold = gate
+        val page = missedPage(owner, modes)
+        assertFalse(page.replay("far"))
+        page.hidden()
+        gate.countDown()
+        waitFor("the Missed check") { !owner.missedChecking }
+        assertNull(owner.session.value!!.replay, "no replay started")
+        assertFalse(page.replayed)
+        assertEquals(Mode.GAME, modes.mode.value)
+    }
+
+    @Test
+    fun `a tap kept for a Puzzle the check finds gone replays nothing, and the row lightens`() {
+        val owner = owner(farMissed)
+        val modes = ModeOwner.of(dir)
+        modes.set(Mode.GAME)
+        val gate = CountDownLatch(1)
+        hold = gate
+        val page = missedPage(owner, modes)
+        assertFalse(page.replay("lost"))
+        gate.countDown()
+        waitFor("the Missed check") { !owner.missedChecking }
+        assertEquals(setOf("lost"), owner.missedGone.value)
+        assertNull(owner.session.value!!.replay)
+        assertFalse(page.replayed)
+        assertEquals(Mode.GAME, modes.mode.value)
+    }
+
+    @Test
+    fun `a Missed list changed while a check runs is checked again when Missed opens`() {
+        val owner = owner(farMissed)
+        val modes = ModeOwner.of(dir)
+        val gate = CountDownLatch(1)
+        hold = gate
+        missedPage(owner, modes, MenuPage.PUZZLES)
+        assertTrue(owner.missedChecking, "the Puzzles page's check holds on far's Band")
+        // The rated Puzzle is failed on the board: it joins Missed while that check still runs.
+        waitFor("the rated Puzzle's first Move") { owner.session.value!!.attempt?.stage == Stage.PLAY }
+        owner.showSolution()
+        waitFor("the failed Puzzle in Missed") { owner.session.value!!.data.missed.size == 3 }
+        val failed = owner.session.value!!.data.missed.first().id
+        val page = missedPage(owner, modes)
+        gate.countDown()
+        waitFor("the Missed check") { !owner.missedChecking }
+        assertTrue(page.replay(failed), "the check ran again on the new list, so the failed Puzzle is read ahead")
+        assertEquals(failed, owner.session.value!!.replay!!.puzzle.id)
     }
 }

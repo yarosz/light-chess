@@ -1536,6 +1536,22 @@ Puzzle board a step above it; Pieces moves into the Menu of every board, where i
   tap shows the change without leaving the Menu. The row stays one line at the LP3's 360 dp with the
   widest set's name (`MenuTest`), and its semantics label is its text.
 
+## The wheel on a board (owner, 2026-09-30)
+Seen on the LP3: scrubbing the Moves with the wheel also changed LightOS's brightness. A board took a
+turn only when it changed the Position shown: `Review.wheel` returned null for a clockwise turn at the
+latest Position and a counter-clockwise one with no Moves, so the board's view model returned false
+and LightActivity handed the turn to LightOS. A fast scrub back to the present overshoots the end, and
+every detent past it changed the brightness.
+- N20 A board takes every turn. AMENDS R1.9's "otherwise return false" for boards; KEEPS F2, F3,
+  R4.17 and `TakenKeys` as they are. RULING: a board (a Puzzle, a Game against the computer, a
+  Correspondence Game, a replayed Game) takes every counter-clockwise and clockwise turn, even one that
+  moves nothing: at the latest Position, at Ply 0, and before any Move (the Puzzle's held start
+  included), a turn is taken and changes nothing. The click keeps F2: in Review it returns to the
+  latest Position; on the latest Position it goes to LightOS, for the flashlight. Pages that are not
+  boards keep F3: one that scrolls takes the wheel, one that fits leaves it with LightOS (Home, a
+  Menu that fits, the lists), so brightness still works there. The seed screen and the end of the
+  Pack draw no board and leave the wheel with LightOS. `Review.wheel` holds the rule (`ReviewTest`).
+
 ## Puzzles page review follow-ups (orchestrator, 2026-09-30)
 From the review of the Puzzles page PR (#20).
 - N21 Which Menus hide in Review. AMENDS N17. Contradiction: N17 hid the mark in Review on every
@@ -1558,25 +1574,15 @@ From the review of the Puzzles page PR (#20).
   Missed id at once (`Pack.prefetch`: the Bands the ratings name first, then, for ids still missing,
   the others), where it read every uncached Band once per lost id on each open. An id found gone is
   never looked for again in the process (the Pack is the Tool's own assets), and a Puzzle the last
-  check found is kept without a read. A tap never reads a file on the main thread: a lost row, or one
-  the check hasn't reached yet, starts nothing and the page stays; the row then replays, or lightens,
-  when the check ends. The check runs when the Puzzles page or Missed opens, and "Missed · N" counts
-  only the rows that replay. Puzzle stays capitalised as the glossary term in the page's copy:
+  check found is kept without a read; each Band's Puzzles are found as soon as that Band is read. A
+  tap never reads a file on the main thread. A lost row's tap starts nothing and the page stays. A
+  tap on a row the check hasn't read yet starts nothing at once either, and is kept (the latest tap
+  only): when the check ends, that Puzzle replays and the page goes to the board, as a tap on a read
+  row does; if the check finds it gone, nothing starts and the row lightens; if the page was left
+  first (back, or hidden), the kept tap is dropped and replays nothing. The check runs when the
+  Puzzles page or Missed opens; one opened while a check on an older Missed list still runs (the
+  list changed on the board meanwhile) makes it run again on the new list, and the kept tap lands
+  after that run. "Missed · N" counts only the rows that replay. `PuzzleOwner.replayMissed`,
+  `prefetchMissed`. Puzzle stays capitalised as the glossary term in the page's copy:
   "Continue Puzzle", "Next Puzzle", "Back to the rated Puzzle", "Past Puzzles", like "Every Puzzle is
   finished" and the strip's "Next Puzzle". `PuzzlesPageTest`, `PuzzleOwnerMissedTest`.
-
-## The wheel on a board (owner, 2026-09-30)
-Seen on the LP3: scrubbing the Moves with the wheel also changed LightOS's brightness. A board took a
-turn only when it changed the Position shown: `Review.wheel` returned null for a clockwise turn at the
-latest Position and a counter-clockwise one with no Moves, so the board's view model returned false
-and LightActivity handed the turn to LightOS. A fast scrub back to the present overshoots the end, and
-every detent past it changed the brightness.
-- N20 A board takes every turn. AMENDS R1.9's "otherwise return false" for boards; KEEPS F2, F3,
-  R4.17 and `TakenKeys` as they are. RULING: a board (a Puzzle, a Game against the computer, a
-  Correspondence Game, a replayed Game) takes every counter-clockwise and clockwise turn, even one that
-  moves nothing: at the latest Position, at Ply 0, and before any Move (the Puzzle's held start
-  included), a turn is taken and changes nothing. The click keeps F2: in Review it returns to the
-  latest Position; on the latest Position it goes to LightOS, for the flashlight. Pages that are not
-  boards keep F3: one that scrolls takes the wheel, one that fits leaves it with LightOS (Home, a
-  Menu that fits, the lists), so brightness still works there. The seed screen and the end of the
-  Pack draw no board and leave the wheel with LightOS. `Review.wheel` holds the rule (`ReviewTest`).

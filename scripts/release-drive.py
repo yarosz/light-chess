@@ -149,8 +149,9 @@ def solve():
     print(json.dumps({"puzzle": pid, "result": result}, ensure_ascii=False))
 
 
-# The Puzzles page's first row (N12), whatever it reads: each opens the Puzzle board.
-PUZZLES_START = ("Continue Puzzle", "Next Puzzle", "Back to the rated Puzzle", "Start")
+# The Puzzles page's first row (N12), whatever it reads: each opens the Puzzle board. Matched without
+# case, so a lowercase spelling ("Continue puzzle", "Next puzzle") matches too.
+PUZZLES_START = ("continue puzzle", "next puzzle", "back to the rated puzzle", "start")
 
 
 def open_list():
@@ -248,8 +249,8 @@ def back_to_puzzle():
             return
         focused()
         rows = texts()
-        start = next((t for t in rows if t in PUZZLES_START), None)
-        if start == "Next Puzzle":
+        start = next((t for t in rows if t.casefold() in PUZZLES_START), None)
+        if start and start.casefold() == "next puzzle":
             relaunch()
             continue
         if start:
