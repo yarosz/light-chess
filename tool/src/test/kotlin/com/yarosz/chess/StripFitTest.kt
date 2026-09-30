@@ -13,6 +13,8 @@ import com.yarosz.chess.games.GameState
 import com.yarosz.chess.games.SideChoice
 import com.yarosz.chess.relay.Protocol
 import com.yarosz.chess.puzzles.AttemptState
+import com.yarosz.chess.puzzles.Stage
+import androidx.compose.ui.unit.dp
 import com.yarosz.chess.rules.DrawAcceptance
 import com.yarosz.chess.rules.DrawOffer
 import com.yarosz.chess.rules.DrawReason
@@ -41,38 +43,75 @@ import kotlin.test.assertTrue
  */
 class StripFitTest {
 
-    private val menu = UiCopy.MENU
-    private val solving = listOf(UiCopy.HINT, UiCopy.SOLUTION, menu)
-    private val result = listOf(UiCopy.NEXT, menu)
+    /**
+     * A strip to check: its status, its buttons' labels, the lines the status may take, and whether
+     * the back arrow (N3) and the Menu mark (N4) take their room.
+     */
+    private data class Case(
+        val status: String,
+        val buttons: List<String>,
+        val lines: Int = StripLayout.STATUS_MAX_LINES,
+        val back: Boolean = true,
+        val menu: Boolean = false,
+    )
 
-    /** A strip to check: its status, its buttons' labels, and the lines the status may take. */
-    private data class Case(val status: String, val buttons: List<String>, val lines: Int = StripLayout.STATUS_MAX_LINES)
-
-    /** Every state in DESIGN.md's "Buttons by context" tables, with the widest numbers. */
+    /** Every strip the boards and pages can show, from their own strip functions, with the widest numbers. */
     private val strips: List<Case> by lazy { stripCases() }
 
     private fun stripCases(): List<Case> = buildList {
-        for (side in Side.entries) add(Case(UiCopy.toMove(side), solving))
-        add(Case(UiCopy.TRY_AGAIN, solving))
-        add(Case(UiCopy.CORRECT, solving))
-        add(Case(UiCopy.FIRST_PUZZLE, listOf(menu)))
-        add(Case(UiCopy.SOLUTION_PLAYING, listOf(menu)))
-        for (state in AttemptState.entries) for (rated in listOf(true, false)) for (shown in listOf(true, false)) {
-            for (delta in listOf(-999, 999)) add(Case(UiCopy.result(state, rated, delta, shown), result))
-        }
-        add(Case(UiCopy.review(99, 99), listOf(UiCopy.LATEST, UiCopy.NEXT, menu)))
-        add(Case(UiCopy.review(99, 99), listOf(UiCopy.LATEST, menu)))
-        add(Case(UiCopy.PACK_FINISHED, listOf(menu)))
-        for (strip in gameStrips()) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines))
-        for (strip in friendStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines))
-        // The Play a friend page's buttons (W6), which leave no room for a status or for Menu.
-        add(Case("", listOf(UiCopy.NEW_GAME, UiCopy.ENTER_CODE), 1))
+        for (strip in puzzleStrips()) add(Case(strip.status, strip.buttons.map { it.label }))
+        add(Case(PuzzleStrip.FINISHED.status, PuzzleStrip.FINISHED.buttons.map { it.label }))
+        for (strip in gameStrips()) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, menu = strip.menu))
+        for (strip in friendStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, menu = strip.menu))
+        // The invite page has LightOS's top bar, with its back arrow: its strip has none (N3).
+        for (strip in inviteStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, back = false, menu = strip.menu))
+        // The Play a friend list's buttons (W6, N7): no status, no arrow (its top bar has one), no Menu.
+        add(Case("", listOf(UiCopy.NEW_GAME, UiCopy.ENTER_CODE), 1, back = false))
     }
 
     /**
-     * Every strip a Correspondence Game and its invite can show (W4, W10), from [FriendStrip] itself on
-     * Games played against the fake Relay, then with the widest values: Time Left in each unit, the
-     * widest SAN, every Result for both Sides, every notice and every Refusal's copy.
+     * Every strip the Puzzle board can show (DESIGN.md "The strip"), from [PuzzleStrip] itself: each
+     * stage, in and out of Review ("Review · 99 of 99"), "Try again", the very first Puzzle (F6), and
+     * every result's copy at its widest ("Failed −999").
+     */
+    private fun puzzleStrips(): List<PuzzleStrip> = buildList {
+        val results = buildList {
+            for (state in AttemptState.entries) for (rated in listOf(true, false)) for (shown in listOf(true, false)) {
+                for (delta in listOf(-999, 999)) add(UiCopy.result(state, rated, delta, shown))
+            }
+        }.distinct()
+        for (stage in Stage.entries) for (review in listOf(null, UiCopy.review(99, 99))) for (wrong in listOf(false, true)) {
+            for (first in listOf(false, true)) for (side in Side.entries) for (result in results) {
+                add(PuzzleStrip.of(stage, review, result, wrong, first, side))
+            }
+        }
+    }.distinct()
+
+    /** Every strip the invite page can show (W4, G2): expiry, the second tap, a cancel not sent, a notice. */
+    private val inviteStrips: List<FriendStrip> by lazy {
+        val scenes = FriendScenes()
+        try {
+            val invite = scenes.waiting()
+            buildList {
+                add(FriendStrip.invite(invite, scenes.now))
+                add(FriendStrip.invite(invite, scenes.now, confirming = true))
+                add(FriendStrip.invite(invite.copy(invite = invite.invite?.copy(cancelling = true)), scenes.now))
+                for (text in listOf(UiCopy.NOT_YET, UiCopy.OFFER_NOT_SENT) + Refusal.entries.map(UiCopy::refusal)) {
+                    add(FriendStrip.invite(invite, scenes.now, notice = text))
+                }
+                for (left in listOf(59 * 60_000L, 47 * 3_600_000L + 29 * 60_000L, 48 * 3_600_000L)) {
+                    add(FriendStrip(UiCopy.expiresIn(left), listOf(FriendButton.CANCEL)))
+                }
+            }
+        } finally {
+            scenes.clean()
+        }
+    }
+
+    /**
+     * Every strip a Correspondence Game's board can show (W4, W10), from [FriendStrip] itself on Games
+     * played against the fake Relay, then with the widest values: Time Left in each unit, the widest
+     * SAN, every Result for both Sides, every notice and every Refusal's copy.
      */
     private val friendStrips: List<FriendStrip> by lazy {
         val scenes = FriendScenes()
@@ -93,25 +132,18 @@ class StripFitTest {
                 val (sent, offered) = scenes.rematch()
                 add(FriendStrip.of(sent, now))
                 add(FriendStrip.of(offered, now))
-                val invite = scenes.waiting()
-                add(FriendStrip.invite(invite, scenes.now))
-                add(FriendStrip.invite(invite, scenes.now, confirming = true))
-                add(FriendStrip.invite(invite.copy(invite = invite.invite?.copy(cancelling = true)), scenes.now))
-                add(FriendStrip.of(invite, scenes.now))
                 // A chosen Move: its SAN with Send and Undo (F11), for the widest SANs.
                 val chosen = FriendStrip.of(yours, now, chosen = yours.log!!.game.position.moveFromUci("e2e4"))
                 add(chosen)
                 for (san in listOf("Qa1xh8#", "exd8=Q#", "Nbxd7+", "O-O-O+")) add(chosen.copy(status = san))
-                val menu = listOf(FriendButton.MENU)
-                // Time Left at its widest in each unit (W4, W12): "59m", "47h", "7d", and a fresh invite's "48h".
+                // Time Left at its widest in each unit (W4, W12): "59m", "47h", "7d".
                 for (left in listOf(59 * 60_000L, 47 * 3_600_000L + 29 * 60_000L, 48 * 3_600_000L, 7 * Protocol.DAY_MS)) {
-                    add(FriendStrip(UiCopy.yourMoveLeft(left), menu))
-                    add(FriendStrip(UiCopy.theirMoveLeft(left), menu))
-                    if (left <= 48 * 3_600_000L) add(FriendStrip(UiCopy.expiresIn(left), listOf(FriendButton.CANCEL, FriendButton.MENU)))
+                    add(FriendStrip(UiCopy.yourMoveLeft(left), emptyList()))
+                    add(FriendStrip(UiCopy.theirMoveLeft(left), emptyList()))
                 }
-                add(FriendStrip(UiCopy.expiresIn(48 * 3_600_000L), listOf(FriendButton.CANCEL, FriendButton.MENU)))
                 for (side in Side.entries) for (result in results) {
-                    add(FriendStrip(UiCopy.friendResult(result, side), listOf(FriendButton.REMATCH, FriendButton.MENU), StripLayout.STATUS_MAX_LINES))
+                    add(FriendStrip(UiCopy.friendResult(result, side), listOf(FriendButton.REMATCH), StripLayout.STATUS_MAX_LINES))
+                    add(FriendStrip(UiCopy.friendResult(result, side), emptyList(), StripLayout.STATUS_MAX_LINES))
                 }
                 for (text in listOf(UiCopy.NOT_YET, UiCopy.OFFER_NOT_SENT) + Refusal.entries.map(UiCopy::refusal)) {
                     add(FriendStrip.of(yours, now, notice = text))
@@ -202,10 +234,24 @@ class StripFitTest {
         }
     }
 
-    /** The room left for the status, in dp, next to [buttons]. */
-    private fun statusRoom(buttons: List<String>): Float =
-        POSITION_VIEW_SIZE.value - StripLayout.STATUS_GAP.value -
-            buttons.sumOf { (AkkuratProxy.width(it) + 2 * StripLayout.BUTTON_PADDING.value).toDouble() }.toFloat()
+    /**
+     * The room left for the status, in dp, on the LP3's 360 dp: from where it starts (after the back
+     * arrow, N3, or at the board's edge) to the first of [buttons], which end at the Menu mark's target
+     * (N4) or at the board's edge.
+     */
+    private fun statusRoom(buttons: List<String>, back: Boolean, menu: Boolean): Float =
+        LP3_WIDTH_DP - StripLayout.statusStart(LP3_WIDTH_DP.dp, back).value - StripLayout.buttonsEnd(menu).value -
+            StripLayout.STATUS_GAP.value - buttonsWidth(buttons)
+
+    private fun buttonsWidth(buttons: List<String>): Float =
+        buttons.sumOf { (AkkuratProxy.width(it) + 2 * StripLayout.BUTTON_PADDING.value).toDouble() }.toFloat()
+
+    /**
+     * The same in the layout the calibration screencaps show (v1 and v2, before N3 and N4): the strip
+     * as wide as the board, and "Menu" a text button among [buttons].
+     */
+    private fun calibratedRoom(buttons: List<String>): Float =
+        POSITION_VIEW_SIZE.value - StripLayout.STATUS_GAP.value - buttonsWidth(buttons)
 
     /** Greedy word wrap, as Android breaks a line without hyphens. */
     private fun wrap(text: String, room: Float): List<String> {
@@ -221,16 +267,56 @@ class StripFitTest {
         return lines + line
     }
 
+    /** N3, N4, N9: every strip fits with the back arrow and the Menu mark where it has them, at the LP3's 360 dp. */
     @Test
     fun everyStatusFitsNextToItsButtons() {
-        for ((status, buttons, maxLines) in strips) {
-            val room = statusRoom(buttons)
+        for ((status, buttons, maxLines, back, menu) in strips) {
+            val room = statusRoom(buttons, back, menu)
             val lines = wrap(status, room)
-            assertTrue(lines.size <= maxLines, "\"$status\" next to $buttons needs ${lines.size} lines, $maxLines allowed")
+            val beside = "$buttons${if (back) " after the arrow" else ""}${if (menu) " and the Menu mark" else ""}"
+            assertTrue(lines.size <= maxLines, "\"$status\" next to $beside needs ${lines.size} lines, $maxLines allowed")
             for (line in lines) {
-                assertTrue(AkkuratProxy.width(line) <= room, "\"$line\" (${AkkuratProxy.width(line)} dp) in $room dp next to $buttons")
+                assertTrue(AkkuratProxy.width(line) <= room, "\"$line\" (${AkkuratProxy.width(line)} dp) in $room dp next to $beside")
             }
         }
+    }
+
+    /** N9's two offers, each on one line: "Draw? · Accept · Decline · ⋯" and "Rematch? · Accept · Decline · ⋯". */
+    @Test
+    fun theOffersHoldOneLineWithTheMenu() {
+        val offers = strips.filter { it.status == UiCopy.DRAW_QUESTION || it.status == UiCopy.REMATCH_OFFERED }
+        assertEquals(2, offers.size, "both offers are checked")
+        for (offer in offers) {
+            assertEquals(listOf(UiCopy.ACCEPT, UiCopy.DECLINE), offer.buttons)
+            assertTrue(offer.back && offer.menu, "\"${offer.status}\" has the arrow and the Menu mark")
+            assertEquals(1, wrap(offer.status, statusRoom(offer.buttons, back = true, menu = true)).size)
+        }
+    }
+
+    /**
+     * N3, N4: the arrow's ink runs from 16 to 27 dp (pixels 48 to 83 of 1080), where LightOS's top bar
+     * draws it; the status starts at 112 px; the mark's squares are 8 by 7 px, 28 px apart, their ink
+     * ending 48 px from the right edge, and its target is 48 dp wide.
+     */
+    @Test
+    fun theArrowAndTheMarkSitWhereLightOsDrawsThem() {
+        val unit = LP3_WIDTH_DP / 27f
+        // ic_back_white: a 30-unit viewport, the path's ink from x 3 to 16.118.
+        val iconDp = unit * StripLayout.BACK_SIZE_UNITS
+        val inkStartPx = 3 * (unit * StripLayout.BACK_START_UNITS + iconDp * 3f / 30f)
+        val inkEndPx = 3 * (unit * StripLayout.BACK_START_UNITS + iconDp * 16.118f / 30f)
+        assertEquals(48f, inkStartPx, 0.5f)
+        assertEquals(83f, inkEndPx, 0.5f)
+        assertEquals(112f, 3 * StripLayout.statusStart(LP3_WIDTH_DP.dp, back = true).value, 0.5f)
+        assertEquals(24f, StripLayout.statusStart(LP3_WIDTH_DP.dp, back = false).value)
+        assertEquals(8f, 3 * StripLayout.DOT_WIDTH.value, 0.01f)
+        assertEquals(7f, 3 * StripLayout.DOT_HEIGHT.value, 0.01f)
+        assertEquals(28f, 3 * StripLayout.DOT_PITCH.value, 0.01f)
+        assertEquals(48f, 3 * StripLayout.MENU_INK_END.value)
+        assertTrue(StripLayout.MENU_TARGET.value >= 48f)
+        // The mark's ink lies inside its target.
+        val markInk = 2 * StripLayout.DOT_PITCH.value + StripLayout.DOT_WIDTH.value
+        assertTrue(StripLayout.MENU_INK_END.value + markInk <= StripLayout.MENU_TARGET.value)
     }
 
     @Test
@@ -238,11 +324,11 @@ class StripFitTest {
         val used = strips.map { it.status }.toSet() + strips.flatMap { it.buttons }
         for (copy in listOf(
             UiCopy.WHITE_TO_MOVE, UiCopy.BLACK_TO_MOVE, UiCopy.LATEST, UiCopy.FIRST_PUZZLE, UiCopy.TRY_AGAIN,
-            UiCopy.CORRECT, UiCopy.SOLUTION_PLAYING, UiCopy.HINT, UiCopy.SOLUTION, UiCopy.NEXT, UiCopy.MENU,
+            UiCopy.CORRECT, UiCopy.SOLUTION_PLAYING, UiCopy.HINT, UiCopy.SOLUTION, UiCopy.NEXT,
             UiCopy.UNRATED_SOLVED, UiCopy.UNRATED_HINTED, UiCopy.UNRATED_FAILED, UiCopy.PACK_FINISHED,
             UiCopy.YOUR_MOVE, UiCopy.THINKING, UiCopy.FINDING_HINT, UiCopy.MOVE_NOW,
-            UiCopy.BACK, UiCopy.DRAW_AGREED, UiCopy.UNFINISHED, UiCopy.NEW_GAME,
-            UiCopy.ENTER_CODE, UiCopy.SEND, UiCopy.UNDO, UiCopy.SENDING, UiCopy.NOT_SENT, UiCopy.RETRY, UiCopy.DRAW_OFFERED,
+            UiCopy.DRAW_AGREED, UiCopy.UNFINISHED, UiCopy.NEW_GAME,
+            UiCopy.ENTER_CODE, UiCopy.SEND, UiCopy.UNDO, UiCopy.SENDING, UiCopy.NOT_SENT, UiCopy.RETRY, UiCopy.DRAW_QUESTION,
             UiCopy.ACCEPT, UiCopy.DECLINE, UiCopy.TIME_IS_UP, UiCopy.CLAIM_WIN, UiCopy.OUT_OF_SYNC, UiCopy.UPDATE_CHESS,
             UiCopy.GAME_DELETED, UiCopy.SEAT_LOST, UiCopy.CANCEL, UiCopy.CANCEL_CONFIRM, UiCopy.REMATCH, UiCopy.REMATCH_SENT,
             UiCopy.REMATCH_OFFERED, UiCopy.NOT_YET, UiCopy.OFFER_NOT_SENT,
@@ -257,12 +343,14 @@ class StripFitTest {
     }
 
     /**
-     * The Menu's Puzzle row (A9 with D7): a Menu line is the LP3's 360 dp less 24 dp either side. With
-     * the widest 5-character Lichess id, each of its two lines fits whole, so Android never breaks the
-     * address (it would at a slash: seen on the emulator when the address shared a line).
+     * About's Puzzle lines (A9 with D7, N8): a page line is the LP3's 360 dp less 24 dp either side.
+     * With the widest 5-character Lichess id, each of its two lines fits whole, so Android never breaks
+     * the address (it would at a slash: seen on the emulator when the address shared a line).
      */
     @Test
-    fun theMenuPuzzleRowFits() {
+    fun theAboutPuzzleLinesFit() {
+        assertEquals(UiCopy.puzzleRow("00sHx"), UiCopy.about(null, "", puzzleId = "00sHx").last(), "About ends with the Puzzle (N8)")
+        assertTrue(UiCopy.about(null, "").none { it.startsWith("Puzzle ") }, "and says nothing of one before a Puzzle shows")
         val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
         for (id in listOf("WWWWW", "mmmmm", "00sHx")) {
             val lines = UiCopy.puzzleRow(id).split('\n')
@@ -301,11 +389,11 @@ class StripFitTest {
         assertEquals(PieceSet.GEOMETRIC, PieceSet.DEFAULT)
     }
 
-    /** The bug seen on the LP3: on one line, the first Puzzle's status lost its end next to Menu. */
+    /** The bug seen on the LP3: on one line, the first Puzzle's status lost its end next to Menu (the v1 layout). */
     @Test
     fun oneLineWasTooShortForTheFirstPuzzle() {
-        assertEquals(2, wrap(UiCopy.FIRST_PUZZLE, statusRoom(listOf(menu))).size)
-        assertFalse(AkkuratProxy.width(UiCopy.FIRST_PUZZLE) <= statusRoom(listOf(menu)))
+        assertEquals(2, wrap(UiCopy.FIRST_PUZZLE, calibratedRoom(listOf(menu))).size)
+        assertFalse(AkkuratProxy.width(UiCopy.FIRST_PUZZLE) <= calibratedRoom(listOf(menu)))
     }
 
     /**
@@ -331,7 +419,8 @@ class StripFitTest {
     /**
      * The room the LP3 left for the status, from where the first button's ink starts on the screencap:
      * less the strip's left edge (72 px), [StripLayout.STATUS_GAP], the button's padding and 1 dp of
-     * its left bearing. The proxy's room must never be wider.
+     * its left bearing. The proxy's room must never be wider. The screencaps show the v2 layout, so the
+     * room is measured in it ([calibratedRoom]); N3's and N4's layout is measured from the same proxy.
      */
     @Test
     fun roomIsNeverWiderThanOnTheLp3() {
@@ -344,7 +433,7 @@ class StripFitTest {
         )
         for ((buttons, px) in firstButtonInkPx) {
             val lp3 = (px - 72) / 3f - StripLayout.STATUS_GAP.value - StripLayout.BUTTON_PADDING.value - 1f
-            assertTrue(statusRoom(buttons) <= lp3, "next to $buttons: proxy ${statusRoom(buttons)} dp, LP3 $lp3 dp")
+            assertTrue(calibratedRoom(buttons) <= lp3, "next to $buttons: proxy ${calibratedRoom(buttons)} dp, LP3 $lp3 dp")
         }
     }
 
@@ -352,18 +441,24 @@ class StripFitTest {
      * What the LP3 showed, which the proxy must reproduce: "Your move" wrapped next to Takeback, Hint
      * and Menu, and "Computer thinking" next to Move now and Menu (the game strips before R4.16);
      * "Your move" next to Hint and Menu and "Review · 4 of 6" next to Latest and Menu held one line;
-     * the first Puzzle's status took two lines next to Menu.
+     * the first Puzzle's status took two lines next to Menu. All in the v2 layout, with "Menu" as text.
      */
     @Test
     fun proxyWrapsWhereTheLp3Did() {
-        assertEquals(2, wrap(UiCopy.YOUR_MOVE, statusRoom(listOf(UiCopy.TAKEBACK, UiCopy.HINT, menu))).size)
-        assertEquals(2, wrap("Computer thinking", statusRoom(listOf(UiCopy.MOVE_NOW, menu))).size)
-        assertEquals(1, wrap(UiCopy.YOUR_MOVE, statusRoom(listOf(UiCopy.HINT, menu))).size)
-        assertEquals(1, wrap(UiCopy.review(4, 6), statusRoom(listOf(UiCopy.LATEST, menu))).size)
-        assertEquals(2, wrap(UiCopy.FIRST_PUZZLE, statusRoom(listOf(menu))).size)
+        assertEquals(2, wrap(UiCopy.YOUR_MOVE, calibratedRoom(listOf(UiCopy.TAKEBACK, UiCopy.HINT, menu))).size)
+        assertEquals(2, wrap("Computer thinking", calibratedRoom(listOf(UiCopy.MOVE_NOW, menu))).size)
+        assertEquals(1, wrap(UiCopy.YOUR_MOVE, calibratedRoom(listOf(UiCopy.HINT, menu))).size)
+        assertEquals(1, wrap(UiCopy.review(4, 6), calibratedRoom(listOf(UiCopy.LATEST, menu))).size)
+        assertEquals(2, wrap(UiCopy.FIRST_PUZZLE, calibratedRoom(listOf(menu))).size)
     }
 
     private companion object {
+        /** The strip's "Menu" text button on the calibration screencaps (the v2 layout, before N4's mark). */
+        const val menu = "Menu"
+
+        /** The LP3's width in dp: 1080 px at 3 px per dp. */
+        const val LP3_WIDTH_DP = 360f
+
         /** Side bearings, both ends of a string: the ink gap between neighbouring buttons ran 8-9 px past their padding. */
         const val LP3_BEARINGS_DP = 3f
 

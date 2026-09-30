@@ -215,6 +215,24 @@ class FriendOwnerTest {
     }
 
     @Test
+    fun `each Menu page is its own screen, so back pops one level, and a page over it drops a pending second tap (S3, N6)`() = runBlocking<Unit> {
+        val id = friendStarted()
+        val owner = owner()
+        val menu = FriendViewModel(owner, FriendPage.MENU, id)
+        // Moves and Rename are actions that open a screen of their own over the Menu, not pages of it.
+        val game = assertNotNull(owner.state.value.game(id))
+        val actions = FriendMenu.of(game, owner.state.value, menu.confirming).mapNotNull { it.action }
+        assertTrue(FriendAction.MOVES in actions && FriendAction.RENAME in actions, "$actions")
+        assertFalse(menu.confirm(FriendConfirm.RESIGN))
+        menu.leaving()
+        assertNull(menu.confirming, "Moves opening over the Menu drops \"Tap again to resign\"")
+        assertEquals(FriendPage.MENU, menu.page, "the Menu stays the Menu under Moves, so back returns to it")
+        for (page in listOf(FriendPage.MOVES, FriendPage.RENAME)) {
+            assertEquals(page, FriendViewModel(owner, page, id).page, "$page is a screen of its own")
+        }
+    }
+
+    @Test
     fun `a background job that is cancelled stays cancelled`() = runBlocking<Unit> {
         friendStarted()
         val owner = owner()
