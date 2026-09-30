@@ -155,9 +155,9 @@ class MenuTest {
         val menu = PuzzleMenu.of(rated.attempt, PieceSet.GEOMETRIC)
         assertEquals(
             listOf(
-                MenuItem(UiCopy.piecesRow(PieceSet.GEOMETRIC), BoardMenuEntry.PIECES, pieces = PieceSet.GEOMETRIC),
-                MenuItem<BoardMenuEntry>("Puzzle r1500", lighten = true),
-                MenuItem<BoardMenuEntry>("lichess.org/training/r1500", lighten = true),
+                MenuItem(UiCopy.piecesRow(PieceSet.GEOMETRIC), PiecesMenuEntry.PIECES, pieces = PieceSet.GEOMETRIC),
+                MenuItem<PiecesMenuEntry>("Puzzle r1500", lighten = true),
+                MenuItem<PiecesMenuEntry>("lichess.org/training/r1500", lighten = true),
             ),
             menu,
         )
@@ -172,8 +172,8 @@ class MenuTest {
 
     @Test
     fun `a replayed Game's Menu is Pieces alone (N17)`() {
-        assertEquals(listOf(MenuItem(UiCopy.piecesRow(PieceSet.ROUNDED), BoardMenuEntry.PIECES, pieces = PieceSet.ROUNDED)), ReplayMenu.of(PieceSet.ROUNDED))
-        assertTrue(ReplayMenu.of(null).isEmpty(), "it waits for the Piece Set (M4)")
+        assertEquals(listOf(MenuItem(UiCopy.piecesRow(PieceSet.ROUNDED), PiecesMenuEntry.PIECES, pieces = PieceSet.ROUNDED)), GameReviewMenu.of(PieceSet.ROUNDED))
+        assertTrue(GameReviewMenu.of(null).isEmpty(), "it waits for the Piece Set (M4)")
     }
 
     /**

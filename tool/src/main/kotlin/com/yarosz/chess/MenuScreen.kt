@@ -58,7 +58,7 @@ enum class MenuPage(val title: String, val scrolls: Boolean) {
     PUZZLE_MENU(UiCopy.MENU_TITLE, false),
 
     /** A replayed Game's Menu: Pieces (N17). */
-    REPLAY_MENU(UiCopy.MENU_TITLE, false),
+    GAME_REVIEW_MENU(UiCopy.MENU_TITLE, false),
 
     /** The Puzzles page (N12): a place under Home. */
     PUZZLES(UiCopy.PUZZLES, false),
@@ -250,7 +250,7 @@ class MenuScreen(
                         MenuPage.MENU -> gameState?.takeIf { it.record != null }?.let { GameMenuRows(it, pieceSet) }
                         // The Puzzle on screen, a Missed replay's own (N18).
                         MenuPage.PUZZLE_MENU -> MenuItems(PuzzleMenu.of(session?.attempt, pieceSet)) { vm.nextPieceSet() }
-                        MenuPage.REPLAY_MENU -> MenuItems(ReplayMenu.of(pieceSet)) { vm.nextPieceSet() }
+                        MenuPage.GAME_REVIEW_MENU -> MenuItems(GameReviewMenu.of(pieceSet)) { vm.nextPieceSet() }
                         MenuPage.PUZZLES -> for (row in PuzzlesRows.of(session)) {
                             if (row.tappable) MenuRow(row.text) { tapPuzzles(row.entry) } else MenuLine(row.text, lighten = true)
                         }

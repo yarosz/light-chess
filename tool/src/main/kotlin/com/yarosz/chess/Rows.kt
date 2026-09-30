@@ -74,7 +74,7 @@ fun PiecesRow(label: String, set: PieceSet, onClick: () -> Unit) {
             .fillMaxWidth()
             .heightIn(min = Rows.HEIGHT)
             .lightClickable(onClickLabel = label, role = Role.Button, onClick = onClick)
-            .semantics(mergeDescendants = true) { contentDescription = label }
+            .semantics { contentDescription = label }
             .padding(horizontal = 24.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

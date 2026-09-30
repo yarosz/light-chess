@@ -102,7 +102,7 @@ class GameReviewScreen(
                     // N17: Pieces, at the latest Position (R4.16 keeps Review to Latest alone).
                     menu = StripButton(UiCopy.MENU_DESCRIPTION) {
                         game.touched()
-                        navigateTo({ MenuScreen(it, MenuPage.REPLAY_MENU, overGame = false) })
+                        navigateTo({ MenuScreen(it, MenuPage.GAME_REVIEW_MENU, overGame = false) })
                     }.takeIf { strip.menu },
                 )
             }

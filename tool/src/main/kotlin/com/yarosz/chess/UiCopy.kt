@@ -347,7 +347,7 @@ object UiCopy {
     fun ratingRow(text: String) = "$PLAYER_RATING · $text"
 
     /** Home's Puzzles row (N11): "Puzzles · 1176?", the Player Rating as shown everywhere. */
-    fun puzzlesRow(rating: String) = "$PUZZLES · $rating"
+    fun puzzlesRow(playerRating: String) = "$PUZZLES · $playerRating"
 
     /** The Puzzles page's first row (N12): what a tap will do, never a Puzzle's id. */
     fun puzzlesStart(start: PuzzlesStart) = when (start) {

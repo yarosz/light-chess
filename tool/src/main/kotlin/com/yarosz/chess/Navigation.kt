@@ -103,7 +103,7 @@ object PuzzlesRows {
 }
 
 /** The Player Rating page's one tappable row (N15). */
-enum class RatingEntry { RESET }
+enum class PlayerRatingEntry { RESET }
 
 /**
  * The pages under the Puzzles page (N13-N15), as pure data for `PuzzlesPageTest`.
@@ -113,10 +113,10 @@ object PuzzlesPages {
      * The Player Rating page (N15, F5): the rating, the static line while it is provisional, and Reset
      * rating, which asks for a second tap in place ([confirming]).
      */
-    fun rating(player: Glicko, confirming: Boolean): List<MenuItem<RatingEntry>> = buildList {
+    fun rating(player: Glicko, confirming: Boolean): List<MenuItem<PlayerRatingEntry>> = buildList {
         add(MenuItem(player.text))
         if (player.provisional) add(MenuItem(UiCopy.PROVISIONAL_NOTE, lighten = true))
-        add(MenuItem(if (confirming) UiCopy.RESET_CONFIRM else UiCopy.RESET_RATING, RatingEntry.RESET))
+        add(MenuItem(if (confirming) UiCopy.RESET_CONFIRM else UiCopy.RESET_RATING, PlayerRatingEntry.RESET))
     }
 
     /**
@@ -235,7 +235,7 @@ data class MenuItem<A>(
 fun <A> piecesItem(set: PieceSet, entry: A, gap: Boolean = false) = MenuItem(UiCopy.piecesRow(set), entry, gap = gap, pieces = set)
 
 /** The Puzzle board's and a replay's Menu rows (N17): only Pieces is tappable. */
-enum class BoardMenuEntry { PIECES }
+enum class PiecesMenuEntry { PIECES }
 
 /**
  * The Puzzle board's Menu (N17, N18): Pieces, then the Puzzle on screen as two grey lines, its id and
@@ -243,15 +243,15 @@ enum class BoardMenuEntry { PIECES }
  * [pieceSet] null (not read yet, M4) leaves Pieces out.
  */
 object PuzzleMenu {
-    fun of(attempt: Attempt?, pieceSet: PieceSet?): List<MenuItem<BoardMenuEntry>> = buildList {
-        if (pieceSet != null) add(piecesItem(pieceSet, BoardMenuEntry.PIECES))
-        attempt?.puzzle?.id?.let { id -> for (line in UiCopy.puzzleLines(id)) add(MenuItem<BoardMenuEntry>(line, lighten = true)) }
+    fun of(attempt: Attempt?, pieceSet: PieceSet?): List<MenuItem<PiecesMenuEntry>> = buildList {
+        if (pieceSet != null) add(piecesItem(pieceSet, PiecesMenuEntry.PIECES))
+        attempt?.puzzle?.id?.let { id -> for (line in UiCopy.puzzleLines(id)) add(MenuItem<PiecesMenuEntry>(line, lighten = true)) }
     }
 }
 
 /** A replayed Game's Menu (N17): Pieces alone. */
-object ReplayMenu {
-    fun of(pieceSet: PieceSet?): List<MenuItem<BoardMenuEntry>> = listOfNotNull(pieceSet?.let { piecesItem(it, BoardMenuEntry.PIECES) })
+object GameReviewMenu {
+    fun of(pieceSet: PieceSet?): List<MenuItem<PiecesMenuEntry>> = listOfNotNull(pieceSet?.let { piecesItem(it, PiecesMenuEntry.PIECES) })
 }
 
 /** The computer's Menu rows (N5, N17). */
