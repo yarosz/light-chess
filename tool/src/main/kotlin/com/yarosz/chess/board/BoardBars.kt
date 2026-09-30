@@ -42,7 +42,7 @@ import com.thelightphone.sdk.ui.lightClickable
  * buttons at the right and, on a Game's board, the Captured Pieces at the left. `StripFitTest` reads
  * these values to check that every status and every row fits the LP3.
  */
-object BoardBarLayout {
+object BarLayout {
     /**
      * The top bar's geometry, light-sdk `LightTopBar`'s own (`StripFitTest` reads them from its source):
      * 3 grid units tall (40 dp on the LP3), 1 unit of padding either side, 2-unit icons, a title at
@@ -89,34 +89,34 @@ object BoardBarLayout {
  * E1: the board's top bar, light-sdk's `LightTopBar` itself for the back arrow ([back], which does
  * what system back does) and the Menu mark at its right ([menu], where the board has a Menu), and the
  * status as its title: `Fine`, centred, at most 18 grid units wide as the SDK's title is, but on up to
- * [BoardBarLayout.TITLE_MAX_LINES] lines (E3), which the SDK's one-line title can't.
+ * [BarLayout.TITLE_MAX_LINES] lines (E3), which the SDK's one-line title can't.
  */
 @Composable
 fun BoardTopBar(status: String, back: StripButton, menu: StripButton? = null, modifier: Modifier = Modifier) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val unit = BoardBarLayout.unit(screenWidth)
+    val unit = BarLayout.unit(screenWidth)
     val color = LightThemeTokens.colors.content
     // The mark's box ends one grid unit in (the bar's padding); its ink ends 16 dp in, as on D's strip.
-    val inset = StripLayout.MENU_INK_END - unit * BoardBarLayout.TOP_BAR_PADDING_UNITS
+    val inset = StripLayout.MENU_INK_END - unit * BarLayout.TOP_BAR_PADDING_UNITS
     val mark = remember(color, inset) { MenuMarkPainter(color, inset) }
-    Box(modifier.fillMaxWidth().height(BoardBarLayout.topBarHeight(screenWidth))) {
+    Box(modifier.fillMaxWidth().height(BarLayout.topBarHeight(screenWidth))) {
         Box(
-            Modifier.fillMaxSize().padding(horizontal = unit * BoardBarLayout.TOP_BAR_PADDING_UNITS),
+            Modifier.fillMaxSize().padding(horizontal = unit * BarLayout.TOP_BAR_PADDING_UNITS),
             contentAlignment = Alignment.Center,
         ) {
             LightText(
                 text = status,
                 variant = LightTextVariant.Fine,
                 align = TextAlign.Center,
-                maxLines = BoardBarLayout.TITLE_MAX_LINES,
+                maxLines = BarLayout.TITLE_MAX_LINES,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.widthIn(max = BoardBarLayout.titleMaxWidth(screenWidth)),
+                modifier = Modifier.widthIn(max = BarLayout.titleMaxWidth(screenWidth)),
             )
         }
         LightTopBar(
             leftButton = LightBarButton.LightIcon(icon = LightIcons.BACK, onClick = back.onClick, contentDescription = back.description),
             rightButton = menu?.let {
-                LightBarButton.Icon(painter = mark, onClick = it.onClick, contentDescription = it.description, sizeUnits = BoardBarLayout.MARK_TARGET_UNITS)
+                LightBarButton.Icon(painter = mark, onClick = it.onClick, contentDescription = it.description, sizeUnits = BarLayout.MARK_TARGET_UNITS)
             },
         )
     }
@@ -154,11 +154,11 @@ fun ActionRow(buttons: List<StripButton>, modifier: Modifier = Modifier, capture
     Row(
         modifier
             .fillMaxWidth()
-            .padding(start = BoardBarLayout.boardSide(screenWidth), end = BoardBarLayout.BUTTONS_END),
+            .padding(start = BarLayout.boardSide(screenWidth), end = BarLayout.BUTTONS_END),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         BoxWithConstraints(
-            Modifier.weight(1f).fillMaxHeight().padding(end = BoardBarLayout.CAPTURED_GAP),
+            Modifier.weight(1f).fillMaxHeight().padding(end = BarLayout.CAPTURED_GAP),
             contentAlignment = Alignment.CenterStart,
         ) {
             if (captured != null && captured.shown) {

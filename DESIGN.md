@@ -39,10 +39,34 @@ strip's top band is kept for the Captured Pieces row (P3; "The game screen" belo
 under the board once something is taken, and from the first Position the strip's text centred in the
 38 dp left below them. A Puzzle's strip has no band.
 
+Layout E, on trial, puts a 40 dp top bar above the board and a 37 dp action row under it instead
+(the next section).
+
 The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). The puzzle
 flow puts the side to move after the setup Move at the bottom (A5). The game screen puts the user's
 Side at the bottom; "Flip board" in the Menu turns it (D10, v2), and the flip is kept in `games.json`.
 The Captured Pieces row stays aligned with the board, 24 dp from either edge.
+
+## Board layout E (on trial; decision log "Layout E", E1-E5)
+
+The owner is trying E against D (above, and "The strip") on the LP3. E changes only the boards (a
+Puzzle, the computer's Game, a Correspondence Game, a replayed Game). Everything else is D's.
+
+- Top bar (E1, `BoardTopBar`): light-sdk's `LightTopBar`, 3 grid units (40 dp) tall. It has
+  `LightIcons.BACK` at the left ("Back", `goBack`), the status as its title (`Fine`, centred, at
+  most 18 grid units, 240 dp, on up to two lines, E3), and at the right N4's three squares where the
+  board has a Menu (`GameStrip.menu`, `FriendStrip.menu`). The squares are drawn by a painter as the
+  SDK's right button, in a 40 dp square box ending one grid unit in, centred on the bar's middle,
+  their ink ending 16 dp from the edge.
+- Board: 312 dp, directly under the bar (40 + 312 = 352 dp of 389).
+- Action row (E2, `ActionRow`): the rest, about 37 dp. It holds the same buttons as D's strip at the
+  right, in `Copy`, each target the row's height, the last label's ink 16 dp from the edge. It has
+  no arrow, mark or status.
+- Captured Pieces (E4): on a Game's board, at the action row's left, from the board's left edge to
+  4 dp before the first button (at most the board's width). The other Side's end grows inwards from
+  that room's right end, and `CapturedRowLayout.fit` tightens the steps when the ends would meet.
+- When every Puzzle is finished: the top bar alone.
+- `StripFitTest` measures every board state in the bar and the row (E5).
 
 ## Palette (D10)
 

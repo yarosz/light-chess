@@ -1,7 +1,7 @@
 package com.yarosz.chess
 
 import com.thelightphone.sdk.ui.LightBarButtonDefaults
-import com.yarosz.chess.board.BoardBarLayout
+import com.yarosz.chess.board.BarLayout
 import com.yarosz.chess.board.CapturedRowLayout
 import com.yarosz.chess.board.POSITION_VIEW_SIZE
 import com.yarosz.chess.board.PieceSet
@@ -471,8 +471,8 @@ class StripFitTest {
 
     /** A title's width in dp: LightOS `Fine` in the stand-in, with its 0.03 em between letters. */
     private fun titleWidth(text: String): Float =
-        AkkuratProxy.width(text, BoardBarLayout.TITLE_DESIGN_PX) +
-            text.length * AkkuratProxy.size(BoardBarLayout.TITLE_DESIGN_PX * BoardBarLayout.TITLE_LETTER_SPACING)
+        AkkuratProxy.width(text, BarLayout.TITLE_DESIGN_PX) +
+            text.length * AkkuratProxy.size(BarLayout.TITLE_DESIGN_PX * BarLayout.TITLE_LETTER_SPACING)
 
     /** Greedy word wrap as [wrap], measured by [measure]. */
     private fun wrapBy(text: String, room: Float, measure: (String) -> Float): List<String> {
@@ -498,9 +498,9 @@ class StripFitTest {
         val sdk = "../light-sdk/sdk/ui/src/main/kotlin/com/thelightphone/sdk/ui"
         val bar = File("$sdk/LightTopBar.kt").readText()
         fun constant(name: String) = Regex("""const val $name = ([0-9.]+)f""").find(bar)?.groupValues?.get(1)?.toFloat()
-        assertEquals(BoardBarLayout.TOP_BAR_UNITS, constant("TOPBAR_HEIGHT_UNITS"))
-        assertEquals(BoardBarLayout.TOP_BAR_PADDING_UNITS, constant("HORIZONTAL_PADDING_UNITS"))
-        assertEquals(BoardBarLayout.TITLE_MAX_WIDTH_UNITS, constant("CENTER_MAX_WIDTH_UNITS"))
+        assertEquals(BarLayout.TOP_BAR_UNITS, constant("TOPBAR_HEIGHT_UNITS"))
+        assertEquals(BarLayout.TOP_BAR_PADDING_UNITS, constant("HORIZONTAL_PADDING_UNITS"))
+        assertEquals(BarLayout.TITLE_MAX_WIDTH_UNITS, constant("CENTER_MAX_WIDTH_UNITS"))
         assertTrue("TOPBAR_CENTER_TEXT_VARIANT = LightTextVariant.Fine" in bar, "the SDK's title is Fine")
         assertEquals(StripLayout.BACK_SIZE_UNITS, LightBarButtonDefaults.ICON_SIZE_UNITS, "the arrow is the SDK's 2-unit icon")
         val theme = File("$sdk/LightTheme.kt").readText()
@@ -508,18 +508,18 @@ class StripFitTest {
         assertTrue("fontSize = 25.sp" in fine, fine)
         assertTrue("letterSpacing = (25 * 0.03).sp" in fine, fine)
         assertTrue("lineHeight = (25 * 1.15).sp" in fine, fine)
-        assertEquals(25f, BoardBarLayout.TITLE_DESIGN_PX)
-        assertEquals(0.03f, BoardBarLayout.TITLE_LETTER_SPACING)
-        assertEquals(1.15f, BoardBarLayout.TITLE_LINE_HEIGHT)
+        assertEquals(25f, BarLayout.TITLE_DESIGN_PX)
+        assertEquals(0.03f, BarLayout.TITLE_LETTER_SPACING)
+        assertEquals(1.15f, BarLayout.TITLE_LINE_HEIGHT)
         // On the LP3: a 40 dp bar, a 240 dp title, and the title's box clear of both 40 dp targets.
-        val bar40 = BoardBarLayout.topBarHeight(LP3_WIDTH_DP.dp).value
-        val title = BoardBarLayout.titleMaxWidth(LP3_WIDTH_DP.dp).value
+        val bar40 = BarLayout.topBarHeight(LP3_WIDTH_DP.dp).value
+        val title = BarLayout.titleMaxWidth(LP3_WIDTH_DP.dp).value
         assertEquals(40f, bar40, 0.01f)
         assertEquals(240f, title, 0.01f)
-        val target = BoardBarLayout.unit(LP3_WIDTH_DP.dp).value * (BoardBarLayout.TOP_BAR_PADDING_UNITS + BoardBarLayout.MARK_TARGET_UNITS)
+        val target = BarLayout.unit(LP3_WIDTH_DP.dp).value * (BarLayout.TOP_BAR_PADDING_UNITS + BarLayout.MARK_TARGET_UNITS)
         assertTrue((LP3_WIDTH_DP - title) / 2 >= target, "the title starts at ${(LP3_WIDTH_DP - title) / 2} dp, the targets end at $target dp")
         // The mark's ink ends 16 dp from the edge, inside its box (which ends one grid unit in).
-        assertTrue(StripLayout.MENU_INK_END.value >= BoardBarLayout.unit(LP3_WIDTH_DP.dp).value)
+        assertTrue(StripLayout.MENU_INK_END.value >= BarLayout.unit(LP3_WIDTH_DP.dp).value)
     }
 
     /**
@@ -528,16 +528,16 @@ class StripFitTest {
      */
     @Test
     fun everyBoardStatusFitsTheTopBarTitle() {
-        val room = BoardBarLayout.titleMaxWidth(LP3_WIDTH_DP.dp).value
+        val room = BarLayout.titleMaxWidth(LP3_WIDTH_DP.dp).value
         val twoLines = mutableSetOf<String>()
         for (case in boardCases) {
             val lines = wrapBy(case.status, room, ::titleWidth)
-            assertTrue(lines.size <= BoardBarLayout.TITLE_MAX_LINES, "\"${case.status}\" needs ${lines.size} title lines: $lines")
+            assertTrue(lines.size <= BarLayout.TITLE_MAX_LINES, "\"${case.status}\" needs ${lines.size} title lines: $lines")
             for (line in lines) assertTrue(titleWidth(line) <= room, "\"$line\" (${titleWidth(line)} dp) in a $room dp title")
             if (lines.size == 2) twoLines += case.status
         }
-        val lines = AkkuratProxy.size(BoardBarLayout.TITLE_DESIGN_PX * BoardBarLayout.TITLE_LINE_HEIGHT) * BoardBarLayout.TITLE_MAX_LINES
-        assertTrue(lines <= BoardBarLayout.topBarHeight(LP3_WIDTH_DP.dp).value, "two title lines are $lines dp")
+        val lines = AkkuratProxy.size(BarLayout.TITLE_DESIGN_PX * BarLayout.TITLE_LINE_HEIGHT) * BarLayout.TITLE_MAX_LINES
+        assertTrue(lines <= BarLayout.topBarHeight(LP3_WIDTH_DP.dp).value, "two title lines are $lines dp")
         // Everything the owner named reads on one line: the first Puzzle, the long Results, Time Left.
         for (status in listOf(
             UiCopy.FIRST_PUZZLE, UiCopy.review(9999, 9999), UiCopy.yourMoveLeft(47 * 3_600_000L),
@@ -551,13 +551,13 @@ class StripFitTest {
 
     /** The action row's height on the LP3: the app area less the top bar and the board (E2). */
     private val actionRowHeight: Float
-        get() = AkkuratProxy.LP3_SCREEN_HEIGHT_DP - BoardBarLayout.topBarHeight(LP3_WIDTH_DP.dp).value - POSITION_VIEW_SIZE.value
+        get() = AkkuratProxy.LP3_SCREEN_HEIGHT_DP - BarLayout.topBarHeight(LP3_WIDTH_DP.dp).value - POSITION_VIEW_SIZE.value
 
     /** The room left of [buttons] for the Captured Pieces, from the board's left edge, never past its right (E4). */
     private fun capturedRoom(buttons: List<String>): Float = minOf(
         POSITION_VIEW_SIZE.value,
-        LP3_WIDTH_DP - BoardBarLayout.boardSide(LP3_WIDTH_DP.dp).value - BoardBarLayout.BUTTONS_END.value -
-            BoardBarLayout.CAPTURED_GAP.value - buttonsWidth(buttons),
+        LP3_WIDTH_DP - BarLayout.boardSide(LP3_WIDTH_DP.dp).value - BarLayout.BUTTONS_END.value -
+            BarLayout.CAPTURED_GAP.value - buttonsWidth(buttons),
     )
 
     /**
@@ -574,7 +574,7 @@ class StripFitTest {
             assertTrue(case.buttons.size <= 3)
             assertTrue(capturedRoom(case.buttons) >= 0f, "${case.buttons} in the row")
             // Nothing is left of the board's edge, so the buttons end within the row.
-            assertTrue(LP3_WIDTH_DP - BoardBarLayout.boardSide(LP3_WIDTH_DP.dp).value - BoardBarLayout.BUTTONS_END.value >= buttonsWidth(case.buttons))
+            assertTrue(LP3_WIDTH_DP - BarLayout.boardSide(LP3_WIDTH_DP.dp).value - BarLayout.BUTTONS_END.value >= buttonsWidth(case.buttons))
         }
     }
 

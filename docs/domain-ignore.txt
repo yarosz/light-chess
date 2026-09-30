@@ -330,3 +330,7 @@ ${sideName(leader)} is ahead by ${kotlin.math.abs(captured.lead)}.
 a $name
 Captured by ${sideName(side)}: ${kinds.joinToString(
 ${COUNT_WORDS.getOrElse(n - 1) { n.toString() }} ${name}s
+
+# Layout E (E1-E5, on trial): UI names for the top bar and the action row around the board.
+BarLayout
+MenuMarkPainter

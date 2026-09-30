@@ -12,6 +12,16 @@ client and Play a friend are on main (#3), and so is the Captured Pieces row (P3
 v2 + v3 + P3) is released. v0.3.1 is the open release PR, carrying the v3 review follow-ups: the
 Relay's limits and plain-HTTP refusal (#13, L1-L5) and Play a friend's Time Left and deleted Game
 (#14, W12, W13). Next: v3 PR 3 (the live WebSocket).
+HANDOFF (Layout E trial, feat/navigation-e from feat/navigation f432d17, 2026-09-30): a draft PR
+into feat/navigation, so the owner can compare it with D on the LP3. Decision log "Layout E" E1-E5,
+DESIGN.md "Board layout E". The boards draw `BoardTopBar` (light-sdk's `LightTopBar` with the arrow
+and the mark as a painter, and the status as a two-line `Fine` title) and `ActionRow` (the buttons
+at the right, and on Game boards the Captured Pieces at the left, tightened by
+`CapturedRowLayout.fit`). `Strip` is unchanged, for the invite page and the list; if E wins, its
+`back` and `captured` paths and D's strip tests for the boards go. `StripFitTest`'s E tests read the
+bar's constants from the SDK's source. To check on the LP3: the title in Akkurat (the widest, "Tap a
+piece, then a square", is 234 of 240 dp in the stand-in), the mark centred on the arrow's line, and
+the Captured Pieces beside Accept and Decline.
 HANDOFF (Navigation D, feat/navigation from main 04ae74a, 2026-09-30): the owner's navigation model,
 decision log "Navigation D" N1-N10, DESIGN.md "Navigation". `HomeScreen` is the root (the
 `@InitialScreen`; `ChessScreen` is gone, split into `PuzzleScreen` and `GameScreen`), and the place in
