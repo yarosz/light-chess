@@ -9,16 +9,17 @@ screen (PR 4, with R4.16/R4.17), reviewed and checked on the LP3: the computer i
 Level. v0.2.0 (v1 + v2) is released from main. v3: the Relay is done (protocol 1.0) and has its
 address, `https://chess-relay.yarosz.com` (decision log W11), deployed and live since 2026-09-29; the
 client and Play a friend are on main (#3), and so is the Captured Pieces row (P3, #10). v0.3.0 (v1 +
-v2 + v3 + P3) is released. v0.3.1 is the open release PR: the v3 review follow-ups, the Relay's
-limits and plain-HTTP refusal (#13, L1-L5) and Play a friend's Time Left and deleted Game (#14, W12,
-W13). Next: v3 PR 3 (the live WebSocket).
+v2 + v3 + P3) is released. v0.3.1 is the open release PR, carrying the v3 review follow-ups: the
+Relay's limits and plain-HTTP refusal (#13, L1-L5) and Play a friend's Time Left and deleted Game
+(#14, W12, W13). Next: v3 PR 3 (the live WebSocket).
 HANDOFF (0.3.1 release PR, release/0.3.1 from main b7e4caa, 2026-09-29): versionName 0.3.1,
 versionCode 4, `UiCopy.VERSION` with it; notes in `docs/release-notes/0.3.1.md` (the Pack is
 unchanged). The Relay at b7e4caa is deployed (version 23b28619): `/health` over HTTPS answers ok,
 plain HTTP answers `426 upgrade_required` with no `Location`, and `RelayEndToEndTest` passes against
 the live URL. Cloudflare's edge drops the Worker's `Upgrade` and `Connection` headers (hop-by-hop),
 so the live 426 carries neither; the error body says to use HTTPS, which is what clients read.
-Next: merge, tag v0.3.1 with a notes-only GitHub Release; the Light submission is the maintainer's.
+README's status line names 0.3.1. The release checks (scan on a fresh public clone, relay and
+`/health`, apk, run, upgrade v0.3.0, light-build) ran on this branch. Next: merge, tag v0.3.1 with a notes-only GitHub Release; the Light submission is the maintainer's.
 HANDOFF (0.3.0 release PR, release/0.3.0 from main bb8da79, 2026-09-29): versionName 0.3.0,
 versionCode 3, `UiCopy.VERSION` with it; notes in `docs/release-notes/0.3.0.md` (the Pack is unchanged
 since v0.2.0, so the notes say nothing of it). README's status line names v3 done. Two doc nits from
