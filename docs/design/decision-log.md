@@ -1434,7 +1434,7 @@ Puzzle board a step above it; Pieces moves into the Menu of every board, where i
   - The invite page and the list pages (Play a friend, Games, the Puzzles page) draw no board and have
     no Pieces row; a deleted Game's Menu, opened from the Play a friend list, has none either.
   A tap on Pieces still moves to the next set and stays on the Menu (P2), and the row waits for the
-  Piece Set like before (M4). `PuzzleMenu`, `GameMenu`, `FriendMenu`, `ReplayMenu` (`MenuTest`).
+  Piece Set like before (M4). `PuzzleMenu`, `GameMenu`, `FriendMenu`, `GameReviewMenu` (`MenuTest`).
 - N18 The Puzzle's id, in its board's Menu. AMENDS N8 (About no longer shows it) and returns S1's
   placement. RULING: the Puzzle board's Menu ends with "Puzzle 00sHx" over
   "lichess.org/training/00sHx", in grey, as text (D5, D7), for the Puzzle on screen: a Missed replay's

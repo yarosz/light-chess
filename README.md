@@ -18,10 +18,11 @@ _Screenshots from a Light Phone III are coming._
 
 ## What it does
 
-- **Home.** Chess opens where you left off, with Home underneath: a list of Puzzles, Player Rating,
-  Missed, Play the computer, Play a friend, Games, Pieces and About. On a board, the arrow at the left
-  of the strip goes back, as the phone's back does, and on a Game's board the three squares at the
-  right open its Menu. The Puzzle board has no Menu.
+- **Home.** Chess opens where you left off, with Home underneath: Puzzles (with your Player Rating),
+  Play the computer, Play a friend, Games and About. Puzzles opens a page of its own: continue the
+  Puzzle on screen, Missed, Past puzzles and your Player Rating. On a board, the arrow at the left of
+  the strip goes back, as the phone's back does, and the three squares at the right open the board's
+  Menu, with Pieces.
 - **Puzzles.** Tap a piece, then a square, or drag it. A wrong Move is taken back and you can try again.
   "Hint" marks the piece to move; "Solution" plays the line for you.
 - **Player Rating.** A Glicko-2 rating, like Lichess's own, picks each Puzzle near your level. Answer
@@ -38,7 +39,7 @@ _Screenshots from a Light Phone III are coming._
   Offer draw and Resign; a finished Game offers a rematch. Moves pass through Chess's Relay, with no
   name or account.
 - **Review.** Turn the scroll wheel back to step through the Moves of the Puzzle or Game on screen.
-- **Pieces.** Two sets, geometric and rounded; choose one on Home.
+- **Pieces.** Two sets, geometric and rounded; choose one in any board's Menu, which shows the set.
 - **Captured Pieces.** In a Game, a row under the board shows the pieces each Side has taken, and
   "+3" for the Side ahead in material.
 - The screen stays on while you think, for up to five minutes without a touch.
