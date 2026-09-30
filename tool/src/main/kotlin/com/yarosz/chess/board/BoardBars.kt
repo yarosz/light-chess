@@ -2,14 +2,11 @@ package com.yarosz.chess.board
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -20,16 +17,17 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.FirstBaseline
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.thelightphone.sdk.ui.LightBarButton
 import com.thelightphone.sdk.ui.LightGrid
@@ -42,9 +40,10 @@ import com.thelightphone.sdk.ui.designVerticalPxToSp
 import com.thelightphone.sdk.ui.lightClickable
 
 /**
- * Layout E's board bars (decision log "Layout E", E1-E6): LightOS's top bar over the board, with the
- * back arrow, the status as its title and the Menu mark; and the action row under the board, with the
- * buttons at the right and, on a Game's board, the Captured Pieces at the left. `StripFitTest` reads
+ * Layout E's board bars (decision log "Layout E", E1-E3, E7-E9): LightOS's top bar over the board,
+ * with the back arrow, the status as its title and the Menu mark; and the action row under the board:
+ * on a Game's board, the Captured Pieces across the board's width at its top and the buttons centred
+ * on a line below them; on the Puzzle board, the buttons centred in the row. `StripFitTest` reads
  * these values to check that every status and every row fits the LP3.
  */
 object BarLayout {
@@ -74,11 +73,21 @@ object BarLayout {
      */
     const val MARK_TARGET_UNITS = 3f
 
-    /** The last button's label ends this far from the screen's right edge: its ink 16 dp in, under the mark's (E2). */
-    val BUTTONS_END: Dp = StripLayout.buttonsEnd(menu = false)
+    /**
+     * E7: the Captured Pieces' line at the top of the action row, from the board's bottom edge to the
+     * drawings' bottom: P3's 3 dp, then the drawings ([CapturedRowLayout.BOTTOM], 3 + 15 dp). On a
+     * Game's board the buttons' line is the rest of the row, below it.
+     */
+    val PIECES_LINE: Dp = CapturedRowLayout.BOTTOM.dp
 
-    /** Space between the Captured Pieces' room and the first button of the board's widest set (E4, E6). */
-    val CAPTURED_GAP: Dp = StripLayout.STATUS_GAP
+    /**
+     * E8: LightOS `Copy`'s ink around the baseline, in em, for every label the action row can show:
+     * the tallest letter's top ("l", "d", "h" in Solution, Undo, Rematch) [COPY_INK_ASCENT] above it,
+     * the descender's bottom ("p", "y" in Accept, Retry) [COPY_INK_DESCENT] below. Measured on the
+     * emulator's Roboto (0.750 and 0.213 em); the LP3's Akkurat is a grotesque of the same build.
+     */
+    const val COPY_INK_ASCENT = 0.75f
+    const val COPY_INK_DESCENT = 0.214f
 
     fun unit(screenWidth: Dp): Dp = screenWidth / LightGrid.WIDTH
 
@@ -86,23 +95,22 @@ object BarLayout {
 
     fun titleMaxWidth(screenWidth: Dp): Dp = unit(screenWidth) * TITLE_MAX_WIDTH_UNITS
 
-    /** The board's left edge, where the Captured Pieces start (P3 keeps the row aligned with the board). */
+    /** The board's left edge, where the bottom Side's Captured Pieces start (P3, E7). */
     fun boardSide(screenWidth: Dp): Dp = (screenWidth - POSITION_VIEW_SIZE) / 2
 
-    /** A button set's width in the action row: each label, [labelWidth] wide, with its padding either side. */
-    fun buttonsWidth(labels: List<String>, labelWidth: (String) -> Dp): Dp =
-        labels.fold(0.dp) { sum, label -> sum + labelWidth(label) + StripLayout.BUTTON_PADDING * 2 }
+    /**
+     * E8: where the buttons' line starts in the action row: under the Captured Pieces' line on a Game's
+     * board ([captured]), whether or not anything is taken yet, so the labels never move; at the row's
+     * top on the Puzzle board, which has no Captured Pieces (P3).
+     */
+    fun buttonsLineTop(captured: Boolean): Dp = if (captured) PIECES_LINE else 0.dp
 
     /**
-     * E6: the Captured Pieces' room on a board whose [buttonSets] are every set of labels it can show.
-     * The room runs from the board's left edge to [CAPTURED_GAP] before the widest set, never past the
-     * board's right edge, so it is the same whichever set is shown and the row never moves as buttons
-     * come and go.
+     * E8: the labels' baseline, from the top of a buttons' line [lineHeight] tall, for `Copy` [em]
+     * tall: their ink, [COPY_INK_ASCENT] + [COPY_INK_DESCENT] em, is centred in the line.
      */
-    fun capturedRoom(screenWidth: Dp, buttonSets: List<List<String>>, labelWidth: (String) -> Dp): Dp {
-        val widest = buttonSets.maxOfOrNull { buttonsWidth(it, labelWidth) } ?: 0.dp
-        return (screenWidth - boardSide(screenWidth) - BUTTONS_END - CAPTURED_GAP - widest).coerceIn(0.dp, POSITION_VIEW_SIZE)
-    }
+    fun labelBaseline(lineHeight: Dp, em: Dp): Dp =
+        (lineHeight - em * (COPY_INK_ASCENT + COPY_INK_DESCENT)) / 2 + em * COPY_INK_ASCENT
 }
 
 /**
@@ -162,66 +170,58 @@ private class MenuMarkPainter(private val color: Color, private val inset: Dp) :
 }
 
 /**
- * E2, E4 and E6: the row under the board. This moment's [buttons] (at most three, contradiction 2) at
- * the right, in LightOS `Copy`, each a target the row's full height, the last label's ink ending 16 dp
- * from the edge. On a Game's board, [captured] (P3) at the left, in a room that never changes on that
- * board: from the board's left edge to just before the widest of its [buttonSets], every set of labels
- * it can show ([BarLayout.capturedRoom]), tightened to fit that room ([CapturedRowLayout.fit]).
- * [buttonSets] must come with [captured]: without them the room would follow the buttons shown.
+ * E7-E9: the row under the board. On a Game's board ([captured] set), the Captured Pieces' line at its
+ * top ([BarLayout.PIECES_LINE]): the drawings 3 dp under the board, the bottom Side's end from the
+ * board's left edge and the other's from its right edge, placed across the board's width
+ * ([CapturedRowLayout.fit]) whatever the buttons. Below it, the buttons' line: this moment's
+ * [buttons] (at most three, contradiction 2) in LightOS `Copy`, centred as a group, each a target the
+ * line's full height, their ink centred in the line ([BarLayout.labelBaseline]). On the Puzzle board,
+ * which has no Captured Pieces, the buttons' line is the whole row (E9).
  */
 @Composable
-fun ActionRow(
-    buttons: List<StripButton>,
-    modifier: Modifier = Modifier,
-    captured: CapturedRowState? = null,
-    buttonSets: List<List<String>> = emptyList(),
-) {
+fun ActionRow(buttons: List<StripButton>, modifier: Modifier = Modifier, captured: CapturedRowState? = null) {
     require(buttons.size <= 3) { "the action row holds at most 3 buttons" }
-    require(captured == null || buttonSets.isNotEmpty()) { "a row with Captured Pieces keeps its room beside its board's button sets (E6)" }
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    Row(
-        modifier
-            .fillMaxWidth()
-            .padding(start = BarLayout.boardSide(screenWidth), end = BarLayout.BUTTONS_END),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (captured != null) {
-            val labels = buttons.map { it.label }
-            // The buttons shown are counted too, so a set missing from [buttonSets] never overlaps the row.
-            val room = capturedRoom(screenWidth, buttonSets + listOf(labels))
-            Box(Modifier.width(room).fillMaxHeight(), contentAlignment = Alignment.CenterStart) {
-                // The drawings (not the canvas, which has room above them) centre on the row's middle.
-                if (captured.shown) CapturedRow(captured, room, Modifier.offset(y = -(CapturedRowLayout.TOP / 2).dp))
-            }
+    val copy = LightThemeTokens.typography.copy
+    val em = with(LocalDensity.current) { copy.fontSize.value.designVerticalPxToSp().toDp() }
+    Box(modifier.fillMaxWidth()) {
+        if (captured != null && captured.shown) {
+            CapturedRow(captured, POSITION_VIEW_SIZE, Modifier.align(Alignment.TopCenter))
         }
-        Spacer(Modifier.weight(1f))
-        for (button in buttons) {
-            Box(
-                Modifier
-                    .fillMaxHeight()
-                    .lightClickable(onClickLabel = button.description, role = Role.Button) { if (button.enabled) button.onClick() }
-                    .semantics { contentDescription = button.description }
-                    .padding(horizontal = StripLayout.BUTTON_PADDING),
-                contentAlignment = Alignment.Center,
-            ) {
-                LightText(text = button.label, variant = LightTextVariant.Copy, lighten = !button.enabled, maxLines = 1)
+        Row(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxHeight()
+                .padding(top = BarLayout.buttonsLineTop(captured != null)),
+        ) {
+            for (button in buttons) {
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .lightClickable(onClickLabel = button.description, role = Role.Button) { if (button.enabled) button.onClick() }
+                        .semantics { contentDescription = button.description }
+                        .padding(horizontal = StripLayout.BUTTON_PADDING),
+                ) {
+                    LightText(
+                        text = button.label,
+                        variant = LightTextVariant.Copy,
+                        lighten = !button.enabled,
+                        maxLines = 1,
+                        modifier = Modifier.labelLine(em),
+                    )
+                }
             }
         }
     }
 }
 
-/** [BarLayout.capturedRoom] with the labels measured as `LightText` sets them in `Copy`. */
-@Composable
-private fun capturedRoom(screenWidth: Dp, buttonSets: List<List<String>>): Dp {
-    val copy = LightThemeTokens.typography.copy
-    val style = copy.copy(
-        fontSize = copy.fontSize.value.designVerticalPxToSp(),
-        lineHeight = copy.lineHeight.value.designVerticalPxToSp(),
-        letterSpacing = if (copy.letterSpacing == TextUnit.Unspecified) copy.letterSpacing else copy.letterSpacing.value.designVerticalPxToSp(),
-    )
-    val measurer = rememberTextMeasurer()
-    val density = LocalDensity.current
-    return remember(screenWidth, buttonSets, style, density) {
-        BarLayout.capturedRoom(screenWidth, buttonSets) { label -> with(density) { measurer.measure(label, style).size.width.toDp() } }
-    }
+/**
+ * E8: lays a label out at its full text height and places it so its baseline is
+ * [BarLayout.labelBaseline] from the top of its line, whose height it takes: the text's box may run
+ * past the line (its leading is empty), its ink stays inside.
+ */
+private fun Modifier.labelLine(em: Dp): Modifier = layout { measurable, constraints ->
+    val text = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
+    val height = constraints.maxHeight
+    val baseline = BarLayout.labelBaseline(height.toDp(), em).roundToPx()
+    layout(text.width, height) { text.place(0, baseline - text[FirstBaseline]) }
 }

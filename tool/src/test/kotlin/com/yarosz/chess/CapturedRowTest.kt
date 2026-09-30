@@ -24,7 +24,7 @@ import kotlin.test.assertTrue
 /**
  * The captured-pieces row (P3): where each end's pieces and the Material Lead go, that the widest
  * row fits the board without its two ends meeting, and its accessibility label. Its room in the
- * action row beside the buttons is `StripFitTest`'s (E4).
+ * action row, across the board's width above the buttons' line, is `StripFitTest`'s (E7, E8).
  */
 class CapturedRowTest {
 
@@ -122,11 +122,12 @@ class CapturedRowTest {
     }
 
     @Test
-    fun theDrawingsMatchTheOwnersMockUp() {
-        // The mock-up, in LP3 px (3 per dp): drawings 52 px, 17 px within a kind, 50 px to the next.
-        assertTrue(kotlin.math.abs(CapturedRowLayout.SIZE * 3 - 52) <= 1.5f)
-        assertTrue(kotlin.math.abs(CapturedRowLayout.SAME_STEP * 3 - 17) <= 1.5f)
-        assertTrue(kotlin.math.abs(CapturedRowLayout.KIND_STEP * 3 - 50) <= 1.5f)
+    fun theDrawingsKeepTheOwnersMockUpsProportions() {
+        // E8: 15 dp drawings (45 px on the LP3), where the mock-up drew 52 px and P3 had 17 dp; the steps
+        // keep the mock-up's proportions, 17 and 50 px beside its 52 px drawing, to half a dp.
+        assertEquals(15f, CapturedRowLayout.SIZE)
+        assertEquals(CapturedRowLayout.SIZE * 17f / 52f, CapturedRowLayout.SAME_STEP, 0.25f)
+        assertEquals(CapturedRowLayout.SIZE * 50f / 52f, CapturedRowLayout.KIND_STEP, 0.25f)
         // Kinds don't overlap; pieces of one kind do.
         assertTrue(CapturedRowLayout.KIND_STEP < CapturedRowLayout.SIZE && CapturedRowLayout.SAME_STEP < CapturedRowLayout.SIZE / 2)
     }
