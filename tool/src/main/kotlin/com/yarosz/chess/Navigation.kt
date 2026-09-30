@@ -78,6 +78,37 @@ object Navigation {
         Place.PLAY_FRIEND -> Mode.FRIEND
         else -> null
     }
+
+    /**
+     * The place that takes a page's place once it has done its job (N2): Start puts the computer's
+     * board where the new-game page was, a Missed replay and Reset rating the Puzzle board. Null: the
+     * page only goes back.
+     */
+    fun replacedBy(place: Place): Place? = when (place) {
+        Place.NEW_GAME -> Place.COMPUTER
+        Place.PLAYER_RATING, Place.MISSED -> Place.PUZZLE
+        else -> null
+    }
+}
+
+/**
+ * Home's side of the back stack (N2), apart from the screens so `HomeTest` drives it on a stand-in
+ * stack. [push] puts a place's screen over the top one, with what to run once that page goes back
+ * with a result (null: nothing); [setMode] writes `mode.txt`.
+ */
+class HomeNavigator(private val setMode: (Mode) -> Unit, private val push: (Place, onDone: (() -> Unit)?) -> Unit) {
+    /** The launch stack over Home, as it stands: read from `mode.txt`, never written back. */
+    fun launch(mode: Mode, friendsOn: Boolean) {
+        for (place in Navigation.launch(mode, friendsOn).drop(1)) open(place, writeMode = false)
+    }
+
+    /** Opens [place] over the top screen, writing its mode unless [writeMode] is false (the launch's). */
+    fun open(place: Place, writeMode: Boolean = true) {
+        if (place == Place.HOME) return
+        if (writeMode) Navigation.mode(place)?.let(setMode)
+        val next = Navigation.replacedBy(place)
+        push(place, next?.let { { open(it) } })
+    }
 }
 
 /** One row of a Menu page: tappable when it has an [entry], else a plain line ([lighten]ed when it can't act now). */

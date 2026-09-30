@@ -20,8 +20,8 @@ _Screenshots from a Light Phone III are coming._
 
 - **Home.** Chess opens where you left off, with Home underneath: a list of Puzzles, Player Rating,
   Missed, Play the computer, Play a friend, Games, Pieces and About. On a board, the arrow at the left
-  of the strip goes back, as the phone's back does, and the three squares at the right open that
-  board's Menu.
+  of the strip goes back, as the phone's back does, and on a Game's board the three squares at the
+  right open its Menu. The Puzzle board has no Menu.
 - **Puzzles.** Tap a piece, then a square, or drag it. A wrong Move is taken back and you can try again.
   "Hint" marks the piece to move; "Solution" plays the line for you.
 - **Player Rating.** A Glicko-2 rating, like Lichess's own, picks each Puzzle near your level. Answer

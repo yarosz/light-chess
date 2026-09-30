@@ -113,11 +113,21 @@ class MenuTest {
 
     @Test
     fun `the Puzzle board has no Menu (N5)`() {
-        for (stage in Stage.entries) for (review in listOf(null, UiCopy.review(3, 5))) for (first in listOf(false, true)) {
-            val strip = PuzzleStrip.of(stage, review, "Solved +12", justWrong = false, first = first, solver = Side.WHITE)
-            assertTrue(strip.buttons.size <= 3)
-            assertTrue(strip.buttons.none { it.label == UiCopy.MENU_TITLE })
+        // No Puzzle button is the Menu, by label or by the label a script taps ("Open the Menu").
+        for (button in PuzzleButton.entries) {
+            assertFalse(button.label == UiCopy.MENU_TITLE || button.description == UiCopy.MENU_DESCRIPTION, "$button is a Menu")
         }
+        // In every state the strip holds only its own actions, never a way to a Menu page.
+        val own = setOf(PuzzleButton.HINT, PuzzleButton.SOLUTION, PuzzleButton.NEXT, PuzzleButton.LATEST)
+        for (stage in Stage.entries) for (review in listOf(null, UiCopy.review(3, 5))) for (first in listOf(false, true)) {
+            for (wrong in listOf(false, true)) for (side in Side.entries) {
+                val strip = PuzzleStrip.of(stage, review, "Solved +12", justWrong = wrong, first = first, solver = side)
+                assertTrue(strip.buttons.size <= 3)
+                assertTrue(own.containsAll(strip.buttons), "${strip.buttons} in $stage")
+                assertTrue(strip.buttons.none { it.label in places || it.description == UiCopy.MENU_DESCRIPTION }, "${strip.buttons} in $stage")
+            }
+        }
+        assertTrue(PuzzleStrip.FINISHED.buttons.isEmpty(), "the end of the Pack: the arrow and the status only")
         assertEquals(listOf(PuzzleButton.HINT, PuzzleButton.SOLUTION), PuzzleStrip.of(Stage.PLAY, null, "", false, false, Side.WHITE).buttons)
         assertEquals(listOf(PuzzleButton.NEXT), PuzzleStrip.of(Stage.DONE, null, "Solved +12", false, false, Side.WHITE).buttons)
         assertEquals(listOf(PuzzleButton.LATEST, PuzzleButton.NEXT), PuzzleStrip.of(Stage.DONE, "Review · 3 of 5", "", false, false, Side.WHITE).buttons)

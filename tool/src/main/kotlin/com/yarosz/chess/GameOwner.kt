@@ -44,11 +44,16 @@ import kotlinx.coroutines.withContext
  * the owner ([of]), as [PuzzleOwner]'s assets do (V4).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class GameOwner(filesDir: File, @Volatile private var readAsset: (String) -> ByteArray) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+class GameOwner(
+    filesDir: File,
+    @Volatile private var readAsset: (String) -> ByteArray,
+    /** The process's one engine; a test passes its own. */
+    private val host: EngineHost = EngineHost.shared,
+    /** The main thread; a test passes an unconfined scope, as `FriendOwnerTest` does. */
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
+) {
     private val io = Dispatchers.IO.limitedParallelism(1)
     private val store = GameStore(filesDir)
-    private val host = EngineHost.shared
 
     private val states = MutableStateFlow<GameState?>(null)
 
@@ -204,12 +209,18 @@ class GameOwner(filesDir: File, @Volatile private var readAsset: (String) -> Byt
         updateAwake()
     }
 
-    /** onAppPause: stop the search and write the file now, on this thread (B6, PLATFORM.md). */
+    /**
+     * onAppPause, or the board leaving for Home: stop the search and write the file now, on this
+     * thread (B6, PLATFORM.md). A Game Hint being found stops with it, and one on show goes, so the
+     * strip offers Hint again when the board returns: a cancelled search never clears its own
+     * "Finding a Game Hint", and the timer that hides a shown one is cancelled too.
+     */
     fun pause() {
         paused = true
         stopThinking()
         stopHint()
-        val state = states.value ?: return
+        val state = states.value?.let(GameFlow::dropHint) ?: return
+        states.value = state
         runCatching { store.save(state.data) }.onFailure { Log.w(TAG, "games.json save failed", it) }
     }
 

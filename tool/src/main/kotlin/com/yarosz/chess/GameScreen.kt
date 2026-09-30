@@ -152,12 +152,12 @@ class GameScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, GameVi
                 when (button) {
                     GameButton.HINT -> game.hint()
                     GameButton.MOVE_NOW -> game.moveNow()
-                    GameButton.NEXT -> { game.touched(); navigateTo({ MenuScreen(it, MenuPage.NEW_GAME) }) }
+                    GameButton.NEXT -> { game.touched(); navigateTo({ MenuScreen(it, MenuPage.NEW_GAME, overGame = true) }) }
                     GameButton.LATEST -> vm.leaveReview()
                 }
             }
         }
-        val menu = StripButton(UiCopy.MENU_DESCRIPTION) { game.touched(); navigateTo({ MenuScreen(it, MenuPage.MENU) }) }
+        val menu = StripButton(UiCopy.MENU_DESCRIPTION) { game.touched(); navigateTo({ MenuScreen(it, MenuPage.MENU, overGame = true) }) }
         val live = review.ply == null
         Column(
             Modifier.fillMaxSize().padding(top = 12.dp),

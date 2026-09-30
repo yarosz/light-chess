@@ -44,25 +44,31 @@ import kotlinx.coroutines.flow.SharedFlow
  * The pages opened from Home (N1) and from the computer's board (N5). Each page is its own
  * [MenuScreen] on the SDK's back stack: system Back never reaches a screen (LightActivity pops the
  * stack itself), so a sub-page that were only state inside one screen would skip a level (S3, N6).
- * [overGame] pages sit over the computer's board, which keeps thinking behind them (contradiction 3).
+ * Whether a page sits over the computer's board depends on who opened it, not on the page: New game
+ * opens from Home and from the board (see [MenuScreen]'s overGame).
  */
-enum class MenuPage(val title: String, val scrolls: Boolean, val overGame: Boolean = false) {
+enum class MenuPage(val title: String, val scrolls: Boolean) {
     /** The computer's Menu: only this board's actions (N5). */
-    MENU(UiCopy.MENU_TITLE, true, overGame = true),
+    MENU(UiCopy.MENU_TITLE, true),
     RATING(UiCopy.PLAYER_RATING, true),
     MISSED(UiCopy.MISSED, true),
     ABOUT(UiCopy.ABOUT, true),
-    NEW_GAME(UiCopy.NEW_GAME, true, overGame = true),
+    NEW_GAME(UiCopy.NEW_GAME, true),
     GAMES(UiCopy.GAMES, true),
-    MOVES(UiCopy.MOVES, true, overGame = true),
+    MOVES(UiCopy.MOVES, true),
 }
 
-/** The second taps, the new-game page's choices, and the wheel's scroll steps (F3) on one page. */
+/**
+ * The second taps, the new-game page's choices, and the wheel's scroll steps (F3) on one page.
+ * [overGame]: the page sits over the computer's board, which keeps thinking behind it (contradiction
+ * 3); a page opened from Home sits over none, so it never starts a search (N2).
+ */
 class MenuViewModel(
     private val owner: PuzzleOwner,
     private val game: GameOwner,
     private val modes: ModeOwner,
     private val page: MenuPage,
+    private val overGame: Boolean,
 ) : WheelViewModel<Unit>() {
     /** "Reset rating" was tapped once; the next tap resets (F5). */
     var confirmingReset by mutableStateOf(false)
@@ -141,8 +147,11 @@ class MenuViewModel(
     }
 
     /** The computer keeps thinking while a page over its board shows (contradiction 3: the Game goes on). */
-    override fun onScreenShow(screen: SimpleLightScreen<Unit>) {
-        if (page.overGame) game.resume()
+    override fun onScreenShow(screen: SimpleLightScreen<Unit>) = shown()
+
+    /** The page shows: over the board, the computer's turn runs on (a Home page leaves it paused). */
+    fun shown() {
+        if (overGame) game.resume()
     }
 
     override fun onAppPause() {
@@ -156,10 +165,14 @@ class MenuViewModel(
  * the board, a page opened from Home to Home. A page that has done its job (a reset, a Missed replay,
  * a Start) goes back with a result: the Menu, handed it, goes back to the board too, and Home opens
  * the Puzzle board or the computer's in the page's place (N2). System Back never carries one.
+ *
+ * [overGame]: opened from the computer's board, or from a page over it, so the computer keeps
+ * thinking behind it (contradiction 3). Home's pages pass false, New game included (N2).
  */
 class MenuScreen(
     sealedActivity: SealedLightActivity,
     private val page: MenuPage,
+    private val overGame: Boolean,
 ) : LightScreen<Unit, MenuViewModel>(sealedActivity) {
 
     override val viewModelClass: Class<MenuViewModel>
@@ -170,11 +183,12 @@ class MenuScreen(
     private val modes: ModeOwner by lazy { ModeOwner.of(lightContext.filesDir) }
     private val friends: FriendOwner? get() = FriendOwner.of(lightContext)
 
-    override fun createViewModel() = MenuViewModel(owner, game, modes, page)
+    override fun createViewModel() = MenuViewModel(owner, game, modes, page, overGame)
 
+    /** A page over this one: over the board when this one is. */
     private fun open(next: MenuPage) {
         viewModel.leaving()
-        navigateTo({ MenuScreen(it, next) }) { goBack() }
+        navigateTo({ MenuScreen(it, next, overGame) }) { goBack() }
     }
 
     /** Done: back past this page, with a result (see the class). */
@@ -194,7 +208,7 @@ class MenuScreen(
         LightTheme(colors = themeColors) {
             Column(Modifier.fillMaxSize().background(LightThemeTokens.colors.background)) {
                 // The computer may be thinking behind a page over its board: keep the screen on for it too (contradiction 4).
-                AndroidView(factory = { View(it) }, modifier = Modifier.size(0.dp), update = { it.keepScreenOn = page.overGame && gameAwake })
+                AndroidView(factory = { View(it) }, modifier = Modifier.size(0.dp), update = { it.keepScreenOn = overGame && gameAwake })
                 LightTopBar(
                     leftButton = LightBarButton.LightIcon(icon = LightIcons.BACK, onClick = { goBack() }, contentDescription = UiCopy.BACK_DESCRIPTION),
                     center = LightTopBarCenter.Text(page.title),

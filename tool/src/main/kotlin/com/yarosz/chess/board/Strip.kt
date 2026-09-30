@@ -90,14 +90,24 @@ object StripLayout {
 
     /**
      * The back arrow (N3), where LightOS's top bar draws it: one grid unit in from the screen's edge (a
-     * grid unit is a 27th of the screen's width, light-sdk `LightGrid`), two grid units square. Its
-     * ink runs from 16 to 27 dp on the LP3 (pixels 48 to 82 of 1080).
+     * grid unit is a 27th of the screen's width, light-sdk `LightGrid`), two grid units square. On the
+     * LP3 its ink covers pixels 48 to 82 of 1080 (the last inked pixel is 82; the ink's right edge is
+     * at x = 83 px, 27.7 dp).
      */
     const val BACK_START_UNITS = 1f
     const val BACK_SIZE_UNITS = 2f
 
     /** With the arrow, the status starts this many grid units in: 37 dp (112 px) on the LP3. */
     const val STATUS_START_UNITS = 2.8f
+
+    /** The arrow's target is never narrower than this, from the screen's edge (N3), as the mark's. */
+    val BACK_TARGET: Dp = 48.dp
+
+    /**
+     * The arrow's target width: to where the status starts, and at least [BACK_TARGET]. On the LP3 it
+     * runs 11 dp into the status, which takes no touches.
+     */
+    fun backTarget(screenWidth: Dp): Dp = maxOf(statusStart(screenWidth, back = true), BACK_TARGET)
 
     /**
      * The Menu mark (N4), LightOS's "more" as the Album tool draws it: three solid squares, 8 by 7 px
@@ -218,14 +228,15 @@ fun Strip(
         }
         // The text line's centre, from the strip's top: the Row centres every label on it.
         val lineCentre = top + (height - top) / 2
-        if (back != null) BackArrow(back, statusStart, lineCentre, screenWidth, Modifier.align(Alignment.TopStart))
+        if (back != null) BackArrow(back, StripLayout.backTarget(screenWidth), lineCentre, screenWidth, Modifier.align(Alignment.TopStart))
         if (menu != null) MenuMark(menu, lineCentre, Modifier.align(Alignment.TopEnd))
     }
 }
 
 /**
  * N3: LightOS's back arrow at its top-bar place, centred on the strip's text line. Its target runs
- * the strip's height, from the screen's edge to the status.
+ * the strip's height, [width] from the screen's edge ([StripLayout.backTarget]): over the start of
+ * the status, which takes no touches, and drawn after it, so the arrow takes them.
  */
 @Composable
 private fun BackArrow(back: StripButton, width: Dp, lineCentre: Dp, screenWidth: Dp, modifier: Modifier) {

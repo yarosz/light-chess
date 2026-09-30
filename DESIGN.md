@@ -155,8 +155,10 @@ the Button role (F11). The buttons sit edge to edge, 4 dp after the status: with
 The strip spans the screen (`StripLayout`, values on the LP3's 1080 px):
 
 - The back arrow is `LightIcons.BACK` where LightOS's top bar draws it: one grid unit (a 27th of the
-  width) in, two grid units square, so its ink runs from 16 to 27 dp (48 to 83 px), centred on the
-  text line. Its target is the strip's height from the edge to the status. It calls `goBack`, as
+  width) in, two grid units square, so its ink covers pixels 48 to 82 (the last inked pixel is 82;
+  its right edge is at x = 83 px, 27.7 dp), centred on the text line. Its target is the strip's
+  height and 48 dp wide from the edge (`StripLayout.backTarget`): past where the status starts, over
+  the status's first 11 dp, which takes no touches. It calls `goBack`, as
   system back does; its label is "Back". Every board has it in every state: a Puzzle, the computer's
   Game, a Correspondence Game, a replayed Game.
 - The status starts 2.8 grid units in (37 dp, 112 px), 13 dp inside the board's edge; without the
@@ -317,7 +319,10 @@ process-wide owner that runs the computer on `EngineHost.shared`, the clock and 
 - The Tool opens on the mode last used (D6, N2), kept in `mode.txt`, over Home. "Play the computer"
   on Home returns to the Game in progress, or opens the new-game page, which Start replaces with the
   board. Leaving the board for Home stops the computer's search until the board shows again
-  (`GameScreen.onScreenDestroy`); its Menu and the Menu's pages don't.
+  (`GameScreen.onScreenDestroy`); its Menu and the Menu's pages don't. A page opened from Home, New
+  game included, sits over no board and never starts a search (`MenuScreen`'s `overGame`). A Game
+  Hint being found when the board leaves is dropped, and one on show goes, so the strip offers Hint
+  again on return (`GameOwner.pause`, `GameOwnerTest`).
 - The new-game page: "Level" with 1 to 8 on one line, "Play as" with "White", "Black" and "Random",
   and "Think Time" with "3 s", "10 s" and "30 s" at Level 8 only. The chosen option is in the content
   colour, the others lightened. "Start" starts; with a Game in progress it reads "Tap again to

@@ -23,8 +23,16 @@ About. Pure parts and their tests: `HomeRows`/`Navigation` (HomeTest), `GameMenu
 flags (MenuTest), `PuzzleStrip` (StripFitTest now builds every puzzle strip from it and measures all
 strips with the arrow and the mark). `release-drive.py` reaches the rating and About through Home (or
 an older build's Menu, for `upgrade`). Checked on the emulator (geometry, not glyphs: it draws
-Roboto). To check on the LP3: the arrow at 48-83 px and the mark's x-height centring in Akkurat,
-"Rematch? · Accept · Decline" on one line with the mark, Home's wheel scroll.
+Roboto). To check on the LP3: the arrow's ink at pixels 48-82 and the mark's x-height centring in
+Akkurat, "Rematch? · Accept · Decline" on one line with the mark, Home's wheel scroll, and whether
+Home's first view (About and half of Pieces below the fold) is acceptable (the owner's call; row
+sizes unchanged). Review follow-ups (PR #16): `release-drive.py about` scrolls Home to About
+(uiautomator omits off-screen rows); leaving the board drops a Game Hint being found
+(`GameOwner.pause`); `MenuScreen` takes `overGame` from its opener, so New game from Home never
+starts a search; the arrow's target is 48 dp (`StripLayout.backTarget`); `HomeNavigator` holds
+Home's back-stack wiring (HomeTest); `GameOwnerTest` drives the owner on the JVM with a held
+engine. Left: `Rows.HEIGHT` (48 dp) is the wheel step while Home's and the pages' rows measure
+about 53 dp, so a detent scrolls slightly under a row (predates Navigation D).
 HANDOFF (0.3.1 release PR, release/0.3.1 from main b7e4caa, 2026-09-29): versionName 0.3.1,
 versionCode 4, `UiCopy.VERSION` with it; notes in `docs/release-notes/0.3.1.md` (the Pack is
 unchanged). The Relay at b7e4caa is deployed (version 23b28619): `/health` over HTTPS answers ok,

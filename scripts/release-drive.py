@@ -146,6 +146,34 @@ def open_list():
     wait_for(r"^Player Rating ·")
 
 
+def has_label(label):
+    return any(t == label for t in texts())
+
+
+def swipe(up=True):
+    """One slow drag on the list (no fling): up shows the rows below, down the rows above."""
+    focused()
+    start, end = ("900", "400") if up else ("400", "900")
+    adb("shell", "input", "swipe", "540", start, "540", end, "300")
+    time.sleep(0.6)
+
+
+def scroll_to(label, up=True, tries=6):
+    """Drag the list until a row labelled `label` is in uiautomator's tree, stopping once a drag shows
+    nothing new (the list's end). uiautomator leaves out a Compose row wholly off screen: on the LP3,
+    Home's eight 53 dp rows under its 40 dp top bar need more than the app area's 389 dp, so About
+    starts below the fold. An older build's puzzle Menu fits, and returns at once."""
+    for _ in range(tries):
+        if has_label(label):
+            return
+        before = texts()
+        swipe(up)
+        if texts() == before:
+            break
+    if not has_label(label):
+        sys.exit(f'release-drive: no "{label}" row after scrolling: {texts()}')
+
+
 def state():
     open_list()
     rows = texts()
@@ -162,13 +190,17 @@ def on_puzzle():
 
 
 def back_to_puzzle():
-    """Back, until the puzzle screen shows; from Home, its Puzzles row. Never back from the puzzle
-    screen of an older build, nor from Home: either closes the Tool."""
+    """Back, until the puzzle screen shows; from Home (titled "Chess"), its Puzzles row, scrolled
+    back into view if need be. Never back from the puzzle screen of an older build, nor from Home:
+    either closes the Tool."""
     for _ in range(4):
         if on_puzzle():
             return
         focused()
-        if "Puzzles" in texts():
+        if has_label("Chess"):
+            scroll_to("Puzzles", up=False)
+            tap_label("Puzzles")
+        elif "Puzzles" in texts():
             tap_label("Puzzles")
         else:
             adb("shell", "input", "keyevent", "KEYCODE_BACK")
@@ -193,6 +225,7 @@ def main(argv):
         state()
     elif cmd == "about":
         open_list()
+        scroll_to("About")  # below the fold on Home; in view on an older build's Menu
         tap_label("About")
         wait_for(r"^Chess \d")
         # About scrolls, and v3's privacy line pushes the Puzzles line below the fold: scroll by touch

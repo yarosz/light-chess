@@ -256,6 +256,10 @@ object GameFlow {
     /** The Game Hint's time on screen is over. */
     fun hideHint(state: GameState): GameState = state.copy(hint = null)
 
+    /** The Game Hint's search was stopped (the board left, B6): none pending, none on show, Hint offered again. */
+    fun dropHint(state: GameState): GameState =
+        if (state.hint == null && !state.hintPending) state else state.copy(hint = null, hintPending = false)
+
     /**
      * The user's draw offer, answered at once by the computer (G1): an offer and its acceptance or
      * refusal go into the Game. Only on the user's Move, and 10 Moves after an earlier offer.

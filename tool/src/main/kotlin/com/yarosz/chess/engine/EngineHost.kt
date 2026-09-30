@@ -95,6 +95,15 @@ class EngineHost(newEngine: () -> Engine) {
     /** Forgets what earlier searches learned, on the engine thread. */
     suspend fun newGame() = withContext(dispatcher) { engine.newGame() }
 
+    /**
+     * Ends the engine thread once the work queued on it is done, waiting up to [waitMs]: for a host a
+     * test made, so the process keeps one engine thread (`EngineTest`). Never called on [shared].
+     */
+    fun shutdown(waitMs: Long = 5_000) {
+        executor.shutdown()
+        executor.awaitTermination(waitMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+    }
+
     companion object {
         const val THREAD_NAME = "chess-engine"
 

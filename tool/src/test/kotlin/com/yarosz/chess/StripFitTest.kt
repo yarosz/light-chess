@@ -123,6 +123,8 @@ class StripFitTest {
                 add(FriendStrip.of(yours, now))
                 add(FriendStrip.of(theirs, now))
                 add(FriendStrip.of(theirs, now, reviewPly = 0))
+                // Review at its widest Ply numbers, as on the computer's board (R4.16).
+                add(FriendStrip.of(theirs, now, reviewPly = 0).copy(status = UiCopy.review(9999, 9999)))
                 add(FriendStrip.of(yours, now, sending = true))
                 add(FriendStrip.of(scenes.notSent(), now))
                 add(FriendStrip.of(scenes.drawOffered(), now))
@@ -294,8 +296,9 @@ class StripFitTest {
     }
 
     /**
-     * N3, N4: the arrow's ink runs from 16 to 27 dp (pixels 48 to 83 of 1080), where LightOS's top bar
-     * draws it; the status starts at 112 px; the mark's squares are 8 by 7 px, 28 px apart, their ink
+     * N3, N4: the arrow's ink covers pixels 48 to 82 of 1080 (the last inked pixel is 82; the ink's
+     * right edge is at x = 83 px, 27.7 dp), where LightOS's top bar draws it; its target is at least
+     * 48 dp wide; the status starts at 112 px; the mark's squares are 8 by 7 px, 28 px apart, their ink
      * ending 48 px from the right edge, and its target is 48 dp wide.
      */
     @Test
@@ -304,9 +307,13 @@ class StripFitTest {
         // ic_back_white: a 30-unit viewport, the path's ink from x 3 to 16.118.
         val iconDp = unit * StripLayout.BACK_SIZE_UNITS
         val inkStartPx = 3 * (unit * StripLayout.BACK_START_UNITS + iconDp * 3f / 30f)
-        val inkEndPx = 3 * (unit * StripLayout.BACK_START_UNITS + iconDp * 16.118f / 30f)
+        val inkEdgePx = 3 * (unit * StripLayout.BACK_START_UNITS + iconDp * 16.118f / 30f)
         assertEquals(48f, inkStartPx, 0.5f)
-        assertEquals(83f, inkEndPx, 0.5f)
+        assertEquals(83f, inkEdgePx, 0.5f)
+        assertEquals(82, kotlin.math.ceil(inkEdgePx).toInt() - 1, "the last inked pixel")
+        val target = StripLayout.backTarget(LP3_WIDTH_DP.dp).value
+        assertTrue(target >= 48f, "the arrow's target is $target dp wide")
+        assertTrue(inkEdgePx / 3 <= target, "the arrow's ink lies inside its target")
         assertEquals(112f, 3 * StripLayout.statusStart(LP3_WIDTH_DP.dp, back = true).value, 0.5f)
         assertEquals(24f, StripLayout.statusStart(LP3_WIDTH_DP.dp, back = false).value)
         assertEquals(8f, 3 * StripLayout.DOT_WIDTH.value, 0.01f)

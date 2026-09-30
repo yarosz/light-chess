@@ -101,4 +101,88 @@ class HomeTest {
             assertNull(Navigation.mode(page), "$page")
         }
     }
+
+    /**
+     * The SDK's back stack as LightActivity keeps it: [push] adds a screen with the callback its page
+     * runs when it goes back with a result; [done] is that (a page popped, then its callback), [back]
+     * system Back (popped, no result). [modes] records what reaches `mode.txt`.
+     */
+    private class Stack {
+        val places = mutableListOf(Place.HOME)
+        val modes = mutableListOf<Mode>()
+        private val callbacks = mutableListOf<(() -> Unit)?>(null)
+        val home = HomeNavigator(setMode = { modes += it }) { place, onDone ->
+            places += place
+            callbacks += onDone
+        }
+
+        fun done() {
+            places.removeAt(places.lastIndex)
+            callbacks.removeAt(callbacks.lastIndex)?.invoke()
+        }
+
+        fun back() {
+            places.removeAt(places.lastIndex)
+            callbacks.removeAt(callbacks.lastIndex)
+        }
+    }
+
+    @Test
+    fun `the launch puts the whole launch stack over Home and writes no mode (N2)`() {
+        for (mode in Mode.entries) for (friendsOn in listOf(true, false)) {
+            val stack = Stack()
+            stack.home.launch(mode, friendsOn)
+            assertEquals(Navigation.launch(mode, friendsOn), stack.places, "$mode, Relay ${if (friendsOn) "set" else "empty"}")
+            assertEquals(emptyList(), stack.modes, "the launch reads mode.txt, never writes it")
+            stack.back()
+            assertEquals(listOf(Place.HOME), stack.places, "back from the launch's place goes to Home")
+        }
+    }
+
+    @Test
+    fun `Start replaces the new-game page with the board, so back from the board goes to Home (N2)`() {
+        val stack = Stack()
+        stack.home.open(Place.NEW_GAME)
+        assertEquals(listOf(Place.HOME, Place.NEW_GAME), stack.places)
+        assertEquals(emptyList(), stack.modes, "the page writes no mode")
+        stack.done()
+        assertEquals(listOf(Place.HOME, Place.COMPUTER), stack.places)
+        assertEquals(listOf(Mode.GAME), stack.modes)
+        stack.back()
+        assertEquals(listOf(Place.HOME), stack.places, "not back to the form")
+
+        // System back from the form carries no result: Home, and no board.
+        stack.home.open(Place.NEW_GAME)
+        stack.back()
+        assertEquals(listOf(Place.HOME), stack.places)
+    }
+
+    @Test
+    fun `a Missed replay and Reset rating replace their page with the Puzzle board (N2)`() {
+        for (page in listOf(Place.MISSED, Place.PLAYER_RATING)) {
+            val stack = Stack()
+            stack.home.open(page)
+            stack.done()
+            assertEquals(listOf(Place.HOME, Place.PUZZLE), stack.places, "$page")
+            assertEquals(listOf(Mode.PUZZLES), stack.modes, "$page")
+        }
+    }
+
+    @Test
+    fun `a place opened from Home writes its mode, a page doesn't, and Games and About replace nothing (N2)`() {
+        val stack = Stack()
+        for ((place, mode) in listOf(Place.PUZZLE to Mode.PUZZLES, Place.COMPUTER to Mode.GAME, Place.PLAY_FRIEND to Mode.FRIEND)) {
+            stack.home.open(place)
+            assertEquals(mode, stack.modes.last(), "$place")
+            stack.back()
+        }
+        for (page in listOf(Place.GAMES, Place.ABOUT)) {
+            stack.home.open(page)
+            stack.done()
+            assertEquals(listOf(Place.HOME), stack.places, "$page goes back to Home")
+        }
+        assertEquals(3, stack.modes.size, "only the three places wrote")
+        stack.home.open(Place.HOME)
+        assertEquals(listOf(Place.HOME), stack.places, "Home is never pushed over itself")
+    }
 }

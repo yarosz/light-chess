@@ -95,24 +95,29 @@ class HomeScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, HomeVi
     override fun willShow() {
         if (launched) return
         launched = true
-        open(Navigation.launch(modes.mode.value, friendsOn = friends != null).last(), writeMode = false)
+        navigator.launch(modes.mode.value, friendsOn = friends != null)
     }
 
-    /** Opens [place] over Home, writing its mode (N2) unless it is the launch's. */
-    private fun open(place: Place, writeMode: Boolean = true) {
-        if (writeMode) Navigation.mode(place)?.let(modes::set)
+    /** Which place opens over which, and what replaces a page once done (N2): `HomeTest`. */
+    private val navigator by lazy { HomeNavigator(modes::set, ::push) }
+
+    /**
+     * [place]'s screen over the top one; [onDone] runs once its page goes back with a result (Start,
+     * Reset rating, a Missed replay), after the page is popped. Home's pages sit over no board, New
+     * game included, so none lets the computer think (N2).
+     */
+    private fun push(place: Place, onDone: (() -> Unit)?) {
+        val done: ((Unit) -> Unit)? = onDone?.let { run -> { run() } }
         when (place) {
             Place.HOME -> {}
-            Place.PUZZLE -> navigateTo({ PuzzleScreen(it) })
-            Place.COMPUTER -> navigateTo({ GameScreen(it) })
-            // Start replaces the new-game page with the board, so back from the board comes here.
-            Place.NEW_GAME -> navigateTo({ MenuScreen(it, MenuPage.NEW_GAME) }) { open(Place.COMPUTER) }
-            Place.PLAY_FRIEND -> navigateTo({ FriendListScreen(it) })
-            // Reset rating and a Missed replay replace their page with the Puzzle board.
-            Place.PLAYER_RATING -> navigateTo({ MenuScreen(it, MenuPage.RATING) }) { open(Place.PUZZLE) }
-            Place.MISSED -> navigateTo({ MenuScreen(it, MenuPage.MISSED) }) { open(Place.PUZZLE) }
-            Place.GAMES -> navigateTo({ MenuScreen(it, MenuPage.GAMES) })
-            Place.ABOUT -> navigateTo({ MenuScreen(it, MenuPage.ABOUT) })
+            Place.PUZZLE -> navigateTo({ PuzzleScreen(it) }, done)
+            Place.COMPUTER -> navigateTo({ GameScreen(it) }, done)
+            Place.NEW_GAME -> navigateTo({ MenuScreen(it, MenuPage.NEW_GAME, overGame = false) }, done)
+            Place.PLAY_FRIEND -> navigateTo({ FriendListScreen(it) }, done)
+            Place.PLAYER_RATING -> navigateTo({ MenuScreen(it, MenuPage.RATING, overGame = false) }, done)
+            Place.MISSED -> navigateTo({ MenuScreen(it, MenuPage.MISSED, overGame = false) }, done)
+            Place.GAMES -> navigateTo({ MenuScreen(it, MenuPage.GAMES, overGame = false) }, done)
+            Place.ABOUT -> navigateTo({ MenuScreen(it, MenuPage.ABOUT, overGame = false) }, done)
         }
     }
 
@@ -122,7 +127,7 @@ class HomeScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, HomeVi
             owner.nextPieceSet()
             return
         }
-        Navigation.open(entry, gameInProgress = game.state.value?.inProgress == true)?.let(::open)
+        Navigation.open(entry, gameInProgress = game.state.value?.inProgress == true)?.let { navigator.open(it) }
     }
 
     @Composable
