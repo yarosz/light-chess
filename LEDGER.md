@@ -25,7 +25,8 @@ read from `art/pieces` by `CapturedRowTest`) and the row's bottom: baseline 31.8
 either side (was 0.3), Akkurat safe to an ascent of 0.819 em and a descent of 0.283 em. Measured by
 ink rather than box, a 16 dp drawing would also fit (0.9 dp either side); the size stays 15 dp by
 E13's box rule. The label placement is checked by tests only; the full-height targets are for the
-orchestrator to check on the emulator and the LP3. Neither is on the emulator yet. The Puzzle
+orchestrator to check on the emulator and the LP3. On the emulator (c04c65b) Hint's target runs
+from the board's bottom edge to the screen's bottom (184 px); the LP3 check is open. The Puzzle
 board's buttons are centred in the whole row (E14). E6's room, `buttonSets` and the
 `BOARD_BUTTONS`/`REPLAY_BUTTONS` lists are gone, so #19's two open nits (the row's real
 width, a compile-time `buttonSets` pairing) are moot. Checked on the emulator (Roboto; its window
