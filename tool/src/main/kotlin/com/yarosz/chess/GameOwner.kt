@@ -65,6 +65,7 @@ class GameOwner(
     /** The computer's Move, sliding in over 200 ms as it lands (F11). */
     val motion: StateFlow<Motion?> = motions
     private var motionId = 0
+    private var slideEnd: Job? = null
 
     private val histories = MutableStateFlow<List<GameRecord>>(emptyList())
 
@@ -270,7 +271,7 @@ class GameOwner(
             val next = GameFlow.computerMoved(now, turn, uci, score)
             thinking = null
             if (next === now) return@launch
-            next.record?.game?.moves?.lastOrNull()?.let { motions.value = Motion(it, ++motionId, Motion.ENGINE_MS) }
+            next.record?.game?.moves?.lastOrNull()?.let(::slide)
             set(next)
         }
         thinking = job
@@ -304,6 +305,20 @@ class GameOwner(
         host.stop()
     }
 
+    /**
+     * Slides the computer's [move] in. Once it has played, the slide is over: a board that comes back
+     * (from its Menu, or a Menu action) shows the Move where it landed, as Puzzles do.
+     */
+    private fun slide(move: Move) {
+        val motion = Motion(move, ++motionId, Motion.ENGINE_MS)
+        motions.value = motion
+        slideEnd?.cancel()
+        slideEnd = scope.launch {
+            delay(SLIDE_KEPT_MS)
+            if (motions.value == motion) motions.value = null
+        }
+    }
+
     private fun loadBook(): Book? {
         if (!bookRead) {
             bookRead = true
@@ -328,6 +343,9 @@ class GameOwner(
 
         /** The computer's Move lands no sooner than this after the user's (A5's reply delay). */
         const val REPLY_MS = 300L
+
+        /** How long the computer's slide stays published: long enough for the board on screen to play it. */
+        const val SLIDE_KEPT_MS = 2L * Motion.ENGINE_MS
 
         /** How long a Game Hint stays on the board ("briefly", B5). */
         const val HINT_MS = 5_000L
