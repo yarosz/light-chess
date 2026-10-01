@@ -167,8 +167,8 @@ Sizes are fractions of a square (39 dp), in `Marks` next to the shades.
 - Drag: the square under the finger gets a thin outline (0.06, 2.3 dp).
 - Coordinates: inside the edge squares, rank numbers top-left of the left column, file letters
   bottom-right of the bottom row, 0.26 of a square high, drawn under the pieces. None on a square
-  with a mark that reaches its corners (K1): the last Move's corners, the selection border, the drag
-  outline, the check, Hint and capture rings. Target dots leave them.
+  whose mark crosses it (K1): the last Move's corners, the selection border, the drag outline, the
+  check ring, the Puzzle Hint or Game Hint ring, and capture rings. Target dots leave them.
 
 ## Input (R1.6, A4)
 

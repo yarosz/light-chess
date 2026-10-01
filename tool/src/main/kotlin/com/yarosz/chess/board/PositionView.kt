@@ -63,8 +63,8 @@ data class Motion(val move: Move, val id: Int, val ms: Int = MS) {
  * [bottom] is the Side whose first rank is at the bottom. [input] carries the selection, targets,
  * drag and promotion picker; null draws the Position alone (Review, or while input is locked), and
  * touches still arrive as [Touch.Tap]s. [lastMove] gets the last-move shade and corner marks (A5).
- * [hint] gets the Puzzle Hint ring (A6), and [hintTarget] a target mark (the Game Hint's destination,
- * B5); [motion] slides the piece that just moved.
+ * [hint] gets a ring on the piece to move (the Puzzle Hint, A6, or the Game Hint, B5), and [hintTarget]
+ * a target mark on the Game Hint's destination; [motion] slides the piece that just moved.
  */
 @Composable
 fun PositionView(
@@ -140,9 +140,9 @@ fun PositionView(
             }
     ) {
         val cell = size.width / 8f
-        val hintCapture = hintTarget?.takeIf { position.pieceAt(it) != null }
-        drawSquares(lastMove, bottom, cell, measurer, markedSquares(lastMove, input, checkedKing(position), hint, hintCapture))
-        checkedKing(position)?.let { king ->
+        val checked = checkedKing(position)
+        drawSquares(lastMove, bottom, cell, measurer, markedSquares(position, lastMove, input, checked, hint, hintTarget))
+        checked?.let { king ->
             drawCircle(
                 gray(Shades.MARKER), radius = cell * Marks.CHECK_RING_RADIUS, center = centerOf(king, bottom, cell),
                 style = Stroke(cell * Marks.CHECK_RING_STROKE),
@@ -235,19 +235,28 @@ private fun checkedKing(position: Position): Square? {
 }
 
 /**
- * The squares that carry a mark reaching their corners, where a coordinate would collide with it (K1):
- * the last Move's corner marks (A5), the selection border, the drag outline, and the check, Hint and
- * capture rings ([hintCapture] is the Game Hint's destination when it holds a piece). Target dots stay
- * in the middle of their square, so they are not here.
+ * The squares whose mark crosses the coordinate drawn in their corner, so it is left out (K1): the last
+ * Move's corner marks (A5), the selection border, the drag outline, the check ring, the ring on the
+ * piece to move (Puzzle Hint or Game Hint), and the capture rings: every capture target, and the Game
+ * Hint's destination ([hintTarget]) when a piece stands there. Target dots stay in the middle of their
+ * square and leave the coordinate. A new mark drawn by [PositionView] that reaches a square's edge
+ * belongs here too.
  */
-internal fun markedSquares(lastMove: Move?, input: MoveInput?, checkedKing: Square?, hint: Square?, hintCapture: Square?): Set<Square> =
-    buildSet {
-        lastMove?.let { add(it.from); add(it.to) }
-        input?.selected?.let(::add)
-        input?.dragOver?.takeIf { input.dragFrom != null }?.let(::add)
-        input?.let { addAll(it.captures) }
-        listOfNotNull(checkedKing, hint, hintCapture).forEach(::add)
-    }
+internal fun markedSquares(
+    position: Position,
+    lastMove: Move?,
+    input: MoveInput?,
+    checkedKing: Square?,
+    hint: Square?,
+    hintTarget: Square?,
+): Set<Square> = buildSet {
+    lastMove?.let { add(it.from); add(it.to) }
+    input?.selected?.let(::add)
+    input?.dragOver?.takeIf { input.dragFrom != null }?.let(::add)
+    input?.let { addAll(it.captures) }
+    hintTarget?.takeIf { position.pieceAt(it) != null }?.let(::add)
+    listOfNotNull(checkedKing, hint).forEach(::add)
+}
 
 private fun DrawScope.drawSquares(lastMove: Move?, bottom: Side, cell: Float, measurer: TextMeasurer, quiet: Set<Square>) {
     val marked = lastMove?.let { setOf(it.from, it.to) } ?: emptySet()
