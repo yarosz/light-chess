@@ -1670,3 +1670,19 @@ From the review of the Puzzles page PR (#20).
   `prefetchMissed`. Puzzle stays capitalised as the glossary term in the page's copy:
   "Continue Puzzle", "Next Puzzle", "Back to the rated Puzzle", "Past Puzzles", like "Every Puzzle is
   finished" and the strip's "Next Puzzle". `PuzzlesPageTest`, `PuzzleOwnerMissedTest`.
+
+## Coordinates and marks (owner, 2026-09-30)
+- K1 No coordinate on a marked square. AMENDS R1.7's "coordinates inside the edge squares".
+  Contradiction: a coordinate sits in its square's corner, where the last Move's corner marks (A5)
+  and the selection border cross it, and the check, Puzzle Hint, Game Hint and capture rings pass
+  through it; the selection border, drawn after it, covers part of it. Mocks weighed moving the
+  coordinates in (the pieces cover them there), rank numbers in the margin (the file letters still
+  collide), and thinning the marks until they clear the coordinates (under the 2 dp stroke floor,
+  and the selection no longer the heavy border R1.7 chose). RULING: a square whose mark crosses its
+  coordinate draws no coordinate while the mark is there: the last Move's two squares, the selected
+  square, the square under a dragged piece, the checked king, the piece to move under a Puzzle Hint
+  or a Game Hint, the Game Hint's destination when it holds a piece, and every capture target.
+  Target dots stay in the middle of their square and leave the coordinate. A drag along an edge
+  hides and shows the coordinates it passes, as the outline moves. The marks keep their sizes. A
+  rank or file stays readable from its neighbours, and at most a few edge squares go quiet at once.
+  `markedSquares`, `MarkedSquaresTest`.
