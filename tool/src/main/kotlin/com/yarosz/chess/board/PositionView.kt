@@ -140,7 +140,8 @@ fun PositionView(
             }
     ) {
         val cell = size.width / 8f
-        drawSquares(lastMove, bottom, cell, measurer)
+        val hintCapture = hintTarget?.takeIf { position.pieceAt(it) != null }
+        drawSquares(lastMove, bottom, cell, measurer, markedSquares(lastMove, input, checkedKing(position), hint, hintCapture))
         checkedKing(position)?.let { king ->
             drawCircle(
                 gray(Shades.MARKER), radius = cell * Marks.CHECK_RING_RADIUS, center = centerOf(king, bottom, cell),
@@ -233,7 +234,22 @@ private fun checkedKing(position: Position): Square? {
     return position.pieces.firstOrNull { it.second == king }?.first
 }
 
-private fun DrawScope.drawSquares(lastMove: Move?, bottom: Side, cell: Float, measurer: TextMeasurer) {
+/**
+ * The squares that carry a mark reaching their corners, where a coordinate would collide with it (K1):
+ * the last Move's corner marks (A5), the selection border, the drag outline, and the check, Hint and
+ * capture rings ([hintCapture] is the Game Hint's destination when it holds a piece). Target dots stay
+ * in the middle of their square, so they are not here.
+ */
+internal fun markedSquares(lastMove: Move?, input: MoveInput?, checkedKing: Square?, hint: Square?, hintCapture: Square?): Set<Square> =
+    buildSet {
+        lastMove?.let { add(it.from); add(it.to) }
+        input?.selected?.let(::add)
+        input?.dragOver?.takeIf { input.dragFrom != null }?.let(::add)
+        input?.let { addAll(it.captures) }
+        listOfNotNull(checkedKing, hint, hintCapture).forEach(::add)
+    }
+
+private fun DrawScope.drawSquares(lastMove: Move?, bottom: Side, cell: Float, measurer: TextMeasurer, quiet: Set<Square>) {
     val marked = lastMove?.let { setOf(it.from, it.to) } ?: emptySet()
     for (row in 0 until 8) for (col in 0 until 8) {
         val square = squareOf(col, row, bottom)
@@ -247,7 +263,8 @@ private fun DrawScope.drawSquares(lastMove: Move?, bottom: Side, cell: Float, me
         if (square in marked) drawCorners(topLeft, cell)
 
         // Coordinates inside the edge squares (R1.7): ranks top-left of the left column, files
-        // bottom-right of the bottom row.
+        // bottom-right of the bottom row; none on a square with a mark (K1).
+        if (square in quiet) continue
         val textColor = gray(if (square.isLight) Shades.COORDINATE_ON_LIGHT else Shades.COORDINATE_ON_DARK)
         val style = TextStyle(color = textColor, fontSize = (cell * Marks.COORDINATE_SIZE).toSp(), fontWeight = FontWeight.Medium)
         val inset = cell * Marks.COORDINATE_INSET

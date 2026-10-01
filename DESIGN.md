@@ -125,8 +125,8 @@ Floors, in gray levels:
   own floor) from every ground it can be drawn on, which is the light square, the dark square and the
   last-move shade (186, 110 and 148 here); every marker stroke is at least 2 dp thick; a dot is at
   least 8 dp across (12.5 dp here).
-- Coordinates follow the same 60-level rule against their own square and against the last-move shade
-  (126 / 88 on light squares, 100 / 62 on dark ones).
+- Coordinates follow the same 60-level rule against their own square (126 on light squares, 100 on
+  dark ones); since K1 none is drawn on a last-move square.
 - The picker cells are at least 60 above the dimmed board under them.
 
 ## Pieces (P1, P2, N17, N19)
@@ -166,7 +166,9 @@ Sizes are fractions of a square (39 dp), in `Marks` next to the shades.
   an outline so it can't be mistaken for the selection border.
 - Drag: the square under the finger gets a thin outline (0.06, 2.3 dp).
 - Coordinates: inside the edge squares, rank numbers top-left of the left column, file letters
-  bottom-right of the bottom row, 0.26 of a square high, drawn under the pieces.
+  bottom-right of the bottom row, 0.26 of a square high, drawn under the pieces. None on a square
+  with a mark that reaches its corners (K1): the last Move's corners, the selection border, the drag
+  outline, the check, Hint and capture rings. Target dots leave them.
 
 ## Input (R1.6, A4)
 
