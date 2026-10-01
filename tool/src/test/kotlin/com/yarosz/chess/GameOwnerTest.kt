@@ -119,6 +119,23 @@ class GameOwnerTest {
     }
 
     @Test
+    fun `the computer's Move slides in once, so a board back from its Menu doesn't replay it`() {
+        val game = owner()
+        game.resume()
+        // The user plays Black: the computer moves first, and Move now ends its search at once.
+        assertTrue(game.start(GameChoices(level = 1, side = SideChoice.BLACK)))
+        assertTrue(engine.searches.tryAcquire(5, TimeUnit.SECONDS), "the computer is thinking")
+        game.moveNow()
+        waitFor("the computer's slide") { game.motion.value != null }
+        val slid = game.motion.value?.move
+        waitFor("the computer's Move on the board") { game.now().record?.game?.moves?.lastOrNull() != null }
+        assertEquals(game.now().record?.game?.moves?.lastOrNull(), slid)
+        // Once it has played, it is gone: a board composed again (back from its Menu) finds no slide.
+        waitFor("the slide to end") { game.motion.value == null }
+        game.pause()
+    }
+
+    @Test
     fun `the shared engine thread can't be shut down`() {
         assertFailsWith<IllegalStateException> { EngineHost.shared.shutdown(0) }
     }
