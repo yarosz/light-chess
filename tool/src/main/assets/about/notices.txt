@@ -2,13 +2,13 @@ Pieces: original drawings made for Chess (two sets), released under CC0 1.0 (no 
 
 Built on Light's SDK (MIT licence, Copyright (c) 2026 The Light Phone), with these libraries under
 the Apache License 2.0: the Kotlin standard library, kotlinx.coroutines, kotlinx.serialization,
-kotlinx-io, Jetpack Compose and AndroidX (including Room, DataStore, WorkManager, CameraX and
-Media3), Material Components for Android, Ktor, OkHttp, Okio, Gson, Guava, Tink, the UnifiedPush
-Android connector, javax.inject, JSpecify, and the JetBrains, Error Prone and AutoValue annotations.
+kotlinx-io, Jetpack Compose and AndroidX (including Room, DataStore, WorkManager and Media3),
+Material Components for Android, Ktor, OkHttp, Okio, Gson, Guava, Tink, the UnifiedPush Android
+connector, JSpecify, and the JetBrains and Error Prone annotations.
 
 Licensed under the Apache License, Version 2.0 (apache.org/licenses/LICENSE-2.0). Unless required
 by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
-Also in Light's SDK: Protocol Buffers and the JSR 305 annotations (BSD 3-Clause), the SLF4J API
-(MIT), and Google Play services, Firebase and ML Kit barcode scanning (Google's terms).
+Also in Light's SDK: Protocol Buffers and the JSR 305 annotations (BSD 3-Clause), and the SLF4J
+API (MIT).

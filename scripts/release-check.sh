@@ -38,8 +38,8 @@ check_apk() {
   grep -q "^package: name='$pkg' versionCode='[0-9]*' versionName='[0-9.]*'" <<<"$badging" \
     || die "badging: $(head -1 <<<"$badging")"
   # lighttool.toml declares INTERNET, for the Relay only (ADR 0004, ToolMetadataTest); the manifest merger
-  # adds those of Light's SDK and its libraries (OkHttp and Google's datatransport add INTERNET too). Both
-  # sets are pinned here, so that any new permission fails the check.
+  # adds those of Light's SDK and its libraries (OkHttp adds INTERNET too; sdk:ui's own manifest CAMERA,
+  # for its QR scanner). Both sets are pinned here, so that any new permission fails the check.
   local declared sdk_permissions="android.permission.ACCESS_NETWORK_STATE android.permission.CAMERA
 android.permission.FOREGROUND_SERVICE android.permission.INTERNET android.permission.RECEIVE_BOOT_COMPLETED
 android.permission.VIBRATE android.permission.WAKE_LOCK $pkg.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
@@ -49,6 +49,13 @@ android.permission.VIBRATE android.permission.WAKE_LOCK $pkg.DYNAMIC_RECEIVER_NO
   found=$(grep "^uses-permission:" <<<"$badging" | sed -E "s/.*name='([^']+)'.*/\1/" | sort)
   extra=$(comm -23 <(echo "$found") <(tr ' ' '\n' <<<"$sdk_permissions" | grep . | sort))
   [ -z "$extra" ] || die "permissions beyond the SDK's pinned set: $(echo $extra)"
+  # T1: tool/build.gradle.kts leaves out the QR scanner's stack (ML Kit and what it pulls in, CameraX).
+  local left_out='mlkit|barhopper|play-services-|firebase-|transport-(api|backend|runtime)|com[./]google[./]android[./](gms|datatransport|odml)|com[./]google[./]firebase|androidx[./]camera'
+  local manifest files
+  manifest=$("$aapt" dump xmltree "$apk" AndroidManifest.xml)
+  files=$(unzip -l "$apk")
+  ! grep -qE "$left_out" <<<"$manifest" || die "the manifest names ML Kit's stack (T1)"
+  ! grep -qE "$left_out" <<<"$files" || die "the APK holds ML Kit's files (T1)"
   echo "release-check: apk OK $(head -1 <<<"$badging" | grep -oE "versionCode='[0-9]+' versionName='[^']+'")," \
     "$(stat -f%z "$apk" 2>/dev/null || stat -c%s "$apk") bytes, declared: $declared, all: $(echo $found)"
 }

@@ -112,3 +112,15 @@ dependencies {
     implementation(project(":sdk:client"))
     testImplementation(libs.kotlin.test)
 }
+
+// Light's sdk:ui declares ML Kit and CameraX only for LightQrCodeScanner, which Chess never shows; ML
+// Kit brings Play services, Firebase components and Google's Data Transport. None of it ships (decision
+// log T1, lightphone/light-sdk#178). Calling the scanner would crash: a Tool that needs it drops this.
+configurations.configureEach {
+    exclude(group = "com.google.mlkit")
+    exclude(group = "com.google.android.gms")
+    exclude(group = "com.google.firebase")
+    exclude(group = "com.google.android.datatransport")
+    exclude(group = "com.google.android.odml")
+    exclude(group = "androidx.camera")
+}
