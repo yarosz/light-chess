@@ -203,7 +203,7 @@ class StripFitTest {
         if (GameButton.LATEST in strip.buttons) strip.copy(status = UiCopy.review(9999, 9999)) else strip
     }
 
-    private fun gameStripsAsShown(): List<GameStrip> = computerStripsAsShown() + replayStripsAsShown()
+    private fun gameStripsAsShown(): List<GameStrip> = computerStripsAsShown() + gamesReviewStripsAsShown()
 
     /** The computer's board: [gameStripsAsShown] but the replays. */
     private fun computerStripsAsShown(): List<GameStrip> = buildList {
@@ -225,11 +225,11 @@ class StripFitTest {
         }
     }
 
-    /** A replayed Game from the Games page: at its end, for every Result, and in Review. */
-    private fun replayStripsAsShown(): List<GameStrip> = buildList {
-        for (side in Side.entries) for (result in results) add(GameStrip.replay(recordWith(GameRecord(Game.of(), side), result), null))
-        add(GameStrip.replay(GameRecord(Game.of(), Side.WHITE), null))
-        add(GameStrip.replay(GameRecord(Game.of(), Side.WHITE), 99))
+    /** Games Review, a finished Game from the Games page: at its end, for every Result, and in Review. */
+    private fun gamesReviewStripsAsShown(): List<GameStrip> = buildList {
+        for (side in Side.entries) for (result in results) add(GameStrip.gamesReview(recordWith(GameRecord(Game.of(), side), result), null))
+        add(GameStrip.gamesReview(GameRecord(Game.of(), Side.WHITE), null))
+        add(GameStrip.gamesReview(GameRecord(Game.of(), Side.WHITE), 99))
     }
 
     /** [record] with a Game that [result] ends. */

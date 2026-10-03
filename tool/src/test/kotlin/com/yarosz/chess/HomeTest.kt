@@ -11,7 +11,7 @@ class HomeTest {
 
     @Test
     fun `Home lists five rows in N11's order, the rating on Puzzles`() {
-        val rows = HomeRows.of(rating = "1176?", yourMove = 2)
+        val rows = HomeRows.of(playerRating = "1176?", yourMove = 2)
         assertEquals(
             listOf("Puzzles · 1176?", "Play the computer", "Play a friend · Your move: 2", "Games", "About"),
             rows.map { it.text },

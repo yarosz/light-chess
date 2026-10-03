@@ -44,7 +44,7 @@ places. No gestures. Rulings: decision log "Navigation D" and "Puzzles page and 
   the Puzzles page, the board, the computer's board or Play a friend does.
 - Depth (N16): Home; a place (the Puzzles page, the computer's board, Play a friend, Games, About); a
   page or board over it (the Puzzle board, Missed, Past Puzzles, Player Rating, a Correspondence
-  Game's board or an invite, a replayed Game); a detail over that (a board's Menu and its pages).
+  Game's board or an invite, Games Review); a detail over that (a board's Menu and its pages).
   Play the computer with no Game in progress opens the new-game page, and Start replaces it with the
   board; Reset rating and a Missed replay replace their page with the Puzzle board, over the Puzzles
   page. Home and the Puzzles page each open places through a `HomeNavigator`, whose pushes never sit
@@ -53,13 +53,14 @@ places. No gestures. Rulings: decision log "Navigation D" and "Puzzles page and 
   Game's Moves and Rename. A second tap ("Tap again to resign") changes its row in place.
 - The wheel (N10, N20): Home's five rows fit the LP3 (40 dp top bar plus five 53 dp rows in 389 dp),
   so it leaves the wheel with LightOS; it still measures, and would take the wheel if a row ever
-  overflowed. So do the Puzzles page, the Player Rating page and the Puzzle board's and a replay's
-  Menus, which always fit. Missed, Past Puzzles and the Game Menus may scroll and take it (F3).
+  overflowed. So do the Puzzles page, the Player Rating page and the Puzzle board's and Games
+  Review's Menus, which always fit. Missed, Past Puzzles and the Game Menus may scroll and take it
+  (F3).
 
 ## Layout (R1.8, layout E: E1-E3, E12-E14)
 
 The LP3's app area is 1080 × 1168 px at 480 dpi: 360 dp wide, about 389 dp tall. Every board (a
-Puzzle, the computer's Game, a Correspondence Game, a replayed Game) is laid out the same way, top
+Puzzle, the computer's Game, a Correspondence Game, Games Review) is laid out the same way, top
 to bottom (decision log "Layout E"):
 
 - Top bar (E1, `BoardTopBar`): light-sdk's `LightTopBar`, 3 grid units (40 dp) tall. It has
@@ -138,7 +139,7 @@ silhouette in white over a wider black outline, so it keeps an edge on the light
 as the dark one. Each piece is drawn in its square with a small inset.
 
 The player's Piece Set is geometric until changed. Every board's Menu has a "Pieces · Geometric"
-row (N17): first on the Puzzle board's Menu, alone on a replayed Game's, and last on the computer's
+row (N17): first on the Puzzle board's Menu, alone on Games Review's, and last on the computer's
 and a Correspondence Game's, 16 dp below their actions (`Rows.GAP`), so a wheel over-scroll to the
 end lands on Pieces and never on an action. The invite page and the list pages draw no board and
 have none. A tap moves to the next set ("Pieces · Rounded", then back) and stays on the Menu, and
@@ -253,7 +254,7 @@ string or state goes into the test.
 The Puzzle board's buttons by context (`PuzzleStrip`), in the action row, and the Menu mark in the
 top bar in every state but the end of the Pack, which draws no board (N17, E1). Its Menu: "Pieces ·
 Geometric", then "Puzzle 00sHx" over "lichess.org/training/00sHx" in grey, for the Puzzle on screen,
-a Missed replay's own (N18). A replayed Game's top bar has the mark, in Review too, and its Menu is
+a Missed replay's own (N18). Games Review's top bar has the mark, in Review too, and its Menu is
 Pieces alone (N21). A Missed replay started before the seed shows first; the seed screen follows it
 (N22).
 
@@ -447,7 +448,7 @@ Review keeps Latest alone, which leaves room for "Review · 9999 of 9999".
 "Game Hint" and "New game" don't fit as labels: next to Takeback and Menu, "Game Hint" leaves no
 room for any status, and "New game" leaves too little for a Result. The labels are "Hint" and "Next";
 their semantics labels are "Game Hint: show the computer's best Move" and "Start a new game". The
-others: "Move now: the computer plays at once". Next opens the new-game page. A replayed Game's
+others: "Move now: the computer plays at once". Next opens the new-game page. Games Review's
 arrow returns to the Games (N3, in the top bar since E1: it replaces the old "Back" button).
 
 Results, from the user's view: "You won by checkmate", "You lost by checkmate", "You resigned", "You

@@ -57,12 +57,12 @@ enum class MenuPage(val title: String, val scrolls: Boolean) {
     /** The Puzzle board's Menu: Pieces and the Puzzle's id (N17, N18). */
     PUZZLE_MENU(UiCopy.MENU_TITLE, false),
 
-    /** A replayed Game's Menu: Pieces (N17). */
+    /** Games Review's Menu: Pieces (N17). */
     GAME_REVIEW_MENU(UiCopy.MENU_TITLE, false),
 
     /** The Puzzles page (N12): a place under Home. */
     PUZZLES(UiCopy.PUZZLES, false),
-    RATING(UiCopy.PLAYER_RATING, false),
+    PLAYER_RATING(UiCopy.PLAYER_RATING, false),
     MISSED(UiCopy.MISSED, true),
     PAST_PUZZLES(UiCopy.PAST_PUZZLES, true),
     ABOUT(UiCopy.ABOUT, true),
@@ -192,7 +192,7 @@ class MenuViewModel(
     /** The computer keeps thinking while a page over its board shows (contradiction 3: the Game goes on). */
     override fun onScreenShow(screen: SimpleLightScreen<Unit>) = shown()
 
-    /** The page shows: over the board, the computer's turn runs on (a Home page leaves it paused). */
+    /** The page shows: over the board, the computer's search runs on (a Home page leaves it paused). */
     fun shown() {
         if (overGame) game.resume()
     }
@@ -275,8 +275,8 @@ class MenuScreen(
                         MenuPage.PUZZLES -> for (row in PuzzlesRows.of(session, gone)) {
                             if (row.tappable) MenuRow(row.text) { tapPuzzles(row.entry) } else MenuLine(row.text, lighten = true)
                         }
-                        MenuPage.RATING -> if (data != null) {
-                            MenuItems(PuzzlesPages.rating(data.player, vm.confirmingReset)) { if (vm.tapReset()) done() }
+                        MenuPage.PLAYER_RATING -> if (data != null) {
+                            MenuItems(PuzzlesPages.playerRating(data.player, vm.confirmingReset)) { if (vm.tapReset()) done() }
                         }
                         // A row the Pack lost is a lightened line; a tap that finds it lost stays here (N13).
                         MenuPage.MISSED -> if (data != null) {

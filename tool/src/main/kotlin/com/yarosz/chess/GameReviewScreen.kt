@@ -72,7 +72,7 @@ class GameReviewScreen(
         val vm = viewModel
         val positions = record.game.positions
         val shown = vm.review.ply ?: positions.lastIndex
-        val strip = GameStrip.replay(record, vm.review.ply)
+        val strip = GameStrip.gamesReview(record, vm.review.ply)
         val buttons = strip.buttons.map { button ->
             StripButton(button.label, button.description) {
                 if (button == GameButton.LATEST) vm.latest()
@@ -88,7 +88,7 @@ class GameReviewScreen(
                 BoardTopBar(
                     strip.status,
                     StripButton(UiCopy.BACK_DESCRIPTION) { goBack() },
-                    // N17, N21: Pieces, in Review too: the replay's Menu acts on no Game.
+                    // N17, N21: Pieces, in Review too: Games Review's Menu acts on no Game.
                     StripButton(UiCopy.MENU_DESCRIPTION) {
                         game.touched()
                         navigateTo({ MenuScreen(it, MenuPage.GAME_REVIEW_MENU, overGame = false) })

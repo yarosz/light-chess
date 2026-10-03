@@ -24,11 +24,11 @@ data class HomeRow(val text: String, val entry: HomeEntry)
 /**
  * Home's rows (N11), as pure data so `HomeTest` checks their text and order: Puzzles with the Player
  * Rating, Play the computer, Play a friend (only while the Relay URL is set, W8), Games and About.
- * [rating] is null until `puzzles.json` is read, when the Puzzles row shows no status yet.
+ * [playerRating] is null until `puzzles.json` is read, when the Puzzles row shows no status yet.
  */
 object HomeRows {
-    fun of(rating: String?, yourMove: Int?): List<HomeRow> = buildList {
-        add(HomeRow(rating?.let(UiCopy::puzzlesRow) ?: UiCopy.PUZZLES, HomeEntry.PUZZLES))
+    fun of(playerRating: String?, yourMove: Int?): List<HomeRow> = buildList {
+        add(HomeRow(playerRating?.let(UiCopy::puzzlesRow) ?: UiCopy.PUZZLES, HomeEntry.PUZZLES))
         add(HomeRow(UiCopy.PLAY_COMPUTER, HomeEntry.PLAY_COMPUTER))
         if (yourMove != null) add(HomeRow(UiCopy.playFriend(yourMove), HomeEntry.PLAY_FRIEND))
         add(HomeRow(UiCopy.GAMES, HomeEntry.GAMES))
@@ -126,7 +126,7 @@ object PuzzlesPages {
      * The Player Rating page (N15, F5): the rating, the static line while it is provisional, and Reset
      * rating, which asks for a second tap in place ([confirming]).
      */
-    fun rating(player: Glicko, confirming: Boolean): List<MenuItem<PlayerRatingEntry>> = buildList {
+    fun playerRating(player: Glicko, confirming: Boolean): List<MenuItem<PlayerRatingEntry>> = buildList {
         add(MenuItem(player.text))
         if (player.provisional) add(MenuItem(UiCopy.PROVISIONAL_NOTE, lighten = true))
         add(MenuItem(if (confirming) UiCopy.RESET_CONFIRM else UiCopy.RESET_RATING, PlayerRatingEntry.RESET))
@@ -152,7 +152,7 @@ object PuzzlesPages {
 /**
  * The places and pages of Chess (N2, N16): Home is the root; a place is one step from it (the Puzzles
  * page, the computer's board, Play a friend, Games, About); a page or board one step further (the
- * Puzzle board, Missed, Past Puzzles, Player Rating, a replayed Game, a Correspondence Game's board);
+ * Puzzle board, Missed, Past Puzzles, Player Rating, Games Review, a Correspondence Game's board);
  * and a detail over that (a board's Menu and its pages).
  */
 enum class Place { HOME, PUZZLES, PUZZLE, COMPUTER, NEW_GAME, PLAY_FRIEND, PLAYER_RATING, MISSED, PAST_PUZZLES, GAMES, ABOUT }
@@ -247,7 +247,7 @@ data class MenuItem<A>(
 /** The Pieces row (N17, P2): "Pieces · Geometric", with the set drawn beside it (N19). */
 fun <A> piecesItem(set: PieceSet, entry: A, gap: Boolean = false) = MenuItem(UiCopy.piecesRow(set), entry, gap = gap, pieces = set)
 
-/** The Puzzle board's and a replay's Menu rows (N17): only Pieces is tappable. */
+/** The Puzzle board's and Games Review's Menu rows (N17): only Pieces is tappable. */
 enum class PiecesMenuEntry { PIECES }
 
 /**
@@ -262,7 +262,7 @@ object PuzzleMenu {
     }
 }
 
-/** A replayed Game's Menu (N17): Pieces alone. */
+/** Games Review's Menu (N17): Pieces alone. */
 object GameReviewMenu {
     fun of(pieceSet: PieceSet?): List<MenuItem<PiecesMenuEntry>> = listOfNotNull(pieceSet?.let { piecesItem(it, PiecesMenuEntry.PIECES) })
 }

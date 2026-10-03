@@ -53,11 +53,11 @@ data class GameStrip(
         }
 
         /**
-         * The strip of a finished Game replayed from the Games page, showing Ply [reviewPly] (null: its
+         * The strip of Games Review: a finished Game reviewed from the Games page, showing Ply [reviewPly] (null: its
          * end). The back arrow returns to the Games (N3); the Menu mark shows in Review too (N21), as
-         * the replay's Menu holds only Pieces, which acts on no Game.
+         * Games Review's Menu holds only Pieces, which acts on no Game.
          */
-        fun replay(record: GameRecord, reviewPly: Int?): GameStrip =
+        fun gamesReview(record: GameRecord, reviewPly: Int?): GameStrip =
             if (reviewPly == null) result(record, emptyList(), menu = true)
             else review(record, reviewPly, menu = true)
 
@@ -65,7 +65,7 @@ data class GameStrip(
             GameStrip(UiCopy.gameResult(record.game.result, record.userSide), buttons, StripLayout.STATUS_MAX_LINES, menu)
 
         /**
-         * Review, on the game screen and in a replay alike: the rest of the strip is back at the latest
+         * Review, on the game screen and in Games Review alike: the rest of the strip is back at the latest
          * Position. [menu]: the computer's board hides its mark in Review (N21), since its Menu's
          * actions (Takeback, Resign, Offer draw, ...) act on the live Game, not the Position shown.
          */

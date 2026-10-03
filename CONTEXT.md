@@ -10,7 +10,7 @@ serious game.
 An installable capability on LightOS, built with Light's SDK.
 _Avoid_: app
 
-## Board
+## Play
 
 **Side**:
 White or Black: the pieces one player moves. A Position says which Side is to move.
@@ -19,7 +19,8 @@ _Avoid_: colour, color
 **Position**:
 Where every piece stands, whose move it is, and the castling, en passant and move-count facts that
 decide which moves are legal. Two Positions are the same when all of these match.
-_Avoid_: board, FEN (a FEN is one way of writing a Position down)
+_Avoid_: board (the board is the drawing on screen that shows a Position), FEN (a FEN is one way of
+writing a Position down)
 
 **Move**:
 One player moving one piece (castling counts as one Move). Always legal in the Position it is
@@ -38,7 +39,7 @@ _Avoid_: theme (a theme is a kind of Puzzle), skin, style
 **Review**:
 Stepping backward and forward through the Moves already played, without changing the Game or
 Attempt. Leaving Review returns to the latest Position.
-_Avoid_: history mode, replay
+_Avoid_: history mode, replay (a Missed Puzzle is replayed; a finished Game is reviewed)
 
 ## Puzzles
 
