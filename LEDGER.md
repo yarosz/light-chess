@@ -10,10 +10,9 @@ in every board's Menu (N11-N20, with N21-N23), #21 a Missed tap during the Pack 
 when it lands (N23), #22 Captured Pieces from each edge, action words centred below (E12-E15),
 #23 README screenshots, #24 AGENTS.md's INTERNET line (W1), #25 no coordinate on a marked square
 (K1), #26 the computer's Move slides in once (no replay after the Menu). Next, in order:
-1. This LEDGER refresh.
-2. Release 0.4.0: the domain pass first (AGENTS.md "Domain pass"), then RELEASING.md's checklist
-   (versionCode 5, notes in `docs/release-notes/0.4.0.md`). The LP3 checks still open are listed
-   under LP3 CHECKS below.
+1. Done: the LEDGER refresh (#27) and the domain pass (#28, tag `domain-pass/0.4.0`).
+2. Release 0.4.0, the release PR (versionCode 5, notes in `docs/release-notes/0.4.0.md`), through
+   RELEASING.md's checklist. The LP3 checks still open are listed under LP3 CHECKS below.
 3. v3 PR 3, the live WebSocket (see "Next" under HANDOFF below).
 FOR THE OWNER (none blocks development): the submission to Light's portal (v0.1.0 is safe to submit;
 hold v0.2.0 and later until Light answers the GPLv3 + ML Kit licence question); optional Always Use
