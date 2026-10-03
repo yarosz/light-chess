@@ -168,7 +168,7 @@ object FriendRows {
             game.pending != null -> UiCopy.NOT_SENT
             rematch != null && rematch.accepted == null ->
                 if (rematch.offeredBy == game.seat.side) UiCopy.REMATCH_SENT else UiCopy.REMATCH_OFFERED
-            else -> UiCopy.outcome(log.game.result, game.seat.side)
+            else -> UiCopy.resultWord(log.game.result, game.seat.side)
         }
     }
 }

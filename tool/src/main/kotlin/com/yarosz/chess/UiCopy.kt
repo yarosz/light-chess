@@ -252,7 +252,7 @@ object UiCopy {
 
     /** A Games row for a Correspondence Game (W5): "2026.09.28 · ABCD · Won". */
     fun friendGamesRow(date: String, label: String, result: Result?, userSide: Side): String =
-        listOf(date, label, outcome(result, userSide)).joinToString(" · ")
+        listOf(date, label, resultWord(result, userSide)).joinToString(" · ")
 
     /**
      * What each [com.yarosz.chess.correspondence.Refusal] says (W10), in the strip for 5 s or on the page
@@ -295,7 +295,7 @@ object UiCopy {
         else -> "Failed ${delta(delta ?: 0)}"
     }
 
-    /** A Rating screen row (F11): the Puzzle Rating, the result and the change. */
+    /** A Past Puzzles row (N14): the Puzzle Rating, the result and the change. */
     fun historyRow(puzzleRating: Int, state: AttemptState, delta: Int, solutionShown: Boolean) =
         "$puzzleRating · " + result(state, rated = true, delta = delta, solutionShown = solutionShown)
 
@@ -324,10 +324,10 @@ object UiCopy {
 
     /** A Games row (F11): "2026.09.28 · Level 3 · Won". */
     fun gamesRow(date: String, level: Int?, result: Result?, userSide: Side): String =
-        listOfNotNull(date, level?.let { "$LEVEL $it" }, outcome(result, userSide)).joinToString(" · ")
+        listOfNotNull(date, level?.let { "$LEVEL $it" }, resultWord(result, userSide)).joinToString(" · ")
 
     /** Won, Lost, Draw or Unfinished, from the user's view. */
-    fun outcome(result: Result?, userSide: Side): String = when (result) {
+    fun resultWord(result: Result?, userSide: Side): String = when (result) {
         null -> UNFINISHED
         is Result.Draw -> "Draw"
         is Result.Win -> if (result.winner == userSide) "Won" else "Lost"

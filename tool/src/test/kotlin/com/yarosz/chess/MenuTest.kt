@@ -230,10 +230,10 @@ class MenuTest {
         val over = GameRecord(Game.of() + Resignation(Side.WHITE), Side.WHITE, level = 3)
         assertEquals(listOf(GameButton.NEXT), GameStrip.of(GameState(GameData(), over), null).buttons)
         assertTrue(GameStrip.of(GameState(GameData(), over), null).menu)
-        val replay = GameStrip.replay(over, null)
-        assertTrue(replay.buttons.isEmpty() && replay.menu, "a replay's strip is the arrow, the Result and the mark (N3, N17)")
-        val reviewing = GameStrip.replay(over, 0)
-        assertTrue(reviewing.menu, "a replay's Menu is Pieces alone, which acts on no Game: the mark stays in Review (N21)")
+        val review = GameStrip.gamesReview(over, null)
+        assertTrue(review.buttons.isEmpty() && review.menu, "Games Review's strip is the arrow, the Result and the mark (N3, N17)")
+        val reviewing = GameStrip.gamesReview(over, 0)
+        assertTrue(reviewing.menu, "Games Review's Menu is Pieces alone, which acts on no Game: the mark stays in Review (N21)")
         assertEquals(listOf(GameButton.LATEST), reviewing.buttons)
     }
 

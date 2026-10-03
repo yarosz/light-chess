@@ -83,7 +83,7 @@ fun SimpleLightScreen<*>.pushPlace(place: Place, onDone: (() -> Unit)?) {
         Place.COMPUTER -> navigateTo({ GameScreen(it) }, done)
         Place.NEW_GAME -> page(MenuPage.NEW_GAME)
         Place.PLAY_FRIEND -> navigateTo({ FriendListScreen(it) }, done)
-        Place.PLAYER_RATING -> page(MenuPage.RATING)
+        Place.PLAYER_RATING -> page(MenuPage.PLAYER_RATING)
         Place.MISSED -> page(MenuPage.MISSED)
         Place.PAST_PUZZLES -> page(MenuPage.PAST_PUZZLES)
         Place.GAMES -> page(MenuPage.GAMES)

@@ -227,9 +227,9 @@ class StripFitTest {
 
     /** A replayed Game from the Games page: at its end, for every Result, and in Review. */
     private fun replayStripsAsShown(): List<GameStrip> = buildList {
-        for (side in Side.entries) for (result in results) add(GameStrip.replay(recordWith(GameRecord(Game.of(), side), result), null))
-        add(GameStrip.replay(GameRecord(Game.of(), Side.WHITE), null))
-        add(GameStrip.replay(GameRecord(Game.of(), Side.WHITE), 99))
+        for (side in Side.entries) for (result in results) add(GameStrip.gamesReview(recordWith(GameRecord(Game.of(), side), result), null))
+        add(GameStrip.gamesReview(GameRecord(Game.of(), Side.WHITE), null))
+        add(GameStrip.gamesReview(GameRecord(Game.of(), Side.WHITE), 99))
     }
 
     /** [record] with a Game that [result] ends. */

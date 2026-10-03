@@ -32,14 +32,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * The one owner of the game mode in this process: the [GameState], the computer's turns on
+ * The one owner of the game mode in this process: the [GameState], the computer's searches on
  * [EngineHost.shared], Game Hints, the clock and `games.json`. LightOS relaunches the activity in the
  * same process without clearing old view models (PLATFORM.md), so, as with [PuzzleOwner], the screens'
  * view models are views onto this.
  *
  * Every change happens on the main thread. The file is written on [io] after every change (a
  * force-stop skips onAppPause, so the user's last Move must already be on disk); [pause] (onAppPause)
- * stops the search and writes at once on the calling thread; [resume] re-runs the computer's turn if
+ * stops the search and writes at once on the calling thread; [resume] re-runs the computer's search if
  * it was thinking (B6), from the Game's seed. The Book comes through the latest screen that asked for
  * the owner ([of]), as [PuzzleOwner]'s assets do (V4).
  */
@@ -225,7 +225,7 @@ class GameOwner(
         runCatching { store.save(state.data) }.onFailure { Log.w(TAG, "games.json save failed", it) }
     }
 
-    /** The game mode is on screen again: the computer's turn runs again if it was thinking (B6). */
+    /** The game mode is on screen again: the computer's search runs again if it was thinking (B6). */
     fun resume() {
         paused = false
         touched()
@@ -255,7 +255,7 @@ class GameOwner(
         schedule()
     }
 
-    /** Starts the computer's turn when it is its Move and nothing is thinking yet. */
+    /** Starts the computer's search when it is its Move and nothing is thinking yet. */
     private fun schedule() {
         if (paused || thinking != null) return
         val state = states.value ?: return

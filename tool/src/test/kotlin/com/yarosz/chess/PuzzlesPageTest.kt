@@ -301,14 +301,14 @@ class PuzzlesPageTest {
         val provisional = Glicko(1176.0, 200.0)
         assertEquals(
             listOf(MenuItem("1176?"), MenuItem(UiCopy.PROVISIONAL_NOTE, lighten = true), MenuItem(UiCopy.RESET_RATING, PlayerRatingEntry.RESET)),
-            PuzzlesPages.rating(provisional, confirming = false),
+            PuzzlesPages.playerRating(provisional, confirming = false),
         )
         assertEquals("The ? goes after about 50 rated Puzzles.", UiCopy.PROVISIONAL_NOTE)
         val settled = Glicko(1176.0, 60.0)
-        assertEquals(listOf(MenuItem("1176"), MenuItem(UiCopy.RESET_RATING, PlayerRatingEntry.RESET)), PuzzlesPages.rating(settled, false))
-        assertEquals(MenuItem(UiCopy.RESET_CONFIRM, PlayerRatingEntry.RESET), PuzzlesPages.rating(provisional, confirming = true).last())
+        assertEquals(listOf(MenuItem("1176"), MenuItem(UiCopy.RESET_RATING, PlayerRatingEntry.RESET)), PuzzlesPages.playerRating(settled, false))
+        assertEquals(MenuItem(UiCopy.RESET_CONFIRM, PlayerRatingEntry.RESET), PuzzlesPages.playerRating(provisional, confirming = true).last())
         // No history on the page any more: it is Past Puzzles' (N14).
-        assertTrue(PuzzlesPages.rating(provisional, false).none { it.text.contains(" · ") })
+        assertTrue(PuzzlesPages.playerRating(provisional, false).none { it.text.contains(" · ") })
         val room = 360f - 2 * 24f
         val words = UiCopy.PROVISIONAL_NOTE.split(' ')
         var lines = 1
