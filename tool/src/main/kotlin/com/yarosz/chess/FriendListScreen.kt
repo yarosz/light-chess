@@ -32,6 +32,9 @@ class FriendListViewModel(private val friends: FriendOwner) : WheelViewModel<Uni
     override fun onWheel(key: Wheel): Boolean = false
 
     override fun onScreenShow(screen: SimpleLightScreen<Unit>) = friends.sync()
+
+    /** A board just left keeps its socket 10 s (U1); a pause here closes it now. */
+    override fun onAppPause() = friends.pause()
 }
 
 /**

@@ -22,11 +22,13 @@ data class LiveView(val gameId: String? = null, val open: Boolean = false, val l
  * - [watch] when a Game's board shows; one Game at a time, so watching another closes the first.
  * - [unwatch] when it leaves: at once on pause, after [GRACE_MS] when another screen covers it (its
  *   Menu, say), so a quick return keeps the socket; showing the same Game again cancels the close.
+ * - [pause] on any pause, from whichever screen is on top: the socket closes at once.
  * - Only a started Game that isn't Stopped gets a socket (one that is over too, so a rematch offer
  *   arrives); [reconcile], after the Games change, starts or stops it.
- * - A pushed entry, and every open, reads the Game through [Correspondence.sync]; nothing from the
- *   socket is applied directly. Reads of one Game never overlap: one asked for during another runs
- *   once after it.
+ * - A pushed entry, and every open, reads the Game through [Correspondence.sync]; a pushed rematch
+ *   entry reads every Game ([Correspondence.syncAll]), so a rematch that started shows here at once.
+ *   Nothing from the socket is applied directly. Reads of one Game never overlap: one asked for
+ *   during another runs once after it.
  *
  * [changed] is called, on any thread, when [view] changes or a read ends. With [tickMs] null nothing
  * runs on a timer and a test calls [tick] itself.
@@ -74,6 +76,9 @@ class LiveOwner(
         if (now) end() else if (closeAt == null) closeAt = clock() + GRACE_MS
     }
 
+    /** The Tool paused: whatever Game is watched loses its socket now, under another screen or not. */
+    fun pause() = act { end() }
+
     /** The Games changed: a watched Game that is Stopped or gone loses its socket; one that started gets one. */
     fun reconcile() = act { reconcileLocked() }
 
@@ -95,6 +100,7 @@ class LiveOwner(
         synchronized(lock) {
             before = LiveView(gameId, connection?.open == true, connection?.live == true)
             block()
+            timers()
             todo = effects.toList()
             effects.clear()
         }
@@ -109,17 +115,31 @@ class LiveOwner(
         val current = connection
         when {
             !linkable && current != null && !current.stopped -> step(current.stop())
-            linkable && current == null -> {
-                step(LiveConnection.start())
-                if (ticker == null && tickMs != null) ticker = scope.launch {
-                    while (isActive) {
-                        delay(tickMs)
-                        tick()
-                    }
+            linkable && current == null -> step(LiveConnection.start(clock()))
+        }
+    }
+
+    /**
+     * The ticker runs only while there is something to time: a connection that isn't Stopped, or a
+     * close after the grace. A Stopped one wakes nothing; watching again starts it.
+     */
+    private fun timers() {
+        val needed = closeAt != null || connection?.stopped == false
+        if (!needed) {
+            ticker?.cancel()
+            ticker = null
+        } else if (ticker == null && tickMs != null) {
+            ticker = scope.launch {
+                while (isActive) {
+                    delay(tickMs)
+                    tick()
                 }
             }
         }
     }
+
+    /** Whether the timer runs, for tests. */
+    internal val ticking: Boolean get() = synchronized(lock) { ticker != null }
 
     /** Stops the connection, forgets the Game and its timers. */
     private fun end() {
@@ -127,8 +147,6 @@ class LiveOwner(
         connection = null
         gameId = null
         closeAt = null
-        ticker?.cancel()
-        ticker = null
     }
 
     private fun step(next: LiveStep) {
@@ -142,7 +160,8 @@ class LiveOwner(
                 socket?.let { s -> effects += { s.close() } }
                 socket = null
             }
-            LiveCommand.SYNC -> effects += { read(id) }
+            LiveCommand.SYNC -> effects += { read(id) { correspondence.sync(id) } }
+            LiveCommand.SYNC_ALL -> effects += { read(ALL) { correspondence.syncAll() } }
         }
     }
 
@@ -185,8 +204,8 @@ class LiveOwner(
         }
     }
 
-    /** [Correspondence.sync] for [id], never two at once: one asked for during another runs after it. */
-    private fun read(id: String) {
+    /** [body] reads [id] (or [ALL] Games), never two at once: one asked for during another runs after it. */
+    private fun read(id: String, body: suspend () -> Unit) {
         synchronized(reading) {
             if (id in reading) {
                 reading[id] = true
@@ -197,7 +216,7 @@ class LiveOwner(
         scope.launch {
             do {
                 try {
-                    correspondence.sync(id)
+                    body()
                 } catch (e: CancellationException) {
                     synchronized(reading) { reading.remove(id) }
                     throw e
@@ -218,5 +237,8 @@ class LiveOwner(
 
         /** A board covered by another screen keeps its socket this long (the Relay's presence timeout). */
         const val GRACE_MS = 10_000L
+
+        /** The key of a read of every Game in [reading]: no Game id is this. */
+        private const val ALL = "*"
     }
 }

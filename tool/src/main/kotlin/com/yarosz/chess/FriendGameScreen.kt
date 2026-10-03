@@ -123,7 +123,7 @@ class FriendGameViewModel(private val friends: FriendOwner, val gameId: String) 
     /** W7: the socket closes on pause. */
     override fun onAppPause() {
         shown = false
-        friends.unwatch(gameId, now = true)
+        friends.pause()
     }
 
     /**

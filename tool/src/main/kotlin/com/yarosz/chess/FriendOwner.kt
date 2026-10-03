@@ -171,6 +171,16 @@ class FriendOwner(
         publish()
     }
 
+    /**
+     * onAppPause on any Play a friend screen: whatever Game is watched loses its socket now (W7, U1).
+     * LightActivity pauses only the top screen, so a board under its Menu, or still in its 10 s grace
+     * under the list, never hears of the pause itself.
+     */
+    fun pause() {
+        liveOwner?.pause()
+        publish()
+    }
+
     /** The live socket's timers, for a test that moves time by hand (built with no tick). */
     internal fun tickLive() = liveOwner?.tick()
 
@@ -286,8 +296,12 @@ class FriendOwner(
             )
         }
         liveOwner?.reconcile()
-        val view = liveOwner?.view
-        states.update { it.copy(linked = view?.gameId?.takeIf { view.open }, live = view?.gameId?.takeIf { view.live }) }
+        // Read inside the update: publish runs on OkHttp's threads too, and a retried update must
+        // not write a view read before another publish's.
+        states.update {
+            val view = liveOwner?.view
+            it.copy(linked = view?.gameId?.takeIf { view.open }, live = view?.gameId?.takeIf { view.live })
+        }
         schedule(afterUserAction, stopIdlePeriodic)
     }
 
@@ -326,7 +340,7 @@ class FriendOwner(
                     val store = CorrespondenceStore(CorrespondenceStore.noBackupDir(filesDir))
                     val http = OkHttpTransport.defaultClient()
                     val correspondence = Correspondence(RelayClient(OkHttpTransport(url, http)), store)
-                    val live = OkHttpLiveConnector(url, OkHttpLiveConnector.client(http))
+                    val live = OkHttpLiveConnector(url, http)
                     FriendOwner(correspondence, jobs(), CoroutineScope(SupervisorJob() + Dispatchers.IO), live = live)
                 }
             }

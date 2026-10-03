@@ -238,6 +238,5 @@ class ProtocolTest {
         assertTrue("`GET /v1/games/{gameId}/live`" in doc)
         assertFalse(runCatching { OkHttpLiveConnector.url("https://relay", "../x") }.isSuccess, "a Game id only as the Relay handed it out")
         assertFalse(runCatching { OkHttpLiveConnector("http://relay.example.com", OkHttpTransport.defaultClient()) }.isSuccess, "no cleartext")
-        assertEquals(0, OkHttpLiveConnector.client(OkHttpTransport.defaultClient()).readTimeoutMillis, "the session's watchdog judges a quiet socket")
     }
 }

@@ -1,7 +1,9 @@
 package com.yarosz.chess.correspondence
 
 import com.yarosz.chess.relay.FakeRelay
+import com.yarosz.chess.relay.LiveConnector
 import com.yarosz.chess.relay.LiveListener
+import com.yarosz.chess.relay.LiveSocket
 import com.yarosz.chess.rules.Side
 import kotlin.test.AfterTest
 import kotlin.test.Test
@@ -222,5 +224,92 @@ class LiveOwnerTest {
         assertEquals(second, liveA.view.gameId)
         liveA.unwatch(first, now = true)
         assertTrue(liveA.view.open, "unwatching a Game no longer watched changes nothing")
+    }
+
+    @Test
+    fun `a socket stuck opening is cancelled after 12 seconds and tried again`() = runBlocking<Unit> {
+        val id = started()
+        val hung = mutableListOf<Boolean>()
+        // A Relay that takes the connection and never answers the upgrade: no callback ever comes.
+        val connector = LiveConnector { _, _, _ ->
+            val index = hung.size
+            hung += false
+            object : LiveSocket {
+                override fun send(text: String) {}
+                override fun close() {
+                    hung[index] = true
+                }
+            }
+        }
+        val owner = LiveOwner(b.c, connector, scope, clock = { relay.now }, jitter = { 0.0 }, tickMs = null)
+        owner.watch(id)
+        assertIs<LiveState.Connecting>(owner.state)
+        pass(LiveConnection.CONNECT_TIMEOUT_MS - 1_000, owner)
+        assertEquals(listOf(false), hung, "still opening")
+        pass(1_000, owner)
+        assertEquals(listOf(true), hung, "abandoned: the stuck call is closed")
+        assertEquals(LiveState.Backoff(1, relay.now + 1_000), owner.state)
+        pass(1_000, owner)
+        assertEquals(listOf(true, false), hung, "a new socket after the back-off")
+        owner.unwatch(id, now = true)
+        assertEquals(listOf(true, true), hung)
+    }
+
+    @Test
+    fun `a pause closes the socket at once, even while the board waits out its grace`() = runBlocking<Unit> {
+        val id = started()
+        liveA.watch(id)
+        liveB.watch(id)
+        liveB.unwatch(id, now = false)
+        assertTrue(liveB.view.open, "the Menu over the board: the grace runs")
+        liveB.pause()
+        assertFalse(liveB.view.open, "the Menu heard the pause, not the board")
+        assertEquals(1, relay.liveSockets(id))
+        assertFalse(liveA.view.live)
+        val opens = relay.liveOpens
+        pass(30_000, liveB)
+        assertEquals(opens, relay.liveOpens, "nothing reopens until the board shows again")
+        liveB.watch(id)
+        assertTrue(liveB.view.open)
+    }
+
+    @Test
+    fun `the ticker sleeps while the connection is Stopped and wakes on watch`() = runBlocking<Unit> {
+        val id = started()
+        val owner = LiveOwner(b.c, relay.live(), scope, clock = { relay.now }, tickMs = 3_600_000)
+        assertFalse(owner.ticking)
+        owner.watch(id)
+        assertTrue(owner.ticking)
+        val quiet = object : LiveListener {
+            override fun onOpen() {}
+            override fun onMessage(text: String) {}
+            override fun onClosed(code: Int) {}
+            override fun onFailure(status: Int?) {}
+        }
+        relay.live().open(id, b.game(id).seat.secret, quiet)
+        assertEquals(LiveState.Stopped(LiveStop.REPLACED), owner.state)
+        assertFalse(owner.ticking, "a Stopped connection has nothing to time")
+        owner.watch(id)
+        assertTrue(owner.ticking, "a fresh show restarts it")
+        owner.unwatch(id, now = false)
+        assertTrue(owner.ticking, "the grace is timed")
+        owner.pause()
+        assertFalse(owner.ticking)
+    }
+
+    @Test
+    fun `a pushed rematch acceptance reads every Game, so the new Game starts here at once`() = runBlocking<Unit> {
+        val id = started()
+        done(b.c.resign(id))
+        a.c.sync(id)
+        liveA.watch(id)
+        assertTrue(liveA.view.open, "a Game that is over keeps its socket for a rematch")
+        done(a.c.offerRematch(id))
+        val fresh = assertNotNull(a.log(id).rematch).ref.gameId
+        assertEquals(Stage.WAITING, a.game(fresh).stage)
+        b.c.syncAll()
+        done(b.c.acceptRematch(id))
+        assertEquals(Stage.ACTIVE, a.game(fresh).stage, "read on the push, with no poll and no list")
+        assertEquals(true, a.log(id).rematch?.accepted)
     }
 }

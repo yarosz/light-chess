@@ -21,6 +21,12 @@ enum class LiveCommand {
      * the Game's own state says why (Game deleted, Seat lost, Update Chess).
      */
     SYNC,
+
+    /**
+     * Read every Game (`Correspondence.syncAll`), after a pushed rematch entry: an accepted offer of
+     * ours starts its new Game, which only a read of that Game shows, and a declined one cancels it.
+     */
+    SYNC_ALL,
 }
 
 /** Why a [LiveConnection] stopped for good. */
@@ -37,11 +43,15 @@ enum class LiveStop {
 
 /** Where a [LiveConnection] is. */
 sealed interface LiveState {
-    /** A socket is opening; [failures] in a row came before it. */
-    data class Connecting(val failures: Int) : LiveState
+    /** A socket has been opening since [since]; [failures] in a row came before it. */
+    data class Connecting(val failures: Int, val since: Long) : LiveState
 
-    /** The socket is open: the latest [presence], when the Relay was last heard from, and when the next ping goes. */
-    data class Open(val presence: LivePresence?, val heardAt: Long, val pingAt: Long) : LiveState
+    /**
+     * The socket is open: the latest [presence], when the Relay was last heard from, and when the next
+     * ping goes. [failures] carries over from before the open until the Relay's first presence, so a
+     * Relay that accepts and drops at once still backs off further each time.
+     */
+    data class Open(val presence: LivePresence?, val heardAt: Long, val pingAt: Long, val failures: Int = 0) : LiveState
 
     /** No socket after [failures] in a row; the next one opens at [until]. */
     data class Backoff(val failures: Int, val until: Long) : LiveState
@@ -59,8 +69,11 @@ data class LiveStep(val connection: LiveConnection, val commands: List<LiveComma
  *
  * - Open: a ping every [PING_MS]; every message counts as hearing from the Relay, which answers each
  *   ping. [SILENCE_MS] without a message drops the socket: the network may have gone without a close.
+ * - Opening: a socket that hasn't opened [CONNECT_TIMEOUT_MS] after it was asked for is abandoned,
+ *   since OkHttp bounds the TCP connect and the handshake reads but no whole upgrade.
  * - Down: a new socket after a back-off of 1 s, then doubling to [MAX_BACKOFF_MS], each between half
- *   its step and its step (jitter), at least 1 s.
+ *   its step and its step (jitter), at least 1 s. The count resets on the Relay's first presence on
+ *   an open socket, not on the open itself.
  * - Close code 4001 stops it: another socket of this Seat replaced it, and two would replace each
  *   other forever. Close code 4004, or an upgrade answered 400, 401, 404 or 409, stops it after one
  *   [LiveCommand.SYNC], whose refusal stops the Game itself as the HTTPS reads would.
@@ -77,15 +90,23 @@ data class LiveConnection(val state: LiveState) {
 
     /** The socket opened: read the Game, in case an entry came while it was down, and ping from now on. */
     fun opened(now: Long): LiveStep = when (state) {
-        is LiveState.Connecting -> LiveStep(LiveConnection(LiveState.Open(null, now, now + PING_MS)), listOf(LiveCommand.SYNC))
+        is LiveState.Connecting ->
+            LiveStep(LiveConnection(LiveState.Open(null, now, now + PING_MS, state.failures)), listOf(LiveCommand.SYNC))
         else -> LiveStep(this)
     }
 
     /** A message from the Relay (null: one this version can't read, still a sign of life). */
     fun heard(now: Long, message: LiveFrame?): LiveStep {
         val open = state as? LiveState.Open ?: return LiveStep(this)
-        val next = open.copy(heardAt = now, presence = (message as? LivePresence) ?: open.presence)
-        return LiveStep(LiveConnection(next), if (message is LiveEntry) listOf(LiveCommand.SYNC) else emptyList())
+        val presence = message as? LivePresence
+        // The Relay's first presence shows the socket really works: the back-off starts over.
+        val next = open.copy(heardAt = now, presence = presence ?: open.presence, failures = if (presence != null) 0 else open.failures)
+        val read = when {
+            message !is LiveEntry -> emptyList()
+            message.entry.entryKind?.isRematch == true -> listOf(LiveCommand.SYNC_ALL)
+            else -> listOf(LiveCommand.SYNC)
+        }
+        return LiveStep(LiveConnection(next), read)
     }
 
     /** The Relay closed the socket with [code], or it broke with no HTTP answer ([code] null). */
@@ -103,20 +124,22 @@ data class LiveConnection(val state: LiveState) {
         else -> backOff(now, jitter)
     }
 
-    /** Time passed: a ping due, a silent socket dropped, or a back-off over. */
+    /** Time passed: a ping due, a silent socket dropped, a stuck opening abandoned, or a back-off over. */
     fun tick(now: Long, jitter: Double): LiveStep = when (val s = state) {
         is LiveState.Open -> when {
-            now - s.heardAt >= SILENCE_MS -> {
-                val down = LiveState.Backoff(1, now + backoff(1, jitter))
-                LiveStep(LiveConnection(down), listOf(LiveCommand.CLOSE))
-            }
+            now - s.heardAt >= SILENCE_MS -> backOff(now, jitter).closing()
             now >= s.pingAt -> LiveStep(LiveConnection(s.copy(pingAt = now + PING_MS)), listOf(LiveCommand.PING))
             else -> LiveStep(this)
         }
+        is LiveState.Connecting ->
+            if (now - s.since >= CONNECT_TIMEOUT_MS) backOff(now, jitter).closing() else LiveStep(this)
         is LiveState.Backoff ->
-            if (now >= s.until) LiveStep(LiveConnection(LiveState.Connecting(s.failures)), listOf(LiveCommand.CONNECT)) else LiveStep(this)
-        else -> LiveStep(this)
+            if (now >= s.until) LiveStep(LiveConnection(LiveState.Connecting(s.failures, now)), listOf(LiveCommand.CONNECT)) else LiveStep(this)
+        is LiveState.Stopped -> LiveStep(this)
     }
+
+    /** The same step, closing the socket first. */
+    private fun LiveStep.closing() = copy(commands = listOf(LiveCommand.CLOSE) + commands)
 
     /** The board left: close whatever socket there is. */
     fun stop(): LiveStep = when (state) {
@@ -128,8 +151,9 @@ data class LiveConnection(val state: LiveState) {
     private fun backOff(now: Long, jitter: Double): LiveStep {
         val failures = when (val s = state) {
             is LiveState.Connecting -> s.failures + 1
+            is LiveState.Open -> s.failures + 1
             is LiveState.Backoff -> s.failures
-            else -> 1
+            is LiveState.Stopped -> 1
         }
         return LiveStep(LiveConnection(LiveState.Backoff(failures, now + backoff(failures, jitter))))
     }
@@ -141,6 +165,9 @@ data class LiveConnection(val state: LiveState) {
         /** No message for this long drops the socket: two pings unanswered, and some slack. */
         const val SILENCE_MS = 12_000L
 
+        /** A socket not open this long after it was asked for is abandoned: a hung TLS or upgrade. */
+        const val CONNECT_TIMEOUT_MS = 12_000L
+
         const val MIN_BACKOFF_MS = 1_000L
         const val MAX_BACKOFF_MS = 30_000L
 
@@ -151,8 +178,8 @@ data class LiveConnection(val state: LiveState) {
         /** HTTP answers to the upgrade that no retry changes: bad_request or unsupported_version, bad_seat_secret, game_not_found, version_mismatch or game_not_started. */
         val REFUSALS = setOf(400, 401, 404, 409)
 
-        /** A new connection: its first socket opens now. */
-        fun start(): LiveStep = LiveStep(LiveConnection(LiveState.Connecting(0)), listOf(LiveCommand.CONNECT))
+        /** A new connection: its first socket opens [now]. */
+        fun start(now: Long): LiveStep = LiveStep(LiveConnection(LiveState.Connecting(0, now)), listOf(LiveCommand.CONNECT))
 
         /** The wait after [failures] in a row: 1 s, 2 s, 4 s ... up to 30 s, each from half to all of its step, at least 1 s. */
         fun backoff(failures: Int, jitter: Double): Long {

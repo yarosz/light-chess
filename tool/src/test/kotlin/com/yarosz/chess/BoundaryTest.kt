@@ -47,13 +47,20 @@ class BoundaryTest {
 
     @Test
     fun `only a Correspondence Game's board asks for a live socket (ADR 0004 rule 2, U6)`() {
-        val watch = Regex("""\.(watch|unwatch)\(""")
-        val callers = sources()
-            .filter { file -> file.name != "FriendOwner.kt" && !file.relativeTo(main).path.startsWith("correspondence/") }
-            .filter { file -> lines(file).any { watch.containsMatchIn(it) } }
-            .map { it.relativeTo(main).path }
-            .toList()
-        assertEquals(listOf("FriendGameScreen.kt"), callers)
+        val callers = { call: Regex ->
+            sources()
+                .filter { file -> file.name != "FriendOwner.kt" && !file.relativeTo(main).path.startsWith("correspondence/") }
+                .filter { file -> lines(file).any { call.containsMatchIn(it) } }
+                .map { it.relativeTo(main).path }
+                .sorted()
+                .toList()
+        }
+        assertEquals(listOf("FriendGameScreen.kt"), callers(Regex("""\.(watch|unwatch)\(""")))
+        // A pause only closes: every Play a friend screen that can be on top over a board, or just after one, calls it.
+        assertEquals(
+            listOf("FriendGameScreen.kt", "FriendListScreen.kt", "FriendScreen.kt"),
+            callers(Regex("""\bfriends\??\.pause\(""")),
+        )
     }
 
     @Test

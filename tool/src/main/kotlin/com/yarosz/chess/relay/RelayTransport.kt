@@ -1,6 +1,7 @@
 package com.yarosz.chess.relay
 
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -109,8 +110,11 @@ class OkHttpTransport(
 
 /**
  * The live socket over OkHttp's WebSocket (C1, V2), with the seat secret as the bearer of the
- * upgrade request. [client] should share [OkHttpTransport]'s connection pool, with no read timeout:
- * the session's own watchdog notices a silent socket (W7). The phone pings; OkHttp's own ping is off.
+ * upgrade request. [client] is [OkHttpTransport]'s, as it is: its connect and read timeouts bound the
+ * TCP connect, the TLS handshake and the wait for the 101. Once the socket is open OkHttp clears
+ * them (the socket's own timeout is set to 0 on the upgrade, and the reader lifts the read timeout
+ * while it waits for a frame), so a quiet socket is the session's watchdog to judge (W7, U5). The
+ * phone pings; OkHttp's own ping is off.
  *
  * Only [com.yarosz.chess.FriendOwner] constructs this, and only with [RelayConfig.url] set (ADR 0004).
  */
@@ -123,8 +127,12 @@ class OkHttpLiveConnector(baseUrl: String, private val client: OkHttpClient) : L
 
     override fun open(gameId: String, seatSecret: String, listener: LiveListener): LiveSocket {
         val request = Request.Builder().url(url(root, gameId)).header("Authorization", "Bearer $seatSecret").build()
+        val opened = AtomicBoolean(false)
         val socket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) = listener.onOpen()
+            override fun onOpen(webSocket: WebSocket, response: Response) {
+                opened.set(true)
+                listener.onOpen()
+            }
 
             override fun onMessage(webSocket: WebSocket, text: String) = listener.onMessage(text)
 
@@ -141,8 +149,12 @@ class OkHttpLiveConnector(baseUrl: String, private val client: OkHttpClient) : L
                 socket.send(text)
             }
 
+            /**
+             * An open socket closes with 1000. One still opening is cancelled: close only queues the
+             * frame, and would leave the call, its thread and a Dispatcher slot until the upgrade ends.
+             */
             override fun close() {
-                if (!socket.close(NORMAL, null)) socket.cancel()
+                if (!opened.get() || !socket.close(NORMAL, null)) socket.cancel()
             }
         }
     }
@@ -157,8 +169,5 @@ class OkHttpLiveConnector(baseUrl: String, private val client: OkHttpClient) : L
             val scheme = if (root.startsWith("https://")) "wss://" else "ws://"
             return scheme + root.trimEnd('/').substringAfter("://") + "/v${Protocol.MAJOR}/games/$gameId/live"
         }
-
-        /** [http]'s pool and dispatcher, without a read timeout: a quiet socket is the session's to judge. */
-        fun client(http: OkHttpClient): OkHttpClient = http.newBuilder().readTimeout(0, TimeUnit.SECONDS).build()
     }
 }

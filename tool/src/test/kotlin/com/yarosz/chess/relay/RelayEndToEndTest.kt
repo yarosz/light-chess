@@ -109,7 +109,7 @@ class RelayEndToEndTest {
 
         // The live socket (G3, U5) over OkHttp's WebSocket: Live once both are here, a Move pushed
         // and read at once, and Live gone when one phone leaves.
-        val live = OkHttpLiveConnector(url, OkHttpLiveConnector.client(OkHttpTransport.defaultClient()))
+        val live = OkHttpLiveConnector(url, OkHttpTransport.defaultClient())
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val liveA = LiveOwner(a, live, scope)
         val liveB = LiveOwner(b, live, scope)

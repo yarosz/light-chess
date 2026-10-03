@@ -145,6 +145,27 @@ class FriendOwnerTest {
         assertNull(owner.state.value.linked, "closed 10 s after the board left")
     }
 
+    @Test
+    fun `a pause on a page over the board closes its socket now (W7, U1)`() = runBlocking<Unit> {
+        val id = friendStarted()
+        val owner = liveOwner()
+        owner.watch(id)
+        assertEquals(id, owner.state.value.linked)
+        // The board's Menu comes on top: the board hears onScreenHide only.
+        owner.unwatch(id, now = false)
+        assertEquals(id, owner.state.value.linked, "the grace keeps it")
+        // The Menu's onAppPause, from FriendViewModel: LightActivity pauses only the top screen.
+        FriendViewModel(owner, FriendPage.MENU, id).onAppPause()
+        assertNull(owner.state.value.linked, "closed at once, not 10 s later")
+        assertEquals(0, relay.liveSockets(id))
+        // The list's too, for a board just left.
+        owner.watch(id)
+        assertEquals(2, opens)
+        owner.unwatch(id, now = false)
+        FriendListViewModel(owner).onAppPause()
+        assertNull(owner.state.value.linked)
+    }
+
     @AfterTest
     fun cleanUp() {
         dir.deleteRecursively()
