@@ -1717,11 +1717,11 @@ consistent with the log.
   once. The hourly LightWork job (W7) is unchanged.
 - U4 Presence in the privacy statement. AMENDS W1 and ADR 0004's privacy line. Contradiction: W1's
   line says what the Relay stores (Moves, for 30 days); the live socket tells each phone something
-  new about the other, that its player has the Game open now. RULING: one sentence in About
-  (`UiCopy.PRIVACY_FRIENDS`), README and docs/privacy.md: "While both players have a Game open,
-  each phone is told the other is there, and the Relay keeps no record of it." The Relay holds
-  presence only on the open socket (game.ts's socket attachment), never in storage. The maintainer
-  approves the exact words before merge.
+  new about the other, that its player has the Game open now. RULING: two sentences in About
+  (`UiCopy.PRIVACY_FRIENDS`), README, DESIGN.md and docs/privacy.md (there with "relay"): "While
+  both phones have the same Game open, the Relay tells each phone that the other has it open. The
+  Relay keeps no record of when either phone had a Game open." Approved by the owner, 2026-10-03.
+  The Relay holds presence only on the open socket (game.ts's socket attachment), never in storage.
 - U5 The connection's rules (`LiveConnection`, pure, tested under virtual time). The phone pings
   every 5 s (W7; OkHttp's own ping is off and the socket has no read timeout). The Relay answers
   every ping, so 12 s without any message (two pings unanswered, and slack) drops the socket: a

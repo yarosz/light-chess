@@ -549,9 +549,10 @@ set (`RelayConfig`, W8).
 - Games lists finished Correspondence Games with the others: "2026.09.28 · ABCD · Won".
 - About, once the Relay URL is set: "Chess uses the network only for Games with a friend: it sends
   their Moves to its Relay, with no name or account, and the Relay deletes each Game within 30 days of
-  the last thing either phone sent it. While both players have a Game open, each phone is told the
-  other is there, and the Relay keeps no record of it. Puzzles and Games against the computer never
-  leave this phone." (The middle sentence is U4's, for the live socket.)
+  the last thing either phone sent it. While both phones have the same Game open, the Relay tells
+  each phone that the other has it open. The Relay keeps no record of when either phone had a Game
+  open. Puzzles and Games against the computer never leave this phone." (The two middle sentences
+  are U4's, for the live socket.)
 - Keep the screen on while the board shows and the last touch or wheel event was under 5 minutes
   ago (contradiction 4).
 - The live socket (G3, W7; decision log U1-U6): the board of a started Game that isn't Stopped

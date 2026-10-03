@@ -82,9 +82,9 @@ A plain `assembleDebug` builds for LightOS on a Light Phone III. For the emulato
 
 Chess uses the network only for Games with a friend: it sends their Moves to its Relay
 (`https://chess-relay.yarosz.com`), with no name or account, and the Relay deletes each Game within
-30 days of the last thing either phone sent it. While both players have a Game open, each phone is
-told the other is there, and the Relay keeps no record of it. Puzzles and Games against the computer
-never leave this phone: the Puzzles and the opening Book ship inside the Tool, the computer thinks on the phone
+30 days of the last thing either phone sent it. While both phones have the same Game open, the Relay
+tells each phone that the other has it open. The Relay keeps no record of when either phone had a
+Game open. Puzzles and Games against the computer never leave this phone: the Puzzles and the opening Book ship inside the Tool, the computer thinks on the phone
 itself, and your rating, Games and history stay in the Tool's own storage. The Android permissions
 its package lists come from Light's SDK; Chess itself declares only INTERNET, for playing a friend
 (ADR 0004). The full statement is `docs/privacy.md`; see also `SECURITY.md`.

@@ -324,7 +324,8 @@ Expires in
 Their move
 Chess uses the network only for Games with a friend: it sends their Moves to its Relay, 
 Puzzles and Games against the computer never leave this phone.
-While both players have a Game open, each phone is told the other is there, and the Relay keeps no record of it. 
+While both phones have the same Game open, the Relay tells each phone that the other has it open. 
+The Relay keeps no record of when either phone had a Game open. 
 PendingSeat(${code ?: gameId})
 # Plain English in UI copy, not the avoided domain words: "Claim win" is the Timeout Claim's button (W4),
 # "Seat lost" says the Seat is lost (CONTEXT.md Seat), "Try again" is the rate limit's advice, and

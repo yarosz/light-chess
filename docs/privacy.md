@@ -18,8 +18,8 @@ ever sent anywhere.
   is never sent to the relay or to your friend.
 - Invite codes work once and expire after 48 hours.
 - The relay deletes each Game within 30 days of the last thing either phone sent it.
-- While both players have a Game open, each phone is told the other is there, and the relay keeps
-  no record of it.
+- While both phones have the same Game open, the relay tells each phone that the other has it open.
+  The relay keeps no record of when either phone had a Game open.
 - The relay keeps no request logs. It reads your IP address for a moment, to limit how fast invite
   codes can be tried, and never stores it. As with any internet service, Cloudflare carries the
   traffic and handles IP addresses under its own privacy policy.
