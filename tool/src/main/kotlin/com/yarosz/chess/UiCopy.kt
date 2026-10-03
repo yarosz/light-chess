@@ -110,7 +110,7 @@ object UiCopy {
     const val REPLACE_NOTE = "The Game in progress is saved as unfinished."
 
     /** The Tool's version; `ToolMetadataTest` holds it equal to `versionName` in `tool/lighttool.toml`. */
-    const val VERSION = "0.4.0"
+    const val VERSION = "0.4.1"
     const val SOURCE = "github.com/yarosz/light-chess"
 
     /**
