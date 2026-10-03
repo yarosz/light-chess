@@ -50,7 +50,7 @@ android.permission.VIBRATE android.permission.WAKE_LOCK $pkg.DYNAMIC_RECEIVER_NO
   extra=$(comm -23 <(echo "$found") <(tr ' ' '\n' <<<"$sdk_permissions" | grep . | sort))
   [ -z "$extra" ] || die "permissions beyond the SDK's pinned set: $(echo $extra)"
   # T1: tool/build.gradle.kts leaves out the QR scanner's stack (ML Kit and what it pulls in, CameraX).
-  local left_out='mlkit|barhopper|com[./]google[./]android[./](gms|datatransport|odml)|com[./]google[./]firebase|androidx[./]camera'
+  local left_out='mlkit|barhopper|play-services-|firebase-|transport-(api|backend|runtime)|com[./]google[./]android[./](gms|datatransport|odml)|com[./]google[./]firebase|androidx[./]camera'
   local manifest files
   manifest=$("$aapt" dump xmltree "$apk" AndroidManifest.xml)
   files=$(unzip -l "$apk")

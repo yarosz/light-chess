@@ -1,24 +1,19 @@
 # Ledger
 
-STATUS: released v0.1.0 (Puzzles), v0.2.0 (the computer), v0.3.0 (Play a friend) and v0.3.1 (the
-v3 review follow-ups: the Relay's limits and plain-HTTP refusal L1-L5, Time Left and a deleted Game
-W12/W13), each a tagged commit on main with a notes-only GitHub Release. The Relay is live at
-`https://chess-relay.yarosz.com` (W11, protocol 1.0). Merged on main since v0.3.1, unreleased: #16
-Navigation D (a fixed Home, back on the left, this board's actions on the right; N1-N10), #18 Layout
-E (LightOS's top bar over the board, actions below; E1-E5), #19 E6, #20 the Puzzles page and Pieces
-in every board's Menu (N11-N20, with N21-N23), #21 a Missed tap during the Pack check replays
-when it lands (N23), #22 Captured Pieces from each edge, action words centred below (E12-E15),
-#23 README screenshots, #24 AGENTS.md's INTERNET line (W1), #25 no coordinate on a marked square
-(K1), #26 the computer's Move slides in once (no replay after the Menu). Next, in order:
-1. Done: the LEDGER refresh (#27) and the domain pass (#28, tag `domain-pass/0.4.0`).
-2. Release 0.4.0, the release PR (versionCode 5, notes in `docs/release-notes/0.4.0.md`), through
-   RELEASING.md's checklist. The LP3 checks still open are listed under LP3 CHECKS below.
-3. v3 PR 3, the live WebSocket (see "Next" under HANDOFF below).
-FOR THE OWNER (none blocks development): the submission to Light's portal (v0.1.0 is safe to
-submit). The GPLv3 + ML Kit licence question no longer applies to a release cut after T1 (the build
-leaves ML Kit out; v0.2.0-v0.4.0, built from their tags, still carry it). What remains for Light is
-whether it signs a GPLv3 Tool; the owner decides what to tell Light. Optional: Always Use
-HTTPS/HSTS on the Relay's zone (the Worker already refuses plain HTTP, L3).
+STATUS: released v0.1.0 (Puzzles), v0.2.0 (the computer), v0.3.0 (Play a friend), v0.3.1 (the v3
+review follow-ups, L1-L5, W12/W13) and v0.4.0 (Navigation D and layout E, N1-N23 and E1-E15; the
+Puzzles page; Captured Pieces from each edge; no coordinate on a marked square, K1; the computer's
+Move slides in once), each a tagged commit on main with a notes-only GitHub Release. The Relay is
+live at `https://chess-relay.yarosz.com` (W11, protocol 1.0). Next, in order:
+1. This PR: leave ML Kit and its Google dependencies out of the APK (T1), then release 0.4.1 so the
+   first submission candidate carries no ML Kit.
+2. v3 PR 3, the live WebSocket (see "Next" under HANDOFF below).
+FOR THE OWNER (none blocks development): the submission to Light's portal. Every tag so far carries
+ML Kit; v0.1.0 is safe to submit because it has no GPL engine, while v0.2.0-v0.4.0 pair GPLv3
+Pirarucu with ML Kit. The GPLv3 + ML Kit question no longer applies to a release cut after T1, which
+leaves ML Kit out. What remains for Light is whether it signs a GPLv3 Tool; the owner decides what
+to tell Light. Optional: Always Use HTTPS/HSTS on the Relay's zone (the Worker already refuses plain
+HTTP, L3).
 FOLLOW-UPS (low, from code review; none blocking):
 - #21: drop a kept Missed tap on `onAppPause` too; a single-threaded main dispatcher in
   `PuzzleOwnerMissedTest`; tests for two taps, leave-return-tap and a failing check; make
@@ -91,8 +86,9 @@ LAST SESSION: 2026-10-03
   - Light: a GPLv3 Tool (ML Kit is out of the APK since T1); production push; an
     alert/badge method; a privacy statement; listing requirements; the SDK's 1 s splash; and the
     scanner's bare-`javaClass` gap (light-sdk).
-  - The submission in Light's portal: v0.1.0 is safe; v0.2.0-v0.4.0 carry ML Kit, so the next
-    candidate is the first release after T1, once Light answers on a GPLv3 Tool.
+  - The submission in Light's portal: v0.1.0 is safe (no GPL engine); v0.2.0-v0.4.0 pair GPLv3
+    Pirarucu with ML Kit, so the next candidate is the first release after T1, once Light answers
+    on a GPLv3 Tool.
   - Maybe: release the CC0 opening Book as its own repo (builder MIT, book.bin CC0) after checking
     whether a CC0 Polyglot book already exists.
   - Stockfish: installed (Homebrew, 19) and run on 2026-09-29; the UCI_Elo fit was not consistent,

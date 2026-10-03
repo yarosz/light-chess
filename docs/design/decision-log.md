@@ -1688,24 +1688,25 @@ From the review of the Puzzles page PR (#20).
   `markedSquares`, `MarkedSquaresTest`.
 
 ## Dependencies: the QR scanner's stack left out (orchestrator, 2026-10-03)
-- T1 The release APK leaves out ML Kit and what it pulls in. Contradiction: Light's `sdk:ui`
-  declares ML Kit barcode scanning and CameraX for `LightQrCodeScanner` alone, which Chess never
-  shows, so every APK carried Google's proprietary barcode binary (`libbarhopper_v3.so`, about 20 MB
-  of 29 MB, four ABIs) with Play services, Firebase components and Google's Data Transport, under
-  Google's terms, beside GPLv3 Pirarucu: the "GPLv3 + ML Kit" question LEDGER held for Light's
-  portal. RULING: `tool/build.gradle.kts` excludes, from every configuration, the groups
-  `com.google.mlkit`, `com.google.android.gms`, `com.google.firebase`,
-  `com.google.android.datatransport`, `com.google.android.odml` and `androidx.camera`, as the
-  sibling Tool Reader does. Nothing else in Chess's graph needs them: no Chess source names the
-  scanner or any excluded class, the SDK names them only in `LightQrCodeScanner.kt`, and OkHttp (the
-  Relay) stays. The release APK goes from 29.4 MB to 7.4 MB; its dex references none of the excluded
-  classes, and its manifest loses ML Kit's and Data Transport's components (`MlKitInitProvider`,
-  `MlKitComponentDiscoveryService`, `TransportBackendDiscovery`, `JobInfoSchedulerService`,
-  `GoogleApiActivity`, CameraX's `MetadataHolderService`). The merged permission set is unchanged:
-  CAMERA comes from `sdk:ui`'s own manifest and INTERNET from OkHttp, and a Tool can't edit its
-  manifest. Light's builder takes `tool/build.gradle.kts` as committed, so its release build leaves
-  them out too (`scripts/light-build.sh`). Calling `LightQrCodeScanner` would now crash: Chess must
-  never call it, and a Tool that needs a scanner drops the exclude. NOTICE and About drop the
-  Google's-terms line, CameraX, javax.inject and the AutoValue annotations, which only that stack
-  brought. `ToolMetadataTest` and `scripts/release-check.sh apk` guard it. Upstream:
-  lightphone/light-sdk#178 asks for the scanner to be opt-in.
+- T1 Every build leaves out ML Kit and what it pulls in (the exclude covers every configuration).
+  Contradiction: Light's `sdk:ui` declares ML Kit barcode scanning and CameraX for
+  `LightQrCodeScanner` alone, which Chess never shows, so every APK carried Google's proprietary
+  barcode binary (`libbarhopper_v3.so`, about 20 MB of 29 MB, four ABIs) with Play services,
+  Firebase components and Google's Data Transport, under Google's terms, beside GPLv3 Pirarucu: the
+  "GPLv3 + ML Kit" question LEDGER held for Light's portal. RULING: `tool/build.gradle.kts`
+  excludes, from every configuration, the groups `com.google.mlkit`, `com.google.android.gms`,
+  `com.google.firebase`, `com.google.android.datatransport`, `com.google.android.odml` and
+  `androidx.camera`, as the sibling Tool Reader does. Nothing else in Chess's graph needs them: no
+  Chess source names the scanner or any excluded class, the SDK names them only in
+  `LightQrCodeScanner.kt`, and OkHttp (the Relay) stays. The release APK goes from 29.4 MB to 7.4
+  MB; its dex references none of the excluded classes, and its manifest loses ML Kit's and Data
+  Transport's components (`MlKitInitProvider`, `MlKitComponentDiscoveryService`,
+  `TransportBackendDiscovery`, `JobInfoSchedulerService`, `GoogleApiActivity`, CameraX's
+  `MetadataHolderService`). The merged permission set is unchanged: CAMERA comes from `sdk:ui`'s own
+  manifest and INTERNET from OkHttp, and a Tool can't edit its manifest. Light's builder takes
+  `tool/build.gradle.kts` as committed, so its release build leaves them out too
+  (`scripts/light-build.sh`). Calling `LightQrCodeScanner` would now crash: Chess must never call
+  it, and a Tool that needs a scanner drops the exclude. NOTICE and About drop the Google's-terms
+  line, CameraX, javax.inject and the AutoValue annotations, which only that stack brought.
+  `ToolMetadataTest` and `scripts/release-check.sh apk` guard it. Upstream: lightphone/light-sdk#178
+  asks for the scanner to be opt-in.
