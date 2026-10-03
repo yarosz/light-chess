@@ -12,9 +12,8 @@ when it lands (N23), #22 Captured Pieces from each edge, action words centred be
 (K1), #26 the computer's Move slides in once (no replay after the Menu). Next, in order:
 1. This LEDGER refresh.
 2. Release 0.4.0: the domain pass first (AGENTS.md "Domain pass"), then RELEASING.md's checklist
-   (versionCode 5, notes in `docs/release-notes/0.4.0.md`). One LP3 check is open: Akkurat's label
-   ink under a crowded Captured Pieces row, with a descender label (Accept, Retry), and no clipping
-   at the bottom edge (E13-E15).
+   (versionCode 5, notes in `docs/release-notes/0.4.0.md`). The LP3 checks still open are listed
+   under LP3 CHECKS below.
 3. v3 PR 3, the live WebSocket (see "Next" under HANDOFF below).
 FOR THE OWNER (none blocks development): the submission to Light's portal (v0.1.0 is safe to submit;
 hold v0.2.0 and later until Light answers the GPLv3 + ML Kit licence question); optional Always Use
@@ -31,14 +30,18 @@ FOLLOW-UPS (low, from code review; none blocking):
   config; a cold-started `friend-send` job REPLACEs itself once (FriendOwner init).
 - Navigation D: `Rows.HEIGHT` (48 dp) is the wheel step while Home's and the pages' rows measure
   about 53 dp, so a detent scrolls slightly under a row (predates Navigation D).
-NOT YET RECORDED AS CHECKED ON THE LP3 (from #16, #18, #20; confirm or drop during 0.4.0's checks):
-the arrow's ink at pixels 48-82 and the Menu mark's centring in Akkurat; the widest top-bar title
-("Tap a piece, then a square", 234 of 240 dp in the stand-in); Home's wheel scroll and first view;
-the Pieces preview in Akkurat; a fast scrub back to the present leaves the brightness alone; the
-click on the live Position still toggles the flashlight; each button's full-height target (#22). Not
-checked anywhere: a Correspondence Game's Menu under Navigation D (needs a second phone). From v1:
-the greys and both Piece Sets on the physical panel (owner's eyes or photos), and Hint taps during a
-reply don't delay it.
+LP3 CHECKS. Done on the LP3 on 2026-10-03, in Akkurat: the arrow's ink at pixels 48-82, with the
+Menu mark level with it; Home's first view (five rows fit); the Pieces preview in a board's Menu; a
+fast scrub back past a Review's start leaves the brightness alone (N20); each button's target is the
+whole row (#22: Hint and Solution span 1056-1240 px). Still open, to confirm or drop: the widest
+top-bar title ("Tap a piece, then a square", 234 of 240 dp in the stand-in; it shows only on a first
+Puzzle); the click on the live Position still toggles the flashlight (owner); Akkurat's label ink
+under a crowded Captured Pieces row with a descender label (Accept, Retry), no clipping at the
+bottom edge (E13-E15; needs a Correspondence Game); a Correspondence Game's Menu under Navigation D,
+and the rounded Piece Set on a Correspondence Game (need a second phone); in play, the computer's
+Move doesn't slide again after the Menu (#26) and a Missed replay opens at once (#21); a Result's
+two lines and "Rematch · Accept · Decline" fitting the action row. From v1: the greys and both Piece
+Sets on the physical panel (owner's eyes or photos), and Hint taps during a reply don't delay it.
 DONE (details in the PRs and the decision log): the v1 stack and 0.1.0 (LP3-checked 2026-09-29),
 the v2 forward merge (M1-M7) and 0.2.0, the Relay deploy and v3 (#3, #10 P3) and 0.3.0, 0.3.1, then
 #16-#26 above.
@@ -95,7 +98,7 @@ LAST SESSION: 2026-10-03
     a 3M-node gauntlet, about 15 hours of the Mac with 8 threads.
 
 ## Where things are
-- Design: `CONTEXT.md` (glossary), `docs/adr/0001-0003`, `docs/design/decision-log.md`. The log
+- Design: `CONTEXT.md` (glossary), `docs/adr/0001-0004`, `docs/design/decision-log.md`. The log
   holds every ruling and each contradiction it resolved; read it before reopening a decision.
 - Repo: the light-reader template (`AGENTS.md`, `mise.toml`, `scripts/ci.sh`, `light-build.sh`,
   `emulator-build.sh`, `domain-drift.sh`), light-sdk submodule at v0.1.2, `tool/lighttool.toml`
