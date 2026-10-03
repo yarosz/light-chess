@@ -1644,7 +1644,7 @@ From the review of the Puzzles page PR (#20).
   holds a Game's actions hides in Review, since Takeback, Resign, Offer draw and the rest act on the
   live Game, not on the Position shown: the computer's board and a Correspondence Game's board. A
   replayed Game's Menu holds only Pieces, which acts on no Game, so its mark stays in Review, as the
-  Puzzle board's does. `GameStrip.replay`, `MenuTest`.
+  Puzzle board's does. `GameStrip.replay` (now `gamesReview`), `MenuTest`.
 - N22 The first row's edge cases. AMENDS N12. (a) A Missed replay started after Reset rating, before
   the seed is answered: the board shows the replay the tap asked for (a replay is unrated and needs no
   rating), and the seed screen follows when it ends (Next, or the first row). The first row reads

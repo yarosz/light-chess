@@ -26,7 +26,7 @@ GameMenuEntry
 FriendMenu
 FriendMenuEntry
 # Puzzles page and Pieces (decision log N11-N19): the Puzzles page's rows and pages, and the Menus
-# of the Puzzle board and a replayed Game. UI vocabulary, like Home's. "Past Puzzles" names a page
+# of the Puzzle board and Games Review. UI vocabulary, like Home's. "Past Puzzles" names a page
 # (N14): its rows are Attempts, and the list is the history PuzzleData already keeps, so it is not a
 # domain concept of its own.
 PuzzlesRows
@@ -189,7 +189,9 @@ $LEVEL $it
 $seconds s
 $THINK_TIME · ${seconds(seconds)}
 Offer draw again at move $move
-# Tool shell for Review of a finished Game from the Games page (LightScreen / LightViewModel)
+# Tool shell for Review of a finished Game from the Games page (LightScreen / LightViewModel); in
+# copy and docs this place is "Games Review" (UI vocabulary, not a glossary term)
+Games Review
 GameReviewScreen
 GameReviewViewModel
 # UI copy with a glossary _Avoid_ word used in its everyday sense: "board" names the object on screen

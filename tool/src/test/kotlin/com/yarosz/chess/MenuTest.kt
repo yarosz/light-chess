@@ -171,7 +171,7 @@ class MenuTest {
     }
 
     @Test
-    fun `a replayed Game's Menu is Pieces alone (N17)`() {
+    fun `Games Review's Menu is Pieces alone (N17)`() {
         assertEquals(listOf(MenuItem(UiCopy.piecesRow(PieceSet.ROUNDED), PiecesMenuEntry.PIECES, pieces = PieceSet.ROUNDED)), GameReviewMenu.of(PieceSet.ROUNDED))
         assertTrue(GameReviewMenu.of(null).isEmpty(), "it waits for the Piece Set (M4)")
     }

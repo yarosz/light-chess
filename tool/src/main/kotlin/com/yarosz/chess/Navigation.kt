@@ -152,7 +152,7 @@ object PuzzlesPages {
 /**
  * The places and pages of Chess (N2, N16): Home is the root; a place is one step from it (the Puzzles
  * page, the computer's board, Play a friend, Games, About); a page or board one step further (the
- * Puzzle board, Missed, Past Puzzles, Player Rating, a replayed Game, a Correspondence Game's board);
+ * Puzzle board, Missed, Past Puzzles, Player Rating, Games Review, a Correspondence Game's board);
  * and a detail over that (a board's Menu and its pages).
  */
 enum class Place { HOME, PUZZLES, PUZZLE, COMPUTER, NEW_GAME, PLAY_FRIEND, PLAYER_RATING, MISSED, PAST_PUZZLES, GAMES, ABOUT }
