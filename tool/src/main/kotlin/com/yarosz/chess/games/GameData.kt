@@ -13,8 +13,8 @@ import kotlinx.serialization.json.Json
  * progress) are one atomic save, and schemaVersion has a place to live. The compatibility rule is
  * [com.yarosz.chess.puzzles.PuzzleData]'s: a later schema only adds fields.
  *
- * Every change goes through [save] or [startNew], which keep the invariants: [current] is never over,
- * [finished] is newest first and at most [FINISHED_CAP] long.
+ * Every change goes through [save], [startNew] or [reopen], which keep the invariants: [current] is
+ * never over, [finished] is newest first and at most [FINISHED_CAP] long.
  */
 @Serializable
 data class GameData(
@@ -59,6 +59,23 @@ data class GameData(
             return null
         }
         return GameRecord(Game.of(position)).takeIf { !it.game.isOver }
+    }
+
+    /**
+     * [record], over, is the Game that ended last: the newest of [finished], with no Game in
+     * progress since. Only that Game can be taken back at its Result (X1).
+     */
+    fun endedLast(record: GameRecord): Boolean = current == null && finished.firstOrNull()?.pgn == Pgn.write(record)
+
+    /**
+     * X1's Takeback at the Result: [record], which [endedLast], comes off the front of [finished],
+     * and [back], its Takeback, is in progress again. One save, so the Games list never holds it
+     * twice.
+     */
+    fun reopen(record: GameRecord, back: GameRecord): GameData {
+        require(endedLast(record)) { "only the Game that ended last can be reopened" }
+        require(!back.game.isOver) { "a Takeback is in play" }
+        return copy(finished = finished.drop(1)).save(back)
     }
 
     /** The finished Games that read, newest first; one that doesn't is left out. */

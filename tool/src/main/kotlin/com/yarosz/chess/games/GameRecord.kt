@@ -44,12 +44,20 @@ data class GameRecord(
     fun withGameHint(): GameRecord = copy(gameHints = gameHints + 1)
 
     /**
+     * The Game is over by the computer's own Move (X1): a checkmate, a stalemate or an automatic
+     * draw (repetition, the 50-move rule, insufficient material) that the computer's Move completed.
+     * Not a resignation or an agreed draw (the user's choice), nor a Result the user's own Move made.
+     */
+    val endedByComputersMove: Boolean
+        get() = game.isOver && game.events.lastOrNull() is Move && game.positions[game.ply - 1].sideToMove != userSide
+
+    /**
      * The index in [Game.events] of the user's latest Move, or null when there is none or the Game is
-     * over: a finished Game goes to the history and takes no Takeback.
+     * over by anything but the computer's own Move (X1).
      */
     private val takebackIndex: Int?
         get() {
-            if (game.isOver) return null
+            if (game.isOver && !endedByComputersMove) return null
             var ply = 0
             var found: Int? = null
             for ((i, event) in game.events.withIndex()) {
@@ -64,8 +72,9 @@ data class GameRecord(
 
     /**
      * A Takeback (contradiction 6): the event list is cut just before the user's latest Move, which
-     * drops it, the computer's reply if there is one yet, any draw offer after it, and their evals;
-     * the counter goes up by one. The user is to move afterwards. Throws when [canTakeBack] is false.
+     * drops it, the computer's reply if there is one yet (the one that ended the Game, X1), any
+     * draw offer after it, and their evals; the counter goes up by one. The user is to move
+     * afterwards, the Game in play. Throws when [canTakeBack] is false.
      */
     fun takeback(): GameRecord {
         val index = checkNotNull(takebackIndex) { "no Move of the user's to take back" }
