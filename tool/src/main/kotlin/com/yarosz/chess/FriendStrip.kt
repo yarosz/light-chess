@@ -38,8 +38,19 @@ data class FriendStrip(val status: String, val buttons: List<FriendButton>, val 
         /**
          * The strip for [game] at the Relay time [now] (the phone's estimate, V14). [chosen] is the Move
          * waiting for Send or Undo (F11); [sending] a request in flight; [notice] a few seconds' line.
+         * [live] (G3, U2): the Relay reports both Seats here, so the plain "Your move · 2d" and "Their
+         * move · 2d" read "Live · Your move" and "Live · Their move", without Time Left; every other
+         * line keeps its place.
          */
-        fun of(game: CorrespondenceGame, now: Long, chosen: Move? = null, sending: Boolean = false, notice: String? = null, reviewPly: Int? = null): FriendStrip {
+        fun of(
+            game: CorrespondenceGame,
+            now: Long,
+            chosen: Move? = null,
+            sending: Boolean = false,
+            notice: String? = null,
+            reviewPly: Int? = null,
+            live: Boolean = false,
+        ): FriendStrip {
             val log = game.log
             // Review hides the Menu mark (N21): the Menu's actions (Resign, Offer draw) act on the live Game.
             if (reviewPly != null && log != null) return FriendStrip(UiCopy.review(reviewPly, log.game.ply), listOf(FriendButton.LATEST), menu = false)
@@ -75,9 +86,9 @@ data class FriendStrip(val status: String, val buttons: List<FriendButton>, val 
                 // N9: "Draw? · Accept · Decline", and the Menu mark.
                 position.sideToMove == game.seat.side && log.game.openDrawOffer == game.seat.side.opponent ->
                     FriendStrip(UiCopy.DRAW_QUESTION, listOf(FriendButton.ACCEPT_DRAW, FriendButton.DECLINE_DRAW))
-                position.sideToMove == game.seat.side -> FriendStrip(UiCopy.yourMoveLeft(left), emptyList())
+                position.sideToMove == game.seat.side -> FriendStrip(if (live) UiCopy.LIVE_YOUR_MOVE else UiCopy.yourMoveLeft(left), emptyList())
                 left <= 0 -> FriendStrip(UiCopy.TIME_IS_UP, listOf(FriendButton.CLAIM))
-                else -> FriendStrip(UiCopy.theirMoveLeft(left), emptyList())
+                else -> FriendStrip(if (live) UiCopy.LIVE_THEIR_MOVE else UiCopy.theirMoveLeft(left), emptyList())
             }
         }
 

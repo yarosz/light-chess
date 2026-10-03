@@ -324,6 +324,7 @@ Expires in
 Their move
 Chess uses the network only for Games with a friend: it sends their Moves to its Relay, 
 Puzzles and Games against the computer never leave this phone.
+While both players have a Game open, each phone is told the other is there, and the Relay keeps no record of it. 
 PendingSeat(${code ?: gameId})
 # Plain English in UI copy, not the avoided domain words: "Claim win" is the Timeout Claim's button (W4),
 # "Seat lost" says the Seat is lost (CONTEXT.md Seat), "Try again" is the rate limit's advice, and
@@ -349,3 +350,23 @@ ${COUNT_WORDS.getOrElse(n - 1) { n.toString() }} ${name}s
 # Layout E (E1-E5): UI names for the top bar and the action row around the board.
 BarLayout
 MenuMarkPainter
+
+# v3 PR 3, the live socket (decision log U1-U6): transport vocabulary around the glossary's Live.
+# The wire messages (docs/protocol.md "/live": presence, entry, error), the socket seam and its
+# OkHttp implementation, the pure connection state machine and the process's one owner of it.
+Bearer $seatSecret
+LiveCommand
+LiveConnection
+LiveConnector
+LiveEntry
+LiveError
+LiveFrame
+LiveListener
+LiveOwner
+LivePresence
+LiveSocket
+LiveState
+LiveStep
+LiveStop
+LiveView
+OkHttpLiveConnector

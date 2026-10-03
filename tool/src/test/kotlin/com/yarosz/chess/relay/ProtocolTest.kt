@@ -187,4 +187,57 @@ class ProtocolTest {
         val ok = RelayClient.decode(RelayResponse(200, """{"status":"ok","protocol":"1.0","majors":[1]}"""), s)
         assertTrue(ok is RelayReply.Ok && ok.value.majors == listOf(1))
     }
+
+    // ---- The live socket (G3) ------------------------------------------------------------------
+
+    @Test
+    fun `the live messages read as the doc writes them`() {
+        val presence = assertIs<LivePresence>(LiveFrame.decode("""{ "type": "presence", "live": true, "opponent": "here", "serverTime": 1790001000000 }"""))
+        assertEquals(LivePresence(true, "here", 1790001000000), presence)
+        assertTrue(presence.opponentHere)
+        assertTrue("""{ "type": "presence", "live": true, "opponent": "here", "serverTime": 1790001000000 }""" in doc, "the doc's example")
+        val gone = assertIs<LivePresence>(LiveFrame.decode("""{"type":"presence","live":false,"opponent":"gone","serverTime":1}"""))
+        assertFalse(gone.opponentHere || gone.live)
+        val pushed = assertIs<LiveEntry>(
+            LiveFrame.decode(
+                """{"type":"entry","entry":{"v":"1.0","gameId":"g","seq":1,"ply":1,"side":"white","kind":"move","uci":"e2e4","hash":"h","serverTime":5}}""",
+            ),
+        )
+        assertEquals("e2e4", pushed.entry.uci)
+        assertEquals(LiveError("bad_request"), LiveFrame.decode("""{ "type": "error", "code": "bad_request" }"""))
+        assertTrue("""{ "type": "error", "code": "bad_request" }""" in doc)
+        assertTrue("""{ "type": "entry", "entry": {…} }""" in doc)
+    }
+
+    @Test
+    fun `a live message this version can't read is null, never half read`() {
+        assertNull(LiveFrame.decode("""{"type":"typing"}"""), "a type from a later minor")
+        assertNull(LiveFrame.decode("""{"type":"presence","live":"yes","opponent":"here","serverTime":1}"""))
+        assertNull(LiveFrame.decode("""{"live":true}"""))
+        assertNull(LiveFrame.decode("[1]"))
+        assertNull(LiveFrame.decode("not json"))
+        // A field a later minor adds is ignored.
+        assertIs<LivePresence>(LiveFrame.decode("""{"type":"presence","live":true,"opponent":"here","serverTime":1,"since":3}"""))
+    }
+
+    @Test
+    fun `the ping is the doc's, under the Relay's 256 bytes (R5)`() {
+        assertTrue("""{ "type": "ping" }""" in doc)
+        assertEquals(minified("""{ "type": "ping" }"""), LiveFrame.PING)
+        assertTrue(LiveFrame.PING.toByteArray().size <= 256)
+        val limits = File("../relay/src/protocol.ts").readText()
+        assertTrue("MAX_WS_MESSAGE_BYTES = 256" in limits)
+        assertTrue("PRESENCE_TIMEOUT_MS = 10_000" in limits, "the 10 s the grace and G3 follow")
+    }
+
+    @Test
+    fun `the live endpoint is WSS, or WS to a local Worker`() {
+        val id = "a".repeat(64)
+        assertEquals("wss://chess-relay.example.com/v1/games/$id/live", OkHttpLiveConnector.url("https://chess-relay.example.com/", id))
+        assertEquals("ws://10.0.2.2:8787/v1/games/$id/live", OkHttpLiveConnector.url("http://10.0.2.2:8787", id))
+        assertTrue("`GET /v1/games/{gameId}/live`" in doc)
+        assertFalse(runCatching { OkHttpLiveConnector.url("https://relay", "../x") }.isSuccess, "a Game id only as the Relay handed it out")
+        assertFalse(runCatching { OkHttpLiveConnector("http://relay.example.com", OkHttpTransport.defaultClient()) }.isSuccess, "no cleartext")
+        assertEquals(0, OkHttpLiveConnector.client(OkHttpTransport.defaultClient()).readTimeoutMillis, "the session's watchdog judges a quiet socket")
+    }
 }

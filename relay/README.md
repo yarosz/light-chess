@@ -41,8 +41,9 @@ approximate, and hibernation eviction of an idle Durable Object with open socket
 
 ## End-to-end test with the Kotlin client
 
-`RelayEndToEndTest` (tool/src/test/.../relay/) drives two phones' sync engines over OkHttp against
-the local Worker. It is skipped unless the Worker's URL is given, and never runs in CI:
+`RelayEndToEndTest` (tool/src/test/.../relay/) drives two phones' sync engines and live
+sockets over OkHttp against the local Worker. It is skipped unless the Worker's URL is given, and
+never runs in CI:
 
 ```sh
 cd relay && npm run dev -- --port 8787 --ip 127.0.0.1     # leave it running

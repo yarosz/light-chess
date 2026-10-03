@@ -106,29 +106,36 @@ class FriendGameViewModel(private val friends: FriendOwner, val gameId: String) 
     var shown by mutableStateOf(false)
         private set
 
-    /** W7: a Correspondence Game coming on screen syncs. */
+    /** W7: a Correspondence Game coming on screen syncs, and opens its live socket (G3). */
     override fun onScreenShow(screen: SimpleLightScreen<FriendExit?>) {
         shown = true
         touched()
+        friends.watch(gameId)
         friends.sync()
     }
 
+    /** Another screen over the board (its Menu, say): the socket stays a few seconds (U1). */
     override fun onScreenHide(screen: SimpleLightScreen<FriendExit?>) {
         shown = false
+        friends.unwatch(gameId, now = false)
     }
 
+    /** W7: the socket closes on pause. */
     override fun onAppPause() {
         shown = false
+        friends.unwatch(gameId, now = true)
     }
 
     /**
-     * Until v3 PR 3's live socket: while the board is on screen, the screen awake (contradiction 4) and
-     * the Game waiting on the opponent, it syncs once a minute, so a reply shows without leaving it.
+     * Y12's fallback while the live socket is down (U3): while the board is on screen, the screen awake
+     * (contradiction 4) and the Game waiting on the opponent, it syncs once a minute, so a reply shows
+     * without leaving it.
      */
     suspend fun poll() {
         while (true) {
             delay(POLL_MS)
-            if (shown && awake && friends.state.value.game(gameId)?.waitingOnOpponent == true) friends.sync()
+            val state = friends.state.value
+            if (shown && awake && state.linked != gameId && state.game(gameId)?.waitingOnOpponent == true) friends.sync()
         }
     }
 
@@ -185,7 +192,7 @@ class FriendGameScreen(
         val shownGame = chosen?.let { runCatching { played + it }.getOrNull() }
         val positions = played.positions
         val shown = review.ply ?: positions.lastIndex
-        val strip = FriendStrip.of(game, now, chosen, gameId in state.sending, state.notices[gameId]?.text, review.ply)
+        val strip = FriendStrip.of(game, now, chosen, gameId in state.sending, state.notices[gameId]?.text, review.ply, live = state.live == gameId)
         val buttons = strip.buttons.map { button ->
             StripButton(button.label, button.description) {
                 vm.touched()

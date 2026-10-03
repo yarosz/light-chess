@@ -1686,3 +1686,58 @@ From the review of the Puzzles page PR (#20).
   hides and shows the coordinates it passes, as the outline moves. The marks keep their sizes. A
   rank or file stays readable from its neighbours, and at most a few edge squares go quiet at once.
   `markedSquares`, `MarkedSquaresTest`.
+
+## v3 PR 3: the live socket (owner and implementation, 2026-10-03)
+The client side of `/live` (docs/protocol.md, C1, G3, W7); the Relay's side was built and tested in
+v3 PR 2 and is unchanged. Code: `relay/Protocol.kt` (`LiveFrame`: presence, entry, error),
+`relay/RelayTransport.kt` (the `LiveConnector` seam beside `RelayTransport`, `OkHttpLiveConnector`),
+`correspondence/LiveConnection.kt` (the pure state machine), `correspondence/LiveOwner.kt` (the
+process's one socket), `FriendOwner.watch` / `unwatch`, `FriendGameViewModel`. U1, U2 and U4 are the
+owner's rulings of 2026-10-03; U3, U5 and U6 are the implementation's, each the reading most
+consistent with the log.
+- U1 A covered board keeps its socket 10 s. AMENDS W7 ("closed in onAppPause", "only while that
+  Game's board is on screen"). Contradiction: the board's own Menu is a screen of its own (N6), so
+  a strict reading closed the socket, and dropped Live on both phones, every time a player opened
+  the Menu to offer a draw or read the Moves. RULING: onScreenHide keeps the socket for 10 s, the
+  Relay's PRESENCE_TIMEOUT_MS, then closes it; showing the same Game again within that time cancels
+  the close and keeps the same socket. onAppPause closes it at once. Watching another Game closes
+  the first at once (one socket per process). `LiveOwner.unwatch`, `LiveOwnerTest`.
+- U2 Live's place in the strip. AMENDS W4 and G3. Contradiction: W4 lists "Live · Your move" and
+  "Live · Their move" as lines of their own without saying what they give way to, while every other
+  W4 line is the Game's state or the user's own pending action. RULING: they replace only the plain
+  "Your move · 2d" and "Their move · 2d"; Draw?, Time is up, a chosen Move's SAN, Sending, Not sent,
+  a notice, a stop, Review and the end keep their place. Time Left hides while Live (the Deadline
+  still holds, and returns to the line when Live goes). Live shows only once the Relay reports both
+  Seats here (`live: true`) and drops when it reports the opponent gone, that is 10 s after the
+  Relay last heard from them, read at the next ping (so 10 to 15 s, G3). There is no Live line once
+  the Game is over. `FriendStrip.of(live = …)`, `StripFitTest.liveReplacesOnlyThePlainStatusLines`.
+- U3 Y12's poll is the fallback. SUPERSEDES Y12's "until v3 PR 3's live socket". The board's
+  one-minute sync (Y12's conditions: on screen, awake, waiting on the opponent) runs only while the
+  Game's socket isn't open (`FriendState.linked`); while it is, a pushed entry reads the Game at
+  once. The hourly LightWork job (W7) is unchanged.
+- U4 Presence in the privacy statement. AMENDS W1 and ADR 0004's privacy line. Contradiction: W1's
+  line says what the Relay stores (Moves, for 30 days); the live socket tells each phone something
+  new about the other, that its player has the Game open now. RULING: one sentence in About
+  (`UiCopy.PRIVACY_FRIENDS`), README and docs/privacy.md: "While both players have a Game open,
+  each phone is told the other is there, and the Relay keeps no record of it." The Relay holds
+  presence only on the open socket (game.ts's socket attachment), never in storage. The maintainer
+  approves the exact words before merge.
+- U5 The connection's rules (`LiveConnection`, pure, tested under virtual time). The phone pings
+  every 5 s (W7; OkHttp's own ping is off and the socket has no read timeout). The Relay answers
+  every ping, so 12 s without any message (two pings unanswered, and slack) drops the socket: a
+  network can die without a close. A socket that closes or fails comes back after 1 s, then 2, 4
+  ... up to 30 s, each wait between half and all of its step (jitter, at least 1 s), reset by an
+  open. Close code 4001 stops it: another socket of this Seat replaced it, and reconnecting would
+  make the two replace each other forever. Close code 4004, or an upgrade answered 400, 401, 404 or
+  409, stops it after one `Correspondence.sync`, so the Game's own state says why (Game deleted,
+  Seat lost, Update Chess) as an HTTPS read would; 426, 429, a 5xx or no answer back off. Every open
+  reads the Game (`GET events`), since a push may have been missed while it was down, and a pushed
+  entry is read, never applied: every Game Event still enters through the rules core's checks (C5).
+  Reads of one Game never overlap; one asked for during another runs once after it. A fresh show
+  restarts a connection that stopped on 4001 or on leaving, not one the Relay refused.
+- U6 Which boards open a socket. Only a Correspondence Game's board (`FriendGameViewModel`, the
+  only caller BoundaryTest allows), and only for a Game that has started and isn't Stopped: one
+  that is over too, so a rematch offer or answer arrives at once. Home, Puzzles, the Play a friend
+  list and an invite open none (ADR 0004 rule 2). The connector is built only in `FriendOwner.of`,
+  after the Relay URL check, on the HTTPS client's connection pool (BoundaryTest); `wss://` for the
+  Relay, `ws://` only to a debug build's local Worker.

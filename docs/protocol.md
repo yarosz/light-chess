@@ -416,6 +416,9 @@ Not part of the wire format, but it is why the format looks the way it does [C2,
 - Write a redeem's or join's chosen seat secret to its file before sending, and send the same secret
   again until the Relay answers, so a lost response never loses the Seat [W9].
 - Poll `/v1/sync` every hour only while waiting on the opponent [W7].
+- Open `/live` only while a started Game's board is on screen, ping every 5 seconds, and read
+  `GET /events` on every open and after every pushed entry, never applying a pushed entry as it
+  came [G3, U1-U6].
 - Keep every Game Event, check each with the rules core, compare `hash` with its own digest after
   each one, and derive the Result, timeouts included, from `serverTime`.
 - Set `end: true` on the Move whose Position the rules core finds ends the Game. An `end` flag,
