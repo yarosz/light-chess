@@ -65,6 +65,9 @@ out of type names.
   refuses a release that declares it with no Relay URL (W8). Light's SDK libraries also merge
   INTERNET, CAMERA and others into the APK's manifest; `scripts/release-check.sh apk` pins that set.
   Puzzles and Games against the computer never open a connection.
+- `tool/build.gradle.kts` excludes ML Kit, Play services, Firebase, Data Transport and CameraX,
+  which `sdk:ui` brings only for `LightQrCodeScanner` (decision log T1). Never call the scanner: it
+  would crash. `ToolMetadataTest` and `scripts/release-check.sh apk` keep the stack out of the APK.
 - `serverPackage` in `tool/lighttool.toml` stays `"com.lightos"` (LightOS on the phone): Light builds
   releases from the committed file. Emulator builds swap it at build time via `scripts/emulator-build.sh`
   (`mise run tool` and `mise run ci` already do). A unit test and `light-build.sh` enforce this.

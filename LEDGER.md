@@ -14,8 +14,10 @@ when it lands (N23), #22 Captured Pieces from each edge, action words centred be
 2. Release 0.4.0, the release PR (versionCode 5, notes in `docs/release-notes/0.4.0.md`), through
    RELEASING.md's checklist. The LP3 checks still open are listed under LP3 CHECKS below.
 3. v3 PR 3, the live WebSocket (see "Next" under HANDOFF below).
-FOR THE OWNER (none blocks development): the submission to Light's portal (v0.1.0 is safe to submit;
-hold v0.2.0 and later until Light answers the GPLv3 + ML Kit licence question); optional Always Use
+FOR THE OWNER (none blocks development): the submission to Light's portal (v0.1.0 is safe to
+submit). The GPLv3 + ML Kit licence question no longer applies to a release cut after T1 (the build
+leaves ML Kit out; v0.2.0-v0.4.0, built from their tags, still carry it). What remains for Light is
+whether it signs a GPLv3 Tool; the owner decides what to tell Light. Optional: Always Use
 HTTPS/HSTS on the Relay's zone (the Worker already refuses plain HTTP, L3).
 FOLLOW-UPS (low, from code review; none blocking):
 - #21: drop a kept Missed tap on `onAppPause` too; a single-threaded main dispatcher in
@@ -86,10 +88,11 @@ LAST SESSION: 2026-10-03
     noclobber and message the Reader session before and after (Doom is finished, 2026-09-28). The
     chess emulator is LightPhone3-chess on emulator-5556; never touch 5554.
 - Waiting on the maintainer (none blocks development):
-  - Light: a GPLv3 Tool (and GPL alongside the SDK's proprietary ML Kit); production push; an
+  - Light: a GPLv3 Tool (ML Kit is out of the APK since T1); production push; an
     alert/badge method; a privacy statement; listing requirements; the SDK's 1 s splash; and the
     scanner's bare-`javaClass` gap (light-sdk).
-  - The submission in Light's portal: v0.1.0 is safe; hold v0.2.0 and later for the licence answer.
+  - The submission in Light's portal: v0.1.0 is safe; v0.2.0-v0.4.0 carry ML Kit, so the next
+    candidate is the first release after T1, once Light answers on a GPLv3 Tool.
   - Maybe: release the CC0 opening Book as its own repo (builder MIT, book.bin CC0) after checking
     whether a CC0 Polyglot book already exists.
   - Stockfish: installed (Homebrew, 19) and run on 2026-09-29; the UCI_Elo fit was not consistent,
@@ -187,9 +190,11 @@ The order is STATUS's (0.4.0, then v3 PR 3). Also open, unscheduled:
    deviation settles near 73-74 (about 48 Puzzles to lose the "?"), so the 45 floor is never
    reached.
 3. v2.x: "Play from here" (F7, decision log R4.15).
-4. Licence: Light's SDK bundles Google's proprietary ML Kit barcode library (~20 MB). With GPLv3
-   Pirarucu in the same APK this is a compatibility question for Light (the maintainer asks). Our
-   own code can carry a linking exception; Pirarucu's can't. Karballo (MIT) stays the fallback.
+4. Licence: settled for ML Kit by T1. Light's SDK pulls in Google's proprietary ML Kit barcode
+   library (~20 MB) for its QR scanner, which Chess never shows; `tool/build.gradle.kts` excludes it
+   with Play services, Firebase, Data Transport and CameraX (lightphone/light-sdk#178), so a GPLv3
+   Pirarucu no longer shares the APK with it. Open for Light: will it sign a GPLv3 Tool. Karballo
+   (MIT) stays the fallback.
 
 ## Open outside questions (none blocks development)
 - Light: will they sign a GPLv3 Tool; is production push live for Tools; is an alert or badge method
@@ -197,8 +202,9 @@ The order is STATUS's (0.4.0, then v3 PR 3). Also open, unscheduled:
 - light-sdk: the reflection scan misses a bare `javaClass` call (`LightSdkPlugin.kt:119`). Under
   Light's AI policy, the maintainer must report it personally.
 - light-sdk: every Tool's APK gets INTERNET, CAMERA and six more permissions merged in from the
-  SDK's libraries (OkHttp, Google datatransport, WorkManager, Media3, CameraX), whatever
+  SDK and its libraries (OkHttp, `sdk:ui`'s own manifest, WorkManager, Media3), whatever
   `lighttool.toml` declares. So About says "Chess never uses the network" rather than "No network
-  permission" (D5 holds for what the Tool declares). The SDK also bundles Google's proprietary ML
-  Kit barcode binary (`libbarhopper_v3.so`, about 20 MB of the 28 MB APK across four ABIs): part of
-  Light's GPL question.
+  permission" (D5 holds for what the Tool declares). The SDK also brings Google's proprietary ML
+  Kit barcode binary (`libbarhopper_v3.so`, about 20 MB across four ABIs) for its QR scanner; Chess
+  excludes it (T1: the release APK went from 29.4 MB to 7.4 MB). lightphone/light-sdk#178 asks for
+  the scanner to be opt-in; the CAMERA permission stays until it is, since `sdk:ui` declares it.
