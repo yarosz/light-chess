@@ -3,6 +3,7 @@ package com.yarosz.chess.relay
 import com.yarosz.chess.correspondence.Correspondence
 import com.yarosz.chess.correspondence.CorrespondenceStore
 import com.yarosz.chess.correspondence.Delivery
+import com.yarosz.chess.correspondence.LiveOwner
 import com.yarosz.chess.correspondence.Stage
 import com.yarosz.chess.rules.DrawReason
 import com.yarosz.chess.rules.Result
@@ -14,6 +15,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeTrue
 
@@ -33,6 +38,15 @@ class RelayEndToEndTest {
     }
 
     private fun done(delivery: Delivery) = assertIs<Delivery.Done>(delivery, "$delivery").game
+
+    /** Waits up to 10 s of real time for [condition]. */
+    private suspend fun waitFor(what: String, condition: () -> Boolean) {
+        repeat(100) {
+            if (condition()) return
+            delay(100)
+        }
+        throw AssertionError("timed out: $what")
+    }
 
     @Test
     fun `two phones play through the local Worker`() = runBlocking<Unit> {
@@ -92,6 +106,32 @@ class RelayEndToEndTest {
         done(a.acceptDraw(r))
         b.syncAll()
         assertEquals(Result.Draw(DrawReason.AGREEMENT), b.game(r)!!.log!!.game.result)
+
+        // The live socket (G3, U5) over OkHttp's WebSocket: Live once both are here, a Move pushed
+        // and read at once, and Live gone when one phone leaves.
+        val live = OkHttpLiveConnector(url, OkHttpLiveConnector.client(OkHttpTransport.defaultClient()))
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val liveA = LiveOwner(a, live, scope)
+        val liveB = LiveOwner(b, live, scope)
+        assertNotNull(done(b.offerRematch(r)))
+        a.syncAll()
+        val third = assertNotNull(done(a.acceptRematch(r))).gameId
+        b.syncAll()
+        try {
+            liveA.watch(third)
+            liveB.watch(third)
+            waitFor("both phones Live") { liveA.view.live && liveB.view.live }
+            val white = if (a.game(third)!!.seat.side == Side.WHITE) a else b
+            val black = if (white === a) b else a
+            done(white.play(third, white.game(third)!!.log!!.game.position.moveFromUci("e2e4")!!))
+            waitFor("the Move pushed to the other phone") { black.game(third)!!.log!!.game.ply == 1 }
+            liveB.unwatch(third, now = true)
+            waitFor("Live gone with B's socket") { !liveA.view.live }
+            assertTrue(liveA.view.open)
+        } finally {
+            liveA.unwatch(third, now = true)
+            liveB.unwatch(third, now = true)
+        }
 
         // An invite cancelled before anyone redeems it.
         val spare = assertNotNull(done(a.createInvite(Side.BLACK)))

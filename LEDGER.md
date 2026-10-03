@@ -1,13 +1,18 @@
 # Ledger
 
 STATUS: released v0.1.0 (Puzzles), v0.2.0 (the computer), v0.3.0 (Play a friend), v0.3.1 (the v3
-review follow-ups, L1-L5, W12/W13) and v0.4.0 (Navigation D and layout E, N1-N23 and E1-E15; the
-Puzzles page; Captured Pieces from each edge; no coordinate on a marked square, K1; the computer's
-Move slides in once), each a tagged commit on main with a notes-only GitHub Release. The Relay is
-live at `https://chess-relay.yarosz.com` (W11, protocol 1.0). Next, in order:
-1. This PR: leave ML Kit and its Google dependencies out of the APK (T1), then release 0.4.1 so the
-   first submission candidate carries no ML Kit.
-2. v3 PR 3, the live WebSocket (see "Next" under HANDOFF below).
+review follow-ups, L1-L5, W12/W13) and v0.4.0 (#29: Navigation D and layout E, N1-N23 and E1-E15;
+the Puzzles page; Captured Pieces from each edge; no coordinate on a marked square, K1; the
+computer's Move slides in once), each a tagged commit on main with a notes-only GitHub Release. #30
+(T1) is merged, unreleased. The Relay is live at `https://chess-relay.yarosz.com` (W11, protocol
+1.0). Next, in order:
+1. Release 0.4.1: #30 left ML Kit and its Google dependencies out of the APK (T1), so the first
+   submission candidate carries no ML Kit. The LP3 checks still open are under LP3 CHECKS below.
+2. In progress: v3 PR 3, the live WebSocket, #31 on `feat/v3-live` (decision log U1-U6).
+   Client only; the Relay's `/live` is deployed and unchanged. U4's privacy sentences were approved
+   by the owner on 2026-10-03; before merge the orchestrator checks it on the emulator and on two
+   phones (the PR's checklist).
+3. Then, in its own PR: Takeback after the computer ends a Game.
 FOR THE OWNER (none blocks development): the submission to Light's portal. Every tag so far carries
 ML Kit; v0.1.0 is safe to submit because it has no GPL engine, while v0.2.0-v0.4.0 pair GPLv3
 Pirarucu with ML Kit. The GPLv3 + ML Kit question no longer applies to a release cut after T1, which
@@ -41,19 +46,21 @@ Sets on the physical panel (owner's eyes or photos), and Hint taps during a repl
 DONE (details in the PRs and the decision log): the v1 stack and 0.1.0 (LP3-checked 2026-09-29),
 the v2 forward merge (M1-M7) and 0.2.0, the Relay deploy and v3 (#3, #10 P3) and 0.3.0, 0.3.1, then
 #16-#26 above.
-LAST SESSION: 2026-10-03
+LAST SESSION: 2026-10-03 (v3 PR 3 built)
 
 ## HANDOFF (read first when resuming)
 - Every feature branch (the v1 stack, v2's engine, Levels, record, Book and game screen, v3's
   Relay, client and Play a friend) is merged to main and released. Rulings: decision log "v2 PR 4"
   (R4.1-R4.17), "v3 PR 1" (V1-V15), "v3 PR 2" (W1-W10, Y1-Y14); screens: DESIGN.md.
-- Next: v3 PR 3, the live WebSocket (`/live`, G3: ping every 5 s while the board shows, closed in
-  onAppPause, "Live · Your move" / "Live · Their move"), which replaces Y12's one-minute board sync.
+- Next: merge v3 PR 3, the live WebSocket (`feat/v3-live`; `/live`, G3; decision log U1-U6): a
+  socket per process for the board on screen (`LiveOwner`, `LiveConnection`), "Live · Your move" /
+  "Live · Their move", and Y12's one-minute board sync only while the socket is down (U3).
   Done on the LP3 (2026-09-29): LightOS disables Doze (PLATFORM.md). A one-off friend-send job
   delivered a Move that had failed to send once a local Relay was back (via adb reverse), with no
   user action, and a second phone on the JVM saw it.
 - For the maintainer: the privacy wording is approved (UiCopy.PRIVACY_FRIENDS, docs/privacy.md,
-  ADR 0004); still ask Light whether a privacy statement is needed.
+  ADR 0004), with v3 PR 3's presence sentences (U4) approved on 2026-10-03; still ask Light whether
+  a privacy statement is needed.
 - Deferred from PR 4: "Play from here" (F7) from a Puzzle's start (R4.15: its own entry on the
   puzzle screen, a decided-Position test, "Ends your current game"); a draw offer while the computer
   thinks (R4.5: on the user's Move only); exact replay at Level 8 (clock-bound). Not measured: the
@@ -172,13 +179,16 @@ LAST SESSION: 2026-10-03
   (`mise run ui tap "GOT IT"`). The LP3 is shared through the lease in the umbrella PLATFORM.md.
 - Correspondence client (v3 PR 1, feat/v3-client): `tool/src/main/kotlin/com/yarosz/chess/relay/`
   and `correspondence/`; tests in the same packages under `tool/src/test/` (`FakeRelay`,
-  `FlakyTransport`, `Phones.kt`). Decision log "v3 PR 1".
+  `FlakyTransport`, `Phones.kt`). Decision log "v3 PR 1". The live socket (v3 PR 3):
+  `correspondence/LiveConnection.kt` (pure) and `LiveOwner.kt`, the `LiveConnector` seam in
+  `relay/RelayTransport.kt`, FakeRelay's live sockets; decision log "v3 PR 3".
 - Relay (v3): `docs/protocol.md` v1.0 is the wire contract; `relay/` is the Worker +
   `CorrespondenceGame` Durable Object (`cd relay && npm test`, Node >= 22), deployed and live at the
   W11 URL (relay/README.md "Deploying").
 
 ## Next
-The order is STATUS's (0.4.0, then v3 PR 3). Also open, unscheduled:
+The order is STATUS's (0.4.1, then v3 PR 3, then Takeback after the computer ends a
+Game). Also open, unscheduled:
 1. On the LP3: a photo of the shades through the grayscale filter (D10), and `signoff/lp3` in
    `ci.sh`. Time to the first Puzzle on resume was about 1,035 ms (2026-09-28, debug build), just
    after LightActivity's 1 s splash (target <= 1.5 s, decision log "v1 PR 4 rulings").

@@ -23,6 +23,11 @@ import kotlinx.serialization.json.put
  *
  * For the tests that a real Relay can't stage, [tamper] appends an entry without any check (a
  * Relay bug, or a phone the protocol can't catch), and [rewrite] changes a stored entry.
+ *
+ * The live socket ([live], game.ts's presence over WebSocket Hibernation): a Seat is here while it
+ * has an open socket heard from (open or ping) in the last 10 seconds of [now]; every open and close
+ * tells both sockets, every ping is answered, and every append is pushed. What a socket hears is
+ * delivered once the operation that caused it is done, as a real socket's messages come later.
  */
 class FakeRelay(var now: Long = START, seed: Int = 1) : RelayTransport {
     private val random = Random(seed)
@@ -39,9 +44,9 @@ class FakeRelay(var now: Long = START, seed: Int = 1) : RelayTransport {
 
     override suspend fun exchange(request: RelayRequest): RelayResponse = handle(request)
 
-    fun handle(request: RelayRequest): RelayResponse {
+    fun handle(request: RelayRequest): RelayResponse = outer {
         requests += request.toString()
-        return try {
+        try {
             route(request)
         } catch (e: Refusal) {
             refusals.merge(e.code, 1, Int::plus)
@@ -74,9 +79,135 @@ class FakeRelay(var now: Long = START, seed: Int = 1) : RelayTransport {
         list[(seq - 1).toInt()] = change(list[(seq - 1).toInt()])
     }
 
-    /** Deletes the Game, as the retention alarm does. */
-    fun delete(gameId: String) {
+    /** Deletes the Game, as the retention alarm does: its sockets close with 4004. */
+    fun delete(gameId: String) = outer {
         games.remove(gameId)
+        for (socket in sockets.remove(gameId).orEmpty()) {
+            socket.open = false
+            later { socket.listener.onClosed(4004) }
+        }
+    }
+
+    // ---- The live socket (game.ts fetch, webSocketMessage, webSocketClose) --------------------
+
+    private val sockets = HashMap<String, MutableList<FakeSocket>>()
+    private val outbox = ArrayDeque<() -> Unit>()
+    private var depth = 0
+
+    /** How many sockets were asked for, refused ones included. */
+    var liveOpens = 0
+        private set
+
+    /** The live endpoint as a [LiveConnector]. */
+    fun live(): LiveConnector = LiveConnector { gameId, secret, listener -> openLive(gameId, secret, listener) }
+
+    /** The open sockets of [gameId]. */
+    fun liveSockets(gameId: String): Int = sockets[gameId].orEmpty().count { it.open }
+
+    /** [side]'s sockets of [gameId] go silent both ways, as on a network that died without a close. */
+    fun silence(gameId: String, side: Side, silent: Boolean = true) {
+        for (socket in sockets[gameId].orEmpty()) if (socket.side == side) socket.silent = silent
+    }
+
+    /** [side]'s sockets of [gameId] break with no close frame (OkHttp reports a failure with no response). */
+    fun breakLive(gameId: String, side: Side) = outer {
+        for (socket in sockets[gameId].orEmpty().filter { it.side == side && it.open }) {
+            socket.open = false
+            sockets.getValue(gameId).remove(socket)
+            later { socket.listener.onFailure(null) }
+        }
+        broadcastPresence(gameId)
+    }
+
+    private inner class FakeSocket(val gameId: String, val side: Side, val listener: LiveListener, var lastSeen: Long) : LiveSocket {
+        var open = true
+        var silent = false
+
+        override fun send(text: String) = outer {
+            if (!open || silent) return@outer
+            val type = runCatching { Protocol.json.parseToJsonElement(text).jsonObject["type"] }.getOrNull()
+            if (text.toByteArray().size > MAX_LIVE_BYTES || type != JsonPrimitive("ping")) {
+                deliver(this, """{"type":"error","code":"bad_request"}""")
+                return@outer
+            }
+            lastSeen = now
+            deliver(this, presence(gameId, side))
+        }
+
+        override fun close() = outer {
+            if (!open) return@outer
+            open = false
+            sockets[gameId]?.remove(this)
+            broadcastPresence(gameId)
+        }
+    }
+
+    private fun openLive(gameId: String, secret: String, listener: LiveListener): LiveSocket = outer {
+        liveOpens++
+        requests += "GET /v1/games/$gameId/live"
+        val game = live(gameId)
+        val side = game?.seatOf(secret)
+        val status = when {
+            game == null -> 404
+            side == null -> 401
+            game.invite != null -> 409
+            else -> null
+        }
+        if (status != null || side == null) {
+            later { listener.onFailure(status) }
+            return@outer object : LiveSocket {
+                override fun send(text: String) {}
+                override fun close() {}
+            }
+        }
+        val list = sockets.getOrPut(gameId) { mutableListOf() }
+        for (old in list.filter { it.side == side }) {
+            old.open = false
+            list.remove(old)
+            later { old.listener.onClosed(4001) }
+        }
+        val socket = FakeSocket(gameId, side, listener, now)
+        list += socket
+        later { listener.onOpen() }
+        broadcastPresence(gameId)
+        socket
+    }
+
+    private fun isHere(gameId: String, side: Side): Boolean =
+        sockets[gameId].orEmpty().any { it.open && it.side == side && now - it.lastSeen < PRESENCE_TIMEOUT }
+
+    private fun presence(gameId: String, side: Side): String {
+        val opponentHere = isHere(gameId, side.opponent)
+        return buildJsonObject {
+            put("type", "presence"); put("live", opponentHere && isHere(gameId, side))
+            put("opponent", if (opponentHere) "here" else "gone"); put("serverTime", now)
+        }.toString()
+    }
+
+    private fun broadcastPresence(gameId: String) {
+        for (socket in sockets[gameId].orEmpty().filter { it.open }) deliver(socket, presence(gameId, socket.side))
+    }
+
+    private fun deliver(socket: FakeSocket, text: String) = later { if (socket.open && !socket.silent) socket.listener.onMessage(text) }
+
+    private fun later(delivery: () -> Unit) {
+        outbox.addLast(delivery)
+        if (depth == 0) drain()
+    }
+
+    /** Runs [block] as one operation of the Relay; what it made sockets hear is delivered after it. */
+    private fun <T> outer(block: () -> T): T {
+        depth++
+        try {
+            return block()
+        } finally {
+            depth--
+            if (depth == 0) drain()
+        }
+    }
+
+    private fun drain() {
+        while (outbox.isNotEmpty()) outbox.removeFirst().invoke()
     }
 
     // ---- Routing (index.ts) ------------------------------------------------------------------
@@ -339,6 +470,8 @@ class FakeRelay(var now: Long = START, seed: Int = 1) : RelayTransport {
             "rematchDecline" -> game.rematch = game.rematch!!.copy(answer = "decline")
         }
         game.deleteAt = now + RETENTION
+        val pushed = buildJsonObject { put("type", "entry"); put("entry", Protocol.json.encodeToJsonElement(LogEntry.serializer(), entry)) }.toString()
+        for (socket in sockets[gameId].orEmpty().filter { it.open }) deliver(socket, pushed)
         return ok(buildJsonObject { put("entry", Protocol.json.encodeToJsonElement(LogEntry.serializer(), entry)) }, 201)
     }
 
@@ -431,6 +564,10 @@ class FakeRelay(var now: Long = START, seed: Int = 1) : RelayTransport {
         const val RETENTION = 30 * Protocol.DAY_MS
         const val MAX_ENTRIES = 2_000
         const val REDEEM_LIMIT = 10
+
+        /** game.ts: PRESENCE_TIMEOUT_MS and MAX_WS_MESSAGE_BYTES. */
+        const val PRESENCE_TIMEOUT = 10_000L
+        const val MAX_LIVE_BYTES = 256
 
         val STATUS = mapOf(
             "bad_request" to 400, "unsupported_version" to 400, "bad_seat_secret" to 401, "not_your_turn" to 403,
