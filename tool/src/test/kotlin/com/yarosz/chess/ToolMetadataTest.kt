@@ -101,8 +101,20 @@ class ToolMetadataTest {
     fun `About's notices name the same libraries as NOTICE`() {
         val notice = words(File("../NOTICE").readText())
         for (library in listOf("kotlinx.serialization", "kotlinx.coroutines", "Jetpack Compose and AndroidX", "OkHttp",
-            "Protocol Buffers", "SLF4J", "ML Kit", "Light's SDK")) {
+            "Protocol Buffers", "SLF4J", "Light's SDK")) {
             assertTrue(library in notices && library in notice, library)
+        }
+    }
+
+    @Test
+    fun `the build leaves out the SDK's QR scanner stack, and About credits none of it (T1)`() {
+        val build = File("build.gradle.kts").readText()
+        for (group in listOf("com.google.mlkit", "com.google.android.gms", "com.google.firebase",
+            "com.google.android.datatransport", "com.google.android.odml", "androidx.camera")) {
+            assertTrue("exclude(group = \"$group\")" in build, group)
+        }
+        for (name in listOf("ML Kit", "CameraX", "Play services", "Firebase")) {
+            assertTrue(name !in words(notices), "About credits $name, which the build leaves out")
         }
     }
 }
