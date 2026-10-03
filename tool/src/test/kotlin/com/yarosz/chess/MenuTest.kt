@@ -94,6 +94,24 @@ class MenuTest {
     }
 
     @Test
+    fun `at a Result the computer's Move made, Takeback is the first row, and the action row keeps Next (X1)`() {
+        val level3 = GameFlow.start(GameState(), GameChoices(level = 3, side = SideChoice.WHITE), 1L, "2026.10.03")
+        var mated = level3
+        for ((user, computer) in listOf("f2f3" to "e7e5", "g2g4" to "d8h4")) {
+            mated = GameFlow.play(mated, mated.record!!.game.position.moveFromUci(user)!!)
+            mated = GameFlow.computerMoved(mated, GameFlow.computerReply(mated, null)!!, computer, 0)
+        }
+        assertTrue(mated.record!!.game.isOver)
+        assertEquals(
+            listOf(GameMenuEntry.TAKEBACK, GameMenuEntry.FLIP, GameMenuEntry.MOVES, GameMenuEntry.NEW_GAME),
+            GameMenu.of(mated).mapNotNull { it.entry },
+        )
+        assertEquals(listOf(GameButton.NEXT), GameStrip.of(mated, null).buttons)
+        assertTrue(GameStrip.of(mated, null).menu)
+        assertFalse(GameStrip.of(mated, 0).menu, "no Menu, so no Takeback, in Review (N21)")
+    }
+
+    @Test
     fun `a Correspondence Game's Menu holds its actions, Moves and Rename, and no place (N5)`() {
         val yours = scenes.yourMove()
         val menu = FriendMenu.of(yours, FriendState(games = listOf(yours)), confirming = null)

@@ -76,7 +76,16 @@ data class GameState(
     /** The Side drawn at the bottom: the user's, unless the board is flipped (D10, v2). */
     val bottom: Side get() = (record?.userSide ?: Side.WHITE).let { if (data.flipped) it.opponent else it }
 
-    val canTakeBack: Boolean get() = record?.canTakeBack == true && phase != Phase.OVER
+    /**
+     * A Takeback is possible: after the user's first Move while the Game goes on, and at a Result
+     * the computer's own Move made, for the Game that ended last (X1, amending "Takeback rule
+     * corrected").
+     */
+    val canTakeBack: Boolean
+        get() {
+            val record = record ?: return false
+            return record.canTakeBack && (phase != Phase.OVER || data.endedLast(record))
+        }
 
     /**
      * The Ply from which the user may offer a draw again (G1: 10 more Moves after an offer, counted as
@@ -226,11 +235,16 @@ object GameFlow {
         return saved(state, record.withComputerMove(move, white))
     }
 
-    /** A Takeback ("Takeback rule corrected"): the owner stops any search first. */
+    /**
+     * A Takeback ("Takeback rule corrected", X1): the owner stops any search first. At a Result the
+     * finished Game comes off the Games list and is in progress again.
+     */
     fun takeback(state: GameState): GameState {
         val record = state.record ?: return state
         if (!state.canTakeBack) return state
-        return saved(state, record.takeback()).copy(hint = null, hintPending = false, drawResponse = null, confirming = null)
+        val back = record.takeback()
+        val data = if (state.phase == Phase.OVER) state.data.reopen(record, back) else state.data.save(back)
+        return state.copy(data = data, record = back, hint = null, hintPending = false, drawResponse = null, confirming = null)
     }
 
     /** Asks for a Game Hint on the user's turn; the owner then searches [hintRequest]. */
