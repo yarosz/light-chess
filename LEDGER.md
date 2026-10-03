@@ -9,7 +9,7 @@ notes-only GitHub Release. The Relay is live at `https://chess-relay.yarosz.com`
 1. Done: the LEDGER refresh (#27), the domain pass (#28, tag `domain-pass/0.4.0`) and the 0.4.0
    release (#29, tag `v0.4.0`, GitHub Release "Chess 0.4.0"). The LP3 checks still open are under
    LP3 CHECKS below.
-2. In progress: v3 PR 3, the live WebSocket, on `feat/v3-live` (decision log "v3 PR 3", U1-U6).
+2. In progress: v3 PR 3, the live WebSocket, #31 on `feat/v3-live` (decision log U1-U6).
    Client only; the Relay's `/live` is deployed and unchanged. Before merge: the maintainer approves
    U4's privacy sentence, and the orchestrator checks it on the emulator and on two phones (the
    PR's checklist).
