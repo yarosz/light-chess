@@ -12,6 +12,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -103,6 +104,30 @@ class GameStoreTest {
         assertEquals(inProgress.takebacks + 1, resumed.takebacks)
         assertEquals(back.game.events, resumed.game.events)
         assertEquals(Side.BLACK, resumed.game.position.sideToMove, "the user's move again")
+    }
+
+    @Test
+    fun `a Game the computer's Move ended is reopened by a Takeback, once, through the file (X1)`() {
+        val playing = GameRecord(Game.of(), Side.WHITE, level = 3, date = "2026.10.03", seed = 7L).play("f2f3", "e7e5", "g2g4")
+        val mated = playing.play("d8h4")
+        assertTrue(mated.game.isOver && mated.endedByComputersMove)
+        val store = GameStore(dir)
+        store.save(GameData().save(finished(1)).save(playing).save(mated))
+        val ended = store.load()!!
+        assertEquals(listOf(mated, finished(1)), ended.history())
+        val shown = ended.history().first()
+        assertTrue(ended.endedLast(shown))
+        val back = shown.takeback()
+        store.save(ended.reopen(shown, back))
+
+        val reopened = store.load()!!
+        assertEquals(back, reopened.resume())
+        assertEquals(listOf("f2f3", "e7e5"), reopened.resume()!!.game.moves.map { it.uci })
+        assertEquals(1, reopened.resume()!!.takebacks)
+        assertEquals(listOf(finished(1)), reopened.history(), "no duplicate, no orphan")
+        assertEquals(back.game.position.fen, reopened.current!!.fen, "the checkpoint")
+        assertFalse(reopened.endedLast(shown))
+        assertFailsWith<IllegalArgumentException> { reopened.reopen(shown, back) }
     }
 
     @Test

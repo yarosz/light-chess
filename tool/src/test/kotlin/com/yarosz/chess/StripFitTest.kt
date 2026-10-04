@@ -222,6 +222,9 @@ class StripFitTest {
             val record = GameRecord(Game.of(), side)
             add(GameStrip.of(GameState(GameData(), recordWith(record, result)), null))
             add(GameStrip.of(GameState(GameData(), recordWith(record, result)), 99))
+            // The Game that ended last, saved: "Takeback · Next" where the computer's own Move made the Result (X1).
+            val ended = recordWith(record, result)
+            add(GameStrip.of(GameState(GameData().save(ended), ended), null))
         }
     }
 
@@ -250,10 +253,12 @@ class StripFitTest {
         }
         is Result.Draw -> when (result.by) {
             DrawReason.AGREEMENT -> Game.of() + DrawOffer(Side.WHITE) + DrawAcceptance(Side.BLACK)
-            DrawReason.STALEMATE -> play("k7/8/8/2Q5/8/8/8/7K w - - 0 1", "c5b6")
+            // Each automatic draw is White's Move after one of Black's, so that with the user as Black
+            // the computer's Move makes it and the Result offers Takeback (X1).
+            DrawReason.STALEMATE -> play("1k6/8/8/2Q5/8/8/8/7K b - - 0 1", "b8a8", "c5b6")
             DrawReason.REPETITION -> play(null, "g1f3", "g8f6", "f3g1", "f6g8", "g1f3", "g8f6", "f3g1", "f6g8")
-            DrawReason.FIFTY_MOVE_RULE -> play("8/8/8/4k3/8/8/4K3/R7 w - - 99 60", "a1a2")
-            DrawReason.INSUFFICIENT_MATERIAL -> play("8/8/8/4k3/8/8/3pK3/8 w - - 0 1", "e2d2")
+            DrawReason.FIFTY_MOVE_RULE -> play("8/8/8/4k3/8/8/4K3/R7 b - - 98 60", "e5d5", "a1a2")
+            DrawReason.INSUFFICIENT_MATERIAL -> play("8/8/8/4k3/8/8/3pK3/8 b - - 0 1", "e5f5", "e2d2")
         }
     }
 
@@ -552,6 +557,10 @@ class StripFitTest {
             UiCopy.gameResult(Result.Draw(DrawReason.FIFTY_MOVE_RULE), Side.WHITE),
             UiCopy.gameResult(Result.Win(Side.WHITE, WinReason.RESIGNATION), Side.WHITE),
         )) assertTrue(status in boardCases.map { it.status } && status !in twoLines, "\"$status\" on one title line")
+        // The Results that show "Takeback · Next" (X1) keep their title, the widest among them included.
+        val takebackResults = boardCases.filter { it.buttons == listOf(UiCopy.TAKEBACK, UiCopy.NEXT) }.map { it.status }
+        assertTrue(UiCopy.gameResult(Result.Draw(DrawReason.FIFTY_MOVE_RULE), Side.BLACK) in takebackResults)
+        assertTrue(takebackResults.none { it in twoLines }, "one title line beside Takeback · Next: $takebackResults")
         // Today every status takes one line in the stand-in (the widest, "Tap a piece, then a square", 234
         // of 240 dp): the second line is E3's margin for Akkurat and for new copy.
         assertTrue(twoLines.size * 10 < boardCases.map { it.status }.distinct().size, "two lines are rare: $twoLines")
@@ -592,8 +601,9 @@ class StripFitTest {
             val width = buttonsWidth(case.buttons)
             assertTrue((LP3_WIDTH_DP - width) / 2 >= side, "${case.buttons} ($width dp) start at ${(LP3_WIDTH_DP - width) / 2} dp, the board at $side dp")
         }
-        // The widest set, Accept and Decline, keeps well inside the board.
+        // The widest sets, Accept and Decline and the Result's Takeback and Next (X1), keep inside the board.
         assertTrue(boardCases.any { it.buttons == listOf(UiCopy.ACCEPT, UiCopy.DECLINE) })
+        assertTrue(boardCases.any { it.buttons == listOf(UiCopy.TAKEBACK, UiCopy.NEXT) })
     }
 
     /**
