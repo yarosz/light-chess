@@ -62,7 +62,7 @@ class GameOwner(
 
     private val motions = MutableStateFlow<Motion?>(null)
 
-    /** The computer's Move, sliding in over 200 ms as it lands (F11). */
+    /** The Move sliding in over 200 ms as it lands: the computer's (F11), or the user's (Z1). */
     val motion: StateFlow<Motion?> = motions
     private var motionId = 0
     private var slideEnd: Job? = null
@@ -100,13 +100,19 @@ class GameOwner(
 
     // --- Actions (main thread) ---
 
-    fun play(move: Move) {
+    /**
+     * The user's [move]. [slide]: it was made by tap-tap, so it slides in from its origin as the
+     * computer's do; a dropped Move lands at once (Z1). The computer's reply, no sooner than
+     * [REPLY_MS] later, starts after this 200 ms slide has ended.
+     */
+    fun play(move: Move, slide: Boolean = false) {
         val before = states.value ?: return
         val next = GameFlow.play(before, move)
         if (next === before) return
         stopHint()
         userMovedAt = SystemClock.uptimeMillis()
-        motions.value = null
+        val played = next.record?.game?.moves?.lastOrNull()
+        if (slide && played != null) slide(played) else clearSlide()
         set(next)
     }
 
@@ -122,7 +128,7 @@ class GameOwner(
         if (next === before) return
         stopThinking()
         stopHint()
-        motions.value = null
+        clearSlide()
         set(next)
     }
 
@@ -190,7 +196,7 @@ class GameOwner(
         }
         stopThinking()
         stopHint()
-        motions.value = null
+        clearSlide()
         userMovedAt = SystemClock.uptimeMillis()
         set(next)
         // Level 8's table carries over between its Moves; a new Game starts it clean.
@@ -306,8 +312,9 @@ class GameOwner(
     }
 
     /**
-     * Slides the computer's [move] in. Once it has played, the slide is over: a board that comes back
-     * (from its Menu, or a Menu action) shows the Move where it landed, as Puzzles do.
+     * Slides [move] in: the computer's, or the user's made by tap-tap (Z1). A new slide supersedes
+     * the one before. Once it has played, the slide is over: a board that comes back (from its
+     * Menu, or a Menu action) shows the Move where it landed, as Puzzles do.
      */
     private fun slide(move: Move) {
         val motion = Motion(move, ++motionId, Motion.ENGINE_MS)
@@ -317,6 +324,11 @@ class GameOwner(
             delay(SLIDE_KEPT_MS)
             if (motions.value == motion) motions.value = null
         }
+    }
+
+    private fun clearSlide() {
+        slideEnd?.cancel()
+        motions.value = null
     }
 
     private fun loadBook(): Book? {
@@ -344,7 +356,7 @@ class GameOwner(
         /** The computer's Move lands no sooner than this after the user's (A5's reply delay). */
         const val REPLY_MS = 300L
 
-        /** How long the computer's slide stays published: long enough for the board on screen to play it. */
+        /** How long a slide stays published: long enough for the board on screen to play it. */
         const val SLIDE_KEPT_MS = 2L * Motion.ENGINE_MS
 
         /** How long a Game Hint stays on the board ("briefly", B5). */

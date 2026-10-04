@@ -21,6 +21,8 @@ import com.yarosz.chess.rules.Square
  * - King onto its own rook castles, as Lichess accepts (A4), by tap or by drop.
  * - A pawn reaching the last rank opens the [promotion] picker; the next tap chooses the piece, or
  *   cancels when it lands outside the picker.
+ * - A Move completed by tap-tap slides in from its origin; one dropped lands at once, where the
+ *   finger left it ([Step.slides], Z1). A promotion slides when the pawn got to the picker by tap.
  *
  * [movable] lists the Sides whose pieces the user may move; the side to move must be one of them.
  */
@@ -34,14 +36,23 @@ data class MoveInput(
     val dragOver: Square? = null,
     val promotion: PromotionChoice? = null,
 ) {
-    /** The next [input], and the Move the gesture completed, if any. */
-    data class Step(val input: MoveInput, val move: Move? = null)
+    /**
+     * The next [input], and the Move the gesture completed, if any. [slides]: the Move was made by
+     * tap-tap, so the board slides it in from its origin; a dropped Move lands at once (Z1).
+     */
+    data class Step(val input: MoveInput, val move: Move? = null, val slides: Boolean = false)
 
     /**
      * A pawn Move waiting for its piece: [squares] are the picker's cells on the promotion file,
      * from the promotion square inward, holding [PieceType.PROMOTIONS] in order (queen first).
+     * [dropped]: the pawn was dropped on [to], so the chosen Move lands without a slide (Z1).
      */
-    data class PromotionChoice(val from: Square, val to: Square, val side: Side) {
+    data class PromotionChoice(
+        val from: Square,
+        val to: Square,
+        val side: Side,
+        val dropped: Boolean = false,
+    ) {
         val squares: List<Square>
             get() {
                 val step = if (to.rank == 7) -1 else 1
@@ -67,12 +78,12 @@ data class MoveInput(
     fun tap(square: Square): Step {
         promotion?.let { choice ->
             val type = choice.typeAt(square) ?: return Step(copy(selected = null, promotion = null))
-            return complete(Move(choice.from, choice.to, type))
+            return complete(Move(choice.from, choice.to, type), dropped = choice.dropped)
         }
         if (!canMove) return Step(this)
         val from = selected ?: return Step(if (isOwnPiece(square)) copy(selected = square) else this)
         if (square == from) return Step(copy(selected = null))
-        moveTo(from, square)?.let { return it }
+        moveTo(from, square, dropped = false)?.let { return it }
         return Step(copy(selected = if (isOwnPiece(square)) square else null))
     }
 
@@ -89,7 +100,7 @@ data class MoveInput(
         val from = dragFrom ?: return Step(this)
         val settled = copy(dragFrom = null, dragOver = null)
         if (square == null || square == from) return Step(settled)
-        return settled.moveTo(from, square) ?: Step(settled)
+        return settled.moveTo(from, square, dropped = true) ?: Step(settled)
     }
 
     fun cancelDrag(): MoveInput = copy(dragFrom = null, dragOver = null)
@@ -109,25 +120,34 @@ data class MoveInput(
         Touch.Cancel -> Step(cancelDrag())
     }
 
-    /** The Move from [from] to [square] if one is legal, as a completed Step or an open promotion. */
-    private fun moveTo(from: Square, square: Square): Step? {
+    /**
+     * The Move from [from] to [square] if one is legal, as a completed Step or an open promotion;
+     * [dropped] says the piece was dropped there rather than tapped (Z1).
+     */
+    private fun moveTo(from: Square, square: Square, dropped: Boolean): Step? {
         val candidates = position.legalMoves.filter { it.from == from && it.to == square }
         if (candidates.isNotEmpty()) {
             if (candidates.any { it.promotion != null }) {
                 val side = position.pieceAt(from)!!.side
-                return Step(copy(selected = from, promotion = PromotionChoice(from, square, side)))
+                val choice = PromotionChoice(from, square, side, dropped)
+                return Step(copy(selected = from, promotion = choice))
             }
-            return complete(candidates.single())
+            return complete(candidates.single(), dropped)
         }
         // King onto its own rook: the rules core turns it into the castling Move when that is legal (A4).
         val piece = position.pieceAt(from)
         if (piece?.type == PieceType.KING && position.pieceAt(square) == Piece.of(piece.side, PieceType.ROOK)) {
-            position.moveFromUci(from.name + square.name)?.let { return complete(it) }
+            position.moveFromUci(from.name + square.name)?.let { return complete(it, dropped) }
         }
         return null
     }
 
-    private fun complete(move: Move): Step = Step(copy(selected = null, dragFrom = null, dragOver = null, promotion = null), move)
+    private fun complete(move: Move, dropped: Boolean): Step =
+        Step(
+            copy(selected = null, dragFrom = null, dragOver = null, promotion = null),
+            move,
+            slides = !dropped,
+        )
 
     private fun isOwnPiece(square: Square): Boolean = position.pieceAt(square)?.side == position.sideToMove
 

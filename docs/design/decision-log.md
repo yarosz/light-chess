@@ -111,6 +111,8 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
   stored piece unless the move mates.
 - A5 500 ms hold, 250 ms setup animation, reply 300 ms after the user's move lands; the side to move
   after the setup move is at the bottom; last-move marker always; "White/Black to move" in the strip.
+  (The user's Move AMENDED by Z1: made by tap-tap it slides in over 250 ms, and "lands" is the
+  moment it is played, so the reply comes 50 ms after that slide ends.)
 - A6 One hint level: a ring on the piece to move; the attempt becomes unrated; a hint after a mistake
   is free.
 - A7 Glicko-2 1500 / RD 500 / vol 0.09 / RD floor 45 (SUPERSEDES R1.5's RD 350); one puzzle = one
@@ -244,6 +246,8 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
   ("cburnett only" and "Icon: gray cburnett knight" SUPERSEDED by P1: Chess's own CC0 set, and its
   knight for an icon; "cburnett only" then "one set" SUPERSEDED by P2: two sets, and the Piece Set is
   v1's one setting, so "no v1 settings" is SUPERSEDED by P2 for it alone.)
+  ("user moves instant" SUPERSEDED by Z1: the user's Move made by tap-tap slides in, at the
+  opponent's speed on that board; a dropped one stays instant.)
 Contradictions resolved:
  1 No theme filter in v1 (R1.5's filter moves to v1.x).
  2 The strip shows <= 3 buttons chosen by context: your turn = Takeback, Game Hint, Menu; engine
@@ -1002,6 +1006,7 @@ Rulings the log didn't make, each the one most consistent with it, taken while b
   real fix needs an application-level asset reader in Light's SDK (a question for Light).
 - V5 The stage clock restarts only when the Attempt on screen changed, and a slide is cleared once
   it has played or once its Move is no longer the latest (`slideAfter`, `restartsClock`).
+  (EXTENDED by Z1: the user's tap-tap Move slides too, under the same rules.)
 
 ## Pieces: two sets, the player's choice (owner, 2026-09-29)
 - P2 EXTENDS P1 to two sets and SUPERSEDES F11's "no v1 settings" for this one choice. RULING: the
@@ -1714,6 +1719,31 @@ From the review of the Puzzles page PR (#20).
   line, CameraX, javax.inject and the AutoValue annotations, which only that stack brought.
   `ToolMetadataTest` and `scripts/release-check.sh apk` guard it. Upstream: lightphone/light-sdk#178
   asks for the scanner to be opt-in.
+
+## The user's own Moves slide (owner, 2026-10-03)
+- Z1 AMENDS F11's "user moves instant" and A5's user-Move timing. Contradiction: the opponent's
+  Moves slide in (A5, F11) while the user's own appeared at once, so a Move made by tap-tap, with
+  the finger nowhere near the piece, jumped. RULING (owner): the user's own Moves slide too, in
+  Puzzles and in Games against the computer. Scope (orchestrator):
+  - A Move made by tap-tap (select a piece, then tap a square) slides in from its origin at the
+    speed of the opponent's slide on that board: 250 ms in a Puzzle (`Motion.MS`), 200 ms in a Game
+    (`Motion.ENGINE_MS`). A press that lifted no piece and released counts as a tap.
+  - A Move made by drag and drop lands at once where it was dropped: the piece was under the finger.
+  - A promotion chosen in the picker slides when the pawn reached the picker by tap-tap, and lands
+    when it was dropped there (`PromotionChoice.dropped`).
+  - Castling slides the king and the rook jumps, as the opponent's castling does: `Motion` slides
+    the piece on the Move's destination, and the castling Move is the king's.
+  - `MoveInput.Step.slides` says which; the screen passes it to `PuzzleOwner.play` and
+    `GameOwner.play` as `slide`.
+  - "Lands" (A5) stays the moment the Move is played, not the slide's end: the Puzzle's reply
+    (`Attempt.REPLY_MS`, 300 ms) and the computer's Move (`GameOwner.REPLY_MS`, 300 ms) both come
+    after the user's 250 ms or 200 ms slide has ended, so the two never overlap. Tests pin both
+    inequalities.
+  - The slide follows V5 and #26: it is cleared once it has played (`SLIDE_KEPT_MS`), so a board
+    back from its Menu doesn't replay it; the opponent's next slide supersedes it; a wrong Move in a
+    Puzzle is never drawn, so it never slides (A3).
+  - Games with a friend (`FriendOwner`) are out of scope here: their Moves get slides later, with
+    the rewrite of that code.
 
 ## v3 PR 3: the live socket (owner and implementation, 2026-10-03)
 The client side of `/live` (docs/protocol.md, C1, G3, W7); the Relay's side was built and tested in

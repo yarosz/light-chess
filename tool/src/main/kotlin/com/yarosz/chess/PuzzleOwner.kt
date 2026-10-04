@@ -105,7 +105,12 @@ class PuzzleOwner(
 
     fun seed(rating: Double) = act { flow.seed(it, rating) }
 
-    fun play(move: Move) = act { flow.play(it, move) }
+    /** The user's [move]; [slide]: it was made by tap-tap, so it slides in from its origin (Z1). */
+    fun play(move: Move, slide: Boolean = false) {
+        val session = sessions.value ?: return
+        touched()
+        set(flow.play(session, move), ownSlide = slide)
+    }
 
     fun hint() = act(flow::hint)
 
@@ -269,13 +274,14 @@ class PuzzleOwner(
         set(change(session))
     }
 
-    private fun set(next: PuzzleState, save: Boolean = false) {
+    /** [ownSlide]: [next] may hold the user's own Move made by tap-tap, which slides in (Z1). */
+    private fun set(next: PuzzleState, save: Boolean = false, ownSlide: Boolean = false) {
         val before = sessions.value
         sessions.value = next
         pieceSets.value = next.data.pieceSet
         val was = before?.attempt
         val now = next.attempt
-        val motion = slideAfter(was, now, motions.value, motionId + 1)
+        val motion = slideAfter(was, now, motions.value, motionId + 1, ownSlide)
         if (motion != motions.value) {
             if (motion != null) motionId = motion.id
             motions.value = motion
@@ -326,7 +332,10 @@ class PuzzleOwner(
         /** D3 and contradiction 4: five minutes since the last touch or wheel event. */
         const val AWAKE_MS = 5 * 60 * 1000L
 
-        /** How long a slide stays after it starts: its 250 ms and a margin for the first frame. */
+        /**
+         * How long a slide stays after it starts: its 250 ms and a margin for the first frame. The
+         * user's own slide (Z1) ends before the reply (A5's 300 ms), so the two never overlap.
+         */
         private const val SLIDE_KEPT_MS = 2L * Motion.MS
 
         private val owners = HashMap<String, PuzzleOwner>()
@@ -352,13 +361,22 @@ internal fun withPieceSet(opened: PuzzleState, chosen: PieceSet?): PuzzleState =
 private val Stage.auto: Boolean get() = this != Stage.PLAY && this != Stage.DONE
 
 /**
- * The slide the board shows once [now] replaces [was] (A5, F11), given the slide [current] shown so
- * far: a Move that played itself (setup, reply, Solution) slides in as [id]. Otherwise [current]
- * stays only while its Move is still the latest, so the user's own Move onto that square never slides
- * in from the opponent's origin, and a new Puzzle starts with none.
+ * The slide the board shows once [now] replaces [was] (A5, Z1), given the slide [current] shown so
+ * far: a Move that played itself (setup, reply, Solution) slides in as [id], and so does the
+ * user's own Move when [ownSlide] says it was made by tap-tap. Otherwise [current] stays only while
+ * its Move is still the latest, so a dropped Move onto that square never slides in from the
+ * opponent's origin, and a new Puzzle starts with none.
  */
-internal fun slideAfter(was: Attempt?, now: Attempt?, current: Motion?, id: Int): Motion? = when {
-    now != null && was != null && now.puzzle == was.puzzle && now.moves.size == was.moves.size + 1 && was.stage.auto ->
+internal fun slideAfter(
+    was: Attempt?,
+    now: Attempt?,
+    current: Motion?,
+    id: Int,
+    ownSlide: Boolean = false,
+): Motion? = when {
+    now != null && was != null && now.puzzle == was.puzzle &&
+        now.moves.size == was.moves.size + 1 &&
+        (was.stage.auto || ownSlide && was.stage == Stage.PLAY) ->
         Motion(now.moves.last(), id)
     now?.puzzle != was?.puzzle -> null
     current != null && now?.moves?.lastOrNull() != current.move -> null

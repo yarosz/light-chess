@@ -29,12 +29,45 @@ class PuzzleOwnerTest {
     private val afterReply = reply.advance()
 
     @Test
-    fun `a Move that plays itself slides in, and the user's own doesn't`() {
+    fun `a Move that plays itself slides in, and the user's own dropped Move doesn't`() {
         val setupSlide = slideAfter(hold, setup, null, 1)
         assertEquals(Motion(puzzle.setupMove, 1), setupSlide)
         val replySlide = slideAfter(reply, afterReply, setupSlide, 2)
         assertEquals(Motion(puzzle.solution[1], 2), replySlide)
         assertEquals(replySlide, slideAfter(afterReply, afterReply.hint(), replySlide, 3), "still the latest Move")
+    }
+
+    @Test
+    fun `the user's own Move slides in by tap-tap, and lands at once when dropped (Z1)`() {
+        val setupSlide = Motion(puzzle.setupMove, 1)
+        val tapped = slideAfter(play, reply, setupSlide, 2, ownSlide = true)
+        assertEquals(Motion(puzzle.solution[0], 2), tapped)
+        val dropped = slideAfter(play, reply, setupSlide, 2, ownSlide = false)
+        assertNull(dropped, "dropped: no slide at all")
+        // The last Move of the line (Solved) slides too.
+        val lastTurn = afterReply.play(puzzle.solution[2])
+        assertEquals(Stage.DONE, lastTurn.stage)
+        val last = slideAfter(afterReply, lastTurn, null, 3, ownSlide = true)
+        assertEquals(Motion(puzzle.solution[2], 3), last)
+    }
+
+    @Test
+    fun `the reply supersedes the user's slide, which ends before it (Z1, A5)`() {
+        val ownSlide = slideAfter(play, reply, Motion(puzzle.setupMove, 1), 2, ownSlide = true)
+        assertEquals(Motion(puzzle.solution[1], 3), slideAfter(reply, afterReply, ownSlide, 3))
+        // Hint while the reply is pending keeps the user's slide: its Move is still the latest.
+        assertEquals(ownSlide, slideAfter(reply, reply.hint(), ownSlide, 3))
+        // The reply waits for the slide to end, so the two never overlap on the board.
+        assertTrue(Motion.MS < Attempt.REPLY_MS)
+    }
+
+    @Test
+    fun `a wrong Move made by tap-tap never slides, as it is never drawn (A3)`() {
+        val setupSlide = Motion(puzzle.setupMove, 1)
+        val wrong = play.positions.last().legalMoves.first { it != puzzle.solution[0] }
+        val tried = play.play(wrong)
+        assertEquals(play.moves, tried.moves)
+        assertEquals(setupSlide, slideAfter(play, tried, setupSlide, 2, ownSlide = true))
     }
 
     @Test
