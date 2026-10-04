@@ -1138,7 +1138,8 @@ feat/v3; main's M4 above (a v2 review fix) reached main first, so they are M5 an
     its pawns at the edge and the right end its queens. Pieces of one kind overlap like a fanned hand,
     the inner piece over the outer. Every captured piece is drawn; nothing is summarised, and the row
     never wraps (`CapturedRowTest` proves the widest row, fifteen pieces at each end with a +103
-    Material Lead, keeps its two ends apart).
+    Material Lead, keeps its two ends apart). (AMENDED by J1: the bottom Side's end is at the right,
+    the top Side's at the left, each starting at its edge with its pawns; a flip still swaps them.)
   - Sizes (`CapturedRowLayout`), from the mock-up's 52, 17 and 50 px at 3 px per dp: drawings 17 dp,
     5.5 dp from one piece to the next of its kind, 16.5 dp to the next kind, 3 dp below the board.
     (AMENDED by E13: drawings 15 dp, steps 5 and 14.5 dp, the mock-up's proportions; 3 dp holds.)
@@ -1459,7 +1460,8 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   dp. RULING: on a Game's board the Captured Pieces are the action row's top line: their drawings 3
   dp under the board's bottom edge (P3's original placement), across the board's full 312 dp. The
   bottom Side's end files in from the board's left edge, the top Side's from its right edge, and the
-  Material Lead sits after the leading Side's end, as P3 has it. The two ends tighten by `fit`'s one
+  Material Lead sits after the leading Side's end, as P3 has it (AMENDED by J1: the bottom Side's
+  end from the right edge, the top Side's from the left). The two ends tighten by `fit`'s one
   factor only when they would meet across the full width: fifteen a Side with a lead of 103 either
   way keep P3's steps there, with every piece drawn and the ends apart, so on the LP3 `fit` never
   acts; it stays for the extreme cases (a narrower board). The row no longer depends on the buttons,
@@ -1515,7 +1517,7 @@ place) are gone from the code; the strip is the invite page's and the Play a fri
   the ink; the Puzzle board's ink is centred in the whole row), `theCapturedPiecesRunFromEachEdgeOfTheBoard`
   (fifteen a Side, lead -103, 0 and 103, both Sides at the bottom: P3's steps, every piece inside the
   board, the bottom Side's end at the left edge, the top Side's at the right, the lead after the
-  leading end). They replace `theCapturedPiecesShareTheActionRow`,
+  leading end; J1 swaps the edges). They replace `theCapturedPiecesShareTheActionRow`,
   `theCapturedPiecesStayStillAsTheButtonsChange` and `everyBoardButtonIsInItsBoardsButtonSets`.
   That the Captured Pieces stay still as the buttons change is by construction (`CapturedRow` takes
   no buttons), and no unit test sees it. Nor does one see each button's full-height target: it is by
@@ -1858,3 +1860,35 @@ consistent with the log.
     automatic draw, resign, agreed draw, the user's own mate and stalemate, a Game not the newest),
     `GameStoreTest` (the round trip through the file), `GameOwnerTest` (the owner's Games page),
     `MenuTest` (the Result's Menu and action row), `StripFitTest` ("Takeback · Next" fits).
+
+## Captured Pieces: the ends swapped (owner, 2026-10-03)
+- J1 The bottom Side's end at the right. AMENDS P3's ends ("at the left end the pieces the Side at
+  the bottom of the board has taken ... both ends read pawn ... queen from left to right") and E12's
+  ("the bottom Side's end files in from the board's left edge"). RULING: the Captured Pieces the
+  Side at the bottom of the board has taken (the user's, as a rule) file in from the board's RIGHT
+  edge, the top Side's from its LEFT edge. The row still follows the board as drawn: a flipped board
+  swaps the two ends, as P3 has it. Each end starts at its own edge with its pawns, then knights,
+  bishops, rooks and queens going inwards, so the left end reads pawn to queen from left to right
+  (as P3's left end did) and the right end queen to pawn, its pawns at the right edge (P3's right
+  end mirrored). The fanned hand keeps "the inner piece over the outer" at both ends: each end is
+  drawn from its edge inwards (`CapturedRowLayout.place`), so a later drawing lies nearer the
+  middle. The Material Lead stays just inside the leading Side's end: at the right when the bottom
+  Side leads. Sizes, steps, `fit`'s one factor and the crowded row (fifteen a Side, a lead of 103
+  either way, ends apart at P3's steps) are unchanged; each end's geometry is the old one mirrored.
+  - Accessibility (orchestrator's choice): the label keeps naming Sides and keeps the bottom Side
+    first, "Captured by White: ... Captured by Black: ..." with White at the bottom, though its end
+    is now the row's right one. The meaning is unchanged (the user's captures first); a screen
+    reader reads the label, not the row's left-to-right order. Rejected: reading the left end
+    first, which would put the opponent's captures first only because of where they are drawn.
+  - Why: the owner reviewed mocks of both placements, a Lichess-style net difference, and the
+    flipped and Black-at-the-bottom cases (2026-10-03). chess.com and Lichess show each player's
+    captures beside that player's name and move them on a flip; over-the-board custom (no FIDE or
+    US Chess rule covers it) keeps captured pieces beside the player who took them; nothing
+    documented says where strong players put them. Left against right is the owner's preference.
+  - Tests: `CapturedRowTest.theBottomSidesCapturesStartAtTheRightEdgeAndTheOthersAtTheLeft`
+    (replaces `theBottomSidesCapturesStartAtTheLeftEdgeAndTheOthersAtTheRight`),
+    `aFlippedBoardSwapsTheEnds`, `eachEndIsDrawnFromItsEdgeInwards` (new: pawns at each edge,
+    queens innermost, each end drawn from its edge inwards, both Sides at the bottom),
+    `noLeadWhenLevelAndALeadAtTheEdgeWhenItsSideTookNothing` (the lead at the left or the right
+    edge by Side), `theWidestRowFitsTheBoardWithoutItsEndsMeeting`;
+    `StripFitTest.theCapturedPiecesRunFromEachEdgeOfTheBoard` with the edges swapped.

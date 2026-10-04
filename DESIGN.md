@@ -76,8 +76,8 @@ to bottom (decision log "Layout E"):
   no arrow, mark or status. On a Game's board it has two lines:
   - The Captured Pieces' line (E12, P3), 18 dp: the drawings 3 dp under the board's bottom edge, 15 dp
     tall (`BarLayout.PIECES_LINE`), across the board's full width. The bottom Side's end files in
-    from the board's left edge, the top Side's from its right edge. It depends on nothing but the
-    captures and the Ply shown, so it moves only when a piece is taken or Review steps.
+    from the board's right edge, the top Side's from its left edge (J1). It depends on nothing but
+    the captures and the Ply shown, so it moves only when a piece is taken or Review steps.
   - The buttons' line (E13), under it: this moment's buttons (the tables below), in `Copy`, centred
     as a group on the screen, each target the row's full height (the pieces take no touches). The
     labels' ink, 0.964 em (19.45 dp `Copy`: its tallest letter 0.75 em above the baseline, a
@@ -97,7 +97,7 @@ a friend list keep LightOS's top bar and the strip at their foot ("The strip" be
 The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). The puzzle
 flow puts the side to move after the setup Move at the bottom (A5). The game screen puts the user's
 Side at the bottom; "Flip board" in the Menu turns it (D10, v2), and the flip is kept in `games.json`.
-The Captured Pieces row stays aligned with the board's left edge.
+The Captured Pieces row follows the board as drawn: a flip swaps its two ends (P3, J1).
 
 ## Palette (D10)
 
@@ -423,13 +423,16 @@ Ply on screen, en passant included, a promoted pawn taken later as the piece it 
 draws them and `CapturedRowTest` checks the layout:
 
 - One row, the action row's top line (E12): the drawings 3 dp under the board, across its full 312
-  dp. Left end: what the Side at the bottom has taken, from the board's left edge; right end: the
-  other Side's, from the board's right edge; both reading pawn, knight, bishop, rook, queen from
-  left to right (pawns at the left edge, queens at the right). One kind fans out, 5 dp a piece; the
-  next kind starts 14.5 dp on; drawings are 15 dp (E13: the mock-up's proportions, 52, 17 and 50 px,
-  at 45 px). The widest row (fifteen a side, "+103") fits the board's width with P3's steps and its
-  ends apart; `CapturedRowLayout.fit` stays for anything wider (one factor on every step until the
-  ends are 4 dp apart, so every piece is still drawn), and never acts on the LP3.
+  dp. Right end: what the Side at the bottom (the user, as a rule) has taken, from the board's right
+  edge; left end: the other Side's, from the board's left edge (J1, amending P3 and E12). Each end
+  starts at its edge with its pawns, then knights, bishops, rooks and queens going inwards: the left
+  end reads pawn to queen from left to right, the right end queen to pawn. One kind fans out, 5 dp
+  a piece; the next kind starts 14.5 dp on; drawings are 15 dp (E13: the mock-up's proportions, 52,
+  17 and 50 px, at 45 px). The widest row (fifteen a side, "+103") fits the board's width with
+  P3's steps and its ends apart; `CapturedRowLayout.fit` stays for anything wider (one factor on
+  every step until the ends are 4 dp apart, so every piece is still drawn), and never acts on the
+  LP3. Each end is drawn from its edge inwards, so in a fanned kind the inner piece lies over the
+  outer at both ends.
 - The row doesn't depend on the buttons (E12, superseding E6's room): it is placed at the board's
   width whatever is shown, and the buttons have their own line below it.
 - The Material Lead, "+7", in Superfine and the secondary content colour just inside the leading
@@ -441,7 +444,8 @@ draws them and `CapturedRowTest` checks the layout:
   strip, with the text lowered below it, was superseded by E4; E4's and E6's place beside the
   buttons by E12.)
 - Its label: "Captured by White: two pawns, a queen. Captured by Black: a knight. White is ahead by
-  7.", the bottom Side first; "Material is even." when neither leads.
+  7.", the bottom Side first (its end is the right one since J1); "Material is even." when
+  neither leads.
 
 Every game status holds one line of the top bar's title in the stand-in, Results included (E3).
 R4.16 set the copy when the status shared D's strip with the buttons: in Akkurat, "Your move"

@@ -50,58 +50,86 @@ class CapturedRowTest {
     private val sample = captured(listOf(PAWN, PAWN, KNIGHT, QUEEN), listOf(PAWN, ROOK))
 
     @Test
-    fun theBottomSidesCapturesStartAtTheLeftEdgeAndTheOthersAtTheRight() {
+    fun theBottomSidesCapturesStartAtTheRightEdgeAndTheOthersAtTheLeft() {
+        // J1: White at the bottom; its captures (Black's pieces) at the right, Black's at the left.
         val row = place(sample, Side.WHITE)
         val s = CapturedRowLayout.SAME_STEP
         val k = CapturedRowLayout.KIND_STEP
         val right = board - CapturedRowLayout.SIZE
         assertEquals(
             listOf(
-                // Left, from the edge inwards: pawns outermost, grouped by kind, each kind fanned.
-                Placed(Piece.BLACK_PAWN, 0f), Placed(Piece.BLACK_PAWN, s), Placed(Piece.BLACK_KNIGHT, s + k),
-                Placed(Piece.BLACK_QUEEN, s + 2 * k),
-                // Right, from the edge inwards: the heaviest kind outermost, so it reads pawn to queen too.
-                Placed(Piece.WHITE_ROOK, right), Placed(Piece.WHITE_PAWN, right - k),
-            ),
-            row.pieces,
-        )
-        // White is ahead by 8: the lead sits just inside White's end, at the left.
-        assertEquals("+8", row.lead)
-        assertEquals(s + 2 * k + CapturedRowLayout.SIZE + CapturedRowLayout.LEAD_GAP, row.leadX)
-        assertEquals(row.leadX + leadWidth("+8"), row.leftEnd)
-        assertEquals(right - k, row.rightStart)
-    }
-
-    @Test
-    fun aFlippedBoardSwapsTheEnds() {
-        val row = place(sample, Side.BLACK)
-        val k = CapturedRowLayout.KIND_STEP
-        val s = CapturedRowLayout.SAME_STEP
-        val right = board - CapturedRowLayout.SIZE
-        assertEquals(
-            listOf(
+                // Left, from the edge inwards: pawns outermost, so it reads pawn to rook.
                 Placed(Piece.WHITE_PAWN, 0f), Placed(Piece.WHITE_ROOK, k),
-                Placed(Piece.BLACK_QUEEN, right), Placed(Piece.BLACK_KNIGHT, right - k),
-                Placed(Piece.BLACK_PAWN, right - 2 * k), Placed(Piece.BLACK_PAWN, right - 2 * k - s),
+                // Right, from the edge inwards: pawns outermost too, grouped by kind, each kind
+                // fanned, so it reads queen to pawn from left to right.
+                Placed(Piece.BLACK_PAWN, right), Placed(Piece.BLACK_PAWN, right - s),
+                Placed(Piece.BLACK_KNIGHT, right - s - k), Placed(Piece.BLACK_QUEEN, right - s - 2 * k),
             ),
             row.pieces,
         )
-        // White, now at the top, leads: "+8" just inside the right end.
-        val inner = right - 2 * k - s
+        // White, at the bottom, is ahead by 8: the lead sits just inside White's end, at the right.
+        assertEquals("+8", row.lead)
+        val inner = right - s - 2 * k
         assertEquals(inner - CapturedRowLayout.LEAD_GAP - leadWidth("+8"), row.leadX)
         assertEquals(row.leadX, row.rightStart)
         assertEquals(k + CapturedRowLayout.SIZE, row.leftEnd)
     }
 
     @Test
+    fun aFlippedBoardSwapsTheEnds() {
+        // Black at the bottom: Black's captures (White's pieces) at the right, White's at the left.
+        val row = place(sample, Side.BLACK)
+        val k = CapturedRowLayout.KIND_STEP
+        val s = CapturedRowLayout.SAME_STEP
+        val right = board - CapturedRowLayout.SIZE
+        assertEquals(
+            listOf(
+                Placed(Piece.BLACK_PAWN, 0f), Placed(Piece.BLACK_PAWN, s), Placed(Piece.BLACK_KNIGHT, s + k),
+                Placed(Piece.BLACK_QUEEN, s + 2 * k),
+                Placed(Piece.WHITE_PAWN, right), Placed(Piece.WHITE_ROOK, right - k),
+            ),
+            row.pieces,
+        )
+        // White, now at the top, leads: "+8" just inside the left end.
+        assertEquals(s + 2 * k + CapturedRowLayout.SIZE + CapturedRowLayout.LEAD_GAP, row.leadX)
+        assertEquals(row.leadX + leadWidth("+8"), row.leftEnd)
+        assertEquals(right - k, row.rightStart)
+    }
+
+    /**
+     * P3's fanned hand, the inner piece over the outer, at both ends: each end is drawn from its edge
+     * inwards, so a later drawing is always nearer the middle than an earlier one of its end.
+     */
+    @Test
+    fun eachEndIsDrawnFromItsEdgeInwards() {
+        val all = List(8) { PAWN } + List(2) { KNIGHT } + List(2) { BISHOP } + List(2) { ROOK } + QUEEN
+        for (bottom in Side.entries) {
+            val row = place(CapturedPieces(all, all, 0), bottom)
+            val left = row.pieces.filter { it.piece.side == bottom }
+            val right = row.pieces.filter { it.piece.side == bottom.opponent }
+            assertEquals(row.pieces, left + right, "the left end, then the right")
+            assertTrue(left.zipWithNext().all { (a, b) -> b.x > a.x }, "left: $left")
+            assertTrue(right.zipWithNext().all { (a, b) -> b.x < a.x }, "right: $right")
+            // Pawns at each edge, queens innermost.
+            assertEquals(PAWN, left.minBy { it.x }.piece.type)
+            assertEquals(PAWN, right.maxBy { it.x }.piece.type)
+            assertEquals(QUEEN, left.last().piece.type)
+            assertEquals(QUEEN, right.last().piece.type)
+        }
+    }
+
+    @Test
     fun noLeadWhenLevelAndALeadAtTheEdgeWhenItsSideTookNothing() {
         val level = place(captured(listOf(KNIGHT), listOf(BISHOP)), Side.WHITE)
         assertNull(level.lead)
-        // Only a promotion gives Black the lead: its "+4" stands at the right edge.
+        // Only a promotion gives Black, at the top, the lead: its "+4" stands at the left edge.
         val promoted = place(CapturedPieces(emptyList(), emptyList(), -4), Side.WHITE)
         assertEquals("+4", promoted.lead)
-        assertEquals(board - leadWidth("+4"), promoted.leadX)
+        assertEquals(0f, promoted.leadX)
         assertEquals(emptyList(), promoted.pieces)
+        // With Black at the bottom it stands at the right edge.
+        val flipped = place(CapturedPieces(emptyList(), emptyList(), -4), Side.BLACK)
+        assertEquals(board - leadWidth("+4"), flipped.leadX)
     }
 
     /**
@@ -124,7 +152,8 @@ class CapturedRowTest {
         }
         // The widest end is fifteen pieces of five kinds: well under half the board.
         val end = 10 * CapturedRowLayout.SAME_STEP + 4 * CapturedRowLayout.KIND_STEP + CapturedRowLayout.SIZE
-        assertEquals(end, place(CapturedPieces(fifteen, emptyList(), 0), Side.WHITE).leftEnd)
+        assertEquals(end, place(CapturedPieces(emptyList(), fifteen, 0), Side.WHITE).leftEnd)
+        assertEquals(board - end, place(CapturedPieces(fifteen, emptyList(), 0), Side.WHITE).rightStart)
         assertTrue(end < board / 2)
     }
 
@@ -270,7 +299,7 @@ class CapturedRowTest {
             "Captured by White: two pawns, a knight, a queen. Captured by Black: a pawn, a rook. White is ahead by 8.",
             UiCopy.capturedPieces(sample, Side.WHITE),
         )
-        // The bottom Side's end first, as the row reads.
+        // The bottom Side first (J1), though its end is now the row's right one.
         assertEquals(
             "Captured by Black: a pawn, a rook. Captured by White: two pawns, a knight, a queen. White is ahead by 8.",
             UiCopy.capturedPieces(sample, Side.BLACK),
