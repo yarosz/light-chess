@@ -26,8 +26,8 @@ class BoundaryTest {
 
     @Test
     fun `only FriendOwner constructs the Relay's client, the transport and the sync engine`() {
-        val constructions = Regex("""\b(OkHttpTransport|RelayClient|Correspondence)\(""")
-        val definitions = setOf("relay/RelayTransport.kt", "relay/RelayClient.kt", "correspondence/Correspondence.kt")
+        val constructions = Regex("""\b(OkHttpTransport|OkHttpLiveConnector|RelayClient|Correspondence|LiveOwner)\(""")
+        val definitions = setOf("relay/RelayTransport.kt", "relay/RelayClient.kt", "correspondence/Correspondence.kt", "correspondence/LiveOwner.kt")
         val uses = sources()
             .filter { it.relativeTo(main).path !in definitions }
             .flatMap { file -> lines(file).filter { constructions.containsMatchIn(it) }.map { "${file.relativeTo(main)}: ${it.trim()}" } }
@@ -36,16 +36,36 @@ class BoundaryTest {
     }
 
     @Test
-    fun `FriendOwner makes a client only after checking that the URL is set`() {
+    fun `FriendOwner makes a client and the live connector only after checking that the URL is set`() {
         val owner = File(main, "FriendOwner.kt").readText()
         val check = owner.indexOf("if (url.isEmpty()) return null")
-        val client = owner.indexOf("RelayClient(OkHttpTransport(url))")
+        val client = owner.indexOf("RelayClient(OkHttpTransport(url, http))")
+        val live = owner.indexOf("OkHttpLiveConnector(url, ")
         assertTrue(check in 0 until client, "the URL check comes before the client")
+        assertTrue(check in 0 until live, "the URL check comes before the live connector")
+    }
+
+    @Test
+    fun `only a Correspondence Game's board asks for a live socket (ADR 0004 rule 2, U6)`() {
+        val callers = { call: Regex ->
+            sources()
+                .filter { file -> file.name != "FriendOwner.kt" && !file.relativeTo(main).path.startsWith("correspondence/") }
+                .filter { file -> lines(file).any { call.containsMatchIn(it) } }
+                .map { it.relativeTo(main).path }
+                .sorted()
+                .toList()
+        }
+        assertEquals(listOf("FriendGameScreen.kt"), callers(Regex("""\.(watch|unwatch)\(""")))
+        // A pause only closes: every Play a friend screen that can be on top over a board, or just after one, calls it.
+        assertEquals(
+            listOf("FriendGameScreen.kt", "FriendListScreen.kt", "FriendScreen.kt"),
+            callers(Regex("""\bfriends\??\.pause\(""")),
+        )
     }
 
     @Test
     fun `Puzzles and Games against the computer never reach the network`() {
-        val network = Regex("""\b(FriendOwner|OkHttpTransport|RelayClient|Correspondence|okhttp3)\b""")
+        val network = Regex("""\b(FriendOwner|OkHttpTransport|OkHttpLiveConnector|LiveConnector|LiveOwner|RelayClient|Correspondence|okhttp3)\b""")
         for (path in listOf("PuzzleOwner.kt", "GameOwner.kt", "games", "puzzles", "engine", "book", "rules", "board")) {
             val root = File(main, path)
             val files = if (root.isDirectory) root.walkTopDown().filter { it.isFile }.toList() else listOf(root)

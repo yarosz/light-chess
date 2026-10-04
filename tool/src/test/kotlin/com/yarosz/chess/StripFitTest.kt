@@ -136,6 +136,9 @@ class StripFitTest {
                 val theirs = scenes.theirMove()
                 add(FriendStrip.of(yours, now))
                 add(FriendStrip.of(theirs, now))
+                // Live (G3, U2): in place of the plain "Your move · 2d" and "Their move · 2d".
+                add(FriendStrip.of(yours, now, live = true))
+                add(FriendStrip.of(theirs, now, live = true))
                 add(FriendStrip.of(theirs, now, reviewPly = 0))
                 // Review at its widest Ply numbers, as on the computer's board (R4.16).
                 add(FriendStrip.of(theirs, now, reviewPly = 0).copy(status = UiCopy.review(9999, 9999)))
@@ -178,6 +181,48 @@ class StripFitTest {
             assertEquals(if (strip.status in resultCopy) StripLayout.STATUS_MAX_LINES else 1, strip.statusLines, "\"${strip.status}\"")
         }
         assertTrue(friendStrips.none { s -> s.buttons.any { it.label == UiCopy.HINT || it.label == UiCopy.TAKEBACK } }, "no Game Hint or Takeback (W10)")
+    }
+
+    /**
+     * U2: Live replaces only the plain status lines, without Time Left; Draw?, Time is up, a chosen
+     * Move's SAN, Sending, Not sent, a notice, a stop, Review and the end keep their place. The
+     * widest Live line holds one title line.
+     */
+    @Test
+    fun liveReplacesOnlyThePlainStatusLines() {
+        val scenes = FriendScenes()
+        try {
+            val now = scenes.now
+            val yours = scenes.yourMove()
+            val theirs = scenes.theirMove()
+            assertEquals(UiCopy.LIVE_YOUR_MOVE, FriendStrip.of(yours, now, live = true).status)
+            assertEquals(UiCopy.LIVE_THEIR_MOVE, FriendStrip.of(theirs, now, live = true).status)
+            assertEquals(FriendStrip.of(yours, now).buttons, FriendStrip.of(yours, now, live = true).buttons)
+            val (sent, offered) = scenes.rematch()
+            val notSent = scenes.notSent()
+            val drawOffered = scenes.drawOffered()
+            val timeUp = scenes.timeUp()
+            val over = scenes.over()
+            val kept: List<(Boolean) -> FriendStrip> = listOf<(Boolean) -> FriendStrip>(
+                { live -> FriendStrip.of(yours, now, sending = true, live = live) },
+                { live -> FriendStrip.of(notSent, now, live = live) },
+                { live -> FriendStrip.of(drawOffered, now, live = live) },
+                { live -> FriendStrip.of(timeUp, scenes.now, live = live) },
+                { live -> FriendStrip.of(yours, now, chosen = yours.log!!.game.position.moveFromUci("e2e4"), live = live) },
+                { live -> FriendStrip.of(yours, now, notice = UiCopy.NOT_YET, live = live) },
+                { live -> FriendStrip.of(theirs, now, reviewPly = 0, live = live) },
+                { live -> FriendStrip.of(over, now, live = live) },
+                { live -> FriendStrip.of(sent, now, live = live) },
+                { live -> FriendStrip.of(offered, now, live = live) },
+            ) + HaltReason.entries.map { reason -> scenes.stopped(reason) }.map { game -> { live: Boolean -> FriendStrip.of(game, now, live = live) } }
+            for (strip in kept) assertEquals(strip(false), strip(true))
+            assertTrue(kept.none { "Live" in it(true).status })
+        } finally {
+            scenes.clean()
+        }
+        val room = BarLayout.titleMaxWidth(LP3_WIDTH_DP.dp).value
+        val widest = listOf(UiCopy.LIVE_YOUR_MOVE, UiCopy.LIVE_THEIR_MOVE).maxBy(::titleWidth)
+        assertEquals(listOf(widest), wrapBy(widest, room, ::titleWidth), "\"$widest\" on one title line")
     }
 
     /** The game strips must hold one line wherever [GameStrip] says so: all but the Results. */
@@ -355,7 +400,7 @@ class StripFitTest {
             UiCopy.ENTER_CODE, UiCopy.SEND, UiCopy.UNDO, UiCopy.SENDING, UiCopy.NOT_SENT, UiCopy.RETRY, UiCopy.DRAW_QUESTION,
             UiCopy.ACCEPT, UiCopy.DECLINE, UiCopy.TIME_IS_UP, UiCopy.CLAIM_WIN, UiCopy.OUT_OF_SYNC, UiCopy.UPDATE_CHESS,
             UiCopy.GAME_DELETED, UiCopy.SEAT_LOST, UiCopy.CANCEL, UiCopy.CANCEL_CONFIRM, UiCopy.REMATCH, UiCopy.REMATCH_SENT,
-            UiCopy.REMATCH_OFFERED, UiCopy.NOT_YET, UiCopy.OFFER_NOT_SENT,
+            UiCopy.REMATCH_OFFERED, UiCopy.NOT_YET, UiCopy.OFFER_NOT_SENT, UiCopy.LIVE_YOUR_MOVE, UiCopy.LIVE_THEIR_MOVE,
         )) assertTrue(copy in used, "\"$copy\" is not checked")
         for (reason in Refusal.entries) assertTrue(UiCopy.refusal(reason) in used, "\"${UiCopy.refusal(reason)}\" is not checked")
         for (result in results) for (side in Side.entries) {
