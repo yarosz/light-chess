@@ -10,11 +10,14 @@ import com.yarosz.chess.correspondence.Correspondence
 import com.yarosz.chess.correspondence.CorrespondenceGame
 import com.yarosz.chess.correspondence.CorrespondenceStore
 import com.yarosz.chess.correspondence.Delivery
+import com.yarosz.chess.correspondence.LiveOwner
 import com.yarosz.chess.correspondence.PendingSeat
 import com.yarosz.chess.correspondence.Refusal
 import com.yarosz.chess.correspondence.SyncReport
 import com.yarosz.chess.relay.Append
 import com.yarosz.chess.relay.EntryKind
+import com.yarosz.chess.relay.LiveConnector
+import com.yarosz.chess.relay.OkHttpLiveConnector
 import com.yarosz.chess.relay.OkHttpTransport
 import com.yarosz.chess.relay.RelayClient
 import com.yarosz.chess.relay.RelayConfig
@@ -49,6 +52,10 @@ data class FriendState(
     val chosen: Map<String, Move> = emptyMap(),
     val sending: Set<String> = emptySet(),
     val notices: Map<String, Notice> = emptyMap(),
+    /** The Game whose live socket is open (G3): its board needs no one-minute poll (Y12). */
+    val linked: String? = null,
+    /** The Game that is Live: its socket open, and the Relay reporting both Seats here (G3). */
+    val live: String? = null,
 ) {
     fun game(gameId: String): CorrespondenceGame? = games.firstOrNull { it.gameId == gameId }
 
@@ -95,14 +102,22 @@ class LightSyncJobs(private val context: SealedLightContext) : SyncJobs {
  * Every operation runs on [scope] (a background dispatcher on the phone), so leaving a screen mid-send
  * doesn't stop it (C8), and the entry is saved before anything is sent anyway. Results that a screen
  * waits for come back on [ui].
+ *
+ * The live socket (G3, W7) is [live]'s, through one [LiveOwner]: only for the Game whose board shows
+ * ([watch], [unwatch]), never for Home, Puzzles, the list or an invite. Without [live], no socket.
  */
 class FriendOwner(
     private val correspondence: Correspondence,
     private val jobs: SyncJobs,
     private val scope: CoroutineScope,
     private val ui: CoroutineContext = Dispatchers.Main,
+    live: LiveConnector? = null,
+    clock: () -> Long = System::currentTimeMillis,
+    liveTickMs: Long? = LiveOwner.TICK_MS,
 ) {
     private val states = MutableStateFlow(FriendState(correspondence.games, correspondence.seats))
+
+    private val liveOwner: LiveOwner? = live?.let { LiveOwner(correspondence, it, scope, clock, tickMs = liveTickMs, changed = { publish() }) }
 
     val state: StateFlow<FriendState> = states
 
@@ -138,6 +153,36 @@ class FriendOwner(
         publish(stopIdlePeriodic = periodicJob)
         return report
     }
+
+    // ---- The live socket (G3, W7) ---------------------------------------------------------------
+
+    /** [gameId]'s board shows: its socket opens if the Game is started and not Stopped. */
+    fun watch(gameId: String) {
+        liveOwner?.watch(gameId)
+        publish()
+    }
+
+    /**
+     * [gameId]'s board left the screen. On pause ([now]) the socket closes at once; under another
+     * screen it stays [LiveOwner.GRACE_MS], so the board's own Menu doesn't drop Live (decision log U1).
+     */
+    fun unwatch(gameId: String, now: Boolean) {
+        liveOwner?.unwatch(gameId, now)
+        publish()
+    }
+
+    /**
+     * onAppPause on any Play a friend screen: whatever Game is watched loses its socket now (W7, U1).
+     * LightActivity pauses only the top screen, so a board under its Menu, or still in its 10 s grace
+     * under the list, never hears of the pause itself.
+     */
+    fun pause() {
+        liveOwner?.pause()
+        publish()
+    }
+
+    /** The live socket's timers, for a test that moves time by hand (built with no tick). */
+    internal fun tickLive() = liveOwner?.tick()
 
     // ---- The Move and its confirmation (F11) ----------------------------------------------------
 
@@ -250,6 +295,13 @@ class FriendOwner(
                 chosen = s.chosen.filterKeys { id -> games.any { it.gameId == id && it.yourMove } },
             )
         }
+        liveOwner?.reconcile()
+        // Read inside the update: publish runs on OkHttp's threads too, and a retried update must
+        // not write a view read before another publish's.
+        states.update {
+            val view = liveOwner?.view
+            it.copy(linked = view?.gameId?.takeIf { view.open }, live = view?.gameId?.takeIf { view.live })
+        }
         schedule(afterUserAction, stopIdlePeriodic)
     }
 
@@ -286,8 +338,10 @@ class FriendOwner(
             return synchronized(owners) {
                 owners.getOrPut(filesDir.canonicalPath) {
                     val store = CorrespondenceStore(CorrespondenceStore.noBackupDir(filesDir))
-                    val correspondence = Correspondence(RelayClient(OkHttpTransport(url)), store)
-                    FriendOwner(correspondence, jobs(), CoroutineScope(SupervisorJob() + Dispatchers.IO))
+                    val http = OkHttpTransport.defaultClient()
+                    val correspondence = Correspondence(RelayClient(OkHttpTransport(url, http)), store)
+                    val live = OkHttpLiveConnector(url, http)
+                    FriendOwner(correspondence, jobs(), CoroutineScope(SupervisorJob() + Dispatchers.IO), live = live)
                 }
             }
         }

@@ -5,9 +5,11 @@ import com.yarosz.chess.correspondence.Correspondence
 import com.yarosz.chess.correspondence.CorrespondenceStore
 import com.yarosz.chess.correspondence.Delivery
 import com.yarosz.chess.correspondence.HaltReason
+import com.yarosz.chess.correspondence.LiveOwner
 import com.yarosz.chess.correspondence.Phone
 import com.yarosz.chess.correspondence.Stage
 import com.yarosz.chess.relay.FakeRelay
+import com.yarosz.chess.relay.LiveConnector
 import com.yarosz.chess.relay.Protocol
 import com.yarosz.chess.relay.RelayClient
 import com.yarosz.chess.relay.RelayRequest
@@ -73,6 +75,95 @@ class FriendOwnerTest {
     private fun owner(): FriendOwner {
         val correspondence = Correspondence(RelayClient(transport), CorrespondenceStore(dir)) { relay.now }
         return FriendOwner(correspondence, jobs, CoroutineScope(SupervisorJob() + Dispatchers.Unconfined), Dispatchers.Unconfined)
+    }
+
+    /** The sockets the owner asked for. */
+    private var opens = 0
+
+    /** An owner with a live socket on the fake Relay, under virtual time: the test ticks it. */
+    private fun liveOwner(): FriendOwner {
+        val correspondence = Correspondence(RelayClient(transport), CorrespondenceStore(dir)) { relay.now }
+        val live = LiveConnector { id, secret, listener -> opens++; relay.live().open(id, secret, listener) }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        return FriendOwner(correspondence, jobs, scope, Dispatchers.Unconfined, live = live, clock = { relay.now }, liveTickMs = null)
+    }
+
+    @Test
+    fun `only the board of a started Game that isn't Stopped opens a socket (ADR 0004, U6)`() = runBlocking<Unit> {
+        val owner = liveOwner()
+        owner.watch("0".repeat(64))
+        owner.sync()
+        assertEquals(0, opens, "no Game")
+        var created: String? = null
+        owner.create(Side.WHITE, 3) { created = (it as? Delivery.Done)?.game?.gameId }
+        val invite = assertNotNull(created)
+        owner.watch(invite)
+        assertEquals(0, opens, "an invite")
+        assertNull(owner.state.value.linked)
+
+        friend.c.redeemInvite(assertNotNull(owner.state.value.game(invite)?.invite?.code))
+        owner.syncNow()
+        assertEquals(1, opens, "the invite started while its board showed")
+        assertEquals(invite, owner.state.value.linked)
+        owner.unwatch(invite, now = true)
+        assertNull(owner.state.value.linked)
+
+        relay.delete(invite)
+        owner.syncNow()
+        assertEquals(HaltReason.GONE, owner.state.value.game(invite)?.halt?.reason)
+        owner.watch(invite)
+        assertEquals(1, opens, "a Stopped Game")
+    }
+
+    @Test
+    fun `Live shows once both Seats are here, in place of the plain status lines only (G3, U2)`() = runBlocking<Unit> {
+        val id = friendStarted()
+        val owner = liveOwner()
+        owner.watch(id)
+        assertEquals(id, owner.state.value.linked, "the socket is open: the board needs no poll (U3)")
+        assertNull(owner.state.value.live, "the friend isn't here")
+        val friendLive = LiveOwner(friend.c, relay.live(), CoroutineScope(SupervisorJob() + Dispatchers.Unconfined), clock = { relay.now }, tickMs = null)
+        friendLive.watch(id)
+        assertEquals(id, owner.state.value.live)
+        val game = assertNotNull(owner.state.value.game(id))
+        assertEquals(UiCopy.LIVE_YOUR_MOVE, FriendStrip.of(game, relay.now, live = true).status)
+
+        // The friend's Move arrives by push; the strip says whose move it is, Live, with no Time Left.
+        owner.choose(id, game.log!!.game.position.moveFromUci("e2e4")!!)
+        owner.send(id)
+        friend.c.play(id, friend.move(id, "e7e5"))
+        assertEquals(2, owner.state.value.game(id)?.log?.game?.ply, "read on the push, with no poll")
+        assertEquals(id, owner.state.value.live)
+
+        // The friend's board goes: their socket closes, and Live goes with it.
+        friendLive.unwatch(id, now = true)
+        assertNull(owner.state.value.live)
+        assertEquals(id, owner.state.value.linked)
+        owner.unwatch(id, now = false)
+        relay.now += LiveOwner.GRACE_MS
+        owner.tickLive()
+        assertNull(owner.state.value.linked, "closed 10 s after the board left")
+    }
+
+    @Test
+    fun `a pause on a page over the board closes its socket now (W7, U1)`() = runBlocking<Unit> {
+        val id = friendStarted()
+        val owner = liveOwner()
+        owner.watch(id)
+        assertEquals(id, owner.state.value.linked)
+        // The board's Menu comes on top: the board hears onScreenHide only.
+        owner.unwatch(id, now = false)
+        assertEquals(id, owner.state.value.linked, "the grace keeps it")
+        // The Menu's onAppPause, from FriendViewModel: LightActivity pauses only the top screen.
+        FriendViewModel(owner, FriendPage.MENU, id).onAppPause()
+        assertNull(owner.state.value.linked, "closed at once, not 10 s later")
+        assertEquals(0, relay.liveSockets(id))
+        // The list's too, for a board just left.
+        owner.watch(id)
+        assertEquals(2, opens)
+        owner.unwatch(id, now = false)
+        FriendListViewModel(owner).onAppPause()
+        assertNull(owner.state.value.linked)
     }
 
     @AfterTest

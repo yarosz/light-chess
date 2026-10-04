@@ -154,9 +154,11 @@ object UiCopy {
 
     // Playing a friend (v3 PR 2: W1, W2, W4, W6, W10). Shown only once the Relay URL is set (W8).
 
-    /** The privacy line once the Relay URL is set (W1, ADR 0004; approved 2026-09-28, docs/privacy.md). */
+    /** The privacy line once the Relay URL is set (W1, ADR 0004; approved 2026-09-28, U4's presence sentences 2026-10-03, docs/privacy.md). */
     const val PRIVACY_FRIENDS = "Chess uses the network only for Games with a friend: it sends their Moves to its Relay, " +
         "with no name or account, and the Relay deletes each Game within 30 days of the last thing either phone sent it. " +
+        "While both phones have the same Game open, the Relay tells each phone that the other has it open. " +
+        "The Relay keeps no record of when either phone had a Game open. " +
         "Puzzles and Games against the computer never leave this phone."
     const val PLAY_FRIEND = "Play a friend"
     const val ENTER_CODE = "Enter code"
@@ -225,6 +227,10 @@ object UiCopy {
     fun theirMoveLeft(ms: Long) = "$THEIR_MOVE · ${timeLeft(ms)}"
 
     const val THEIR_MOVE = "Their move"
+
+    /** W4, U2: in place of "Your move · 2d" and "Their move · 2d" while the Game is Live (G3). */
+    const val LIVE_YOUR_MOVE = "Live · Your move"
+    const val LIVE_THEIR_MOVE = "Live · Their move"
 
     /** The invite's strip (W4, W12): "Expires in 48h", in hours (an invite lasts 48) to the nearest, then minutes rounded up. */
     fun expiresIn(ms: Long) = "Expires in " + oneUnit(ms, days = false)

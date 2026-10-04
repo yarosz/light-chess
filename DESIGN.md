@@ -527,6 +527,7 @@ set (`RelayConfig`, W8).
 | Sending | "Sending" | the mark |
 | Saved, not sent | "Not sent" | Retry, the mark |
 | Their move | "Their move · 2d" | the mark |
+| Both Seats here, Live (G3, U2) | "Live · Your move", "Live · Their move" | the mark |
 | Their Deadline passed | "Time is up" | "Claim win" ("Claim win on time"), the mark |
 | Their draw offer | "Draw?" (N9) | Accept, Decline, the mark |
 | Stopped | "Out of sync", "Update Chess", "Game deleted" or "Seat lost" | the mark |
@@ -554,8 +555,14 @@ set (`RelayConfig`, W8).
 - Games lists finished Correspondence Games with the others: "2026.09.28 · ABCD · Won".
 - About, once the Relay URL is set: "Chess uses the network only for Games with a friend: it sends
   their Moves to its Relay, with no name or account, and the Relay deletes each Game within 30 days of
-  the last thing either phone sent it. Puzzles and Games against the computer never leave this
-  phone."
+  the last thing either phone sent it. While both phones have the same Game open, the Relay tells
+  each phone that the other has it open. The Relay keeps no record of when either phone had a Game
+  open. Puzzles and Games against the computer never leave this phone." (The two middle sentences
+  are U4's, for the live socket.)
 - Keep the screen on while the board shows and the last touch or wheel event was under 5 minutes
-  ago (contradiction 4). While it also waits on the opponent, the board syncs once a minute (until v3
-  PR 3's live socket).
+  ago (contradiction 4).
+- The live socket (G3, W7; decision log U1-U6): the board of a started Game that isn't Stopped
+  opens one, pings every 5 s, and reads the Game when the Relay pushes an entry. It closes at once
+  on pause, and 10 s after another screen (the board's Menu) covers the board, unless the board
+  shows again first. While the socket is down and the Game waits on the opponent, the board syncs
+  once a minute (Y12). Home, Puzzles, the Play a friend list and an invite open no socket.

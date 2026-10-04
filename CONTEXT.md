@@ -163,6 +163,13 @@ A Game between two Light Phone users, played at any pace, with days per Move. It
 players have it on screen, but that is a state of the Game, not a different kind of Game.
 _Avoid_: online game, match, live game
 
+**Live**:
+The state of a Correspondence Game while both players have its board open: each phone holds a live
+socket to the Relay, and the Relay has heard from both in the last 10 seconds. Game Events then
+arrive at once, and the board says "Live" in place of the Time Left. Nothing else about the Game
+changes: the same Days per Move and Deadline (decision log G3, U1-U6).
+_Avoid_: online, real-time
+
 **Seat**:
 One side's place in a Correspondence Game, held by one phone. Losing the phone, or removing the
 Tool, loses the Seat.

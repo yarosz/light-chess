@@ -160,6 +160,9 @@ class FriendViewModel(private val friends: FriendOwner, startPage: FriendPage, s
 
     /** W7: Play a friend on screen syncs. */
     override fun onScreenShow(screen: SimpleLightScreen<FriendExit?>) = friends.sync()
+
+    /** Over a Game's board (its Menu, Moves, Rename), only this page hears the pause: the socket closes now (U1). */
+    override fun onAppPause() = friends.pause()
 }
 
 /**

@@ -12,6 +12,9 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
 
 /**
  * The Relay's wire protocol, version 1.0 (docs/protocol.md, ADR 0002): constants, every request and
@@ -358,3 +361,46 @@ object InviteCodes {
     /** `ABCDEFGH` as `ABCD-EFGH`. */
     fun display(code: String): String = normalize(code)?.let { "${it.take(4)}-${it.drop(4)}" } ?: code
 }
+
+/**
+ * What the Relay sends down a Game's live socket (`GET /v1/games/{gameId}/live`, G3): presence, a
+ * pushed entry, or an error. The phone sends only [PING]. A message of a type this version doesn't
+ * know reads as null (a later minor may add types), as does one it can't read.
+ */
+sealed interface LiveFrame {
+    companion object {
+        /** The phone's only message: sent every 5 seconds while the Game's board shows (W7). */
+        const val PING = """{"type":"ping"}"""
+
+        fun decode(text: String): LiveFrame? = try {
+            val message = Protocol.json.parseToJsonElement(text).jsonObject
+            when ((message["type"] as? JsonPrimitive)?.contentOrNull) {
+                "presence" -> Protocol.json.decodeFromJsonElement(LivePresence.serializer(), message)
+                "entry" -> Protocol.json.decodeFromJsonElement(LiveEntry.serializer(), message)
+                "error" -> Protocol.json.decodeFromJsonElement(LiveError.serializer(), message)
+                else -> null
+            }
+        } catch (e: SerializationException) {
+            null
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+    }
+}
+
+/**
+ * `{ "type": "presence", "live", "opponent", "serverTime" }`: whether each Seat is here, that is has
+ * an open socket the Relay heard from in the last 10 seconds. [live] is true only when both are.
+ */
+@Serializable
+data class LivePresence(val live: Boolean, val opponent: String, val serverTime: Long) : LiveFrame {
+    val opponentHere: Boolean get() = opponent == "here"
+}
+
+/** `{ "type": "entry", "entry" }`: an entry the Relay just stored. The phone reads it with `GET /events`. */
+@Serializable
+data class LiveEntry(val entry: LogEntry) : LiveFrame
+
+/** `{ "type": "error", "code" }`: the Relay refused a message (R5). */
+@Serializable
+data class LiveError(val code: String) : LiveFrame
