@@ -1,5 +1,8 @@
 package com.yarosz.chess.games
 
+import com.yarosz.chess.GameButton
+import com.yarosz.chess.GameStrip
+import com.yarosz.chess.UiCopy
 import com.yarosz.chess.book.after
 import com.yarosz.chess.book.bookOf
 import com.yarosz.chess.engine.EngineHost
@@ -154,15 +157,134 @@ class GameFlowTest {
     }
 
     @Test
-    fun `no Takeback before the user's first Move or after the Result`() {
+    fun `no Takeback before the user's first Move`() {
         val fresh = started()
         assertFalse(fresh.canTakeBack)
         assertSame(fresh, GameFlow.takeback(fresh))
         val black = started(side = SideChoice.BLACK).computer("e2e4")
         assertFalse(black.canTakeBack, "the computer's first Move isn't the user's")
+    }
+
+    @Test
+    fun `a Takeback after the computer's checkmate plays on and takes the Game off the Games page (X1)`() {
         val mated = started().user("f2f3").computer("e7e5").user("g2g4").computer("d8h4")
         assertEquals(Phase.OVER, mated.phase)
-        assertFalse(mated.canTakeBack)
+        assertEquals(1, mated.data.finished.size)
+        assertTrue(mated.canTakeBack)
+        val back = GameFlow.takeback(mated)
+        assertEquals(listOf("f2f3", "e7e5"), uci(back))
+        assertEquals(1, back.record!!.takebacks)
+        assertEquals(Phase.USER, back.phase)
+        assertNull(back.record!!.game.result)
+        assertTrue(back.data.finished.isEmpty(), "no finished Game left behind")
+        assertTrue(back.inProgress)
+        assertEquals(back.record, back.data.resume())
+        // The same Move again asks the computer exactly what it was asked before (R4.8).
+        val before = started().user("f2f3").computer("e7e5").user("g2g4")
+        assertEquals(GameFlow.computerReply(before, null)!!.request, GameFlow.computerReply(back.user("g2g4"), null)!!.request)
+    }
+
+    @Test
+    fun `a Takeback at the Result after a relaunch reopens the last finished Game (X1)`() {
+        val earlier = started(seed = 3L).user("e2e4").let { GameFlow.resign(GameFlow.resign(it)) }
+        val mated = GameFlow.start(earlier, GameChoices(3, SideChoice.WHITE, 3), 11L, "2026.10.03")
+            .user("f2f3").computer("e7e5").user("g2g4").computer("d8h4")
+        assertEquals(2, mated.data.finished.size)
+        val reopened = GameFlow.open(GameData.decode(mated.data.encode()))
+        assertEquals(Phase.OVER, reopened.phase)
+        assertTrue(reopened.canTakeBack)
+        val back = GameFlow.takeback(reopened)
+        assertEquals(listOf("f2f3", "e7e5"), uci(back))
+        assertEquals(mated.data.finished.drop(1), back.data.finished, "the resigned Game stays, the mated one goes")
+        val again = GameFlow.open(GameData.decode(back.data.encode()))
+        assertEquals(back.record, again.record)
+        assertEquals(Phase.USER, again.phase)
+    }
+
+    @Test
+    fun `a Takeback after the computer's Move completes a draw (X1)`() {
+        var repeated = started()
+        for ((user, computer) in listOf("g1f3" to "g8f6", "f3g1" to "f6g8", "g1f3" to "g8f6", "f3g1" to "f6g8")) {
+            repeated = repeated.user(user).computer(computer)
+        }
+        assertEquals(Result.Draw(DrawReason.REPETITION), repeated.record!!.game.result)
+        assertTrue(repeated.canTakeBack)
+        assertEquals(listOf("g1f3", "g8f6", "f3g1", "f6g8", "g1f3", "g8f6"), uci(GameFlow.takeback(repeated)))
+
+        val stalemate = from("1k6/8/8/2Q5/8/8/8/7K b - - 0 1", side = Side.BLACK).user("b8a8").computer("c5b6")
+        assertEquals(Result.Draw(DrawReason.STALEMATE), stalemate.record!!.game.result)
+        assertTrue(stalemate.canTakeBack)
+        assertEquals("1k6/8/8/2Q5/8/8/8/7K b - - 0 1", GameFlow.takeback(stalemate).record!!.game.position.fen)
+
+        val material = from("8/8/8/4k3/8/8/3pK3/8 b - - 0 1", side = Side.BLACK).user("e5f5").computer("e2d2")
+        assertEquals(Result.Draw(DrawReason.INSUFFICIENT_MATERIAL), material.record!!.game.result)
+        assertTrue(material.canTakeBack)
+        assertEquals(Phase.USER, GameFlow.takeback(material).phase)
+
+        val fifty = from("8/8/8/4k3/8/8/4K3/R7 b - - 98 60", side = Side.BLACK).user("e5d5").computer("a1a2")
+        assertEquals(Result.Draw(DrawReason.FIFTY_MOVE_RULE), fifty.record!!.game.result)
+        assertTrue(fifty.canTakeBack)
+        assertEquals("8/8/8/4k3/8/8/4K3/R7 b - - 98 60", GameFlow.takeback(fifty).record!!.game.position.fen)
+    }
+
+    @Test
+    fun `no Takeback when the user's own Move completes a repetition (X1)`() {
+        var repeated = started(side = SideChoice.BLACK)
+        for ((computer, user) in listOf("g1f3" to "g8f6", "f3g1" to "f6g8", "g1f3" to "g8f6", "f3g1" to "f6g8")) {
+            repeated = repeated.computer(computer).user(user)
+        }
+        assertEquals(Result.Draw(DrawReason.REPETITION), repeated.record!!.game.result)
+        assertEquals(Phase.OVER, repeated.phase)
+        assertFalse(repeated.canTakeBack, "the user's own Move ended it")
+        assertSame(repeated, GameFlow.takeback(repeated))
+        assertEquals(listOf(GameButton.NEXT), GameStrip.of(repeated, null).buttons)
+    }
+
+    @Test
+    fun `the Result's action row reads Takeback, Next when X1 allows it, and Next alone after Resign`() {
+        val mated = started().user("f2f3").computer("e7e5").user("g2g4").computer("d8h4")
+        assertEquals(listOf(GameButton.TAKEBACK, GameButton.NEXT), GameStrip.of(mated, null).buttons)
+        assertEquals(UiCopy.TAKEBACK_DESCRIPTION, GameButton.TAKEBACK.description)
+        // The button is the Menu's Takeback: once taken back, the user's Move with Hint.
+        val back = GameFlow.takeback(mated)
+        assertEquals(listOf(GameButton.HINT), GameStrip.of(back, null).buttons)
+        assertEquals(UiCopy.YOUR_MOVE, GameStrip.of(back, null).status)
+
+        val resigned = started().user("e2e4").computer("e7e5").let { GameFlow.resign(GameFlow.resign(it)) }
+        assertEquals(Phase.OVER, resigned.phase)
+        assertEquals(listOf(GameButton.NEXT), GameStrip.of(resigned, null).buttons)
+    }
+
+    @Test
+    fun `no Takeback after a Result the user chose or the user's own Move made (X1)`() {
+        val resigned = started().user("e2e4").computer("e7e5").let { GameFlow.resign(GameFlow.resign(it)) }
+        assertEquals(Phase.OVER, resigned.phase)
+        assertFalse(resigned.canTakeBack, "the user resigned")
+        assertSame(resigned, GameFlow.takeback(resigned))
+        val thinkingResigned = GameFlow.resign(GameFlow.resign(started().user("e2e4")))
+        assertFalse(thinkingResigned.canTakeBack, "resigned while the computer thought")
+
+        val played = started().user("e2e4").computer("e7e5").record!!
+        val agreed = played + DrawOffer(Side.WHITE) + DrawAcceptance(Side.BLACK)
+        val agreedState = GameState(GameData().save(agreed), agreed)
+        assertEquals(Phase.OVER, agreedState.phase)
+        assertFalse(agreedState.canTakeBack, "the user offered the draw")
+
+        val userMated = from("6k1/5ppp/8/8/8/8/8/R5K1 w - - 0 1").user("a1a8")
+        assertEquals(Result.Win(Side.WHITE, WinReason.CHECKMATE), userMated.record!!.game.result)
+        assertFalse(userMated.canTakeBack, "the user's own Move ended it")
+        val userStalemated = from("k7/8/8/2Q5/8/8/8/7K w - - 0 1").user("c5b6")
+        assertFalse(userStalemated.canTakeBack, "the user's own Move ended it")
+    }
+
+    @Test
+    fun `no Takeback of a finished Game that isn't the newest on the Games page (X1)`() {
+        val mated = started().user("f2f3").computer("e7e5").user("g2g4").computer("d8h4")
+        assertFalse(GameState(GameData(), mated.record).canTakeBack, "not on the list")
+        val newer = mated.data.copy(finished = listOf(SavedGame("[Result \"*\"]\n\n*\n")) + mated.data.finished)
+        assertFalse(GameState(newer, mated.record).canTakeBack, "not the newest")
+        val inProgress = started().user("e2e4")
+        assertFalse(GameState(inProgress.data.copy(finished = mated.data.finished), mated.record).canTakeBack, "a Game in progress")
     }
 
     @Test
