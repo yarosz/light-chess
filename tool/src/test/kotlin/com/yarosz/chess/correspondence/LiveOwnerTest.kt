@@ -227,7 +227,7 @@ class LiveOwnerTest {
     }
 
     @Test
-    fun `a socket stuck opening is cancelled after 12 seconds and tried again`() = runBlocking<Unit> {
+    fun `a socket stuck opening is cancelled after 15 seconds and tried again`() = runBlocking<Unit> {
         val id = started()
         val hung = mutableListOf<Boolean>()
         // A Relay that takes the connection and never answers the upgrade: no callback ever comes.

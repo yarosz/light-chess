@@ -116,7 +116,7 @@ class LiveConnectionTest {
     }
 
     @Test
-    fun `a socket that hangs while opening is abandoned after 12 seconds`() {
+    fun `a socket that hangs while opening is abandoned after 15 seconds`() {
         val connecting = LiveConnection.start(1_000).connection
         assertEquals(emptyList(), connecting.tick(1_000 + LiveConnection.CONNECT_TIMEOUT_MS - 1, 0.0).commands, "still opening")
         val abandoned = connecting.tick(1_000 + LiveConnection.CONNECT_TIMEOUT_MS, 0.0)

@@ -1729,7 +1729,8 @@ consistent with the log.
   calls onAppPause only on the top screen, so every Play a friend screen calls `FriendOwner.pause()`
   in its own: the board, the pages over it (`FriendScreen`: its Menu, Moves, Rename) and the list,
   under which a board just left may still hold its 10 s. A pause closes whatever socket there is,
-  whichever screen is on top (`FriendOwnerTest`, BoundaryTest).
+  whichever Play a friend screen is on top (`FriendOwnerTest`, BoundaryTest); from Home or
+  Puzzles, a board left less than 10 s before keeps its socket out the rest of that grace.
 - U2 Live's place in the strip. AMENDS W4 and G3. Contradiction: W4 lists "Live · Your move" and
   "Live · Their move" as lines of their own without saying what they give way to, while every other
   W4 line is the Game's state or the user's own pending action. RULING: they replace only the plain
@@ -1755,17 +1756,18 @@ consistent with the log.
   bound the TCP connect, the TLS handshake and the wait for the 101; once open, OkHttp 5 clears the
   socket timeout and its reader lifts the read timeout between frames, so they never judge a quiet
   socket. The Relay answers every ping, so 12 s without any message (two pings unanswered, and
-  slack) drops the socket: a network can die without a close. A socket not open 12 s after it was
-  asked for is abandoned too (a hung upgrade), and one closed before it opened is cancelled, not
-  closed, so its call frees its thread and its Dispatcher slot. A socket that closes or fails comes
-  back after 1 s, then 2, 4 ... up to 30 s, each wait between half and all of its step (jitter, at
-  least 1 s), reset by the Relay's first presence on an open socket, not by the open: a Relay that
-  accepts and drops at once (1011) still backs off further each time. The 1 s ticker runs only
-  while there is something to time, and sleeps while the connection is Stopped. Close code 4001
-  stops it: another socket of this Seat replaced it, and reconnecting would make the two replace
-  each other forever. Close code 4004, or an upgrade answered 400, 401, 404 or 409, stops it after
-  one `Correspondence.sync`, so the Game's own state says why (Game deleted, Seat lost, Update
-  Chess) as an HTTPS read would; 426, 429, a 5xx or no answer back off. Every open
+  slack) drops the socket: a network can die without a close. A socket not open 15 s after it was
+  asked for is abandoned too (a hung upgrade, the 15 s of the HTTPS client's connect timeout, so a
+  slow handshake to a Relay waking up isn't cut short), and one closed before it opened is
+  cancelled, not closed, so its call frees its thread and its Dispatcher slot. A socket that closes
+  or fails comes back after 1 s, then 2, 4 ... up to 30 s, each wait between half and all of its
+  step (jitter, at least 1 s), reset by the Relay's first presence on an open socket, not by the
+  open: a Relay that accepts and drops at once (1011) still backs off further each time. The 1 s
+  ticker runs only while there is something to time, and sleeps while the connection is Stopped.
+  Close code 4001 stops it: another socket of this Seat replaced it, and reconnecting would make the
+  two replace each other forever. Close code 4004, or an upgrade answered 400, 401, 404 or 409,
+  stops it after one `Correspondence.sync`, so the Game's own state says why (Game deleted, Seat
+  lost, Update Chess) as an HTTPS read would; 426, 429, a 5xx or no answer back off. Every open
   reads the Game (`GET events`), since a push may have been missed while it was down, and a pushed
   entry is read, never applied: every Game Event still enters through the rules core's checks (C5).
   Reads of one Game never overlap; one asked for during another runs once after it. A fresh show

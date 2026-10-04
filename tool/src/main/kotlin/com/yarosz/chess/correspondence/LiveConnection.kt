@@ -166,7 +166,7 @@ data class LiveConnection(val state: LiveState) {
         const val SILENCE_MS = 12_000L
 
         /** A socket not open this long after it was asked for is abandoned: a hung TLS or upgrade. */
-        const val CONNECT_TIMEOUT_MS = 12_000L
+        const val CONNECT_TIMEOUT_MS = 15_000L
 
         const val MIN_BACKOFF_MS = 1_000L
         const val MAX_BACKOFF_MS = 30_000L

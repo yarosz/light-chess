@@ -1,24 +1,23 @@
 # Ledger
 
 STATUS: released v0.1.0 (Puzzles), v0.2.0 (the computer), v0.3.0 (Play a friend), v0.3.1 (the v3
-review follow-ups, L1-L5, W12/W13) and v0.4.0 (#29: Navigation D and layout E, N1-N23 and E1-E15;
+review follow-ups, L1-L5, W12/W13), v0.4.0 (#29: Navigation D and layout E, N1-N23 and E1-E15;
 the Puzzles page; Captured Pieces from each edge; no coordinate on a marked square, K1; the
-computer's Move slides in once), each a tagged commit on main with a notes-only GitHub Release. #30
-(T1) is merged, unreleased. The Relay is live at `https://chess-relay.yarosz.com` (W11, protocol
-1.0). Next, in order:
-1. Release 0.4.1: #30 left ML Kit and its Google dependencies out of the APK (T1), so the first
-   submission candidate carries no ML Kit. The LP3 checks still open are under LP3 CHECKS below.
-2. In progress: v3 PR 3, the live WebSocket, #31 on `feat/v3-live` (decision log U1-U6).
+computer's Move slides in once) and v0.4.1 (#32: ML Kit and its Google dependencies left out of the
+APK, T1), each a tagged commit on main with a notes-only GitHub Release. v0.4.1 is the first
+submission candidate free of the GPLv3 + ML Kit question. The Relay is live at
+`https://chess-relay.yarosz.com` (W11, protocol 1.0). Next, in order, all for 0.5.0:
+1. In progress: v3 PR 3, the live WebSocket, #31 on `feat/v3-live` (decision log U1-U6).
    Client only; the Relay's `/live` is deployed and unchanged. U4's privacy sentences were approved
    by the owner on 2026-10-03; before merge the orchestrator checks it on the emulator and on two
    phones (the PR's checklist).
-3. Then, in its own PR: Takeback after the computer ends a Game.
-FOR THE OWNER (none blocks development): the submission to Light's portal. Every tag so far carries
-ML Kit; v0.1.0 is safe to submit because it has no GPL engine, while v0.2.0-v0.4.0 pair GPLv3
-Pirarucu with ML Kit. The GPLv3 + ML Kit question no longer applies to a release cut after T1, which
-leaves ML Kit out. What remains for Light is whether it signs a GPLv3 Tool; the owner decides what
-to tell Light. Optional: Always Use HTTPS/HSTS on the Relay's zone (the Worker already refuses plain
-HTTP, L3).
+2. In progress: Takeback at a Result the computer's own Move made, "Takeback · Next" (#33, X1).
+3. In progress: the user's own tap-tap Moves slide too (owner, 2026-10-03; its own PR).
+FOR THE OWNER (none blocks development): the submission to Light's portal. v0.4.1 is the candidate:
+the first tag without ML Kit (T1), so the GPLv3 + ML Kit question doesn't apply to it. Earlier tags
+all carry ML Kit; v0.1.0 has no GPL engine, while v0.2.0-v0.4.0 pair GPLv3 Pirarucu with ML Kit.
+What remains for Light is whether it signs a GPLv3 Tool; the owner decides what to tell Light.
+Optional: Always Use HTTPS/HSTS on the Relay's zone (the Worker already refuses plain HTTP, L3).
 FOLLOW-UPS (low, from code review; none blocking):
 - #21: drop a kept Missed tap on `onAppPause` too; a single-threaded main dispatcher in
   `PuzzleOwnerMissedTest`; tests for two taps, leave-return-tap and a failing check; make
