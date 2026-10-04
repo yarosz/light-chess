@@ -5,8 +5,8 @@ review follow-ups, L1-L5, W12/W13) and v0.4.0 (Navigation D and layout E, N1-N23
 Puzzles page; Captured Pieces from each edge; no coordinate on a marked square, K1; the computer's
 Move slides in once), each a tagged commit on main with a notes-only GitHub Release. The Relay is
 live at `https://chess-relay.yarosz.com` (W11, protocol 1.0). Next, in order:
-1. This PR: leave ML Kit and its Google dependencies out of the APK (T1), then release 0.4.1 so the
-   first submission candidate carries no ML Kit.
+1. Release 0.4.1 (this PR): the first release without ML Kit (T1, #30), and so the first
+   submission candidate free of the GPLv3 + ML Kit question.
 2. v3 PR 3, the live WebSocket (see "Next" under HANDOFF below).
 FOR THE OWNER (none blocks development): the submission to Light's portal. Every tag so far carries
 ML Kit; v0.1.0 is safe to submit because it has no GPL engine, while v0.2.0-v0.4.0 pair GPLv3
