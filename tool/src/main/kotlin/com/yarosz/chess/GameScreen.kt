@@ -152,6 +152,7 @@ class GameScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, GameVi
                 when (button) {
                     GameButton.HINT -> game.hint()
                     GameButton.MOVE_NOW -> game.moveNow()
+                    GameButton.TAKEBACK -> game.takeback()
                     GameButton.NEXT -> { game.touched(); navigateTo({ MenuScreen(it, MenuPage.NEW_GAME, overGame = true) }) }
                     GameButton.LATEST -> vm.leaveReview()
                 }

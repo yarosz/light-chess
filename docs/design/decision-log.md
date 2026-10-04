@@ -393,6 +393,8 @@ default Think time).
   it would then replay. RULING (as built on feat/v2-record): a Takeback cuts the event list back to
   just before the user's latest Move (1 ply while the computer thinks, 2 after it has replied), and
   stops any search first. No Takeback before the user's first Move or after the Game is over.
+  ("after the Game is over" AMENDED by X1: Takeback stays on at a Result the computer's own Move
+  made, and reopens that Game.)
 
 ## v2 PR 5 core: game record and resume (implementation choices, 2026-09-28)
 - Code: `tool/src/main/kotlin/com/yarosz/chess/games/`, pure Kotlin, no UI (the game screen comes
@@ -426,7 +428,8 @@ default Think time).
 - Takeback (contradiction 6): cut the event list just before the user's latest Move, so it drops that
   Move, the computer's reply if there is one yet (F11's "takeback while thinking" is then one ply),
   and any draw event after it; the counter goes up by one; the user is to move. No Takeback once the
-  Game is over (it goes to the history) or before the user's first Move.
+  Game is over (it goes to the history) or before the user's first Move. (AMENDED by X1: at a
+  Result the computer's own Move made, the Takeback takes the Game back off the history.)
 - Tests: 200 seeded random Games (the rules tests' generator, now `RandomGames`, a quarter from set-up
   Positions, ended by the rules, resigned, agreed or left unfinished, random counters) round-trip
   equal and re-write to the same text; hand-written PGN (the Opera Game with comments, NAGs, nested
@@ -531,7 +534,8 @@ Implementation choices beyond the log:
 Rulings the log didn't make, each chosen as the one most consistent with it:
 - R4.1 Result strip: "Next" and Menu, where Next ("Start a new game") opens the new-game page. The
   brief's "Next / New game" is read as one button: a Result next to three buttons (Next, New game,
-  Menu) has 51 dp left, which fits no Result in two lines (StripFitTest).
+  Menu) has 51 dp left, which fits no Result in two lines (StripFitTest). (AMENDED by X1: at a
+  Result the computer's own Move made, the row reads "Takeback · Next".)
 - R4.2 The Game Hint's strip label is "Hint", its semantics label "Game Hint: show the computer's best
   Move" (F11). "Game Hint" next to Takeback and Menu leaves 0 dp for the status. The user's-Move status
   is "Your move", which wraps in the 67 dp those three buttons leave.
@@ -1740,3 +1744,44 @@ From the review of the Puzzles page PR (#20).
     Puzzle is never drawn, so it never slides (A3).
   - Games with a friend (`FriendOwner`) are out of scope here: their Moves get slides later, with
     the rewrite of that code.
+
+## Takeback at the Result (owner, 2026-10-03)
+- X1 Takeback after the computer's own Move ended the Game. AMENDS "Takeback rule corrected" ("No
+  Takeback ... after the Game is over") and the v2 PR 5 core's Takeback line; keeps B5's "takeback
+  always (counted in PGN)" and contradiction 6. Contradiction: B5 says Takeback always, but a user
+  mated (or stalemated, or drawn by repetition) by the computer's reply to a blunder could not take
+  that blunder back, while the same blunder one Move earlier could be. RULING: in a Game against
+  the computer, Takeback stays on at the Result when the computer's Move made it: checkmate,
+  stalemate, or a draw by repetition, the 50-move rule or insufficient material that the
+  computer's Move completed (`GameRecord.endedByComputersMove`). Not after the user resigns or a
+  draw the user offered and the computer agreed (the user's own choice; draws are never claimed,
+  contradiction 9), and not when the user's own Move ended the Game (the user mated or stalemated
+  the computer: nothing of the computer's to undo). A Correspondence Game still has no Takeback (v3,
+  contradiction 6, W10). The Takeback is the one "Takeback rule corrected" cuts: back to just
+  before the user's latest Move, so the computer's ending reply goes too; the Takebacks counter in
+  the PGN headers goes up by one; the user is to move and the Game is in play again.
+  - The Games page: the finished Game went to the front of `finished` when it ended (B7). The
+    Takeback takes it off and makes it the Game in progress, with its FEN checkpoint, in one save
+    (`GameData.reopen`), so the list never holds it twice and keeps no orphan. Only the Game that
+    ended last can be reopened (`GameData.endedLast`: nothing in progress, and it is the newest
+    entry); the Result shown after a relaunch (R4.11) is that Game, so the Takeback works there too.
+    A Game reviewed from the Games page never offers it (its Menu is Pieces alone, N17).
+  - When the list was full (50, B7), ending the Game dropped the oldest entry; the Takeback doesn't
+    bring it back, so the list holds 49 until the next Game ends.
+  - The same Move again gets the same reply at Levels 1-7 (R4.8: the seed and a fresh engine).
+  - Where (owner, 2026-10-03, SUPERSEDES this PR's first draft, which kept the action row to Next
+    and rejected a Takeback button beside it): when X1 allows a Takeback, the Result's action row
+    reads "Takeback · Next", Takeback first (`GameButton.TAKEBACK`, described "Take back your last
+    Move", the same action as the Menu's row), and Takeback also stays the first row of the
+    Result's Menu (then Flip board, Moves, Think Time at Level 8, New game). When it isn't allowed
+    (Resign, an agreed draw, the user's own ending Move) the row keeps Next alone (R4.1). AMENDS
+    R4.1 and R4.16's "Takeback leaves the strip": the Result is a moment at rest, where the
+    Takeback is the one thing a user mated by a blunder reaches for. Two buttons stay within
+    contradiction 2's three, and StripFitTest checks "Takeback · Next" with the Captured Pieces
+    on every Result a Game's board can show (E13, E15). Review keeps Latest alone and hides the
+    Menu, Takeback with it (N21).
+  - `GameRecord.endedByComputersMove`, `GameState.canTakeBack`, `GameFlow.takeback`,
+    `GameData.endedLast`/`reopen`, `GameMenu`. Tests: `GameFlowTest` (mate, relaunch, each
+    automatic draw, resign, agreed draw, the user's own mate and stalemate, a Game not the newest),
+    `GameStoreTest` (the round trip through the file), `GameOwnerTest` (the owner's Games page),
+    `MenuTest` (the Result's Menu and action row), `StripFitTest` ("Takeback · Next" fits).

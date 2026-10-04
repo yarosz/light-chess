@@ -413,7 +413,7 @@ arrow is always in the top bar, and "the mark" is the Menu mark at its right (N4
 | The user's Move | "Your move" | Hint, the mark |
 | A Game Hint being found | "Finding a Game Hint" | the mark |
 | The computer thinking | "Thinking" | Move now, the mark |
-| The Result | the Result | Next, the mark |
+| The Result | the Result | Next, the mark; Takeback, Next, the mark when X1 allows a Takeback |
 | Review | "Review · 12 of 40" | Latest (no mark: the Menu's actions act on the live Game, N21) |
 | A finished Game from Games | the Result, or Review | the mark, and Latest in Review (N21) |
 
@@ -445,7 +445,7 @@ draws them and `CapturedRowTest` checks the layout:
 
 Every game status holds one line of the top bar's title in the stand-in, Results included (E3).
 R4.16 set the copy when the status shared D's strip with the buttons: in Akkurat, "Your move"
-wrapped next to Takeback, Hint and Menu, and "Computer thinking" next to Move now and Menu. So Takeback is in the Menu only, the computer's think reads "Thinking", and
+wrapped next to Takeback, Hint and Menu, and "Computer thinking" next to Move now and Menu. So Takeback is in the Menu only (except at a Result the computer's own Move made, "Takeback · Next", X1), the computer's think reads "Thinking", and
 Review keeps Latest alone, which leaves room for "Review · 9999 of 9999".
 
 "Game Hint" and "New game" don't fit as labels: next to Takeback and Menu, "Game Hint" leaves no
@@ -467,7 +467,13 @@ The Menu while a Game shows, top to bottom (`GameMenu`; only this board's action
   offer, "Offer draw again at move 41" (G1's 10 more Moves), both lightened.
 - "Resign", then "Tap again to resign"; the second tap returns to the board with the Result.
 - "Takeback" (both while the computer thinks and on the user's Move, once the user has moved), then
-  back to the board.
+  back to the board. At the Result it is the Menu's first row when the computer's own Move ended the
+  Game (checkmate, stalemate, or a draw by repetition, the 50-move rule or insufficient material),
+  never after Resign, an agreed draw or the user's own ending Move (X1); the action row then reads
+  "Takeback · Next", the same action (its description "Take back your last Move"). It cuts back to
+  before the user's latest Move, takes the Game off the Games page, and the Game is in play again.
+  A Result's Menu holds Takeback (when allowed), Flip board, Moves, "Think Time" at Level 8 and New
+  game; Offer draw and Resign are not in it.
 - "Flip board", then back to the board.
 - "Moves": the Game's SAN in two columns, "12." then White's Move then Black's (… for a Game whose
   first Move is Black's), one row per Move number, scrolled by the wheel (F3, F11). "No Moves yet"

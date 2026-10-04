@@ -8,10 +8,16 @@ import com.yarosz.chess.engine.SearchRequest
 import com.yarosz.chess.engine.SearchResult
 import com.yarosz.chess.engine.StopHandle
 import com.yarosz.chess.games.GameChoices
+import com.yarosz.chess.games.GameData
+import com.yarosz.chess.games.GameRecord
 import com.yarosz.chess.games.GameState
+import com.yarosz.chess.games.GameStore
+import com.yarosz.chess.games.Phase
 import com.yarosz.chess.games.SideChoice
 import com.yarosz.chess.rules.Move
 import com.yarosz.chess.rules.Square
+import com.yarosz.chess.rules.Game
+import com.yarosz.chess.rules.Side
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.Semaphore
@@ -79,6 +85,9 @@ class GameOwnerTest {
     }
 
     private fun GameOwner.now(): GameState = assertNotNull(state.value)
+
+    private fun GameRecord.play(vararg uci: String): GameRecord =
+        uci.fold(this) { r, text -> r + checkNotNull(r.game.position.moveFromUci(text)) { text } }
 
     @Test
     fun `a Game Hint being found when the board leaves is dropped, so the strip offers Hint on return (B6)`() {
@@ -173,6 +182,29 @@ class GameOwnerTest {
     }
 
     private fun sq(name: String): Square = assertNotNull(Square.parse(name))
+
+    @Test
+    fun `a Takeback at a Result the computer's Move made takes the Game off the Games page and plays on (X1)`() {
+        val playing = GameRecord(Game.of(), Side.WHITE, level = 1, date = "2026.10.03", seed = 7L).play("f2f3", "e7e5", "g2g4")
+        val mated = playing.play("d8h4")
+        GameStore(dir).save(GameData().save(playing).save(mated))
+        val game = owner()
+        game.resume()
+        waitFor("the Games page") { game.history.value.size == 1 }
+        assertEquals(Phase.OVER, game.now().phase)
+        assertTrue(GameMenu.of(game.now()).any { it.entry == GameMenuEntry.TAKEBACK })
+
+        game.takeback()
+        assertEquals(Phase.USER, game.now().phase)
+        assertEquals(listOf("f2f3", "e7e5"), game.now().record!!.game.moves.map { it.uci })
+        assertEquals(1, game.now().record!!.takebacks)
+        waitFor("the Games page without it") { game.history.value.isEmpty() }
+        assertFalse(engine.searches.tryAcquire(200, TimeUnit.MILLISECONDS), "the user is to move: no search")
+        game.pause()
+        val saved = GameStore(dir).load()!!
+        assertEquals(game.now().record, saved.resume())
+        assertTrue(saved.finished.isEmpty())
+    }
 
     @Test
     fun `the shared engine thread can't be shut down`() {
