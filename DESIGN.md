@@ -442,7 +442,7 @@ draws them and `CapturedRowTest` checks the layout:
 
 Every game status holds one line of the top bar's title in the stand-in, Results included (E3).
 R4.16 set the copy when the status shared D's strip with the buttons: in Akkurat, "Your move"
-wrapped next to Takeback, Hint and Menu, and "Computer thinking" next to Move now and Menu. So Takeback is in the Menu only, the computer's think reads "Thinking", and
+wrapped next to Takeback, Hint and Menu, and "Computer thinking" next to Move now and Menu. So Takeback is in the Menu only (except at a Result the computer's own Move made, "Takeback · Next", X1), the computer's think reads "Thinking", and
 Review keeps Latest alone, which leaves room for "Review · 9999 of 9999".
 
 "Game Hint" and "New game" don't fit as labels: next to Takeback and Menu, "Game Hint" leaves no
