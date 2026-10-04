@@ -410,7 +410,7 @@ arrow is always in the top bar, and "the mark" is the Menu mark at its right (N4
 | The user's Move | "Your move" | Hint, the mark |
 | A Game Hint being found | "Finding a Game Hint" | the mark |
 | The computer thinking | "Thinking" | Move now, the mark |
-| The Result | the Result | Next, the mark (its Menu may hold Takeback, X1) |
+| The Result | the Result | Next, the mark; Takeback, Next, the mark when X1 allows a Takeback |
 | Review | "Review · 12 of 40" | Latest (no mark: the Menu's actions act on the live Game, N21) |
 | A finished Game from Games | the Result, or Review | the mark, and Latest in Review (N21) |
 
@@ -466,9 +466,11 @@ The Menu while a Game shows, top to bottom (`GameMenu`; only this board's action
 - "Takeback" (both while the computer thinks and on the user's Move, once the user has moved), then
   back to the board. At the Result it is the Menu's first row when the computer's own Move ended the
   Game (checkmate, stalemate, or a draw by repetition, the 50-move rule or insufficient material),
-  never after Resign, an agreed draw or the user's own ending Move (X1). It cuts back to before the
-  user's latest Move, takes the Game off the Games list, and the Game is in play again. Offer draw
-  and Resign are not in a Result's Menu.
+  never after Resign, an agreed draw or the user's own ending Move (X1); the action row then reads
+  "Takeback · Next", the same action (its description "Take back your last Move"). It cuts back to
+  before the user's latest Move, takes the Game off the Games page, and the Game is in play again.
+  A Result's Menu holds Takeback (when allowed), Flip board, Moves, "Think Time" at Level 8 and New
+  game; Offer draw and Resign are not in it.
 - "Flip board", then back to the board.
 - "Moves": the Game's SAN in two columns, "12." then White's Move then Black's (… for a Game whose
   first Move is Black's), one row per Move number, scrolled by the wheel (F3, F11). "No Moves yet"

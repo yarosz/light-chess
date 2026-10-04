@@ -1,5 +1,8 @@
 package com.yarosz.chess.games
 
+import com.yarosz.chess.GameButton
+import com.yarosz.chess.GameStrip
+import com.yarosz.chess.UiCopy
 import com.yarosz.chess.book.after
 import com.yarosz.chess.book.bookOf
 import com.yarosz.chess.engine.EngineHost
@@ -163,7 +166,7 @@ class GameFlowTest {
     }
 
     @Test
-    fun `a Takeback after the computer's checkmate plays on and takes the Game off the Games list (X1)`() {
+    fun `a Takeback after the computer's checkmate plays on and takes the Game off the Games page (X1)`() {
         val mated = started().user("f2f3").computer("e7e5").user("g2g4").computer("d8h4")
         assertEquals(Phase.OVER, mated.phase)
         assertEquals(1, mated.data.finished.size)
@@ -221,6 +224,35 @@ class GameFlowTest {
         val fifty = from("8/8/8/4k3/8/8/4K3/R7 b - - 98 60", side = Side.BLACK).user("e5d5").computer("a1a2")
         assertEquals(Result.Draw(DrawReason.FIFTY_MOVE_RULE), fifty.record!!.game.result)
         assertTrue(fifty.canTakeBack)
+        assertEquals("8/8/8/4k3/8/8/4K3/R7 b - - 98 60", GameFlow.takeback(fifty).record!!.game.position.fen)
+    }
+
+    @Test
+    fun `no Takeback when the user's own Move completes a repetition (X1)`() {
+        var repeated = started(side = SideChoice.BLACK)
+        for ((computer, user) in listOf("g1f3" to "g8f6", "f3g1" to "f6g8", "g1f3" to "g8f6", "f3g1" to "f6g8")) {
+            repeated = repeated.computer(computer).user(user)
+        }
+        assertEquals(Result.Draw(DrawReason.REPETITION), repeated.record!!.game.result)
+        assertEquals(Phase.OVER, repeated.phase)
+        assertFalse(repeated.canTakeBack, "the user's own Move ended it")
+        assertSame(repeated, GameFlow.takeback(repeated))
+        assertEquals(listOf(GameButton.NEXT), GameStrip.of(repeated, null).buttons)
+    }
+
+    @Test
+    fun `the Result's action row reads Takeback, Next when X1 allows it, and Next alone after Resign`() {
+        val mated = started().user("f2f3").computer("e7e5").user("g2g4").computer("d8h4")
+        assertEquals(listOf(GameButton.TAKEBACK, GameButton.NEXT), GameStrip.of(mated, null).buttons)
+        assertEquals(UiCopy.TAKEBACK_DESCRIPTION, GameButton.TAKEBACK.description)
+        // The button is the Menu's Takeback: once taken back, the user's Move with Hint.
+        val back = GameFlow.takeback(mated)
+        assertEquals(listOf(GameButton.HINT), GameStrip.of(back, null).buttons)
+        assertEquals(UiCopy.YOUR_MOVE, GameStrip.of(back, null).status)
+
+        val resigned = started().user("e2e4").computer("e7e5").let { GameFlow.resign(GameFlow.resign(it)) }
+        assertEquals(Phase.OVER, resigned.phase)
+        assertEquals(listOf(GameButton.NEXT), GameStrip.of(resigned, null).buttons)
     }
 
     @Test
@@ -246,7 +278,7 @@ class GameFlowTest {
     }
 
     @Test
-    fun `no Takeback of a finished Game that isn't the newest on the Games list (X1)`() {
+    fun `no Takeback of a finished Game that isn't the newest on the Games page (X1)`() {
         val mated = started().user("f2f3").computer("e7e5").user("g2g4").computer("d8h4")
         assertFalse(GameState(GameData(), mated.record).canTakeBack, "not on the list")
         val newer = mated.data.copy(finished = listOf(SavedGame("[Result \"*\"]\n\n*\n")) + mated.data.finished)

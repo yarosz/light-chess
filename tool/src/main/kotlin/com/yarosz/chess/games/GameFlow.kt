@@ -237,7 +237,7 @@ object GameFlow {
 
     /**
      * A Takeback ("Takeback rule corrected", X1): the owner stops any search first. At a Result the
-     * finished Game comes off the Games list and is in progress again.
+     * finished Game comes off the Games page and is in progress again.
      */
     fun takeback(state: GameState): GameState {
         val record = state.record ?: return state

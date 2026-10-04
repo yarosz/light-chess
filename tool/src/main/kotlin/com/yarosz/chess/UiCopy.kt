@@ -78,6 +78,7 @@ object UiCopy {
     const val THINKING = "Thinking"
     const val FINDING_HINT = "Finding a Game Hint"
     const val TAKEBACK = "Takeback"
+    const val TAKEBACK_DESCRIPTION = "Take back your last Move"
     const val GAME_HINT_DESCRIPTION = "Game Hint: show the computer's best Move"
     const val MOVE_NOW = "Move now"
     const val MOVE_NOW_DESCRIPTION = "Move now: the computer plays at once"

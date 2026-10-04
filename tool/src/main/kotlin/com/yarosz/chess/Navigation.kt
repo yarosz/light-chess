@@ -273,9 +273,9 @@ enum class GameMenuEntry { OFFER_DRAW, RESIGN, TAKEBACK, FLIP, MOVES, THINK_TIME
 /**
  * The Menu of a Game against the computer (B5, D10, contradiction 2, N5, N17): this board's actions,
  * top to bottom Offer draw (or why not now), Resign, Takeback, Flip board, Moves, Think Time at Level
- * 8, New game (at a Result: Takeback when X1 allows it, Flip board, Moves, New game), then how it
- * is drawn: Pieces last, set apart, so a wheel over-scroll lands on it and not on an action.
- * [pieceSet] null (not read yet, M4) leaves Pieces out. No place: those are on Home.
+ * 8, New game (at a Result: Takeback when X1 allows it, Flip board, Moves, Think Time at Level 8,
+ * New game; the action row also offers Takeback then), then how it is drawn: Pieces last, set
+ * apart, so a wheel over-scroll lands on it and not on an action. [pieceSet] null (not read yet, M4) leaves Pieces out. No place: those are on Home.
  */
 object GameMenu {
     fun of(state: GameState, pieceSet: PieceSet? = null): List<MenuItem<GameMenuEntry>> = buildList {

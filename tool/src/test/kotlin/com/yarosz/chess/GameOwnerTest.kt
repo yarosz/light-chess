@@ -145,13 +145,13 @@ class GameOwnerTest {
     }
 
     @Test
-    fun `a Takeback at a Result the computer's Move made takes the Game off the Games list and plays on (X1)`() {
+    fun `a Takeback at a Result the computer's Move made takes the Game off the Games page and plays on (X1)`() {
         val playing = GameRecord(Game.of(), Side.WHITE, level = 1, date = "2026.10.03", seed = 7L).play("f2f3", "e7e5", "g2g4")
         val mated = playing.play("d8h4")
         GameStore(dir).save(GameData().save(playing).save(mated))
         val game = owner()
         game.resume()
-        waitFor("the Games list") { game.history.value.size == 1 }
+        waitFor("the Games page") { game.history.value.size == 1 }
         assertEquals(Phase.OVER, game.now().phase)
         assertTrue(GameMenu.of(game.now()).any { it.entry == GameMenuEntry.TAKEBACK })
 
@@ -159,7 +159,7 @@ class GameOwnerTest {
         assertEquals(Phase.USER, game.now().phase)
         assertEquals(listOf("f2f3", "e7e5"), game.now().record!!.game.moves.map { it.uci })
         assertEquals(1, game.now().record!!.takebacks)
-        waitFor("the Games list without it") { game.history.value.isEmpty() }
+        waitFor("the Games page without it") { game.history.value.isEmpty() }
         assertFalse(engine.searches.tryAcquire(200, TimeUnit.MILLISECONDS), "the user is to move: no search")
         game.pause()
         val saved = GameStore(dir).load()!!

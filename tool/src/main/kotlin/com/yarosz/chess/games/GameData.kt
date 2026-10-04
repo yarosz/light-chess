@@ -69,7 +69,7 @@ data class GameData(
 
     /**
      * X1's Takeback at the Result: [record], which [endedLast], comes off the front of [finished],
-     * and [back], its Takeback, is in progress again. One save, so the Games list never holds it
+     * and [back], its Takeback, is in progress again. One save, so the Games page never shows it
      * twice.
      */
     fun reopen(record: GameRecord, back: GameRecord): GameData {

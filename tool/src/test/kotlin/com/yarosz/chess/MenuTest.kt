@@ -94,7 +94,7 @@ class MenuTest {
     }
 
     @Test
-    fun `at a Result the computer's Move made, Takeback is the first row, and the action row keeps Next (X1)`() {
+    fun `at a Result the computer's Move made, Takeback is the Menu's first row and the action row reads Takeback, Next (X1)`() {
         val level3 = GameFlow.start(GameState(), GameChoices(level = 3, side = SideChoice.WHITE), 1L, "2026.10.03")
         var mated = level3
         for ((user, computer) in listOf("f2f3" to "e7e5", "g2g4" to "d8h4")) {
@@ -106,8 +106,9 @@ class MenuTest {
             listOf(GameMenuEntry.TAKEBACK, GameMenuEntry.FLIP, GameMenuEntry.MOVES, GameMenuEntry.NEW_GAME),
             GameMenu.of(mated).mapNotNull { it.entry },
         )
-        assertEquals(listOf(GameButton.NEXT), GameStrip.of(mated, null).buttons)
+        assertEquals(listOf(GameButton.TAKEBACK, GameButton.NEXT), GameStrip.of(mated, null).buttons)
         assertTrue(GameStrip.of(mated, null).menu)
+        assertEquals(listOf(GameButton.LATEST), GameStrip.of(mated, 0).buttons, "Review keeps Latest alone (R4.16)")
         assertFalse(GameStrip.of(mated, 0).menu, "no Menu, so no Takeback, in Review (N21)")
     }
 

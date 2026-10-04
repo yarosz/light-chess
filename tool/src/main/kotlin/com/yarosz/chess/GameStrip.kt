@@ -16,6 +16,7 @@ import com.yarosz.chess.rules.Side
 enum class GameButton(val label: String, val description: String) {
     HINT(UiCopy.HINT, UiCopy.GAME_HINT_DESCRIPTION),
     MOVE_NOW(UiCopy.MOVE_NOW, UiCopy.MOVE_NOW_DESCRIPTION),
+    TAKEBACK(UiCopy.TAKEBACK, UiCopy.TAKEBACK_DESCRIPTION),
     NEXT(UiCopy.NEXT, UiCopy.NEW_GAME_DESCRIPTION),
     LATEST(UiCopy.LATEST, UiCopy.LATEST_DESCRIPTION),
 }
@@ -26,7 +27,8 @@ enum class GameButton(val label: String, val description: String) {
  * strip has the back arrow at its left (N3); [menu] is whether the Menu mark sits at its right (N4).
  *
  * Every status but a Result reads on one line on the LP3 (R4.16): Takeback is in the Menu, and in
- * Review the strip holds Latest alone.
+ * Review the strip holds Latest alone. At a Result the computer's own Move made, Takeback also sits
+ * before Next on the action row (X1, the owner's ruling of 2026-10-03).
  */
 data class GameStrip(
     val status: String,
@@ -42,7 +44,7 @@ data class GameStrip(
             val phase = state.phase
             if (reviewPly != null) return review(record, reviewPly, menu = false)
             return when (phase) {
-                Phase.OVER -> result(record, listOf(GameButton.NEXT), menu = true)
+                Phase.OVER -> result(record, resultButtons(state), menu = true)
                 Phase.COMPUTER -> GameStrip(UiCopy.THINKING, listOf(GameButton.MOVE_NOW))
                 else -> if (state.hintPending) {
                     GameStrip(UiCopy.FINDING_HINT, emptyList())
@@ -60,6 +62,10 @@ data class GameStrip(
         fun gamesReview(record: GameRecord, reviewPly: Int?): GameStrip =
             if (reviewPly == null) result(record, emptyList(), menu = true)
             else review(record, reviewPly, menu = true)
+
+        /** The Result's action row: "Takeback · Next" when X1 allows a Takeback, else Next alone. */
+        private fun resultButtons(state: GameState): List<GameButton> =
+            if (state.canTakeBack) listOf(GameButton.TAKEBACK, GameButton.NEXT) else listOf(GameButton.NEXT)
 
         private fun result(record: GameRecord, buttons: List<GameButton>, menu: Boolean) =
             GameStrip(UiCopy.gameResult(record.game.result, record.userSide), buttons, StripLayout.STATUS_MAX_LINES, menu)
