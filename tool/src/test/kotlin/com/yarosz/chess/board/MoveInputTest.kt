@@ -7,9 +7,11 @@ import com.yarosz.chess.rules.Side
 import com.yarosz.chess.rules.Square
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 
 class MoveInputTest {
 
@@ -283,5 +285,56 @@ class MoveInputTest {
         assertNull(next.selected)
         assertEquals(Side.BLACK, next.position.sideToMove)
         assertEquals(sq("e7"), next.tap(sq("e7")).input.selected)
+    }
+
+    // --- tap slides, drop lands (Z1)
+
+    @Test
+    fun aTapTapMoveSlidesAndADroppedOneLands() {
+        val tapped = start.tap(sq("e2")).input.tap(sq("e4"))
+        assertEquals(Move(sq("e2"), sq("e4")), tapped.move)
+        assertTrue(tapped.slides)
+        val dropped = start.startDrag(sq("e2")).dragTo(sq("e4")).drop(sq("e4"))
+        assertEquals(Move(sq("e2"), sq("e4")), dropped.move)
+        assertFalse(dropped.slides)
+        // Through Touch, as the board reports them.
+        val viaTouch = start.touch(Touch.Tap(sq("g1"))).input.touch(Touch.Tap(sq("f3")))
+        assertTrue(viaTouch.slides)
+        val lifted = start.touch(Touch.Lift(sq("g1"))).input.touch(Touch.Over(sq("f3"))).input
+        assertFalse(lifted.touch(Touch.Release(sq("g1"), sq("f3"))).slides)
+    }
+
+    @Test
+    fun aReleaseThatLiftedNothingCountsAsATapAndSlides() {
+        val selected = start.tap(sq("e2")).input
+        val step = selected.release(pressed = sq("e4"), over = sq("e5"))
+        assertEquals(Move(sq("e2"), sq("e4")), step.move)
+        assertTrue(step.slides)
+    }
+
+    @Test
+    fun aStepWithNoMoveDoesNotSlide() {
+        assertFalse(start.tap(sq("e2")).slides)
+        assertFalse(at(promotionReady).taps("b7").first.tap(sq("b8")).slides, "the picker opens")
+    }
+
+    @Test
+    fun aPromotionSlidesAfterTapTapAndLandsAfterADrop() {
+        val tapped = at(promotionReady).taps("b7", "b8").first.tap(sq("b8"))
+        assertEquals(Move(sq("b7"), sq("b8"), PieceType.QUEEN), tapped.move)
+        assertTrue(tapped.slides)
+        val open = at(promotionReady).startDrag(sq("b7")).dragTo(sq("b8")).drop(sq("b8")).input
+        assertEquals(true, open.promotion?.dropped)
+        val dropped = open.tap(sq("b8"))
+        assertEquals(Move(sq("b7"), sq("b8"), PieceType.QUEEN), dropped.move)
+        assertFalse(dropped.slides)
+    }
+
+    @Test
+    fun castlingSlidesTheKingByTapAndLandsByDrop() {
+        val tapped = at(castlingReady).tap(sq("e1")).input.tap(sq("h1"))
+        assertEquals(Move(sq("e1"), sq("g1")), tapped.move)
+        assertTrue(tapped.slides)
+        assertFalse(at(castlingReady).startDrag(sq("e1")).dragTo(sq("h1")).drop(sq("h1")).slides)
     }
 }

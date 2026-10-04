@@ -71,7 +71,7 @@ PackFormatException
 PieceVectors
 Shades
 Marks
-# The slide of a Move into place (A5, F11)
+# The slide of a Move into place (A5, F11, Z1)
 Motion
 MoveInput
 Touch

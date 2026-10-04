@@ -72,7 +72,7 @@ class GameViewModel(private val game: GameOwner) : WheelViewModel<Unit>() {
         }
         val step = input(state)?.touch(touch) ?: return
         input = step.input
-        step.move?.let(game::play)
+        step.move?.let { game.play(it, slide = step.slides) }
     }
 
     fun leaveReview() {

@@ -276,7 +276,9 @@ and writes the file; the two screens' view models are views onto it.
 
 - Timing (A5): hold the Position 500 ms, slide the setup Move in 250 ms, reply 300 ms after the user's
   Move lands. The Solution plays one Move every 600 ms (our choice). Every Move that plays itself
-  (setup, reply, Solution) slides in over 250 ms; the user's own Moves are instant (F11).
+  (setup, reply, Solution) slides in over 250 ms, and so does the user's own Move made by tap-tap; a
+  dropped Move lands at once where the finger left it (Z1). "Lands" is the moment the Move is
+  played, so the reply starts 50 ms after the user's slide ends.
 - A wrong Move is never drawn: it is taken back at once and the status reads "Try again" until the
   next correct Move.
 - Scoring: a Failed Attempt is scored at the wrong Move or at Solution, once; a Solved one when its
@@ -307,9 +309,9 @@ and writes the file; the two screens' view models are views onto it.
   every Missed Puzzle (`prefetchMissed`). The choice itself still happens at the result (D1). A tap
   that outruns the read ahead reads the file itself, as before.
 - The stage clock (A5) starts again only when the Attempt on screen changed, so a tap that changes
-  nothing (Hint while the reply is pending) doesn't delay the reply. A slide (setup, reply, Solution)
-  is cleared once it has played, and whenever its Move is no longer the latest, so a return to the
-  Puzzle board from Home doesn't play it again.
+  nothing (Hint while the reply is pending) doesn't delay the reply. A slide (setup, reply,
+  Solution, the user's tap-tap Move) is cleared once it has played, and whenever its Move is no
+  longer the latest, so a return to the Puzzle board from Home doesn't play it again.
 - The owner reads assets through the latest screen that asked for it (`PuzzleOwner.of`): the SDK
   reads them only through a screen's activity, so keeping the first screen's reader kept the first
   activity alive after a relaunch.
@@ -392,9 +394,10 @@ process-wide owner that runs the computer on `EngineHost.shared`, the clock and 
   replace" first, above "The Game in progress is saved as unfinished." The choices are remembered
   (Level 1, White, 3 s the first time).
 - The computer's Move lands no sooner than 300 ms after the user's (A5's reply delay), so a book Move
-  or a quick Level doesn't land with the user's own, and slides in over 200 ms (F11). The user's Moves
-  are instant. The board takes no Move while the computer thinks (contradiction 3); the wheel still
-  reviews.
+  or a quick Level doesn't land with the user's own, and slides in over 200 ms (F11). The user's
+  Move made by tap-tap slides in over the same 200 ms, so it has ended before the computer's starts;
+  a dropped Move lands at once (Z1). Each slide plays once and the next supersedes it. The board
+  takes no Move while the computer thinks (contradiction 3); the wheel still reviews.
 - Game Hint: a Level 8 search at the default Think Time (3 s); the title reads "Finding a Game Hint"
   with the mark while it runs, and the board stays live (a Move stops the search, uncounted). Then the
   Puzzle Hint's ring on the piece and a target mark on its square (the dot, or the capture ring over a

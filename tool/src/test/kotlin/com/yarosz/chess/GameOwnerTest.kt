@@ -1,5 +1,6 @@
 package com.yarosz.chess
 
+import com.yarosz.chess.board.Motion
 import com.yarosz.chess.engine.Engine
 import com.yarosz.chess.engine.EngineHost
 import com.yarosz.chess.engine.SearchProgress
@@ -9,6 +10,8 @@ import com.yarosz.chess.engine.StopHandle
 import com.yarosz.chess.games.GameChoices
 import com.yarosz.chess.games.GameState
 import com.yarosz.chess.games.SideChoice
+import com.yarosz.chess.rules.Move
+import com.yarosz.chess.rules.Square
 import java.io.File
 import java.nio.file.Files
 import java.util.concurrent.Semaphore
@@ -19,6 +22,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -134,6 +138,41 @@ class GameOwnerTest {
         waitFor("the slide to end") { game.motion.value == null }
         game.pause()
     }
+
+    @Test
+    fun `the user's Move made by tap-tap slides in over the computer's slide, then is gone (Z1)`() {
+        val game = owner()
+        game.resume()
+        assertTrue(game.start(GameChoices(level = 1, side = SideChoice.BLACK)))
+        assertTrue(engine.searches.tryAcquire(5, TimeUnit.SECONDS), "the computer is thinking")
+        game.moveNow()
+        waitFor("the computer's Move on the board") { game.now().record?.game?.moves?.size == 1 }
+        val computers = assertNotNull(game.motion.value, "the computer's slide")
+
+        val e7e5 = Move(sq("e7"), sq("e5"))
+        game.play(e7e5, slide = true)
+        val own = assertNotNull(game.motion.value, "the user's slide")
+        assertEquals(Motion(e7e5, computers.id + 1, Motion.ENGINE_MS), own)
+        assertEquals(e7e5, game.now().record?.game?.moves?.lastOrNull())
+        // Once it has played, it is gone: a board back from its Menu doesn't replay it.
+        waitFor("the user's slide to end") { game.motion.value == null }
+        // The computer's reply waits longer than the slide takes, so it never cuts the slide short.
+        assertTrue(Motion.ENGINE_MS < GameOwner.REPLY_MS)
+        game.pause()
+    }
+
+    @Test
+    fun `the user's dropped Move lands at once, with no slide (Z1)`() {
+        val game = owner()
+        game.resume()
+        assertTrue(game.start(GameChoices(level = 1, side = SideChoice.WHITE)))
+        game.play(Move(sq("e2"), sq("e4")), slide = false)
+        assertEquals(1, game.now().record?.game?.moves?.size)
+        assertNull(game.motion.value)
+        game.pause()
+    }
+
+    private fun sq(name: String): Square = assertNotNull(Square.parse(name))
 
     @Test
     fun `the shared engine thread can't be shut down`() {

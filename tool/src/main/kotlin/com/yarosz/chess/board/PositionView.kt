@@ -46,9 +46,10 @@ val POSITION_VIEW_SIZE: Dp = 312.dp
 private fun gray(level: Int, alpha: Float = 1f) = Color(Shades.argb(level, alpha))
 
 /**
- * An opponent's Move to animate as it lands, over [ms]: the piece on [move]'s destination slides in
- * from its origin. A new [id] starts the slide again. Puzzles slide in [MS] (A5); the computer's Moves
- * in a Game in [ENGINE_MS] (F11).
+ * A Move to animate as it lands, over [ms]: the piece on [move]'s destination slides in from its
+ * origin (for castling, the king; the rook jumps). A new [id] starts the slide again. Puzzles slide
+ * in [MS] (A5), Games against the computer in [ENGINE_MS] (F11): the opponent's Moves, and the
+ * user's own made by tap-tap (Z1).
  */
 data class Motion(val move: Move, val id: Int, val ms: Int = MS) {
     companion object {

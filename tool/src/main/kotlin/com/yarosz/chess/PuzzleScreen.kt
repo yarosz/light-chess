@@ -77,7 +77,7 @@ class PuzzleViewModel(private val owner: PuzzleOwner) : WheelViewModel<Unit>() {
         }
         val step = input(attempt)?.touch(touch) ?: return
         input = step.input
-        step.move?.let(owner::play)
+        step.move?.let { owner.play(it, slide = step.slides) }
     }
 
     fun leaveReview() {
