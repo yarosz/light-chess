@@ -360,13 +360,16 @@ object FriendJobs {
 
     val INTERVAL = 1.hours
 
+    /** A finished sync: no file and no message for Light's Tool Manager (SDK 0.2.0's Success). */
+    private val DONE = LightJobResult.Success(outputFilePath = null, message = null)
+
     /**
      * The jobs' body: the process's [FriendOwner] runs syncAll. With the Relay URL empty there is no
      * owner, and the job does nothing (and none is ever scheduled then, W8). The one-off job asks
      * LightWork to run again while something still waits to send.
      */
     suspend fun run(owner: FriendOwner?, periodic: Boolean): LightJobResult {
-        if (owner == null) return LightJobResult.Success()
+        if (owner == null) return DONE
         val report = try {
             owner.syncNow(periodicJob = periodic)
         } catch (e: CancellationException) {
@@ -376,9 +379,9 @@ object FriendJobs {
             throw e
         } catch (e: Exception) {
             Log.w("Chess", "background sync failed", e)
-            return if (periodic) LightJobResult.Success() else LightJobResult.Retry
+            return if (periodic) DONE else LightJobResult.Retry
         }
-        return if (!periodic && report?.retry == true) LightJobResult.Retry else LightJobResult.Success()
+        return if (!periodic && report?.retry == true) LightJobResult.Retry else DONE
     }
 }
 
