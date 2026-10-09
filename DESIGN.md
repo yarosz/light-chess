@@ -350,7 +350,7 @@ copy for the object on screen, while code names the chess state a Position.
   (P2, M1; a tap moves to the next set and stays on the Menu); on the Puzzle board, "Puzzle 00sHx"
   over "lichess.org/training/00sHx".
 - About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).
-  - "Chess $VERSION" (0.4.1, equal to `versionName`)
+  - "Chess $VERSION" (0.5.0, equal to `versionName`)
   - "Copyright 2026 Nicolas Yarosz."
   - "Free software under the GNU General Public License, version 3 or later, with no warranty."
   - "Source: $SOURCE" (github.com/yarosz/light-chess, as text: the phone has no browser)
