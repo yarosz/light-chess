@@ -37,9 +37,9 @@ class Glicko2Test {
     fun `a new Player Rating starts at 1500, RD 500, volatility 0,09 and is provisional`() {
         val start = Glicko.start()
         assertEquals(Glicko(1500.0, 500.0, 0.09), start)
-        assertEquals("1500?", start.text)
+        assertEquals("(1500)", start.text)
         assertEquals("1523", Glicko(1523.4, 75.0).text, "RD 75 is settled")
-        assertEquals("1523?", Glicko(1523.4, 75.1).text)
+        assertEquals("(1523)", Glicko(1523.4, 75.1).text, "provisional: in parentheses (Q1)")
     }
 
     @Test
@@ -49,7 +49,7 @@ class Glicko2Test {
         assertEquals(45.0, Glicko2.update(Glicko(1500.0, 50.0, 0.001), many).deviation, 1e-9)
         var player = Glicko.start()
         repeat(300) { i -> player = Glicko2.update(player, listOf(Glicko2.Game(player.rating, 45.0, (i % 2).toDouble()))) }
-        assertTrue(player.deviation in 45.0..75.0, "one Puzzle per period settles below the question mark: ${player.deviation}")
+        assertTrue(player.deviation in 45.0..75.0, "one Puzzle per period settles out of the parentheses: ${player.deviation}")
         val grown = Glicko2.update(Glicko(1500.0, 499.0, 0.09), listOf(Glicko2.Game(1500.0, 500.0, 1.0)))
         assertTrue(grown.deviation <= 500.0)
     }

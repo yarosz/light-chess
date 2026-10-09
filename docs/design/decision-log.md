@@ -1892,3 +1892,24 @@ consistent with the log.
     `noLeadWhenLevelAndALeadAtTheEdgeWhenItsSideTookNothing` (the lead at the left or the right
     edge by Side), `theWidestRowFitsTheBoardWithoutItsEndsMeeting`;
     `StripFitTest.theCapturedPiecesRunFromEachEdgeOfTheBoard` with the edges swapped.
+
+## The Player Rating in parentheses, and off Home (owner, 2026-10-08)
+- Q1 A provisional Player Rating shows in parentheses, and Home shows no rating. SUPERSEDES the
+  question mark in A7 ("1500?" while RD > 75), N11, N15 and wherever this log quotes it ("1176?",
+  "1727?", 'the "?" goes after about 48 Puzzles'); SUPERSEDES N11's rating on Home's Puzzles row
+  (and the line "The rating is on the Puzzles row ... still shows once on Home"). RULING (owner,
+  2026-10-08): while the Player Rating is provisional (RD > 75, A7's threshold, unchanged) it reads
+  "(1500)", not "1500?"; settled, it is the bare number, as before. Home's Puzzles row is just
+  "Puzzles", always: Home shows no rating at all. The rating still shows on the Puzzles page's last
+  row, "Player Rating · (1176)" (N12), and on the Player Rating page (N15), whose line reads "The
+  parentheses go after about 50 rated Puzzles." while it is provisional. N11's five rows, their
+  order and the wheel rule are otherwise unchanged.
+  - Why: the owner's call. A question mark after a number reads as doubt about the number, or as a
+    typo; parentheses are the usual mark of a provisional rating. The rating belongs to Puzzles, and
+    the Puzzles page is one tap from Home.
+  - The save file is unchanged (the rating and its deviation, A7); only `Glicko.text` changes, so a
+    v0.4.1 save shows "(1855)" where it showed "1855?". `scripts/release-drive.py state` reads both
+    forms as one rating, so `release-check.sh upgrade` compares across them.
+  - `Glicko.text`, `HomeRows.of(yourMove)`, `UiCopy.PROVISIONAL_NOTE`. Tests: `Glicko2Test`,
+    `HomeTest` (no Home row shows the rating), `PuzzlesPageTest` ("Player Rating · (2999)" fits one
+    line; the page's provisional line).

@@ -67,7 +67,7 @@ _Avoid_: bucket, tier, level
 
 **Player Rating**:
 The user's own puzzle-solving strength. It changes after each rated Attempt and decides which
-Puzzles come next. Shown with a question mark until it has settled.
+Puzzles come next. Shown in parentheses until it has settled.
 _Avoid_: Elo, score, rating (alone)
 
 **Attempt**:

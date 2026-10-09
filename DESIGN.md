@@ -10,12 +10,12 @@ LEFT always leaves (toward Home), RIGHT always opens this board's Menu, and a fi
 places. No gestures. Rulings: decision log "Navigation D" and "Puzzles page and Pieces".
 
 - Home (`HomeScreen`, the `@InitialScreen`): LightOS's top bar titled "Chess" with no back arrow, then
-  the five rows `HomeRows` gives (N11): "Puzzles · 1176?", "Play the computer", "Play a friend" or
-  "Play a friend · Your move: 2" (only with the Relay URL set), "Games", "About". Before
-  `puzzles.json` is read the Puzzles row reads "Puzzles". System back from Home closes Chess.
+  the five rows `HomeRows` gives (N11): "Puzzles", "Play the computer", "Play a friend" or
+  "Play a friend · Your move: 2" (only with the Relay URL set), "Games", "About". Home shows no
+  Player Rating (Q1): the Puzzles page does. System back from Home closes Chess.
 - The Puzzles page (`MenuPage.PUZZLES`, rows from `PuzzlesRows`, N12): the top bar with the back
   arrow and the title "Puzzles", then a first row that says what it does, "Missed · 3", "Past
-  Puzzles" and "Player Rating · 1176?". The first row, from the Puzzle flow's state
+  Puzzles" and "Player Rating · (1176)" (in parentheses while provisional, Q1). The first row, from the Puzzle flow's state
   (`PuzzlesRows.start`, then `PuzzleFlow.toRated` on a tap):
 
   | State | Row | A tap |
@@ -35,7 +35,7 @@ places. No gestures. Rulings: decision log "Navigation D" and "Puzzles page and 
   tap reads no file: on a lost row, or one the read hasn't reached yet, it starts nothing and the
   page stays.
 - Past Puzzles (N14): the rated Attempts, newest first, read-only, up to 100 (`HISTORY_CAP`).
-- Player Rating (N15): the rating, "The ? goes after about 50 rated Puzzles." while it is
+- Player Rating (N15): the rating, "The parentheses go after about 50 rated Puzzles." while it is
   provisional, and Reset rating ("Tap again to reset").
 - Launch (`Navigation.launch`, N16): the place last used (`mode.txt`) is pushed over Home on the
   activity's first show, before Home is drawn: for Puzzles the Puzzles page and the board over it
@@ -287,7 +287,7 @@ and writes the file; the two screens' view models are views onto it.
   in the background at that moment (D1).
 - Glicko-2 uses τ = 0.75, Lichess's value for puzzles; the log doesn't fix τ. A measured consequence
   of RD 500 and volatility 0.09 with one Puzzle per rating period: the deviation settles near 73-74
-  after about 48 Puzzles, just under the 75 of "1500?", and the 45 floor is never reached in practice.
+  after about 48 Puzzles, just under the 75 that ends the parentheses of "(1500)", and the 45 floor is never reached in practice.
 - Selection picks at random among the candidates `Pack.candidates` returns.
 - A Missed replay sits on top of the rated Puzzle: Next after it returns to the rated one. The save
   file doesn't keep a replay; a relaunch returns to the rated Puzzle.
@@ -336,21 +336,21 @@ copy for the object on screen, while code names the chess state a Position.
 - The seed screen (D4): "How well do you play chess?", then "I'm new to chess" (800), "I play now and
   then" (1200), "I play often and study the game" (1600), "I play in a club or in tournaments" (2000),
   and "Skip" (1500).
-- Home (N11): the title "Chess", then "Puzzles · 1500?", "Play the computer", "Play a friend · Your
+- Home (N11, Q1): the title "Chess", then "Puzzles", "Play the computer", "Play a friend · Your
   move: 2", "Games", "About". `HomeTest` checks that each row fits one line. Each page is its own
   screen, so Back, the arrow or the system's, goes from a page one level down (N16); Reset rating
   and a Missed replay go straight to the Puzzle board, over the Puzzles page.
 - The Puzzles page (N12): the title "Puzzles", then "Continue Puzzle", "Next Puzzle", "Back to the
   rated Puzzle", "Start" or "Every Puzzle is finished" (a plain line), then "Missed · 3", "Past
-  Puzzles", "Player Rating · 1500?". The Player Rating page: the rating, "The ? goes after about 50
-  rated Puzzles." while it ends in "?", "Reset rating" then "Tap again to reset" (F5). Past Puzzles:
+  Puzzles", "Player Rating · (1500)". The Player Rating page: the rating, "The parentheses go after
+  about 50 rated Puzzles." while it is in parentheses, "Reset rating" then "Tap again to reset" (F5). Past Puzzles:
   rows "1523 · Solved +12", "1541 · Failed −9"; "No rated Puzzles yet" when empty. Missed: rows
   "1541 · Failed" or "1541 · Hinted", lightened for a Puzzle the Pack lost; "Nothing missed yet".
 - A board's Menu (N17-N19): "Pieces · Geometric" or "Pieces · Rounded" with the set drawn beside it
   (P2, M1; a tap moves to the next set and stays on the Menu); on the Puzzle board, "Puzzle 00sHx"
   over "lichess.org/training/00sHx".
 - About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).
-  - "Chess $VERSION" (0.4.1, equal to `versionName`)
+  - "Chess $VERSION" (0.5.0, equal to `versionName`)
   - "Copyright 2026 Nicolas Yarosz."
   - "Free software under the GNU General Public License, version 3 or later, with no warranty."
   - "Source: $SOURCE" (github.com/yarosz/light-chess, as text: the phone has no browser)

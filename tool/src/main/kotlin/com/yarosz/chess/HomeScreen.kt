@@ -135,10 +135,9 @@ class HomeScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, HomeVi
     @Composable
     override fun Content() {
         val themeColors by LightThemeController.colors.collectAsState()
-        val session by owner.session.collectAsState()
         val friendState = friends?.state?.collectAsState()?.value
         val vm = viewModel
-        val rows = HomeRows.of(session?.data?.player?.text, friendState?.yourMove)
+        val rows = HomeRows.of(friendState?.yourMove)
         LightTheme(colors = themeColors) {
             Column(Modifier.fillMaxSize().background(LightThemeTokens.colors.background)) {
                 LightTopBar(center = LightTopBarCenter.Text(UiCopy.HOME_TITLE))

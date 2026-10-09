@@ -164,7 +164,9 @@ check_scan() {
   # the Android emulator's fixed addresses, which name no machine: 10.0.2.2 is its alias for the host (a
   # debug build's local Relay, W8) and 10.0.2.3 its DNS (a negative test in v3's Relay client). Only
   # these two; any other 10.x address still fails. (Loopback, 127.0.0.1, never matches the patterns.)
+  # Light's public address for Tool submissions, from its SDK README (RELEASING.md), names no person.
   local allow='noreply@anthropic\.com|users\.noreply\.github\.com|lightsdk-dev\.jks|\b10\.0\.2\.[23]\b'
+  allow+='|tools@thelightphone\.com'
   local private="" hits
   if [ -n "${RELEASE_SCAN_PRIVATE:-}" ]; then
     [ -f "$RELEASE_SCAN_PRIVATE" ] || die "RELEASE_SCAN_PRIVATE names no file"

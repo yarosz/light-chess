@@ -56,10 +56,15 @@ out of type names.
 ## Platform rules (enforced by Light's build plugin)
 
 - Write Kotlin, Compose UI, inside `LightScreen`/`LightViewModel`. Java source files fail the build.
-- Use only allowlisted dependencies and permissions: `light-sdk/plugin/src/main/kotlin/com/thelightphone/plugin/`
-  (`LightSdkPlugin.kt`, `LightToolMetadata.kt`). Reach files through the screen's `filesDir`.
+- Use only allowlisted dependencies, at exact versions (no `+`, ranges or `-SNAPSHOT`), and
+  allowlisted permissions. Reach files through the screen's `filesDir`. Under
+  `light-sdk/plugin/src/main/`:
+  - `resources/com/thelightphone/plugin/allowed-dependencies.txt`: the dependency allowlist, checked
+    as declared and again as resolved (`lightSdkValidateDependencies`, before every build).
+  - `kotlin/com/thelightphone/plugin/LightToolMetadata.kt`: permissions and capabilities.
 - Reflection is blocked, including `.javaClass`. Native code (NDK/JNI) is disallowed by Light policy.
-- The plugin generates the manifest from `tool/lighttool.toml`; cleartext HTTP is therefore off.
+- The plugin generates the manifest from `tool/lighttool.toml`. Chess declares no capability, so
+  cleartext HTTP stays off and no Tool Manager file provider is exported.
 - Chess declares one permission, INTERNET, for the Relay and only for Games with a friend (ADR 0004,
   W1; v1 declared none, D5). `ToolMetadataTest` guards it, and `scripts/release-check.sh relay`
   refuses a release that declares it with no Relay URL (W8). Light's SDK libraries also merge

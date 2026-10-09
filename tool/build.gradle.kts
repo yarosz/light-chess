@@ -25,7 +25,6 @@ android {
         minSdk = rootProject.ext["minSdk"] as Int
         targetSdk = rootProject.ext["targetSdk"] as Int
 
-        manifestPlaceholders["sdkVersion"] = property("sdkVersion") as String
         // The Relay's URL is RelayConfig.URL, committed (W8). Only a debug build may point elsewhere.
         buildConfigField("String", "RELAY_URL", "\"\"")
     }

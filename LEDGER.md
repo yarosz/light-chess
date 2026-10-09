@@ -4,21 +4,40 @@ STATUS: released v0.1.0 (Puzzles), v0.2.0 (the computer), v0.3.0 (Play a friend)
 review follow-ups, L1-L5, W12/W13), v0.4.0 (#29: Navigation D and layout E, N1-N23 and E1-E15;
 the Puzzles page; Captured Pieces from each edge; no coordinate on a marked square, K1; the
 computer's Move slides in once) and v0.4.1 (#32: ML Kit and its Google dependencies left out of the
-APK, T1), each a tagged commit on main with a notes-only GitHub Release. v0.4.1 is the first
-submission candidate free of the GPLv3 + ML Kit question. The Relay is live at
-`https://chess-relay.yarosz.com` (W11, protocol 1.0). Next, in order, all for 0.5.0:
-1. In progress: v3 PR 3, the live WebSocket, #31 on `feat/v3-live` (decision log U1-U6).
-   Client only; the Relay's `/live` is deployed and unchanged. U4's privacy sentences were approved
-   by the owner on 2026-10-03; before merge the orchestrator checks it on the emulator and on two
-   phones (the PR's checklist).
-2. In progress: Takeback at a Result the computer's own Move made, "Takeback · Next" (#33, X1).
-3. In progress: the user's own tap-tap Moves slide too (owner, 2026-10-03; its own PR).
-FOR THE OWNER (none blocks development): the submission to Light's portal. v0.4.1 is the candidate:
-the first tag without ML Kit (T1), so the GPLv3 + ML Kit question doesn't apply to it. Earlier tags
-all carry ML Kit; v0.1.0 has no GPL engine, while v0.2.0-v0.4.0 pair GPLv3 Pirarucu with ML Kit.
+APK, T1), each a tagged commit on main with a notes-only GitHub Release. v0.4.1 was the first
+tag free of the GPLv3 + ML Kit question. The Relay is live at
+`https://chess-relay.yarosz.com` (W11, protocol 1.0). Merged since v0.4.1, all in 0.5.0:
+#31 the live WebSocket (v3 PR 3, decision log U1-U6: "Live · Your move" / "Live · Their move" while
+both phones have a friend Game open, pushed Moves, presence; the Relay's `/live` unchanged), #33
+Takeback at a Result the computer's own Move made, "Takeback · Next" (X1), #34 the user's own
+tap-tap Moves slide and a drop lands at once (Z1), #35 Captured Pieces: the bottom Side's end at the
+board's right edge, the top Side's at the left, a flip swaps them (J1).
+In flight: the 0.5.0 release PR (versionCode 7), built on light-sdk v0.2.0, which Light tagged on
+2026-10-08 (builder Maven proxy and native-library checks, a resolved-dependency check, tool
+manager jobs, Tool signing policy, TOOL_GUIDELINES.md); Light's submission steps ask for the latest
+SDK. The bump changed no permission and made one small visible change: the keyboard on Play a
+friend's text fields (Enter code, Rename) no longer shows a dictation key (`rememberKeyboardOptions`).
+`LightJobResult.Success` takes two more arguments, the SDK's exported file provider left the APK
+(opt-in capability now), and the Tool targets SDK 34, as Light's builds now do.
+FOR THE OWNER (none blocks development): the submission through Light's dashboard (RELEASING.md
+"After merge and tag"). 0.5.0 (on SDK v0.2.0) is the candidate once tagged: like v0.4.1, it carries
+no ML Kit (T1), so the GPLv3 + ML Kit question doesn't apply to it. The tags before v0.4.1 all
+carry ML Kit; v0.1.0 has no GPL engine, while v0.2.0-v0.4.0 pair GPLv3 Pirarucu with ML Kit.
 What remains for Light is whether it signs a GPLv3 Tool; the owner decides what to tell Light.
+The listing text should answer TOOL_GUIDELINES.md: Puzzles and the computer are fully offline;
+Games with a friend send Moves through the Relay, whose code is in this repo and runs on Cloudflare;
+the privacy disclosure is UiCopy.PRIVACY_FRIENDS. The listing needs at least one image
+(`mise run ui shot`).
 Optional: Always Use HTTPS/HSTS on the Relay's zone (the Worker already refuses plain HTTP, L3).
 FOLLOW-UPS (low, from code review; none blocking):
+- When an SDK tag includes light-sdk PR #234 (a build fails unless `serverPackage` is `com.lightos`,
+  or `-DlightSdk.allowAltServerPackage=true` is passed), emulator builds must pass that flag: the
+  `scripts/emulator-build.sh` path (`mise run tool`, `mise run ci`), never `light-build.sh`.
+- Later: Light's backups (discussion #255), once its SDK side ships.
+- Games with a friend don't slide Moves yet (Z1 left `FriendOwner` out; slides come when that code
+  is rewritten).
+- `EngineTest` "every attach gets the same engine thread" flaked once; passes on a rerun.
+- Nits left in the #21, #22 and #26 PR comments, below.
 - #21: drop a kept Missed tap on `onAppPause` too; a single-threaded main dispatcher in
   `PuzzleOwnerMissedTest`; tests for two taps, leave-return-tap and a failing check; make
   `replayMissed`'s `whenLanded` non-null.
@@ -42,21 +61,24 @@ and the rounded Piece Set on a Correspondence Game (need a second phone); in pla
 Move doesn't slide again after the Menu (#26) and a Missed replay opens at once (#21); a Result's
 two lines and "Rematch · Accept · Decline" fitting the action row. From v1: the greys and both Piece
 Sets on the physical panel (owner's eyes or photos), and Hint taps during a reply don't delay it.
+0.5.0 on the LP3 (targetSdk 34 since SDK v0.2.0), and the Player Rating in parentheses.
 DONE (details in the PRs and the decision log): the v1 stack and 0.1.0 (LP3-checked 2026-09-29),
 the v2 forward merge (M1-M7) and 0.2.0, the Relay deploy and v3 (#3, #10 P3) and 0.3.0, 0.3.1, then
 #16-#26 above.
-LAST SESSION: 2026-10-03 (v3 PR 3 built)
+LAST SESSION: 2026-10-08 (0.5.0 release PR)
 
 ## HANDOFF (read first when resuming)
 - Every feature branch (the v1 stack, v2's engine, Levels, record, Book and game screen, v3's
   Relay, client and Play a friend) is merged to main and released. Rulings: decision log "v2 PR 4"
-  (R4.1-R4.17), "v3 PR 1" (V1-V15), "v3 PR 2" (W1-W10, Y1-Y14); screens: DESIGN.md.
-- Next: merge v3 PR 3, the live WebSocket (`feat/v3-live`; `/live`, G3; decision log U1-U6): a
+  (R4.1-R4.17), "v3 PR 1" (V1-V15), "v3 PR 2" (W1-W10, Y1-Y14), "v3 PR 3" (U1-U6), X1, Z1, J1;
+  screens: DESIGN.md.
+- Merged (#31, in 0.5.0): v3 PR 3, the live WebSocket (`/live`, G3; decision log U1-U6): a
   socket per process for the board on screen (`LiveOwner`, `LiveConnection`), "Live · Your move" /
   "Live · Their move", and Y12's one-minute board sync only while the socket is down (U3).
-  Done on the LP3 (2026-09-29): LightOS disables Doze (PLATFORM.md). A one-off friend-send job
-  delivered a Move that had failed to send once a local Relay was back (via adb reverse), with no
-  user action, and a second phone on the JVM saw it.
+  Checked on an LP3 against the emulator on the deployed Relay (#31's comments: Live on both,
+  Moves pushed both ways, U1's grace, pause). Earlier, on the LP3 (2026-09-29): LightOS disables
+  Doze. A one-off friend-send job delivered a Move that had failed to send once a local Relay was
+  back (via adb reverse), with no user action, and a second phone on the JVM saw it.
 - For the maintainer: the privacy wording is approved (UiCopy.PRIVACY_FRIENDS, docs/privacy.md,
   ADR 0004), with v3 PR 3's presence sentences (U4) approved on 2026-10-03; still ask Light whether
   a privacy statement is needed.
@@ -92,9 +114,9 @@ LAST SESSION: 2026-10-03 (v3 PR 3 built)
   - Light: a GPLv3 Tool (ML Kit is out of the APK since T1); production push; an
     alert/badge method; a privacy statement; listing requirements; the SDK's 1 s splash; and the
     scanner's bare-`javaClass` gap (light-sdk).
-  - The submission in Light's portal: v0.1.0 is safe (no GPL engine); v0.2.0-v0.4.0 pair GPLv3
-    Pirarucu with ML Kit, so the next candidate is the first release after T1, once Light answers
-    on a GPLv3 Tool.
+  - The submission through Light's dashboard: v0.1.0 is safe (no GPL engine); v0.2.0-v0.4.0 pair GPLv3
+    Pirarucu with ML Kit, so the candidate is 0.5.0 (SDK v0.2.0, no ML Kit); whether Light signs a
+    GPLv3 Tool is the owner's to raise with Light.
   - Maybe: release the CC0 opening Book as its own repo (builder MIT, book.bin CC0) after checking
     whether a CC0 Polyglot book already exists.
   - Stockfish: installed (Homebrew, 19) and run on 2026-09-29; the UCI_Elo fit was not consistent,
@@ -105,7 +127,7 @@ LAST SESSION: 2026-10-03 (v3 PR 3 built)
 - Design: `CONTEXT.md` (glossary), `docs/adr/0001-0004`, `docs/design/decision-log.md`. The log
   holds every ruling and each contradiction it resolved; read it before reopening a decision.
 - Repo: the light-reader template (`AGENTS.md`, `mise.toml`, `scripts/ci.sh`, `light-build.sh`,
-  `emulator-build.sh`, `domain-drift.sh`), light-sdk submodule at v0.1.2, `tool/lighttool.toml`
+  `emulator-build.sh`, `domain-drift.sh`), light-sdk submodule at v0.2.0, `tool/lighttool.toml`
   (com.yarosz.chess, portrait, serverPackage com.lightos, INTERNET only for the Relay: W1).
 - Rules core: `tool/src/main/kotlin/com/yarosz/chess/rules/` (pure Kotlin). Perft exact on the start
   position, Kiwipete and positions 3-6; property tests over 400 random Games. `-Dperft.deep=true`
@@ -186,13 +208,12 @@ LAST SESSION: 2026-10-03 (v3 PR 3 built)
   W11 URL (relay/README.md "Deploying").
 
 ## Next
-The order is STATUS's (0.4.1, then v3 PR 3, then Takeback after the computer ends a
-Game). Also open, unscheduled:
+After 0.5.0: the follow-ups in STATUS. Also open, unscheduled:
 1. On the LP3: a photo of the shades through the grayscale filter (D10), and `signoff/lp3` in
    `ci.sh`. Time to the first Puzzle on resume was about 1,035 ms (2026-09-28, debug build), just
    after LightActivity's 1 s splash (target <= 1.5 s, decision log "v1 PR 4 rulings").
 2. For the next product review: with RD 500, volatility 0.09 and one Puzzle per rating period, the
-   deviation settles near 73-74 (about 48 Puzzles to lose the "?"), so the 45 floor is never
+   deviation settles near 73-74 (about 48 Puzzles to lose the parentheses), so the 45 floor is never
    reached.
 3. v2.x: "Play from here" (F7, decision log R4.15).
 4. Licence: settled for ML Kit by T1. Light's SDK pulls in Google's proprietary ML Kit barcode
@@ -204,8 +225,8 @@ Game). Also open, unscheduled:
 ## Open outside questions (none blocks development)
 - Light: will they sign a GPLv3 Tool; is production push live for Tools; is an alert or badge method
   planned; is a privacy statement needed; what does a listing need?
-- light-sdk: the reflection scan misses a bare `javaClass` call (`LightSdkPlugin.kt:119`). Under
-  Light's AI policy, the maintainer must report it personally.
+- light-sdk: the reflection scan misses a bare `javaClass` call (`LightSdkPlugin.kt:156` at
+  v0.2.0). Under Light's AI policy, the maintainer must report it personally.
 - light-sdk: every Tool's APK gets INTERNET, CAMERA and six more permissions merged in from the
   SDK and its libraries (OkHttp, `sdk:ui`'s own manifest, WorkManager, Media3), whatever
   `lighttool.toml` declares. So About says "Chess never uses the network" rather than "No network

@@ -67,10 +67,11 @@ object UiCopy {
     const val BACK_TO_RATED = "Back to the rated Puzzle"
 
     /**
-     * The Player Rating page's line while the rating is provisional (N15). Static on purpose: Glicko's
-     * deviation can rise between Puzzles, so a countdown would lie; about 48 is measured (DESIGN.md).
+     * The Player Rating page's line while the rating is provisional, shown in parentheses (N15, Q1).
+     * Static on purpose: Glicko's deviation can rise between Puzzles, so a countdown would lie; about
+     * 48 is measured (DESIGN.md).
      */
-    const val PROVISIONAL_NOTE = "The ? goes after about 50 rated Puzzles."
+    const val PROVISIONAL_NOTE = "The parentheses go after about 50 rated Puzzles."
     const val BACK_DESCRIPTION = "Back"
 
     // The game screen's strip (contradictions 2 and 3, B5, G1).
@@ -111,7 +112,7 @@ object UiCopy {
     const val REPLACE_NOTE = "The Game in progress is saved as unfinished."
 
     /** The Tool's version; `ToolMetadataTest` holds it equal to `versionName` in `tool/lighttool.toml`. */
-    const val VERSION = "0.4.1"
+    const val VERSION = "0.5.0"
     const val SOURCE = "github.com/yarosz/light-chess"
 
     /**
@@ -351,10 +352,8 @@ object UiCopy {
     /** A Moves row's number: "12.". */
     fun moveNumber(number: Int) = "$number."
 
+    /** The Puzzles page's last row (N12): "Player Rating · (1176)", the one place outside its own page it shows (Q1). */
     fun ratingRow(text: String) = "$PLAYER_RATING · $text"
-
-    /** Home's Puzzles row (N11): "Puzzles · 1176?", the Player Rating as shown everywhere. */
-    fun puzzlesRow(playerRating: String) = "$PUZZLES · $playerRating"
 
     /** The Puzzles page's first row (N12): what a tap will do, never a Puzzle's id. */
     fun puzzlesStart(start: PuzzlesStart) = when (start) {

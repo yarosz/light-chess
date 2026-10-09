@@ -796,7 +796,7 @@ object AkkuratProxy {
         for (d in '0'..'9') put(d, 556)
         put(' ', 278); put(',', 278); put('.', 278); put(':', 278); put('\'', 191); put('’', 222); put('?', 556)
         put('·', 278); put('+', 584); put('−', 584); put('-', 333); put('…', 1000); put('=', 584); put('#', 556)
-        put('/', 278)
+        put('/', 278); put('(', 333); put(')', 333)
         putAll(NARROW)
     }
 

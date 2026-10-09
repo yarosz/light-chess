@@ -2,10 +2,12 @@
 # Build the Chess Tool the way Light's release builder does (light-sdk/builder: Dockerfile +
 # bin/build-apk.sh), minus the container:
 #   1. a clean copy of the SDK's committed files, like the image's baked SDK source;
-#   2. warm the Gradle cache by building the SDK's own template tool, like the image build;
+#   2. warm the Gradle cache by building the SDK's own template tool with the image build's flags;
 #   3. Light's extractor copies the allowlisted tool/ files from a clean clone of our committed HEAD;
-#   4. an unsigned, minified release build, --offline, so a dependency the template didn't pull in
-#      fails here exactly as it would on Light's servers.
+#   4. an unsigned, minified release build with bin/build-apk.sh's flags (-DlightSdk.toolOnly=true,
+#      -DlightSdk.abiFilters=arm64-v8a). Light's builder fetches what its warmed cache lacks through a
+#      Maven proxy; this build runs --offline instead, which is stricter: Chess must need nothing the
+#      SDK's template didn't pull in.
 #
 #   scripts/light-build.sh [SDK_DIR]     SDK_DIR defaults to the pinned light-sdk submodule
 #
@@ -37,7 +39,9 @@ sdk_sha=$(git -C "$sdk" rev-parse HEAD)
 GRADLE_USER_HOME="${LIGHT_BUILD_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/light-build}/$sdk_sha"
 export GRADLE_USER_HOME
 mkdir -p "$GRADLE_USER_HOME"
-(cd "$work/ws" && "${gradle[@]}" :tool:assembleRelease)          # same warm-up as builder/Dockerfile
+# The flags of Light's builder: unsigned, and native libraries for the ABI its phones run only.
+light_flags=(-DlightSdk.unsigned=true -DlightSdk.abiFilters=arm64-v8a)
+(cd "$work/ws" && "${gradle[@]}" :tool:assembleRelease "${light_flags[@]}")   # builder/Dockerfile's warm-up
 find "$work/ws" -path '*/build' -type d -prune -exec rm -rf {} +
 
 # 3. Our committed files only: untracked local files must not make the build pass.
@@ -55,10 +59,15 @@ if ! (cd "$sdk/builder" && python3 -m lightbuilder prepare --dev-repo "$work/dev
 fi
 files=$(python3 -c "import json,sys;print(len(json.load(open(sys.argv[1]))['files']))" "$work/out/extraction.json")
 
-# 4. Offline, unsigned, minified release, with Light's reproducibility timestamp.
+# 4. Offline, unsigned, minified release, with Light's reproducibility timestamp and build-apk.sh's
+#    flags (toolOnly configures only the modules :tool needs).
 SOURCE_DATE_EPOCH=$(git -C "$work/dev" log -1 --format=%ct) \
-  bash -c 'cd "$1" && shift && "$@"' _ "$work/ws" "${gradle[@]}" --offline :tool:assembleRelease -DlightSdk.unsigned=true
+  bash -c 'cd "$1" && shift && "$@"' _ "$work/ws" "${gradle[@]}" --offline :tool:assembleRelease \
+  "${light_flags[@]}" -DlightSdk.toolOnly=true
 apk="$work/ws/tool/build/outputs/apk/release/tool-release-unsigned.apk"
 [ -f "$apk" ] || { echo "light-build: FAIL no unsigned APK" >&2; exit 1; }
+entries=$(unzip -Z1 "$apk") || { echo "light-build: FAIL cannot list APK" >&2; exit 1; }
+bad=$(grep '^lib/' <<<"$entries" | grep -v '^lib/arm64-v8a/' || true)
+[ -z "$bad" ] || { echo "light-build: FAIL native libraries beyond arm64-v8a (abiFilters): $bad" >&2; exit 1; }
 
 echo "light-build: OK sdk=$ref files=$files"
