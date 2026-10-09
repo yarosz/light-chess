@@ -3,33 +3,44 @@
 STATUS: released v0.1.0 (Puzzles), v0.2.0 (the computer), v0.3.0 (Play a friend), v0.3.1 (the v3
 review follow-ups, L1-L5, W12/W13), v0.4.0 (#29: Navigation D and layout E, N1-N23 and E1-E15;
 the Puzzles page; Captured Pieces from each edge; no coordinate on a marked square, K1; the
-computer's Move slides in once) and v0.4.1 (#32: ML Kit and its Google dependencies left out of the
-APK, T1), each a tagged commit on main with a notes-only GitHub Release. v0.4.1 was the first
-tag free of the GPLv3 + ML Kit question. The Relay is live at
-`https://chess-relay.yarosz.com` (W11, protocol 1.0). Merged since v0.4.1, all in 0.5.0:
+computer's Move slides in once), v0.4.1 (#32: ML Kit and its Google dependencies left out of the
+APK, T1) and v0.5.0 (#36, versionCode 7, on light-sdk v0.2.0), each a tagged commit on main with a
+notes-only GitHub Release. v0.4.1 was the first tag free of the GPLv3 + ML Kit question. The Relay
+is live at `https://chess-relay.yarosz.com` (W11, protocol 1.0). In 0.5.0, merged since v0.4.1:
 #31 the live WebSocket (v3 PR 3, decision log U1-U6: "Live · Your move" / "Live · Their move" while
 both phones have a friend Game open, pushed Moves, presence; the Relay's `/live` unchanged), #33
 Takeback at a Result the computer's own Move made, "Takeback · Next" (X1), #34 the user's own
 tap-tap Moves slide and a drop lands at once (Z1), #35 Captured Pieces: the bottom Side's end at the
 board's right edge, the top Side's at the left, a flip swaps them (J1).
-In flight: the 0.5.0 release PR (versionCode 7), built on light-sdk v0.2.0, which Light tagged on
-2026-10-08 (builder Maven proxy and native-library checks, a resolved-dependency check, tool
+0.5.0 is built on light-sdk v0.2.0, which Light tagged on 2026-10-08 (builder Maven proxy and native-library checks, a resolved-dependency check, tool
 manager jobs, Tool signing policy, TOOL_GUIDELINES.md); Light's submission steps ask for the latest
 SDK. The bump changed no permission and made one small visible change: the keyboard on Play a
 friend's text fields (Enter code, Rename) no longer shows a dictation key (`rememberKeyboardOptions`).
 `LightJobResult.Success` takes two more arguments, the SDK's exported file provider left the APK
 (opt-in capability now), and the Tool targets SDK 34, as Light's builds now do.
-FOR THE OWNER (none blocks development): the submission through Light's dashboard (RELEASING.md
-"After merge and tag"). 0.5.0 (on SDK v0.2.0) is the candidate once tagged: like v0.4.1, it carries
-no ML Kit (T1), so the GPLv3 + ML Kit question doesn't apply to it. The tags before v0.4.1 all
+SUBMITTED: 0.5.0 went to Light's Tool Library on 2026-10-09 (RELEASING.md "After merge and tag").
+Light's build (Version 7, from a9fd300) succeeded, and Light's signed APK matches our unsigned build
+entry for entry, plus Light's signing files (`stamp-cert-sha256`, the META-INF v1 signature files,
+`light-trust.json`). Awaiting Light's approval.
+FOR THE OWNER (none blocks development): Light's build can't install over a dev-signed build (the
+signatures differ), and uninstalling deletes the Player Rating, Missed and the Games, so switching
+the owner's LP3 to Light's build needs a plan first (carry the files over, or accept the loss).
+Like v0.4.1, 0.5.0 carries no ML Kit (T1), so the GPLv3 + ML Kit question doesn't apply to it. The
+tags before v0.4.1 all
 carry ML Kit; v0.1.0 has no GPL engine, while v0.2.0-v0.4.0 pair GPLv3 Pirarucu with ML Kit.
 What remains for Light is whether it signs a GPLv3 Tool; the owner decides what to tell Light.
 The listing text should answer TOOL_GUIDELINES.md: Puzzles and the computer are fully offline;
 Games with a friend send Moves through the Relay, whose code is in this repo and runs on Cloudflare;
-the privacy disclosure is UiCopy.PRIVACY_FRIENDS. The listing needs at least one image
-(`mise run ui shot`).
+the privacy disclosure is UiCopy.PRIVACY_FRIENDS. The listing images (and the README's
+screenshots) were taken on the LP3: a Puzzle with its Hint, a live Game with a friend, a won Game.
 Optional: Always Use HTTPS/HSTS on the Relay's zone (the Worker already refuses plain HTTP, L3).
 FOLLOW-UPS (low, from code review; none blocking):
+- LightOS's "Allowed Tools" setting has four values: Default Only, Community Tools (Light-approved),
+  Built with SDK (Light-signed) and All Tools. The SDK v0.2.0 emulator's LightOS defaults to
+  Community Tools, which hides unapproved or dev-signed Tools in the Tool Manager and rejects their
+  LightOS service token ("Rejected GetToken from unverified caller"). Chess's emulator still runs
+  the LightOS app from before v0.2.0; if it is ever upgraded to v0.2.0's, set Settings > Allowed
+  Tools > Built with SDK (or All Tools, for a dev-signed build).
 - When an SDK tag includes light-sdk PR #234 (a build fails unless `serverPackage` is `com.lightos`,
   or `-DlightSdk.allowAltServerPackage=true` is passed), emulator builds must pass that flag: the
   `scripts/emulator-build.sh` path (`mise run tool`, `mise run ci`), never `light-build.sh`.
@@ -61,11 +72,12 @@ and the rounded Piece Set on a Correspondence Game (need a second phone); in pla
 Move doesn't slide again after the Menu (#26) and a Missed replay opens at once (#21); a Result's
 two lines and "Rematch · Accept · Decline" fitting the action row. From v1: the greys and both Piece
 Sets on the physical panel (owner's eyes or photos), and Hint taps during a reply don't delay it.
-0.5.0 on the LP3 (targetSdk 34 since SDK v0.2.0), and the Player Rating in parentheses.
+Done for 0.5.0 on 2026-10-09: installed over the dev build with its data kept; the Player Rating in
+parentheses, Home's row plain "Puzzles", About "Chess 0.5.0".
 DONE (details in the PRs and the decision log): the v1 stack and 0.1.0 (LP3-checked 2026-09-29),
 the v2 forward merge (M1-M7) and 0.2.0, the Relay deploy and v3 (#3, #10 P3) and 0.3.0, 0.3.1, then
 #16-#26 above.
-LAST SESSION: 2026-10-08 (0.5.0 release PR)
+LAST SESSION: 2026-10-09 (0.5.0 submitted to Light; LP3 screenshots in the README)
 
 ## HANDOFF (read first when resuming)
 - Every feature branch (the v1 stack, v2's engine, Levels, record, Book and game screen, v3's
@@ -114,9 +126,9 @@ LAST SESSION: 2026-10-08 (0.5.0 release PR)
   - Light: a GPLv3 Tool (ML Kit is out of the APK since T1); production push; an
     alert/badge method; a privacy statement; listing requirements; the SDK's 1 s splash; and the
     scanner's bare-`javaClass` gap (light-sdk).
-  - The submission through Light's dashboard: v0.1.0 is safe (no GPL engine); v0.2.0-v0.4.0 pair GPLv3
-    Pirarucu with ML Kit, so the candidate is 0.5.0 (SDK v0.2.0, no ML Kit); whether Light signs a
-    GPLv3 Tool is the owner's to raise with Light.
+  - The submission through Light's dashboard: 0.5.0 (SDK v0.2.0, no ML Kit) submitted on
+    2026-10-09, awaiting Light's approval (STATUS); whether Light signs a GPLv3 Tool is the owner's
+    to raise with Light.
   - Maybe: release the CC0 opening Book as its own repo (builder MIT, book.bin CC0) after checking
     whether a CC0 Polyglot book already exists.
   - Stockfish: installed (Homebrew, 19) and run on 2026-09-29; the UCI_Elo fit was not consistent,

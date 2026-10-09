@@ -117,7 +117,8 @@ and makes the attempt unrated. Glicko: 1500, RD 500, min 45, vol 0.09, provision
   is free.
 - A7 Glicko-2 1500 / RD 500 / vol 0.09 / RD floor 45 (SUPERSEDES R1.5's RD 350); one puzzle = one
   rating period; puzzle ratings fixed; "1500?" while RD > 75; window ±100 widening by 100; never
-  replay a finished puzzle.
+  replay a finished puzzle. (The question mark SUPERSEDED by Q1: a provisional rating reads
+  "(1500)".)
 - A8 One JSON file (rating, RD, vol, pack SHA, finished Lichess ids, in-progress puzzle id + state
   unscored/failed/hinted), written via temp + rename on every result and in onAppPause; resume the
   same puzzle.
@@ -326,7 +327,8 @@ default Think time).
   policy).
 - Player Rating settling: with RD 500, vol 0.09, tau 0.75 and one Puzzle per rating period, RD settles
   at about 73-74, so the "?" goes after about 48 Puzzles and the 45 floor is never reached. ACCEPTED as
-  is: RD <= 75 is Lichess's own "established" threshold. No change.
+  is: RD <= 75 is Lichess's own "established" threshold. No change. (The "?" SUPERSEDED by Q1: it is
+  the parentheses that go, at the same threshold.)
 
 ## v2 PR 1: Pirarucu vendored (facts and implementation choices, 2026-09-28)
 - Layout: `tool/src/main/kotlin/vendor/pirarucu/<package>/`, package names kept (`pirarucu.*`), so
@@ -1280,7 +1282,8 @@ Home), RIGHT always opens this board's actions, and a fixed Home list goes place
   the Puzzle board. Player Rating, Missed, Games and About open their pages over Home. Play the
   computer keeps R4.11's behaviour: it returns to the Game in progress, else it opens the new-game
   page. Games is always there, Puzzles included, and so are Pieces (P2) and About. `HomeRows`
-  holds the rows as data (`HomeTest`).
+  holds the rows as data (`HomeTest`). (The question mark and the rating on Home: SUPERSEDED by Q1:
+  a provisional rating reads "(1727)", and Home shows no rating.)
 - N2 Launch and depth. KEEPS A10 and D6's resume. SUPERSEDES S3's "Back from the puzzle screen
   closes the Tool". RULING: Chess opens on the last-used place (`mode.txt`, R4.10's file and words),
   pushed on top of Home. A cold start in Puzzles opens straight into the current Puzzle, with Home
@@ -1545,7 +1548,8 @@ Puzzle board a step above it; Pieces moves into the Menu of every board, where i
   Home. The rating is on the Puzzles row, the one place it belongs to, and still shows once on Home.
   With five rows Home fits one screen, so by N10's measured rule the wheel stays with LightOS there
   (Home still measures it: were a row ever to overflow, it would take the wheel again). `HomeRows`
-  and `HomeTest`.
+  and `HomeTest`. (The question mark and the rating on Home: SUPERSEDED by Q1: Home's row is just
+  "Puzzles", always; the rating shows on the Puzzles page, "Player Rating · (1176)".)
 - N12 The Puzzles page. NEW; AMENDS N1's "Puzzles opens the Puzzle board". RULING: Home's Puzzles row
   opens a list page with LightOS's top bar (the back arrow to Home, the title "Puzzles"), not the
   board. Its rows, in order:
@@ -1589,7 +1593,9 @@ Puzzle board a step above it; Pieces moves into the Menu of every board, where i
   rated Puzzles." (a countdown would lie: Glicko's deviation can rise between Puzzles, DESIGN.md "The
   puzzle flow" has the measured 48), and Reset rating with its second tap, "Tap again to reset" (F5).
   Reset replaces the page with the Puzzle board, which asks the seed question again (N16). The
-  history rows are Past Puzzles' now (N14).
+  history rows are Past Puzzles' now (N14). (The question mark SUPERSEDED by Q1: the page shows
+  "(1176)", and its line reads "The parentheses go after about 50 rated Puzzles."; N12's row too,
+  "Player Rating · (1176)".)
 - N16 Depth and launch. AMENDS N2. KEEPS A10's intent. RULING: the Puzzles page is a place, one
   step from Home; the Puzzle board is a step above it: back from the board goes to the Puzzles page,
   then to Home. A cold start in Puzzles pushes Home, then the Puzzles page, then the board, so it
