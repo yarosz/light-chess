@@ -10,19 +10,19 @@ import kotlin.test.assertTrue
 class HomeTest {
 
     @Test
-    fun `Home lists five rows in N11's order, the rating on Puzzles`() {
-        val rows = HomeRows.of(playerRating = "1176?", yourMove = 2)
+    fun `Home lists five rows in N11's order`() {
+        val rows = HomeRows.of(yourMove = 2)
         assertEquals(
-            listOf("Puzzles · 1176?", "Play the computer", "Play a friend · Your move: 2", "Games", "About"),
+            listOf("Puzzles", "Play the computer", "Play a friend · Your move: 2", "Games", "About"),
             rows.map { it.text },
         )
         assertEquals(HomeEntry.entries, rows.map { it.entry }, "one row per entry, in the enum's order")
     }
 
     @Test
-    fun `Pieces, the Player Rating's own row and Missed have left Home (N11)`() {
-        val texts = HomeRows.of("1500?", 0).map { it.text }
-        assertEquals(1, texts.count { "1500?" in it }, "the rating shows once, on Puzzles")
+    fun `Pieces, the Player Rating and Missed have left Home (N11, Q1)`() {
+        val texts = HomeRows.of(0).map { it.text }
+        assertTrue(texts.none { Regex("""\d{3,4}""").containsMatchIn(it) }, "no Home row shows the rating: $texts")
         for (gone in listOf(UiCopy.PIECES, UiCopy.PLAYER_RATING, UiCopy.MISSED)) {
             assertTrue(texts.none { it.startsWith(gone) }, "\"$gone\" is not on Home")
         }
@@ -30,8 +30,8 @@ class HomeTest {
 
     @Test
     fun `Play a friend shows its count only above 0, and not at all without the Relay (W6, W8)`() {
-        assertTrue(UiCopy.PLAY_FRIEND in HomeRows.of("1500?", 0).map { it.text })
-        val off = HomeRows.of("1500?", null)
+        assertTrue(UiCopy.PLAY_FRIEND in HomeRows.of(0).map { it.text })
+        val off = HomeRows.of(null)
         assertTrue(off.none { it.entry == HomeEntry.PLAY_FRIEND })
         assertEquals(4, off.size)
         // Games and About are always there, Puzzles included (N1).
@@ -39,14 +39,9 @@ class HomeTest {
     }
 
     @Test
-    fun `before puzzles json is read the Puzzles row shows no rating`() {
-        assertEquals(listOf("Puzzles", "Play the computer", "Games", "About"), HomeRows.of(null, null).map { it.text })
-    }
-
-    @Test
     fun `every Home row fits one line at the LP3's width`() {
         val room = 360f - 2 * 24f
-        for (row in HomeRows.of("2999?", 5)) assertTrue(AkkuratProxy.width(row.text) <= room, "\"${row.text}\" (${AkkuratProxy.width(row.text)} dp)")
+        for (row in HomeRows.of(5)) assertTrue(AkkuratProxy.width(row.text) <= room, "\"${row.text}\" (${AkkuratProxy.width(row.text)} dp)")
     }
 
     /**
@@ -56,7 +51,7 @@ class HomeTest {
     @Test
     fun `Home fits one screen on the LP3, so the wheel stays with LightOS (N11, N10)`() {
         val rowDp = 29f + 2 * 12f
-        val rows = HomeRows.of("2999?", 5).size
+        val rows = HomeRows.of(5).size
         assertTrue(40f + rows * rowDp <= 389f, "${40f + rows * rowDp} dp of 389")
     }
 

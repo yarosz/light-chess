@@ -188,12 +188,15 @@ class PuzzlesPageTest {
         val rows = PuzzlesRows.of(failed)
         assertEquals(listOf(PuzzlesEntry.START, PuzzlesEntry.MISSED, PuzzlesEntry.PAST_PUZZLES, PuzzlesEntry.PLAYER_RATING), rows.map { it.entry })
         assertEquals(listOf("Next Puzzle", "Missed · 1", "Past Puzzles", "Player Rating · ${failed.data.player.text}"), rows.map { it.text })
-        assertTrue(failed.data.player.text.endsWith("?"))
+        assertTrue(Regex("""\(\d+\)""").matches(failed.data.player.text), "provisional, in parentheses (Q1)")
         val room = 360f - 2 * 24f
         for (start in PuzzlesStart.entries) {
             val text = UiCopy.puzzlesStart(start)
             assertTrue(AkkuratProxy.width(text) <= room, "\"$text\" fits one line")
         }
+        val widest = UiCopy.ratingRow(Glicko(2999.0, 500.0).text)
+        assertEquals("Player Rating · (2999)", widest)
+        assertTrue(AkkuratProxy.width(widest) <= room, "\"$widest\" fits one line (Q1)")
     }
 
     @Test
@@ -300,10 +303,10 @@ class PuzzlesPageTest {
     fun `the Player Rating page, the rating, the static line while provisional, and Reset rating (N15, F5)`() {
         val provisional = Glicko(1176.0, 200.0)
         assertEquals(
-            listOf(MenuItem("1176?"), MenuItem(UiCopy.PROVISIONAL_NOTE, lighten = true), MenuItem(UiCopy.RESET_RATING, PlayerRatingEntry.RESET)),
+            listOf(MenuItem("(1176)"), MenuItem(UiCopy.PROVISIONAL_NOTE, lighten = true), MenuItem(UiCopy.RESET_RATING, PlayerRatingEntry.RESET)),
             PuzzlesPages.playerRating(provisional, confirming = false),
         )
-        assertEquals("The ? goes after about 50 rated Puzzles.", UiCopy.PROVISIONAL_NOTE)
+        assertEquals("The parentheses go after about 50 rated Puzzles.", UiCopy.PROVISIONAL_NOTE)
         val settled = Glicko(1176.0, 60.0)
         assertEquals(listOf(MenuItem("1176"), MenuItem(UiCopy.RESET_RATING, PlayerRatingEntry.RESET)), PuzzlesPages.playerRating(settled, false))
         assertEquals(MenuItem(UiCopy.RESET_CONFIRM, PlayerRatingEntry.RESET), PuzzlesPages.playerRating(provisional, confirming = true).last())

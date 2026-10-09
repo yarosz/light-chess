@@ -4,7 +4,8 @@
   release-drive.py skip           answer the seed screen with Skip
   release-drive.py solve          play the user's Moves of the Puzzle on screen, from the Pack
   release-drive.py next           tap Next and wait for the next Puzzle
-  release-drive.py state          print the rating, Missed count and rated history (Past Puzzles) as JSON
+  release-drive.py state          print the rating ({"value", "provisional"}: "1855?" and "(1855)"
+                                  read alike, Q1), Missed count and rated history (Past Puzzles) as JSON
   release-drive.py about          open Home > About and print its text
   release-drive.py wait TEXT      wait until TEXT shows
   release-drive.py shot PATH      save a screenshot
@@ -201,10 +202,21 @@ def history_rows():
     return [t for t in texts() if re.match(r"^\d+ · (Solved|Failed|Hinted)", t)]
 
 
+def rating_of(row):
+    """The Player Rating from its Puzzles-page row, as {"value", "provisional"}: "Player Rating ·
+    (1855)" while provisional since Q1, "Player Rating · 1855?" before it (v0.4.1, which `upgrade`
+    installs first), "Player Rating · 1855" once settled. Both forms of one rating compare equal."""
+    m = re.fullmatch(r"Player Rating · (?:\((\d+)\)|(\d+)(\?)?)", row)
+    if not m:
+        sys.exit(f'release-drive: cannot read the Player Rating from "{row}"')
+    return {"value": int(m.group(1) or m.group(2)), "provisional": bool(m.group(1) or m.group(3))}
+
+
 def state():
     open_list()
     rows = texts()
-    rating = next(t for t in rows if t.startswith("Player Rating ·"))
+    row = next(t for t in rows if t.startswith("Player Rating ·"))
+    rating = rating_of(row)
     missed = next(t for t in rows if t.startswith("Missed ·"))
     if "Past Puzzles" in rows:
         # N14: the rated history is Past Puzzles', its own page on the Puzzles page.
@@ -216,7 +228,7 @@ def state():
         time.sleep(0.8)
     else:
         # A Navigation D build or older: the history is on the Player Rating page.
-        tap_label(rating)
+        tap_label(row)
         history = history_rows()
     back_to_puzzle()
     print(json.dumps({"rating": rating, "missed": missed, "history": history}, ensure_ascii=False))
@@ -241,8 +253,8 @@ def back_to_puzzle():
     """Back, until the puzzle screen shows: from the Puzzles page (N12), its first row, but at a
     Result ("Next Puzzle", which would advance) a relaunch instead, which reopens the board on the
     Result the save file keeps (every Result is saved at once, so a force-stop loses nothing); from
-    Home (titled "Chess"), its Puzzles row ("Puzzles · 1500?" since N11, "Puzzles" before, scrolled
-    back into view on a Navigation D build). Never back from the puzzle screen of an older build, nor
+    Home (titled "Chess"), its Puzzles row ("Puzzles" since Q1, "Puzzles · 1500?" from N11 to v0.4.1,
+    "Puzzles" before, scrolled back into view on a Navigation D build). Never back from the puzzle screen of an older build, nor
     from Home: either closes the Tool."""
     for _ in range(5):
         if on_puzzle():

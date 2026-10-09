@@ -18,17 +18,17 @@ import com.yarosz.chess.relay.EntryKind
 /** Home's rows (N1, N11), in their order. */
 enum class HomeEntry { PUZZLES, PLAY_COMPUTER, PLAY_FRIEND, GAMES, ABOUT }
 
-/** One row of Home: its text, with its status ("Puzzles · 1176?"), and what it is. */
+/** One row of Home: its text, with its status ("Play a friend · Your move: 2"), and what it is. */
 data class HomeRow(val text: String, val entry: HomeEntry)
 
 /**
- * Home's rows (N11), as pure data so `HomeTest` checks their text and order: Puzzles with the Player
- * Rating, Play the computer, Play a friend (only while the Relay URL is set, W8), Games and About.
- * [playerRating] is null until `puzzles.json` is read, when the Puzzles row shows no status yet.
+ * Home's rows (N11), as pure data so `HomeTest` checks their text and order: Puzzles, Play the
+ * computer, Play a friend (only while the Relay URL is set, W8), Games and About. Home shows no
+ * Player Rating (Q1): the Puzzles page does.
  */
 object HomeRows {
-    fun of(playerRating: String?, yourMove: Int?): List<HomeRow> = buildList {
-        add(HomeRow(playerRating?.let(UiCopy::puzzlesRow) ?: UiCopy.PUZZLES, HomeEntry.PUZZLES))
+    fun of(yourMove: Int?): List<HomeRow> = buildList {
+        add(HomeRow(UiCopy.PUZZLES, HomeEntry.PUZZLES))
         add(HomeRow(UiCopy.PLAY_COMPUTER, HomeEntry.PLAY_COMPUTER))
         if (yourMove != null) add(HomeRow(UiCopy.playFriend(yourMove), HomeEntry.PLAY_FRIEND))
         add(HomeRow(UiCopy.GAMES, HomeEntry.GAMES))
@@ -68,7 +68,7 @@ data class PuzzlesRow(val text: String, val entry: PuzzlesEntry, val tappable: B
 
 /**
  * The Puzzles page (N12), as pure data for `PuzzlesPageTest`: the first row from [start], then
- * "Missed · 3", "Past Puzzles" and "Player Rating · 1176?". [session] is null until `puzzles.json` is
+ * "Missed · 3", "Past Puzzles" and "Player Rating · (1176)". [session] is null until `puzzles.json` is
  * read: the first row then reads "Continue Puzzle" (the board waits for the file) and the others
  * show no status.
  */

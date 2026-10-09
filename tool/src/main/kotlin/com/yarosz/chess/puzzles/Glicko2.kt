@@ -13,11 +13,11 @@ import kotlin.math.sqrt
  */
 data class Glicko(val rating: Double, val deviation: Double, val volatility: Double = START_VOLATILITY) {
 
-    /** Still settling: shown with a question mark (A7). */
+    /** Still settling: shown in parentheses (A7, Q1). */
     val provisional: Boolean get() = deviation > PROVISIONAL_DEVIATION
 
-    /** The Player Rating as the strip and the Menu show it: "1500?" while [provisional]. */
-    val text: String get() = rating.roundToInt().toString() + if (provisional) "?" else ""
+    /** The Player Rating as the Puzzles page and its Player Rating page show it: "(1500)" while [provisional] (Q1). */
+    val text: String get() = rating.roundToInt().toString().let { if (provisional) "($it)" else it }
 
     companion object {
         const val START_RATING = 1500.0
