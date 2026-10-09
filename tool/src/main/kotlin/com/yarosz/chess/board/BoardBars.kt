@@ -98,7 +98,7 @@ object BarLayout {
 
     fun titleMaxWidth(screenWidth: Dp): Dp = unit(screenWidth) * TITLE_MAX_WIDTH_UNITS
 
-    /** The board's left edge, where the bottom Side's Captured Pieces start (P3, E12). */
+    /** The board's left edge, where the top Side's Captured Pieces start (P3, E12, J1). */
     fun boardSide(screenWidth: Dp): Dp = (screenWidth - POSITION_VIEW_SIZE) / 2
 
     /**
@@ -180,7 +180,7 @@ private class MenuMarkPainter(private val color: Color, private val inset: Dp) :
 /**
  * E12-E14: the row under the board. On a Game's board ([captured] set), the Captured Pieces' line at its
  * top ([BarLayout.PIECES_LINE]): the drawings 3 dp under the board, the bottom Side's end from the
- * board's left edge and the other's from its right edge, placed across the board's width
+ * board's right edge and the other's from its left edge (J1), placed across the board's width
  * ([CapturedRowLayout.fit]) whatever the buttons. Below them, this moment's [buttons] (at most three,
  * contradiction 2) in LightOS `Copy`, centred as a group, each a target the row's full height, their
  * ink centred between the drawings' ink and the row's bottom ([BarLayout.buttonLine]). On the Puzzle

@@ -704,8 +704,8 @@ class StripFitTest {
     }
 
     /**
-     * E12: the Captured Pieces run across the board's full width, the bottom Side's end from its left
-     * edge and the other's from its right edge. The crowded rows (fifteen a Side, a lead of 103 either
+     * E12, J1: the Captured Pieces run across the board's full width, the bottom Side's end from its
+     * right edge and the other's from its left edge. The crowded rows (fifteen a Side, a lead of 103 either
      * way) keep P3's own steps there, with every piece drawn and the ends apart: `fit` never has to
      * tighten on the LP3, and stays for anything wider.
      */
@@ -719,16 +719,16 @@ class StripFitTest {
             assertEquals(30, row.pieces.size, "every piece is drawn")
             assertTrue(row.pieces.all { it.x >= 0f && it.x + CapturedRowLayout.SIZE <= board }, "inside the board: $row")
             assertTrue(row.leftEnd + CapturedRowLayout.MIN_GAP <= row.rightStart, "ends apart: $row")
-            // The bottom Side's end starts at the board's left edge (the top Side's pieces, which it
-            // took), the top Side's end ends at its right edge.
-            val left = row.pieces.filter { it.piece.side == bottom.opponent }
-            val right = row.pieces.filter { it.piece.side == bottom }
+            // J1: the bottom Side's end (the top Side's pieces, which it took) ends at the board's
+            // right edge, the top Side's end starts at its left edge.
+            val left = row.pieces.filter { it.piece.side == bottom }
+            val right = row.pieces.filter { it.piece.side == bottom.opponent }
             assertEquals(0f, left.minOf { it.x })
             assertEquals(board, right.maxOf { it.x } + CapturedRowLayout.SIZE)
             // The lead, after the leading Side's end.
             when {
                 lead == 0 -> assertEquals(null, row.lead)
-                (lead > 0) == (bottom == Side.WHITE) -> assertEquals(left.maxOf { it.x } + CapturedRowLayout.SIZE + CapturedRowLayout.LEAD_GAP, row.leadX)
+                (lead > 0) != (bottom == Side.WHITE) -> assertEquals(left.maxOf { it.x } + CapturedRowLayout.SIZE + CapturedRowLayout.LEAD_GAP, row.leadX)
                 else -> assertEquals(right.minOf { it.x } - CapturedRowLayout.LEAD_GAP, row.leadX + leadWidth(row.lead!!))
             }
         }

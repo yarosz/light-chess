@@ -23,13 +23,14 @@ import com.yarosz.chess.rules.PieceType
 import com.yarosz.chess.rules.Side
 
 /**
- * The captured-pieces row's measures and placement (P3), in dp, pure so `CapturedRowTest` can check
- * that the widest row fits the board. The row is the top line of the action row under the board
- * (E12), across the board's full width whatever buttons are shown: at the left end the pieces the Side
- * at the bottom has taken, from the board's left edge, at the right end the other Side's, from the
- * board's right edge, each end growing inwards. Both ends read pawn, knight, bishop, rook, queen from
- * left to right, so the left end has its pawns at the edge and the right end its queens. Pieces of one kind
- * overlap like a fanned hand; the Material Lead ("+7") sits just inside the leading Side's end.
+ * The captured-pieces row's measures and placement (P3, J1), in dp, pure so `CapturedRowTest` can
+ * check that the widest row fits the board. The row is the top line of the action row under the board
+ * (E12), across the board's full width whatever buttons are shown: at the right end the pieces the
+ * Side at the bottom has taken, from the board's right edge, at the left end the other Side's, from
+ * the board's left edge (J1), each end growing inwards. Each end starts at its edge with its pawns,
+ * then knights, bishops, rooks and queens going inwards, so the left end reads pawn to queen from left
+ * to right and the right end queen to pawn. Pieces of one kind overlap like a fanned hand, the inner
+ * piece over the outer; the Material Lead ("+7") sits just inside the leading Side's end.
  */
 object CapturedRowLayout {
     /**
@@ -117,24 +118,24 @@ object CapturedRowLayout {
         val kindStep = KIND_STEP * steps
         val pieces = mutableListOf<Placed>()
         val top = bottom.opponent
-        // Left end: what the bottom Side took (the top Side's pieces), from the left edge inwards.
+        // Left end (J1): what the top Side took (the bottom Side's pieces), from the left edge inwards,
+        // pawns outermost. Drawn in that order, so the inner piece is painted over the outer.
         var x = 0f
         var leftEnd = 0f
-        val leftKinds = CapturedPieces.ORDER.map { kind -> kind to captured.by(bottom).count { it == kind } }.filter { it.second > 0 }
-        for ((kind, n) in leftKinds) {
+        for ((kind, n) in kinds(captured.by(top))) {
             repeat(n) { i ->
-                pieces += Placed(Piece.of(top, kind), x)
+                pieces += Placed(Piece.of(bottom, kind), x)
                 leftEnd = x + SIZE
                 x += if (i < n - 1) sameStep else kindStep
             }
         }
-        // Right end: what the top Side took, from the right edge inwards, queens outermost.
+        // Right end: what the bottom Side took (the top Side's pieces), from the right edge inwards,
+        // pawns outermost likewise, so it reads queen to pawn from left to right.
         x = width - SIZE
         var rightStart = width
-        val rightKinds = CapturedPieces.ORDER.reversed().map { kind -> kind to captured.by(top).count { it == kind } }.filter { it.second > 0 }
-        for ((kind, n) in rightKinds) {
+        for ((kind, n) in kinds(captured.by(bottom))) {
             repeat(n) { i ->
-                pieces += Placed(Piece.of(bottom, kind), x)
+                pieces += Placed(Piece.of(top, kind), x)
                 rightStart = x
                 x -= if (i < n - 1) sameStep else kindStep
             }
@@ -144,16 +145,20 @@ object CapturedRowLayout {
         if (lead != null) {
             val w = textWidth(lead)
             if (captured.leader == bottom) {
-                leadX = if (leftEnd > 0f) leftEnd + LEAD_GAP else 0f
-                leftEnd = leadX + w
-            } else {
                 val right = if (rightStart < width) rightStart - LEAD_GAP else width
                 leadX = right - w
                 rightStart = leadX
+            } else {
+                leadX = if (leftEnd > 0f) leftEnd + LEAD_GAP else 0f
+                leftEnd = leadX + w
             }
         }
         return Row(pieces, lead, leadX, leftEnd, rightStart, steps)
     }
+
+    /** [taken]'s kinds that are there, pawns first, each with how many. */
+    private fun kinds(taken: List<PieceType>) =
+        CapturedPieces.ORDER.map { kind -> kind to taken.count { it == kind } }.filter { it.second > 0 }
 }
 
 /**

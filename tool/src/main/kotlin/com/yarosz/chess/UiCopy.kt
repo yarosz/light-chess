@@ -384,9 +384,10 @@ object UiCopy {
     fun puzzleLines(id: String) = listOf("Puzzle $id", "lichess.org/training/$id")
 
     /**
-     * The captured-pieces row's accessibility label (P3), in the row's order, the Side at the
-     * [bottom] first: "Captured by White: two pawns, a queen. Captured by Black: a knight. White is
-     * ahead by 7." A Side that has taken nothing is left out; "Material is even." when neither leads.
+     * The captured-pieces row's accessibility label (P3), the Side at the [bottom] first (J1: the
+     * row's right end, the user's captures as a rule): "Captured by White: two pawns, a queen.
+     * Captured by Black: a knight. White is ahead by 7." A Side that has taken nothing is left out;
+     * "Material is even." when neither leads.
      */
     fun capturedPieces(captured: CapturedPieces, bottom: Side): String {
         val sentences = mutableListOf<String>()
