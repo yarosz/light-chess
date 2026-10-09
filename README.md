@@ -14,12 +14,13 @@ few days per Move. No account and nothing tracked; only Games with a friend use 
 Questions or bugs: https://github.com/yarosz/light-chess/issues
 
 <p>
-  <img src="docs/screenshots/home.png" width="32%" alt="Home: Puzzles, Play the computer, Play a friend, Games and About">
-  <img src="docs/screenshots/puzzle.png" width="32%" alt="A Puzzle: White to move, with Hint and Solution under the board">
-  <img src="docs/screenshots/game.png" width="32%" alt="A Game against the computer: the Captured Pieces under the board, White ahead by two">
+  <img src="docs/screenshots/puzzle.png" width="32%" alt="A Puzzle, White to move: the Hint rings the white queen on g4, with Hint and Solution under the board">
+  <img src="docs/screenshots/live.png" width="32%" alt="A Game with a friend, Live · Your move: the Ruy Lopez Exchange, Black's last Move a bishop to g4">
+  <img src="docs/screenshots/won.png" width="32%" alt="A Game against the computer, playing Black with the rounded Piece Set: You won by checkmate, the Captured Pieces showing +2, and Next under the board">
 </p>
 
-_Home, a Puzzle and a Game against the computer._
+_A Puzzle with its Hint, a live Game with a friend, and a won Game against the computer with the
+rounded Piece Set. Taken on a Light Phone III._
 
 ## What it does
 
