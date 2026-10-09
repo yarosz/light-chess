@@ -14,20 +14,20 @@ few days per Move. No account and nothing tracked; only Games with a friend use 
 Questions or bugs: https://github.com/yarosz/light-chess/issues
 
 <p>
-  <img src="docs/screenshots/home.png" width="32%" alt="Home: Puzzles with the Player Rating, Play the computer, Play a friend, Games and About">
+  <img src="docs/screenshots/home.png" width="32%" alt="Home: Puzzles, Play the computer, Play a friend, Games and About">
   <img src="docs/screenshots/puzzle.png" width="32%" alt="A Puzzle: White to move, with Hint and Solution under the board">
   <img src="docs/screenshots/game.png" width="32%" alt="A Game against the computer: the Captured Pieces under the board, White ahead by two">
 </p>
 
-_Home, a Puzzle and a Game against the computer. The "?" after the Player Rating shows it has not settled yet._
+_Home, a Puzzle and a Game against the computer._
 
 ## What it does
 
-- **Home.** Chess opens where you left off, with Home underneath: Puzzles (with your Player Rating),
-  Play the computer, Play a friend, Games and About. Puzzles opens a page of its own: continue the
-  Puzzle on screen, Missed, Past Puzzles and your Player Rating. On a board, the top bar says what is
-  happening: its arrow goes back, as the phone's back does, and the three squares at its right open
-  the board's Menu, with Pieces. The buttons for the moment sit under the board.
+- **Home.** Chess opens where you left off, with Home underneath: Puzzles, Play the computer, Play
+  a friend, Games and About. Puzzles opens a page of its own: continue the Puzzle on screen, Missed,
+  Past Puzzles and your Player Rating, in parentheses until it has settled. On a board, the top bar
+  says what is happening: its arrow goes back, as the phone's back does, and the three squares at
+  its right open the board's Menu, with Pieces. The buttons for the moment sit under the board.
 - **Puzzles.** Tap a piece, then a square, or drag it. A wrong Move is taken back and you can try again.
   "Hint" marks the piece to move; "Solution" plays the line for you.
 - **Player Rating.** A Glicko-2 rating, like Lichess's own, picks each Puzzle near your level. Answer
@@ -37,12 +37,14 @@ _Home, a Puzzle and a Game against the computer. The "?" after the Player Rating
   the computer's full strength, with a Think Time of 3, 10 or 30 seconds a Move. From Level 2 up it
   opens from a Book of strong players' Games. "Hint" shows the computer's best Move (a Game Hint);
   "Move now" makes it play at once. The Menu has Takeback, Offer draw, Resign, Flip board and the
-  Game's Moves. A Game in progress is kept when you leave, and Games lists your last 50 finished
-  ones to look back through.
+  Game's Moves. When the computer's Move ends the Game, the Result offers "Takeback · Next". A Game
+  in progress is kept when you leave, and Games lists your last 50 finished ones to look back
+  through.
 - **Play a friend.** Create an Invite Code and tell it to your friend; it works once, for 48 hours.
   Choose 1, 3 or 7 days per Move. Each Move waits for "Send", with "Undo" until then. The Menu has
   Offer draw and Resign; a finished Game offers a rematch. Moves pass through Chess's Relay, with no
-  name or account.
+  name or account. While both phones have the Game open, Moves arrive at once and the board shows
+  "Live · Your move" or "Live · Their move".
 - **Review.** Turn the scroll wheel back to step through the Moves of the Puzzle or Game on screen.
 - **Pieces.** Two sets, geometric and rounded; choose one in any board's Menu, which shows the set.
 - **Captured Pieces.** In a Game, a row under the board shows the pieces each Side has taken, and

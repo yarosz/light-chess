@@ -66,7 +66,8 @@ SOURCE_DATE_EPOCH=$(git -C "$work/dev" log -1 --format=%ct) \
   "${light_flags[@]}" -DlightSdk.toolOnly=true
 apk="$work/ws/tool/build/outputs/apk/release/tool-release-unsigned.apk"
 [ -f "$apk" ] || { echo "light-build: FAIL no unsigned APK" >&2; exit 1; }
-! unzip -Z1 "$apk" | grep '^lib/' | grep -qv '^lib/arm64-v8a/' \
-  || { echo "light-build: FAIL native libraries beyond arm64-v8a (abiFilters)" >&2; exit 1; }
+entries=$(unzip -Z1 "$apk") || { echo "light-build: FAIL cannot list APK" >&2; exit 1; }
+bad=$(grep '^lib/' <<<"$entries" | grep -v '^lib/arm64-v8a/' || true)
+[ -z "$bad" ] || { echo "light-build: FAIL native libraries beyond arm64-v8a (abiFilters): $bad" >&2; exit 1; }
 
 echo "light-build: OK sdk=$ref files=$files"

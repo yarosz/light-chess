@@ -72,14 +72,15 @@ Light's AI policy, everything sent to Light comes from the maintainer personally
 - [ ] First submission only: on [Light's dashboard](https://dashboard.thelightphone.com/), Settings ->
       Account -> Developer Account (developer mode on) -> Manage Custom Tools -> Submit New Tool. Light
       reads the package name from the repo's default branch, and it can never change.
-- [ ] The Tool has at least one image (Light requires one for approval): `mise run ui shot`
-      screenshots of Home and a board.
+- [ ] The Tool's page has at least one image (Light requires one for approval; add it when creating
+      the Tool or later): `mise run ui shot` screenshots of Home and a board.
 - [ ] On the Tool's page, "submit build": the git ref (the tag's commit) and a short changelog, the
       three lines of `docs/release-notes/X.Y.Z.md`. Only one build can be active at a time, and the
       `versionCode` must be higher than the last Version listed on the page.
 - [ ] Wait for the build. A failed build has "view details" (the error) and "retry build" (the same
       ref) under Builds; a successful one has "download apk" and becomes a Version "pending approval".
-      Light replies by email; questions go to tools@thelightphone.com.
+      Light replies by email; questions go to tools@thelightphone.com. If a build failure looks like
+      Light's side (light-sdk or its servers), the maintainer may open an issue on lightphone/light-sdk.
 - [ ] When Light's signed build is ready: download it, check the package id, `versionName` and
       `versionCode` with `aapt dump badging <apk>`, install it on a Light Phone III, solve a Puzzle,
       open About, and only then share it.
