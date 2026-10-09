@@ -15,8 +15,8 @@ tagged commit on `main`, not an APK we build.
     0.3.1 is `4`, 0.4.0 is `5`, 0.4.1 is `6`, 0.5.0 is `7`.
 - The Tool id `com.yarosz.chess` is permanent from the first published build. Never change it.
 - Tag the merged release commit `vX.Y.Z`. The GitHub Release carries notes only, no APK.
-- Release notes users see are the ones entered in Light's portal: three lines, in the listing's voice,
-  kept in `docs/release-notes/X.Y.Z.md`. GitHub Releases are for developers.
+- Release notes users see are the changelog entered on Light's dashboard: three lines, in the
+  listing's voice, kept in `docs/release-notes/X.Y.Z.md`. GitHub Releases are for developers.
 - A release that changes the Pack says so in its notes: finished Puzzles, the Player Rating and Missed
   carry over (F1).
 
@@ -58,17 +58,28 @@ Release PR (version bump, notes, and the `light-sdk` submodule at Light's newest
       solved Puzzles, then this one installed over it. The Player Rating, Missed and the rated history
       must be unchanged.
 - [ ] `mise run light-build` on the committed release HEAD: Light's extractor on a clean clone, then an
-      offline, unsigned, minified release against the pinned SDK. Uncommitted work is invisible to it.
+      offline, unsigned, minified release against the pinned SDK, with the Gradle flags Light's builder
+      passes (arm64-v8a only, `toolOnly`). Uncommitted work is invisible to it.
 - [ ] Release notes: three lines in `docs/release-notes/X.Y.Z.md`.
 
-After merge and tag. These follow the plan Light announced in
-[discussion #204](https://github.com/orgs/lightphone/discussions/204); the portal isn't live yet and
-the steps may change. Under Light's AI policy, everything sent to Light comes from the maintainer
-personally, never from an agent.
+After merge and tag. These follow "Submitting Your Tool" in
+[Light's SDK README](https://github.com/lightphone/light-sdk#submitting-your-tool) (announced in
+[discussion #266](https://github.com/orgs/lightphone/discussions/266)); Light may change them. Under
+Light's AI policy, everything sent to Light comes from the maintainer personally, never from an agent.
 
-- [ ] The maintainer submits the tagged commit hash in Light's developer portal, with the three lines
-      of release notes.
+- [ ] Review the release against Light's
+      [TOOL_GUIDELINES.md](https://github.com/lightphone/light-sdk/blob/main/TOOL_GUIDELINES.md).
+- [ ] First submission only: on [Light's dashboard](https://dashboard.thelightphone.com/), Settings ->
+      Account -> Developer Account (developer mode on) -> Manage Custom Tools -> Submit New Tool. Light
+      reads the package name from the repo's default branch, and it can never change.
+- [ ] The Tool has at least one image (Light requires one for approval): `mise run ui shot`
+      screenshots of Home and a board.
+- [ ] On the Tool's page, "submit build": the git ref (the tag's commit) and a short changelog, the
+      three lines of `docs/release-notes/X.Y.Z.md`. Only one build can be active at a time, and the
+      `versionCode` must be higher than the last Version listed on the page.
+- [ ] Wait for the build. A failed build has "view details" (the error) and "retry build" (the same
+      ref) under Builds; a successful one has "download apk" and becomes a Version "pending approval".
+      Light replies by email; questions go to tools@thelightphone.com.
 - [ ] When Light's signed build is ready: download it, check the package id, `versionName` and
       `versionCode` with `aapt dump badging <apk>`, install it on a Light Phone III, solve a Puzzle,
       open About, and only then share it.
-- [ ] For v1: "Send for review" in the portal.

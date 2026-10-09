@@ -12,15 +12,27 @@ both phones have a friend Game open, pushed Moves, presence; the Relay's `/live`
 Takeback at a Result the computer's own Move made, "Takeback · Next" (X1), #34 the user's own
 tap-tap Moves slide and a drop lands at once (Z1), #35 Captured Pieces: the bottom Side's end at the
 board's right edge, the top Side's at the left, a flip swaps them (J1).
-In flight: the 0.5.0 release PR (versionCode 7). light-sdk stays at v0.1.2 for it; Light tagged
-SDK v0.2.0 on 2026-10-08 (builder Maven proxy and native-library checks, a resolved-dependency
-check, tool manager jobs, Tool signing policy, TOOL_GUIDELINES.md); moving to it is its own PR.
-FOR THE OWNER (none blocks development): the submission to Light's portal. v0.4.1 is the candidate:
-the first tag without ML Kit (T1), so the GPLv3 + ML Kit question doesn't apply to it. Earlier tags
-all carry ML Kit; v0.1.0 has no GPL engine, while v0.2.0-v0.4.0 pair GPLv3 Pirarucu with ML Kit.
+In flight: the 0.5.0 release PR (versionCode 7), built on light-sdk v0.2.0, which Light tagged on
+2026-10-08 (builder Maven proxy and native-library checks, a resolved-dependency check, tool
+manager jobs, Tool signing policy, TOOL_GUIDELINES.md); Light's submission steps ask for the latest
+SDK. The bump changed no permission and no behaviour: `LightJobResult.Success` takes two more
+arguments, the SDK's exported file provider left the APK (opt-in capability now), and the Tool
+targets SDK 34, as Light's builds now do.
+FOR THE OWNER (none blocks development): the submission through Light's dashboard (RELEASING.md
+"After merge and tag"). 0.5.0 (on SDK v0.2.0) is the candidate once tagged: like v0.4.1, it carries
+no ML Kit (T1), so the GPLv3 + ML Kit question doesn't apply to it. The tags before v0.4.1 all
+carry ML Kit; v0.1.0 has no GPL engine, while v0.2.0-v0.4.0 pair GPLv3 Pirarucu with ML Kit.
 What remains for Light is whether it signs a GPLv3 Tool; the owner decides what to tell Light.
+The listing text should answer TOOL_GUIDELINES.md: Puzzles and the computer are fully offline;
+Games with a friend send Moves through the Relay, whose code is in this repo and runs on Cloudflare;
+the privacy disclosure is UiCopy.PRIVACY_FRIENDS. The listing needs at least one image
+(`mise run ui shot`).
 Optional: Always Use HTTPS/HSTS on the Relay's zone (the Worker already refuses plain HTTP, L3).
 FOLLOW-UPS (low, from code review; none blocking):
+- When an SDK tag includes light-sdk PR #234 (a build fails unless `serverPackage` is `com.lightos`,
+  or `-DlightSdk.allowAltServerPackage=true` is passed), emulator builds must pass that flag: the
+  `scripts/emulator-build.sh` path (`mise run tool`, `mise run ci`), never `light-build.sh`.
+- Later: Light's backups (light-sdk #255), once its SDK side ships.
 - Games with a friend don't slide Moves yet (Z1 left `FriendOwner` out; slides come when that code
   is rewritten).
 - `EngineTest` "every attach gets the same engine thread" flaked once; passes on a rerun.
@@ -100,8 +112,8 @@ LAST SESSION: 2026-10-08 (0.5.0 release PR)
   - Light: a GPLv3 Tool (ML Kit is out of the APK since T1); production push; an
     alert/badge method; a privacy statement; listing requirements; the SDK's 1 s splash; and the
     scanner's bare-`javaClass` gap (light-sdk).
-  - The submission in Light's portal: v0.1.0 is safe (no GPL engine); v0.2.0-v0.4.0 pair GPLv3
-    Pirarucu with ML Kit, so the next candidate is the first release after T1, once Light answers
+  - The submission through Light's dashboard: v0.1.0 is safe (no GPL engine); v0.2.0-v0.4.0 pair GPLv3
+    Pirarucu with ML Kit, so the candidate is 0.5.0 (SDK v0.2.0, no ML Kit), once Light answers
     on a GPLv3 Tool.
   - Maybe: release the CC0 opening Book as its own repo (builder MIT, book.bin CC0) after checking
     whether a CC0 Polyglot book already exists.
@@ -113,7 +125,7 @@ LAST SESSION: 2026-10-08 (0.5.0 release PR)
 - Design: `CONTEXT.md` (glossary), `docs/adr/0001-0004`, `docs/design/decision-log.md`. The log
   holds every ruling and each contradiction it resolved; read it before reopening a decision.
 - Repo: the light-reader template (`AGENTS.md`, `mise.toml`, `scripts/ci.sh`, `light-build.sh`,
-  `emulator-build.sh`, `domain-drift.sh`), light-sdk submodule at v0.1.2, `tool/lighttool.toml`
+  `emulator-build.sh`, `domain-drift.sh`), light-sdk submodule at v0.2.0, `tool/lighttool.toml`
   (com.yarosz.chess, portrait, serverPackage com.lightos, INTERNET only for the Relay: W1).
 - Rules core: `tool/src/main/kotlin/com/yarosz/chess/rules/` (pure Kotlin). Perft exact on the start
   position, Kiwipete and positions 3-6; property tests over 400 random Games. `-Dperft.deep=true`
@@ -194,7 +206,7 @@ LAST SESSION: 2026-10-08 (0.5.0 release PR)
   W11 URL (relay/README.md "Deploying").
 
 ## Next
-After 0.5.0: light-sdk v0.2.0 in its own PR, then the follow-ups in STATUS. Also open,
+After 0.5.0: the follow-ups in STATUS. Also open,
 unscheduled:
 1. On the LP3: a photo of the shades through the grayscale filter (D10), and `signoff/lp3` in
    `ci.sh`. Time to the first Puzzle on resume was about 1,035 ms (2026-09-28, debug build), just
@@ -212,8 +224,8 @@ unscheduled:
 ## Open outside questions (none blocks development)
 - Light: will they sign a GPLv3 Tool; is production push live for Tools; is an alert or badge method
   planned; is a privacy statement needed; what does a listing need?
-- light-sdk: the reflection scan misses a bare `javaClass` call (`LightSdkPlugin.kt:119`). Under
-  Light's AI policy, the maintainer must report it personally.
+- light-sdk: the reflection scan misses a bare `javaClass` call (`LightSdkPlugin.kt:156` at
+  v0.2.0). Under Light's AI policy, the maintainer must report it personally.
 - light-sdk: every Tool's APK gets INTERNET, CAMERA and six more permissions merged in from the
   SDK and its libraries (OkHttp, `sdk:ui`'s own manifest, WorkManager, Media3), whatever
   `lighttool.toml` declares. So About says "Chess never uses the network" rather than "No network
