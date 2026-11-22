@@ -76,8 +76,6 @@ class StripFitTest {
         for (strip in friendStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, menu = strip.menu))
         // The invite page: LightOS's top bar, with its back arrow, then the strip.
         for (strip in inviteStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, board = false, menu = strip.menu))
-        // The Play a friend list's buttons (W6, N7): no status, no Menu.
-        add(Case("", listOf(UiCopy.NEW_GAME, UiCopy.ENTER_CODE), 1, board = false))
     }
 
     /** The states shown in a strip: the invite page's and the Play a friend list's. */
@@ -397,7 +395,7 @@ class StripFitTest {
             UiCopy.UNRATED_SOLVED, UiCopy.UNRATED_HINTED, UiCopy.UNRATED_FAILED, UiCopy.PACK_FINISHED,
             UiCopy.YOUR_MOVE, UiCopy.THINKING, UiCopy.FINDING_HINT, UiCopy.MOVE_NOW,
             UiCopy.DRAW_AGREED, UiCopy.UNFINISHED, UiCopy.NEW_GAME,
-            UiCopy.ENTER_CODE, UiCopy.SEND, UiCopy.UNDO, UiCopy.SENDING, UiCopy.NOT_SENT, UiCopy.RETRY, UiCopy.DRAW_QUESTION,
+            UiCopy.SEND, UiCopy.UNDO, UiCopy.SENDING, UiCopy.NOT_SENT, UiCopy.RETRY, UiCopy.DRAW_QUESTION,
             UiCopy.ACCEPT, UiCopy.DECLINE, UiCopy.TIME_IS_UP, UiCopy.CLAIM_WIN, UiCopy.OUT_OF_SYNC, UiCopy.UPDATE_CHESS,
             UiCopy.GAME_DELETED, UiCopy.SEAT_LOST, UiCopy.CANCEL, UiCopy.CANCEL_CONFIRM, UiCopy.REMATCH, UiCopy.REMATCH_SENT,
             UiCopy.REMATCH_OFFERED, UiCopy.NOT_YET, UiCopy.OFFER_NOT_SENT, UiCopy.LIVE_YOUR_MOVE, UiCopy.LIVE_THEIR_MOVE,

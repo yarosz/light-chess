@@ -108,6 +108,9 @@ object UiCopy {
     const val BLACK = "Black"
     const val RANDOM = "Random"
     const val START = "Start"
+
+    /** New game's bar button (LD2). */
+    const val START_GAME = "Start game"
     const val REPLACE_CONFIRM = "Tap again to replace"
     const val REPLACE_NOTE = "The Game in progress is saved as unfinished."
 
@@ -163,6 +166,10 @@ object UiCopy {
         "Puzzles and Games against the computer never leave this phone."
     const val PLAY_FRIEND = "Play a friend"
     const val ENTER_CODE = "Enter code"
+
+    /** The Play a friend list's bar button that opens Enter code (LD2). */
+    const val JOIN_GAME = "Join game"
+    const val JOIN_GAME_DESCRIPTION = "Join a friend's game with their code"
     const val DAYS_PER_MOVE = "Days per move"
     const val CREATE_CODE = "Create code"
     const val CODE_NOTE = "Tell your friend this code. It works once, for 48 hours."

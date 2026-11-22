@@ -30,6 +30,7 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.yarosz.chess.board.PieceSet
+import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.engine.ThinkTime
 import com.yarosz.chess.games.Confirm
@@ -304,6 +305,7 @@ class MenuScreen(
                         MenuPage.MOVES -> gameState?.record?.let { MoveList(it.game) }
                     }
                 }
+                if (page == MenuPage.NEW_GAME) NewGameBar(gameState)
             }
         }
     }
@@ -345,7 +347,7 @@ class MenuScreen(
         }
     }
 
-    /** The new-game page: Level 1-8, the Side to play, Think Time at Level 8, and Start (F7, F11). */
+    /** The new-game page: Level 1-8, the Side to play, Think Time at Level 8 (F7, F11); Start game is in its bar (LD2). */
     @Composable
     private fun NewGame(state: GameState?) {
         val vm = viewModel
@@ -363,10 +365,13 @@ class MenuScreen(
                 vm.choose(choices.copy(thinkTimeSeconds = all[it]))
             }
         }
-        val replacing = state?.confirming == Confirm.REPLACE
-        MenuRow(if (replacing) UiCopy.REPLACE_CONFIRM else UiCopy.START) {
-            if (vm.start()) done()
-        }
         if (state?.inProgress == true) MenuLine(UiCopy.REPLACE_NOTE, lighten = true)
+    }
+
+    /** New game's bar (LD2): Start game, or its second tap's prompt while a Game is in progress (F7). */
+    @Composable
+    private fun NewGameBar(state: GameState?) {
+        val label = if (state?.confirming == Confirm.REPLACE) UiCopy.REPLACE_CONFIRM else UiCopy.START_GAME
+        ActionBar(listOf(StripButton(label, label) { if (viewModel.start()) done() }))
     }
 }

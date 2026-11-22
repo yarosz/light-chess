@@ -218,7 +218,12 @@ mark ("Open the Menu") carry their labels too; on the boards they are the SDK's 
 change the SDK). The buttons are centred as a group, on their own line under the Captured Pieces on a
 Game's board and in the middle of the row on the Puzzle board (E13, E14).
 
-The invite page and the Play a friend list keep the strip at their foot (`Strip`, `StripLayout`),
+The Play a friend list and the new-game page put their text buttons in LightOS's bottom bar
+(`ActionBar`, LD2): light-sdk `LightBottomBar`'s geometry (4 grid units tall, one button centred,
+two at its ends inside 2 units of padding) and its `Button` text, all caps ("NEW GAME", "JOIN GAME",
+"START GAME"); a button that can't act now is lightened, which the SDK's bar can't show.
+
+The invite page keeps the strip at its foot (`Strip`, `StripLayout`),
 under LightOS's top bar, which holds their back arrow: a status in `Copy` and the secondary content
 colour from the board's edge (24 dp), up to three text buttons 4 dp after it, and on the invite page
 the Menu mark at the right (N4): three solid squares, 8 by 7 px, 28 px apart centre to centre, drawn
@@ -390,8 +395,9 @@ process-wide owner that runs the computer on `EngineHost.shared`, the clock and 
   Hint again on return (`GameOwner.pause`, `GameOwnerTest`).
 - The new-game page: "Level" with 1 to 8 on one line, "Play as" with "White", "Black" and "Random",
   and "Think Time" with "3 s", "10 s" and "30 s" at Level 8 only. The chosen option is in the content
-  colour, the others lightened. "Start" starts; with a Game in progress it reads "Tap again to
-  replace" first, above "The Game in progress is saved as unfinished." The choices are remembered
+  colour, the others lightened. "START GAME", in the bottom bar (LD2), starts; with a Game in
+  progress it reads "TAP AGAIN TO REPLACE" first, and the page says "The Game in progress is saved as
+  unfinished." The choices are remembered
   (Level 1, White, 3 s the first time).
 - The computer's Move lands no sooner than 300 ms after the user's (A5's reply delay), so a book Move
   or a quick Level doesn't land with the user's own, and slides in over 200 ms (F11). The user's
