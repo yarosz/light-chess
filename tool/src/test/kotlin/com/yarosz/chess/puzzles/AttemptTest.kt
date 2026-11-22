@@ -88,7 +88,6 @@ class AttemptTest {
         assertEquals(attempt.position.play(h6), wrong.position, "the board draws the wrong Move")
         assertEquals(attempt.moves + h6, wrong.moves, "and its last-move marks")
         assertEquals(emptyList(), wrong.played, "it is never part of the line")
-        assertEquals(550L, wrong.delayMs, "250 ms slide, then 300 ms at rest")
         assertEquals(wrong, wrong.play(wrong.position.legalMoves.first()), "no Move while it stands")
         assertTrue(wrong.justWrong)
 
@@ -240,5 +239,17 @@ class AttemptTest {
         assertNull(resumed.wrong)
         assertTrue(resumed.justWrong)
         assertEquals(standing.advance().positions, resumed.positions)
+    }
+
+    @Test
+    fun `a kill while a wrong first Move stands resumes at the user's Move, the setup Move on the board (PD1)`() {
+        val puzzle = Puzzle.parse(Lines.MATE_IN_2)
+        val standing = ready(Lines.MATE_IN_2).playUci("h7h6")
+        assertEquals(Stage.WRONG, standing.stage)
+        val resumed = assertNotNull(Attempt.resume(puzzle, standing.state, emptyList(), false, done = false, justWrong = standing.justWrong))
+        assertEquals(Stage.PLAY, resumed.stage, "no setup replayed under Try again")
+        assertTrue(resumed.justWrong)
+        assertEquals(standing.advance().positions, resumed.positions)
+        assertEquals(Stage.HOLD, Attempt.resume(puzzle, AttemptState.OPEN, emptyList(), false, done = false)!!.stage, "a fresh Attempt still holds")
     }
 }

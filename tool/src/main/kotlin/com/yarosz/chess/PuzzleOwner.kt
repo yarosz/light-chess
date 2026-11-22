@@ -371,7 +371,8 @@ private val Stage.auto: Boolean get() = this != Stage.PLAY && this != Stage.WRON
  * far: a Move that played itself (setup, reply, Solution) slides in as [id], and so does the
  * user's own Move when [ownSlide] says it was made by tap-tap, a wrong one included. A wrong Move
  * taken back slides home: the piece now on its origin comes in from its destination (PD1), and a
- * piece it took simply reappears. Otherwise [current] stays only while its Move is still the
+ * piece it took simply reappears. Only a take-back slides home: the same Moves, less the wrong one,
+ * not another Attempt at the same Puzzle. Otherwise [current] stays only while its Move is still the
  * latest, so a dropped Move onto that square never slides in from the opponent's origin, and a new
  * Puzzle starts with none.
  */
@@ -386,7 +387,7 @@ internal fun slideAfter(
         now.moves.size == was.moves.size + 1 &&
         (was.stage.auto || ownSlide && was.stage == Stage.PLAY) ->
         Motion(now.moves.last(), id)
-    now != null && was?.wrong != null && now.wrong == null && now.puzzle == was.puzzle ->
+    now != null && was?.wrong != null && now.puzzle == was.puzzle && now.moves == was.moves.dropLast(1) ->
         Motion(Move(was.wrong.to, was.wrong.from), id)
     now?.puzzle != was?.puzzle -> null
     current != null && now?.moves?.lastOrNull() != current.move -> null

@@ -139,18 +139,19 @@ README there has the design rules), converted to ImageVector code at build time 
 silhouette in white over a wider black outline, so it keeps an edge on the light square (216) as well
 as the dark one. Each piece is drawn in its square with a small inset.
 
-The player's Piece Set is geometric until changed. Every board's Menu has a "Pieces · Geometric"
-row (N17): second on the Puzzle board's Menu, under Difficulty (PD2), alone on Games Review's, and last on the computer's
-and a Correspondence Game's, 16 dp below their actions (`Rows.GAP`), so a wheel over-scroll to the
-end lands on Pieces and never on an action. The invite page and the list pages draw no board and
-have none. A tap moves to the next set ("Pieces · Rounded", then back) and stays on the Menu, and
-every board and its promotion picker draw it from then on: the Puzzle, the Game with the computer, a
-Correspondence Game and a finished Game from Games (M1). The row draws the chosen set's white king,
-queen and knight beside its label, 24 dp square (`Rows.PIECE`, the height of a `Copy` line), from the
-board's own `PieceVectors` (N19), so the change shows on the Menu. The choice is saved once, in
-`puzzles.json` (`pieceSet`), so it outlasts a relaunch and Reset rating; a set this build doesn't know
-reads as geometric. The puzzle owner reads it from the file before any Band (M4): a cold start into a
-Game draws its first frame in the chosen set, and the row waits for it.
+The player's Piece Set is geometric until changed. Every board's Menu has a "Pieces · Geometric" row
+(N17): second on the Puzzle board's Menu, under Difficulty (PD2), alone on Games Review's, and last
+on the computer's and a Correspondence Game's, 16 dp below their actions (`Rows.GAP`), so a wheel
+over-scroll to the end lands on Pieces and never on an action. The invite page and the list pages
+draw no board and have none. A tap moves to the next set ("Pieces · Rounded", then back) and stays
+on the Menu, and every board and its promotion picker draw it from then on: the Puzzle, the Game
+with the computer, a Correspondence Game and a finished Game from Games (M1). The row draws the
+chosen set's white king, queen and knight beside its label, 24 dp square (`Rows.PIECE`, the height
+of a `Copy` line), from the board's own `PieceVectors` (N19), so the change shows on the Menu. The
+choice is saved once, in `puzzles.json` (`pieceSet`), so it outlasts a relaunch and Reset rating; a
+set this build doesn't know reads as geometric. The puzzle owner reads it from the file before any
+Band (M4): a cold start into a Game draws its first frame in the chosen set, and the row waits for
+it.
 
 ## Marks (R1.6, R1.7, A5)
 
@@ -263,10 +264,10 @@ string or state goes into the test.
 
 The Puzzle board's buttons by context (`PuzzleStrip`), in the action row, and the Menu mark in the
 top bar in every state but the end of the Pack, which draws no board (N17, E1). Its Menu:
-"Difficulty · Easier" (PD2; a tap moves to the next value), "Pieces · Geometric", then "Puzzle 00sHx" over "lichess.org/training/00sHx" in grey, for the Puzzle on screen,
-a Missed replay's own (N18). Games Review's top bar has the mark, in Review too, and its Menu is
-Pieces alone (N21). A Missed replay started before the seed shows first; the seed screen follows it
-(N22).
+"Difficulty · Easier" (PD2; a tap moves to the next value), "Pieces · Geometric", then "Puzzle
+00sHx" over "lichess.org/training/00sHx" in grey, for the Puzzle on screen, a Missed replay's own
+(N18). Games Review's top bar has the mark, in Review too, and its Menu is Pieces alone (N21). A
+Missed replay started before the seed shows first; the seed screen follows it (N22).
 
 | When | Buttons |
 |---|---|
@@ -327,8 +328,9 @@ and writes the file; the two screens' view models are views onto it.
   that outruns the read ahead reads the file itself, as before.
 - The stage clock (A5) starts again only when the Attempt on screen changed, so a tap that changes
   nothing (Hint while the reply is pending) doesn't delay the reply. A slide (setup, reply,
-  Solution, the user's tap-tap Move, a wrong Move going home) is cleared once it has played, and whenever its Move is no
-  longer the latest, so a return to the Puzzle board from Home doesn't play it again.
+  Solution, the user's tap-tap Move, a wrong Move going home) is cleared once it has played, and
+  whenever its Move is no longer the latest, so a return to the Puzzle board from Home doesn't play
+  it again.
 - The owner reads assets through the latest screen that asked for it (`PuzzleOwner.of`): the SDK
   reads them only through a screen's activity, so keeping the first screen's reader kept the first
   activity alive after a relaunch.

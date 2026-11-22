@@ -54,7 +54,7 @@ enum class MenuPage(val title: String, val scrolls: Boolean) {
     /** The computer's Menu: this board's actions, then Pieces (N5, N17). */
     MENU(UiCopy.MENU_TITLE, true),
 
-    /** The Puzzle board's Menu: Pieces and the Puzzle's id (N17, N18). */
+    /** The Puzzle board's Menu: Difficulty, Pieces and the Puzzle's id (PD2, N17, N18). */
     PUZZLE_MENU(UiCopy.MENU_TITLE, false),
 
     /** Games Review's Menu: Pieces (N17). */

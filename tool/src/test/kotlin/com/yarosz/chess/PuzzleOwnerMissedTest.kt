@@ -1,6 +1,9 @@
 package com.yarosz.chess
 
+import android.view.KeyEvent
 import com.yarosz.chess.GameOwnerTest.Companion.waitFor
+import com.yarosz.chess.board.Motion
+import com.yarosz.chess.board.Touch
 import com.yarosz.chess.engine.EngineHost
 import com.yarosz.chess.puzzles.AttemptState
 import com.yarosz.chess.puzzles.MissedEntry
@@ -101,6 +104,42 @@ class PuzzleOwnerMissedTest {
         assertEquals(2, owner.session.value!!.attempt!!.wrongMoves)
         assertEquals(shown.data.rating, owner.session.value!!.data.rating, "and isn't scored")
         waitFor("the second take-back") { owner.session.value?.attempt?.stage == Stage.PLAY }
+    }
+
+    @Test
+    fun `a wrong Move stands through its slide, then rests before it goes back (PD1)`() {
+        val owner = owner()
+        waitFor("the user's Move") { owner.session.value?.attempt?.stage == Stage.PLAY }
+        val ready = owner.session.value!!.attempt!!
+        val wrong = ready.position.legalMoves.first { it != ready.puzzle.solution[0] && !ready.position.play(it).isCheckmate }
+        val played = System.nanoTime()
+        owner.play(wrong, slide = true)
+        Thread.sleep(Motion.MS.toLong())
+        assertEquals(ready.position.play(wrong), owner.session.value!!.attempt!!.position, "still on the board as its slide ends")
+        waitFor("the take-back") { owner.session.value?.attempt?.stage == Stage.PLAY }
+        val stoodMs = (System.nanoTime() - played) / 1_000_000
+        assertTrue(stoodMs >= Motion.MS + 300, "then 300 ms at rest, as Lichess: stood $stoodMs ms")
+        assertEquals(ready.position, owner.session.value!!.attempt!!.position)
+    }
+
+    @Test
+    fun `Review entered while a wrong Move stands ends with the take-back, and the next Move doesn't bring it back (PD1)`() {
+        val owner = owner()
+        val board = PuzzleViewModel(owner)
+        waitFor("the user's Move") { owner.session.value?.attempt?.stage == Stage.PLAY }
+        val ready = owner.session.value!!.attempt!!
+        val wrong = ready.position.legalMoves.first { it != ready.puzzle.solution[0] && !ready.position.play(it).isCheckmate }
+        owner.play(wrong)
+        assertTrue(board.onKeyDown(317, KeyEvent(KeyEvent.ACTION_DOWN, 317)), "the wheel steps back")
+        assertTrue(board.review(owner.session.value!!.attempt!!).active)
+        waitFor("the take-back") { owner.session.value?.attempt?.stage == Stage.PLAY }
+
+        val right = ready.puzzle.solution[0]
+        board.touch(Touch.Tap(right.from))
+        board.touch(Touch.Tap(right.to))
+        val after = owner.session.value!!.attempt!!
+        assertEquals(ready.moves + right, after.moves.take(ready.moves.size + 1), "the correct Move is played")
+        assertNull(board.review(after).ply, "the board shows the latest Position")
     }
 
     @Test

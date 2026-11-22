@@ -216,7 +216,8 @@ data class Attempt(
          * An Attempt carried over from the save file: [moves] (UCI, after the setup Move) replayed
          * against the Solution. Null when they don't follow it, as after a new Pack changed the line
          * (the caller then restarts from the setup Move, F1). [done], [solutionShown] and [justWrong]
-         * come back as saved; with no Moves played the Attempt starts again from [Stage.HOLD].
+         * come back as saved; with no Moves played the Attempt starts again from [Stage.HOLD], or
+         * at the user's Move after a wrong first Move ([justWrong]).
          */
         fun resume(
             puzzle: Puzzle,
@@ -241,7 +242,7 @@ data class Attempt(
             val stage = when {
                 done || over -> Stage.DONE
                 solutionShown -> Stage.SOLUTION
-                played.isEmpty() -> Stage.HOLD
+                played.isEmpty() -> if (justWrong) Stage.PLAY else Stage.HOLD
                 played.size % 2 == 1 -> Stage.REPLY
                 else -> Stage.PLAY
             }

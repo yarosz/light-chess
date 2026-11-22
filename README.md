@@ -27,8 +27,8 @@ _Home, a Puzzle with its Hint, and a live Game with a friend. Taken on a Light P
   a friend, Games and About. "Play a friend*" has LightOS's asterisk while a Game waits on your Move. Puzzles opens a page of its own: continue the Puzzle on screen, Missed,
   Past Puzzles and your Player Rating, in parentheses until it has settled. On a board, the top bar
   says what is happening: its arrow goes back, as the phone's back does, and the three squares at
-  its right open the board's Menu, with Pieces. The buttons for the moment sit under the board, and a
-  page's buttons sit in the bottom bar, in capitals as in LightOS.
+  its right open the board's Menu, with Pieces (and, for Puzzles, Difficulty). The buttons for the
+  moment sit under the board, and a page's buttons sit in the bottom bar, in capitals as in LightOS.
 - **Puzzles.** Tap a piece, then a square, or drag it. A wrong Move shows for a moment, then is
   taken back, and you can try again. HINT marks the piece to move. SOLUTION plays the line for you.
   The board's Menu sets the Difficulty, as on Lichess: Easiest, Easier (the default), Normal, Harder
