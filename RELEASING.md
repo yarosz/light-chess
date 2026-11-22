@@ -12,7 +12,7 @@ tagged commit on `main`, not an APK we build.
   - `versionCode`: +1 every release, never reused, never lower. Light's build server rejects a
     `versionCode` that isn't greater than the last published one, and Android refuses to install a
     lower one over a higher one. 0.1.0 is `versionCode = 1`, 0.2.0 is `2`, 0.3.0 is `3`,
-    0.3.1 is `4`, 0.4.0 is `5`, 0.4.1 is `6`, 0.5.0 is `7`.
+    0.3.1 is `4`, 0.4.0 is `5`, 0.4.1 is `6`, 0.5.0 is `7`, 0.5.1 is `8`.
 - The Tool id `com.yarosz.chess` is permanent from the first published build. Never change it.
 - Tag the merged release commit `vX.Y.Z`. The GitHub Release carries notes only, no APK.
 - Release notes users see are the changelog entered on Light's dashboard: three lines, in the

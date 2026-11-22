@@ -18,10 +18,20 @@ SDK. The bump changed no permission and made one small visible change: the keybo
 friend's text fields (Enter code, Rename) no longer shows a dictation key (`rememberKeyboardOptions`).
 `LightJobResult.Success` takes two more arguments, the SDK's exported file provider left the APK
 (opt-in capability now), and the Tool targets SDK 34, as Light's builds now do.
-SUBMITTED: 0.5.0 went to Light's Tool Library on 2026-10-09 (RELEASING.md "After merge and tag").
+0.5.1 (versionCode 8, on light-sdk v0.2.10): #38, Light's design note (decision log LD1-LD4): Home's
+rows at LightOS Heading size with "Play a friend*" (LightOS's notification asterisk) while a friend
+Game waits on the user; every text button in caps, in LightOS's bottom bar where it fits (START
+GAME, NEW GAME / JOIN GAME, CANCEL, CREATE CODE) and in place under the boards; "Join game" replaces
+"Enter code"; one tap starts a new Game against the computer. The SDK bump from v0.2.0 to v0.2.10
+renamed the text editor's `initialCaps` to `autoCapitalize`; `gradle.properties` `sdkVersion`
+selects Light's builder image. The SDK also offers notifications and push (since v0.2.1; push is
+undocumented) and backups (v0.2.3); scheduled alerts are on its `main`, in no tag yet:
+FOLLOW-UPS below.
+SUBMITTED: 0.5.0 went to Light's Tool Library on 2026-10-09 (RELEASING.md "After merge and tag");
+Light accepted it, and its Tool Library team sent the design note 0.5.1 answers (2026-11-11).
 Light's build (Version 7, from a9fd300) succeeded, and Light's signed APK matches our unsigned build
 entry for entry, plus Light's signing files (`stamp-cert-sha256`, the META-INF v1 signature files,
-`light-trust.json`). Awaiting Light's approval.
+`light-trust.json`). Light accepted it (2026-11-11).
 FOR THE OWNER (none blocks development): Light's build can't install over a dev-signed build (the
 signatures differ), and uninstalling deletes the Player Rating, Missed and the Games, so switching
 the owner's LP3 to Light's build needs a plan first (carry the files over, or accept the loss).
@@ -32,8 +42,12 @@ What remains for Light is whether it signs a GPLv3 Tool; the owner decides what 
 The listing text should answer TOOL_GUIDELINES.md: Puzzles and the computer are fully offline;
 Games with a friend send Moves through the Relay, whose code is in this repo and runs on Cloudflare;
 the privacy disclosure is UiCopy.PRIVACY_FRIENDS. The listing images (and the README's
-screenshots) were taken on the LP3: a Puzzle with its Hint, a live Game with a friend, a won Game.
+screenshots) were taken on the LP3: for 0.5.0 a Puzzle with its Hint, a live Game with a friend, a won
+Game; the README's since 0.5.1: Home, a Puzzle with its Hint, a live Game with a friend.
 Optional: Always Use HTTPS/HSTS on the Relay's zone (the Worker already refuses plain HTTP, L3).
+NEXT MILESTONE (owner, 2026-11-21): notifications ("Your move" in a friend Game while Chess is
+closed: a periodic sync job or Relay push, `POST_NOTIFICATIONS`; light-sdk `notifications`, since v0.2.1)
+and backups (light-sdk docs/backups: Tool Manager `canBeBackedUp` for the save files).
 FOLLOW-UPS (low, from code review; none blocking):
 - LightOS's "Allowed Tools" setting has four values: Default Only, Community Tools (Light-approved),
   Built with SDK (Light-signed) and All Tools. The SDK v0.2.0 emulator's LightOS defaults to
@@ -41,9 +55,6 @@ FOLLOW-UPS (low, from code review; none blocking):
   LightOS service token ("Rejected GetToken from unverified caller"). Chess's emulator still runs
   the LightOS app from before v0.2.0; if it is ever upgraded to v0.2.0's, set Settings > Allowed
   Tools > Built with SDK (or All Tools, for a dev-signed build).
-- When an SDK tag includes light-sdk PR #234 (a build fails unless `serverPackage` is `com.lightos`,
-  or `-DlightSdk.allowAltServerPackage=true` is passed), emulator builds must pass that flag: the
-  `scripts/emulator-build.sh` path (`mise run tool`, `mise run ci`), never `light-build.sh`.
 - Later: Light's backups (discussion #255), once its SDK side ships.
 - Games with a friend don't slide Moves yet (Z1 left `FriendOwner` out; slides come when that code
   is rewritten).
@@ -60,7 +71,11 @@ FOLLOW-UPS (low, from code review; none blocking):
   config; a cold-started `friend-send` job REPLACEs itself once (FriendOwner init).
 - Navigation D: `Rows.HEIGHT` (48 dp) is the wheel step while Home's and the pages' rows measure
   about 53 dp, so a detent scrolls slightly under a row (predates Navigation D).
-LP3 CHECKS. Done on the LP3 on 2026-10-03, in Akkurat: the arrow's ink at pixels 48-82, with the
+LP3 CHECKS. Done for 0.5.1 on 2026-11-21, in Akkurat on LightOS 592: Home at Heading size and
+"Play a friend*"; the caps action rows and bottom bars against Light's mock-ups; About "Chess
+0.5.1"; on SDK v0.2.10's text editor (no external keyboard app on 592, so the built-in keyboard),
+Join game answers "No such code" in its title and keeps the field, and Rename's SAVE stores the label.
+Done on the LP3 on 2026-10-03, in Akkurat: the arrow's ink at pixels 48-82, with the
 Menu mark level with it; Home's first view (five rows fit); the Pieces preview in a board's Menu; a
 fast scrub back past a Review's start leaves the brightness alone (N20); each button's target is the
 whole row (#22: Hint and Solution span 1056-1240 px). Still open, to confirm or drop: the widest
@@ -77,7 +92,7 @@ parentheses, Home's row plain "Puzzles", About "Chess 0.5.0".
 DONE (details in the PRs and the decision log): the v1 stack and 0.1.0 (LP3-checked 2026-09-29),
 the v2 forward merge (M1-M7) and 0.2.0, the Relay deploy and v3 (#3, #10 P3) and 0.3.0, 0.3.1, then
 #16-#26 above.
-LAST SESSION: 2026-10-09 (0.5.0 submitted to Light; LP3 screenshots in the README)
+LAST SESSION: 2026-11-21 (Light's design note, #38; the 0.5.1 release PR on light-sdk v0.2.10)
 
 ## HANDOFF (read first when resuming)
 - Every feature branch (the v1 stack, v2's engine, Levels, record, Book and game screen, v3's

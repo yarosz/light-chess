@@ -7,42 +7,44 @@ Your Player Rating moves with every rated Puzzle, and the ones you missed wait f
 Or play the computer at one of eight Levels, on the phone itself, or a friend by correspondence, a
 few days per Move. No account and nothing tracked; only Games with a friend use the network.
 
-> **Status: 0.5.0, Puzzles (v1), playing the computer (v2) and playing a friend by correspondence
-> (v3) are done; not yet listed by Light.** A Light Phone III Tool built on
-> [Light's SDK](https://github.com/lightphone/light-sdk).
+> **Status: 0.5.1. Puzzles (v1), playing the computer (v2) and playing a friend by correspondence
+> (v3) are done. Light has reviewed and accepted Chess. It is not listed by Light yet.** A Light
+> Phone III Tool built on [Light's SDK](https://github.com/lightphone/light-sdk).
 
 Questions or bugs: https://github.com/yarosz/light-chess/issues
 
 <p>
-  <img src="docs/screenshots/puzzle.png" width="32%" alt="A Puzzle, White to move: the Hint rings the white queen on g4, with Hint and Solution under the board">
-  <img src="docs/screenshots/live.png" width="32%" alt="A Game with a friend, Live · Your move: the Ruy Lopez Exchange, Black's last Move a bishop to g4">
-  <img src="docs/screenshots/won.png" width="32%" alt="A Game against the computer, playing Black with the rounded Piece Set: You won by checkmate, the Captured Pieces showing +2, and Next under the board">
+  <img src="docs/screenshots/home.png" width="32%" alt="Home: the title Chess, then Puzzles, Play the computer, Play a friend, Games and About in large type">
+  <img src="docs/screenshots/puzzle.png" width="32%" alt="A Puzzle, Black to move after a wrong try: the Hint rings the black queen on h7, with HINT and SOLUTION under the board">
+  <img src="docs/screenshots/live.png" width="32%" alt="A Game with a friend, Live · Your move: the Ruy Lopez Exchange, Black's last Move a pawn taking on c6">
 </p>
 
-_A Puzzle with its Hint, a live Game with a friend, and a won Game against the computer with the
-rounded Piece Set. Taken on a Light Phone III._
+_Home, a Puzzle with its Hint, and a live Game with a friend. Taken on a Light Phone III._
 
 ## What it does
 
 - **Home.** Chess opens where you left off, with Home underneath: Puzzles, Play the computer, Play
-  a friend, Games and About. Puzzles opens a page of its own: continue the Puzzle on screen, Missed,
+  a friend, Games and About. "Play a friend*" has LightOS's asterisk while a Game waits on your Move. Puzzles opens a page of its own: continue the Puzzle on screen, Missed,
   Past Puzzles and your Player Rating, in parentheses until it has settled. On a board, the top bar
   says what is happening: its arrow goes back, as the phone's back does, and the three squares at
-  its right open the board's Menu, with Pieces. The buttons for the moment sit under the board.
+  its right open the board's Menu, with Pieces. The buttons for the moment sit under the board, and a
+  page's buttons sit in the bottom bar, in capitals as in LightOS.
 - **Puzzles.** Tap a piece, then a square, or drag it. A wrong Move is taken back and you can try again.
-  "Hint" marks the piece to move; "Solution" plays the line for you.
+  HINT marks the piece to move. SOLUTION plays the line for you.
 - **Player Rating.** A Glicko-2 rating, like Lichess's own, picks each Puzzle near your level. Answer
   one question on first launch, or skip it.
 - **Missed.** The last 100 Puzzles you failed or needed a Hint for, to replay unrated.
 - **Play the computer.** Choose a Level from 1 to 8 and play as White, Black or at random. Level 8 is
   the computer's full strength, with a Think Time of 3, 10 or 30 seconds a Move. From Level 2 up it
-  opens from a Book of strong players' Games. "Hint" shows the computer's best Move (a Game Hint);
-  "Move now" makes it play at once. The Menu has Takeback, Offer draw, Resign, Flip board and the
-  Game's Moves. When the computer's Move ends the Game, the Result offers "Takeback · Next". A Game
+  opens from a Book of strong players' Games. HINT shows the computer's best Move (a Game Hint), and
+  MOVE NOW makes it play at once. The Menu has Takeback, Offer draw, Resign, Flip board and the
+  Game's Moves. When the computer's Move ends the Game, the Result offers TAKEBACK and NEXT. START
+  GAME replaces a Game in progress at once, and the old one goes to Games, unfinished. A Game
   in progress is kept when you leave, and Games lists your last 50 finished ones to look back
   through.
-- **Play a friend.** Create an Invite Code and tell it to your friend; it works once, for 48 hours.
-  Choose 1, 3 or 7 days per Move. Each Move waits for "Send", with "Undo" until then. The Menu has
+- **Play a friend.** NEW GAME opens a page where you choose your Side and 1, 3 or 7 days per Move.
+  CREATE CODE then makes an Invite Code to tell your friend. It works once, for 48 hours. JOIN GAME
+  takes your friend's code. Each Move waits for SEND, with UNDO until then. The Menu has
   Offer draw and Resign; a finished Game offers a rematch. Moves pass through Chess's Relay, with no
   name or account. While both phones have the Game open, Moves arrive at once and the board shows
   "Live · Your move" or "Live · Their move".

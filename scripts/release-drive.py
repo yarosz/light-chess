@@ -83,7 +83,9 @@ def tap(x, y, check=True):
 
 
 def tap_label(label, check=True):
-    hits = [c for t, c in nodes() if t == label] or [c for t, c in nodes() if label in t]
+    # Without case: since LD3 a button's label is in caps ("NEXT"), an older build's isn't ("Next").
+    want = label.casefold()
+    hits = [c for t, c in nodes() if t.casefold() == want] or [c for t, c in nodes() if want in t.casefold()]
     if not hits:
         sys.exit(f'release-drive: nothing labelled "{label}" on screen: {texts()}')
     tap(*hits[0], check=check)

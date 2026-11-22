@@ -329,7 +329,7 @@ class FriendScreen(
             modifier = Modifier.background(LightThemeTokens.colors.background),
             submitLabel = ActionBarLayout.label(UiCopy.JOIN),
             singleLine = true,
-            initialCaps = true,
+            autoCapitalize = true,
         )
     }
 
