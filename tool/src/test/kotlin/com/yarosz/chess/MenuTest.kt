@@ -11,6 +11,7 @@ import com.yarosz.chess.games.GameState
 import com.yarosz.chess.games.SideChoice
 import com.yarosz.chess.puzzles.MissedEntry
 import com.yarosz.chess.puzzles.PuzzleData
+import com.yarosz.chess.puzzles.PuzzleDifficulty
 import com.yarosz.chess.puzzles.PuzzleFlow
 import com.yarosz.chess.puzzles.Stage
 import com.yarosz.chess.puzzles.TestPacks
@@ -167,25 +168,33 @@ class MenuTest {
     }
 
     @Test
-    fun `the Puzzle board's Menu, Pieces, then the id and address of the Puzzle on screen, in grey (N17, N18)`() {
+    fun `the Puzzle board's Menu, Difficulty, Pieces, then the id and address of the Puzzle on screen, in grey (N17, N18, PD2)`() {
         val flow = PuzzleFlow(TestPacks.of("A", listOf(TestPacks.line("r1500", 1500), TestPacks.line("m1500", 1500))), Random(3))
         val rated = flow.open(PuzzleData(seeded = true, packSha256 = "A", finished = listOf("m1500"), missed = listOf(MissedEntry("m1500", 1500))))
         assertEquals("r1500", rated.attempt!!.puzzle.id)
-        val menu = PuzzleMenu.of(rated.attempt, PieceSet.GEOMETRIC)
+        val menu = PuzzleMenu.of(rated.attempt, PieceSet.GEOMETRIC, rated.data.difficulty)
         assertEquals(
             listOf(
-                MenuItem(UiCopy.piecesRow(PieceSet.GEOMETRIC), PiecesMenuEntry.PIECES, pieces = PieceSet.GEOMETRIC),
-                MenuItem<PiecesMenuEntry>("Puzzle r1500", lighten = true),
-                MenuItem<PiecesMenuEntry>("lichess.org/training/r1500", lighten = true),
+                MenuItem("Difficulty · Easier", PuzzleMenuEntry.DIFFICULTY),
+                MenuItem(UiCopy.piecesRow(PieceSet.GEOMETRIC), PuzzleMenuEntry.PIECES, pieces = PieceSet.GEOMETRIC),
+                MenuItem<PuzzleMenuEntry>("Puzzle r1500", lighten = true),
+                MenuItem<PuzzleMenuEntry>("lichess.org/training/r1500", lighten = true),
             ),
             menu,
         )
+        // Each tap on Difficulty names the next value in place, Hardest wrapping to Easiest.
+        val names = generateSequence(rated) { flow.nextDifficulty(it) }.take(6)
+            .map { PuzzleMenu.of(it.attempt, PieceSet.GEOMETRIC, it.data.difficulty).first().text }.toList()
+        assertEquals(
+            listOf("Easier", "Normal", "Harder", "Hardest", "Easiest", "Easier").map { "Difficulty · $it" },
+            names,
+        )
         // A Missed replay's Menu names the replay's Puzzle, not the rated one under it.
         val replay = flow.replayMissed(rated, "m1500")
-        assertEquals(listOf("Pieces · Rounded", "Puzzle m1500", "lichess.org/training/m1500"), PuzzleMenu.of(replay.attempt, PieceSet.ROUNDED).map { it.text })
-        // Pieces waits for the Piece Set (M4); the lines wait for a Puzzle.
-        assertEquals(listOf("Puzzle r1500", "lichess.org/training/r1500"), PuzzleMenu.of(rated.attempt, null).map { it.text })
-        assertEquals(1, PuzzleMenu.of(null, PieceSet.GEOMETRIC).size)
+        assertEquals(listOf("Pieces · Rounded", "Puzzle m1500", "lichess.org/training/m1500"), PuzzleMenu.of(replay.attempt, PieceSet.ROUNDED, null).map { it.text })
+        // Difficulty waits for the save file, Pieces for the Piece Set (M4); the lines wait for a Puzzle.
+        assertEquals(listOf("Puzzle r1500", "lichess.org/training/r1500"), PuzzleMenu.of(rated.attempt, null, null).map { it.text })
+        assertEquals(1, PuzzleMenu.of(null, PieceSet.GEOMETRIC, null).size)
         noPlaces(menu.filter { it.entry != null }.map { it.text })
     }
 
@@ -211,6 +220,31 @@ class MenuTest {
         }
         // The drawn pieces are no taller than the row's text line, so the row keeps its height.
         assertTrue(Rows.PIECE.value <= 29f)
+    }
+
+    @Test
+    fun `while a wrong Move stands the strip reads Try again with Hint and Solution, as after it is taken back (PD1)`() {
+        val flow = PuzzleFlow(TestPacks.of("A", listOf(TestPacks.line("r1500", 1500))), Random(1))
+        val ready = flow.advance(flow.advance(flow.open(PuzzleData(seeded = true, packSha256 = "A"))))
+        val a = ready.attempt!!
+        val wrong = flow.play(ready, a.position.legalMoves.first { it != a.puzzle.solution[0] && !a.position.play(it).isCheckmate })
+        assertEquals(Stage.WRONG, wrong.attempt!!.stage)
+        val standing = PuzzleStrip.of(wrong, wrong.attempt!!, null)
+        assertEquals(PuzzleStrip(UiCopy.TRY_AGAIN, listOf(PuzzleButton.HINT, PuzzleButton.SOLUTION)), standing)
+        val back = flow.advance(wrong)
+        assertEquals(Stage.PLAY, back.attempt!!.stage)
+        assertEquals(standing, PuzzleStrip.of(back, back.attempt!!, null), "no change when it is taken back")
+    }
+
+    /** PD2: the Difficulty row holds one Menu line at the LP3's 360 dp, in every value. */
+    @Test
+    fun `the Difficulty row fits one Menu line (PD2)`() {
+        val room = 360f - 2 * 24f
+        for (difficulty in PuzzleDifficulty.entries) {
+            val text = UiCopy.difficultyRow(difficulty)
+            val width = AkkuratProxy.width(text)
+            assertTrue(width <= room, "\"$text\" takes $width dp of $room")
+        }
     }
 
     @Test

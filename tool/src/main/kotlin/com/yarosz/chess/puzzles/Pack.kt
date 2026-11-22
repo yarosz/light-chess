@@ -67,17 +67,17 @@ class Pack(private val readAsset: (String) -> ByteArray) {
     }
 
     /**
-     * The Puzzles within ±100 of [playerRating] that aren't in [finished] (Lichess ids), sorted by
-     * Puzzle Rating. When none are left there, the window widens by 100 at a time (A7); empty only
-     * when every Puzzle in the Pack is finished.
+     * The Puzzles within ±100 of [target] (the Player Rating offset by the Puzzle Difficulty, PD2)
+     * that aren't in [finished] (Lichess ids), sorted by Puzzle Rating. When none are left there, the
+     * window widens by 100 at a time (A7); empty only when every Puzzle in the Pack is finished.
      */
-    fun candidates(playerRating: Int, finished: Set<String>): List<Puzzle> {
+    fun candidates(target: Int, finished: Set<String>): List<Puzzle> {
         val lowest = bands.minOf { it.minRating }
         val highest = bands.maxOf { it.maxRating }
         var reach = WINDOW
         while (true) {
-            val low = playerRating - reach
-            val high = playerRating + reach
+            val low = target - reach
+            val high = target + reach
             val found = bands.filter { it.maxRating >= low && it.minRating <= high }
                 .flatMap { band -> puzzles(band).filter { it.rating in low..high && it.id !in finished } }
             if (found.isNotEmpty() || (low <= lowest && high >= highest)) return found

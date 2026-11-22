@@ -12,6 +12,7 @@ import com.yarosz.chess.puzzles.Attempt
 import com.yarosz.chess.puzzles.Glicko
 import com.yarosz.chess.puzzles.HistoryEntry
 import com.yarosz.chess.puzzles.MissedEntry
+import com.yarosz.chess.puzzles.PuzzleDifficulty
 import com.yarosz.chess.puzzles.PuzzleState
 import com.yarosz.chess.relay.EntryKind
 
@@ -247,18 +248,23 @@ data class MenuItem<A>(
 /** The Pieces row (N17, P2): "Pieces · Geometric", with the set drawn beside it (N19). */
 fun <A> piecesItem(set: PieceSet, entry: A, gap: Boolean = false) = MenuItem(UiCopy.piecesRow(set), entry, gap = gap, pieces = set)
 
-/** The Puzzle board's and Games Review's Menu rows (N17): only Pieces is tappable. */
+/** Games Review's Menu row (N17): Pieces, its only tappable one. */
 enum class PiecesMenuEntry { PIECES }
 
+/** The Puzzle board's Menu rows that act (N17, PD2). */
+enum class PuzzleMenuEntry { DIFFICULTY, PIECES }
+
 /**
- * The Puzzle board's Menu (N17, N18): Pieces, then the Puzzle on screen as two grey lines, its id and
- * its lichess.org address, text only (D5). [attempt] is the Attempt on screen, a Missed replay's own;
- * [pieceSet] null (not read yet, M4) leaves Pieces out.
+ * The Puzzle board's Menu (N17, N18, PD2): Difficulty, Pieces, then the Puzzle on screen as two grey
+ * lines, its id and its lichess.org address, text only (D5). [attempt] is the Attempt on screen, a
+ * Missed replay's own; [difficulty] null (the save file not read yet) leaves Difficulty out, and
+ * [pieceSet] null (M4) leaves Pieces out.
  */
 object PuzzleMenu {
-    fun of(attempt: Attempt?, pieceSet: PieceSet?): List<MenuItem<PiecesMenuEntry>> = buildList {
-        if (pieceSet != null) add(piecesItem(pieceSet, PiecesMenuEntry.PIECES))
-        attempt?.puzzle?.id?.let { id -> for (line in UiCopy.puzzleLines(id)) add(MenuItem<PiecesMenuEntry>(line, lighten = true)) }
+    fun of(attempt: Attempt?, pieceSet: PieceSet?, difficulty: PuzzleDifficulty?): List<MenuItem<PuzzleMenuEntry>> = buildList {
+        if (difficulty != null) add(MenuItem(UiCopy.difficultyRow(difficulty), PuzzleMenuEntry.DIFFICULTY))
+        if (pieceSet != null) add(piecesItem(pieceSet, PuzzleMenuEntry.PIECES))
+        attempt?.puzzle?.id?.let { id -> for (line in UiCopy.puzzleLines(id)) add(MenuItem<PuzzleMenuEntry>(line, lighten = true)) }
     }
 }
 

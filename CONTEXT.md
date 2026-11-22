@@ -59,7 +59,7 @@ _Avoid_: answer, line, key
 
 **Puzzle Rating**:
 How hard a Puzzle is, on the same scale as the Player Rating.
-_Avoid_: difficulty, level
+_Avoid_: difficulty (that is the Puzzle Difficulty), level
 
 **Band**:
 The Puzzles in the Pack whose Puzzle Rating falls in one 100-point slice, such as 1500 to 1599.
@@ -86,9 +86,16 @@ Rating does not change.
 _Avoid_: assisted, skipped
 
 **Try Mode**:
-What an Attempt becomes after a wrong Move: the Move is taken back and the user may keep trying.
+What an Attempt becomes after a wrong Move: the Move shows for a moment, is taken back, and the
+user may keep trying.
 Nothing done in Try Mode changes the Player Rating.
 _Avoid_: retry, practice
+
+**Puzzle Difficulty**:
+How far below or above the Player Rating the next Puzzles are chosen: Easiest, Easier, Normal,
+Harder or Hardest, as on Lichess. It never changes the Player Rating. Shown as "Difficulty" on the
+Puzzle board's Menu.
+_Avoid_: level, Puzzle Rating
 
 **Puzzle Hint**:
 A mark on the piece that should move next in a Puzzle.
@@ -119,7 +126,7 @@ _Avoid_: outcome, score
 
 **Level**:
 How strongly the computer plays, from 1 to 8. Level 8 is the computer's full strength.
-_Avoid_: difficulty, Elo, strength
+_Avoid_: difficulty (that is the Puzzle Difficulty), Elo, strength
 
 **Book**:
 The opening Moves the computer may play without thinking, in the first plies of a Game at Level 2

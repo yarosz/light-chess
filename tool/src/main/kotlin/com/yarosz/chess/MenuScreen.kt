@@ -54,7 +54,7 @@ enum class MenuPage(val title: String, val scrolls: Boolean) {
     /** The computer's Menu: this board's actions, then Pieces (N5, N17). */
     MENU(UiCopy.MENU_TITLE, true),
 
-    /** The Puzzle board's Menu: Pieces and the Puzzle's id (N17, N18). */
+    /** The Puzzle board's Menu: Difficulty, Pieces and the Puzzle's id (PD2, N17, N18). */
     PUZZLE_MENU(UiCopy.MENU_TITLE, false),
 
     /** Games Review's Menu: Pieces (N17). */
@@ -156,6 +156,8 @@ class MenuViewModel(
         game.touched()
         owner.nextPieceSet()
     }
+
+    fun nextDifficulty() = owner.nextDifficulty()
 
     fun choose(next: GameChoices) {
         game.touched()
@@ -274,7 +276,12 @@ class MenuScreen(
                     when (page) {
                         MenuPage.MENU -> gameState?.takeIf { it.record != null }?.let { GameMenuRows(it, pieceSet) }
                         // The Puzzle on screen, a Missed replay's own (N18).
-                        MenuPage.PUZZLE_MENU -> MenuItems(PuzzleMenu.of(session?.attempt, pieceSet)) { vm.nextPieceSet() }
+                        MenuPage.PUZZLE_MENU -> MenuItems(PuzzleMenu.of(session?.attempt, pieceSet, data?.difficulty)) { entry ->
+                            when (entry) {
+                                PuzzleMenuEntry.DIFFICULTY -> vm.nextDifficulty()
+                                PuzzleMenuEntry.PIECES -> vm.nextPieceSet()
+                            }
+                        }
                         MenuPage.GAME_REVIEW_MENU -> MenuItems(GameReviewMenu.of(pieceSet)) { vm.nextPieceSet() }
                         MenuPage.PUZZLES -> for (row in PuzzlesRows.of(session, gone)) {
                             if (row.tappable) MenuRow(row.text) { tapPuzzles(row.entry) } else MenuLine(row.text, lighten = true)

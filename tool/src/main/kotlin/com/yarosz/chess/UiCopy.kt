@@ -3,6 +3,7 @@ package com.yarosz.chess
 import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.correspondence.Refusal
 import com.yarosz.chess.puzzles.AttemptState
+import com.yarosz.chess.puzzles.PuzzleDifficulty
 import com.yarosz.chess.rules.CapturedPieces
 import com.yarosz.chess.rules.DrawReason
 import com.yarosz.chess.rules.PieceType
@@ -54,6 +55,7 @@ object UiCopy {
     const val MISSED = "Missed"
     const val ABOUT = "About"
     const val PIECES = "Pieces"
+    const val DIFFICULTY = "Difficulty"
     const val PLAYER_RATING = "Player Rating"
     const val RESET_RATING = "Reset rating"
     const val RESET_CONFIRM = "Tap again to reset"
@@ -114,7 +116,7 @@ object UiCopy {
     const val REPLACE_NOTE = "Your current Game will be saved to Games as unfinished."
 
     /** The Tool's version; `ToolMetadataTest` holds it equal to `versionName` in `tool/lighttool.toml`. */
-    const val VERSION = "0.5.1"
+    const val VERSION = "0.6.0"
     const val SOURCE = "github.com/yarosz/light-chess"
 
     /**
@@ -381,6 +383,18 @@ object UiCopy {
         PieceSet.GEOMETRIC -> "Geometric"
         PieceSet.ROUNDED -> "Rounded"
     }
+
+    /** Puzzle Difficulty's name in the Menu (PD2), Lichess's words. */
+    fun difficultyName(difficulty: PuzzleDifficulty) = when (difficulty) {
+        PuzzleDifficulty.EASIEST -> "Easiest"
+        PuzzleDifficulty.EASIER -> "Easier"
+        PuzzleDifficulty.NORMAL -> "Normal"
+        PuzzleDifficulty.HARDER -> "Harder"
+        PuzzleDifficulty.HARDEST -> "Hardest"
+    }
+
+    /** The Puzzle Menu's Difficulty row (PD2): "Difficulty · Easier"; a tap moves to the next one. */
+    fun difficultyRow(difficulty: PuzzleDifficulty) = "$DIFFICULTY · ${difficultyName(difficulty)}"
 
     /** A board Menu's Pieces row (P2, N17): the Piece Set in use; a tap moves to the next one. */
     fun piecesRow(set: PieceSet) = "$PIECES · ${pieceSetName(set)}"

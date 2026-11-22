@@ -61,10 +61,14 @@ class PuzzleViewModel(private val owner: PuzzleOwner) : WheelViewModel<Unit>() {
         return MoveInput(attempt.position, setOf(attempt.puzzle.solver))
     }
 
-    /** Review over [attempt]'s Moves, or none once the Ply it shows is the latest. */
+    /**
+     * Review over [attempt]'s Moves. A new Puzzle, or the Ply it shows becoming the latest (as when a
+     * wrong Move is taken back, PD1), ends it for good: Moves played later never bring it back.
+     */
     fun review(attempt: Attempt): Review {
         val ply = review.ply ?: return review
-        return if (reviewFor != attempt.puzzle.id || ply >= attempt.positions.lastIndex) Review() else review
+        if (reviewFor != attempt.puzzle.id || ply >= attempt.positions.lastIndex) review = Review()
+        return review
     }
 
     fun touch(touch: Touch) {
@@ -102,10 +106,11 @@ class PuzzleViewModel(private val owner: PuzzleOwner) : WheelViewModel<Unit>() {
 }
 
 /**
- * The Puzzle board (N16: one step above the Puzzles page): the seed screen first (D4), then the current
- * Puzzle, or the end of the Pack; a Missed replay started before the seed goes before it (N22). Its top bar is the back arrow, the status and the Menu mark (E1,
- * N17), whose Menu has Pieces and the Puzzle's id (N18); its action row Hint, Solution, Next or
- * Latest (E2).
+ * The Puzzle board (N16: one step above the Puzzles page): the seed screen first (D4), then the
+ * current Puzzle, or the end of the Pack; a Missed replay started before the seed goes before it
+ * (N22). Its top bar is the back arrow, the status and the Menu mark (E1, N17), whose Menu has
+ * Difficulty, Pieces and the Puzzle's id (PD2, N18); its action row Hint, Solution, Next or Latest
+ * (E2).
  */
 class PuzzleScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, PuzzleViewModel>(sealedActivity) {
 

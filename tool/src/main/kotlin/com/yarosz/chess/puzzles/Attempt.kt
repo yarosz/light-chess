@@ -36,6 +36,9 @@ enum class Stage {
     /** The user's Move. */
     PLAY,
 
+    /** A wrong Move stands on the board, input locked, and is taken back after [Attempt.WRONG_MS] (PD1). */
+    WRONG,
+
     /** A correct Move landed; the opponent replies after [Attempt.REPLY_MS]. */
     REPLY,
 
@@ -54,10 +57,12 @@ enum class Stage {
  * - A correct Move is the Solution's next Move, or any Move that checkmates. The rules core has
  *   already turned king-onto-own-rook into castling, and a promotion must match the stored piece
  *   unless it mates, which plain Move equality gives.
- * - A wrong Move is not played: the Attempt becomes Failed when Open, and Try Mode goes on.
+ * - A wrong Move is shown, then taken back (PD1): it stands as [wrong] in [Stage.WRONG] until
+ *   [advance], and the Attempt becomes Failed when Open, and Try Mode goes on. [played] never holds it.
  * - [hint] marks the piece the Solution moves next; an Open Attempt becomes Hinted, a Failed one
  *   stays Failed (the hint is free).
  * - [showSolution] plays the rest of the line; an Open Attempt becomes Failed.
+ * - [hint] and [showSolution] tapped while a wrong Move stands take it back first.
  */
 data class Attempt(
     val puzzle: Puzzle,
@@ -66,15 +71,22 @@ data class Attempt(
     val stage: Stage = Stage.HOLD,
     /** The square of the Puzzle Hint ring, until the next Move. */
     val hintSquare: Square? = null,
-    /** The last Move tried was wrong and taken back; cleared by the next correct Move. */
+    /** The last Move tried was wrong; cleared by the next correct Move. */
     val justWrong: Boolean = false,
     val wrongMoves: Int = 0,
     val hintsTaken: Int = 0,
     val solutionShown: Boolean = false,
+    /** The wrong Move on the board, in [Stage.WRONG] only. */
+    val wrong: Move? = null,
 ) {
+    init {
+        require((stage == Stage.WRONG) == (wrong != null)) { "a wrong Move stands exactly in Stage.WRONG" }
+    }
+
     /**
      * Every Position of the Attempt so far, for Review (R1.9): the Puzzle's start, then after the
-     * setup Move, then after each played Move. Only the start while [Stage.HOLD].
+     * setup Move, then after each played Move, then after the [wrong] Move while it stands. Only the
+     * start while [Stage.HOLD].
      */
     val positions: List<Position> by lazy {
         if (stage == Stage.HOLD) return@lazy listOf(puzzle.start)
@@ -86,6 +98,7 @@ data class Attempt(
             p = p.play(m)
             out += p
         }
+        wrong?.let { out += p.play(it) }
         out
     }
 
@@ -93,7 +106,7 @@ data class Attempt(
     val position: Position get() = positions.last()
 
     /** The Moves of [positions], the setup Move first. */
-    val moves: List<Move> get() = if (stage == Stage.HOLD) emptyList() else listOf(puzzle.setupMove) + played
+    val moves: List<Move> get() = if (stage == Stage.HOLD) emptyList() else listOf(puzzle.setupMove) + played + listOfNotNull(wrong)
 
     /** The user may move now. */
     val userToMove: Boolean get() = stage == Stage.PLAY
@@ -114,15 +127,20 @@ data class Attempt(
             Stage.SETUP -> SETUP_MS
             Stage.REPLY -> REPLY_MS
             Stage.SOLUTION -> SOLUTION_STEP_MS
+            Stage.WRONG -> WRONG_MS
             Stage.PLAY, Stage.DONE -> null
         }
 
-    /** The stage's wait is over: play the setup Move, finish its animation, reply, or step the Solution. */
+    /**
+     * The stage's wait is over: play the setup Move, finish its animation, reply, take a wrong Move
+     * back, or step the Solution.
+     */
     fun advance(): Attempt = when (stage) {
         Stage.HOLD -> copy(stage = Stage.SETUP)
         Stage.SETUP -> copy(stage = Stage.PLAY)
         Stage.REPLY -> playNext().let { if (it.lineOver) it.copy(stage = Stage.DONE) else it.copy(stage = Stage.PLAY) }
         Stage.SOLUTION -> playNext().let { if (it.lineOver) it.copy(stage = Stage.DONE) else it }
+        Stage.WRONG -> takeBack()
         Stage.PLAY, Stage.DONE -> this
     }
 
@@ -138,6 +156,8 @@ data class Attempt(
                 hintSquare = null,
                 justWrong = true,
                 wrongMoves = wrongMoves + 1,
+                stage = Stage.WRONG,
+                wrong = move,
             )
         }
         val next = copy(played = played + move, hintSquare = null, justWrong = false)
@@ -150,6 +170,7 @@ data class Attempt(
 
     /** A Puzzle Hint: a ring on the piece to move (A6). Only while the user is to move. */
     fun hint(): Attempt {
+        if (stage == Stage.WRONG) return takeBack().hint()
         if (stage != Stage.PLAY) return this
         return copy(
             hintSquare = puzzle.solution[played.size].from,
@@ -160,6 +181,7 @@ data class Attempt(
 
     /** Plays the rest of the Solution. Open becomes Failed; Hinted and Failed stay. */
     fun showSolution(): Attempt {
+        if (stage == Stage.WRONG) return takeBack().showSolution()
         if (stage != Stage.PLAY && stage != Stage.REPLY) return this
         return copy(
             stage = Stage.SOLUTION,
@@ -173,6 +195,8 @@ data class Attempt(
     private val lineOver: Boolean
         get() = played.size == puzzle.solution.size || (played.isNotEmpty() && position.isCheckmate)
 
+    private fun takeBack(): Attempt = copy(stage = Stage.PLAY, wrong = null)
+
     private fun playNext(): Attempt = copy(played = played + puzzle.solution[played.size])
 
     companion object {
@@ -183,10 +207,17 @@ data class Attempt(
         const val SOLUTION_STEP_MS = 600L
 
         /**
+         * How long a wrong Move stands before it is taken back (PD1): the tap-tap slide's 250 ms
+         * (`Motion.MS`), then 300 ms at rest, as Lichess's `revertUserMove`.
+         */
+        const val WRONG_MS = 550L
+
+        /**
          * An Attempt carried over from the save file: [moves] (UCI, after the setup Move) replayed
          * against the Solution. Null when they don't follow it, as after a new Pack changed the line
          * (the caller then restarts from the setup Move, F1). [done], [solutionShown] and [justWrong]
-         * come back as saved; with no Moves played the Attempt starts again from [Stage.HOLD].
+         * come back as saved; with no Moves played the Attempt starts again from [Stage.HOLD], or
+         * at the user's Move after a wrong first Move ([justWrong]).
          */
         fun resume(
             puzzle: Puzzle,
@@ -211,7 +242,7 @@ data class Attempt(
             val stage = when {
                 done || over -> Stage.DONE
                 solutionShown -> Stage.SOLUTION
-                played.isEmpty() -> Stage.HOLD
+                played.isEmpty() -> if (justWrong) Stage.PLAY else Stage.HOLD
                 played.size % 2 == 1 -> Stage.REPLY
                 else -> Stage.PLAY
             }

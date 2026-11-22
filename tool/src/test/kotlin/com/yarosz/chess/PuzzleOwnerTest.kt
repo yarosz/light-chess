@@ -9,6 +9,7 @@ import com.yarosz.chess.puzzles.PuzzleData
 import com.yarosz.chess.puzzles.PuzzleFlow
 import com.yarosz.chess.puzzles.Stage
 import com.yarosz.chess.puzzles.TestPacks
+import com.yarosz.chess.rules.Move
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -62,12 +63,34 @@ class PuzzleOwnerTest {
     }
 
     @Test
-    fun `a wrong Move made by tap-tap never slides, as it is never drawn (A3)`() {
+    fun `a wrong Move made by tap-tap slides in, then slides home when taken back (PD1)`() {
         val setupSlide = Motion(puzzle.setupMove, 1)
-        val wrong = play.positions.last().legalMoves.first { it != puzzle.solution[0] }
+        val wrong = play.position.legalMoves.first { it != puzzle.solution[0] && !play.position.play(it).isCheckmate }
         val tried = play.play(wrong)
-        assertEquals(play.moves, tried.moves)
-        assertEquals(setupSlide, slideAfter(play, tried, setupSlide, 2, ownSlide = true))
+        assertEquals(Stage.WRONG, tried.stage)
+        val slideIn = slideAfter(play, tried, setupSlide, 2, ownSlide = true)
+        assertEquals(Motion(wrong, 2), slideIn)
+        assertNull(slideAfter(play, tried, setupSlide, 2, ownSlide = false), "dropped: it lands at once")
+
+        val back = tried.advance()
+        assertEquals(Motion(Move(wrong.to, wrong.from), 3), slideAfter(tried, back, slideIn, 3), "the piece goes home")
+        assertEquals(Motion(Move(wrong.to, wrong.from), 3), slideAfter(tried, tried.hint(), slideIn, 3), "Hint takes it back too")
+        assertEquals(Motion(Move(wrong.to, wrong.from), 3), slideAfter(tried, tried.showSolution(), slideIn, 3), "and Solution")
+        assertTrue(restartsClock(play, tried), "the wrong Move starts the clock")
+        assertTrue(restartsClock(tried, back))
+        assertNull(back.delayMs, "back to the user's Move")
+        // A second wrong Move after the take-back slides in again.
+        assertEquals(Motion(wrong, 4), slideAfter(back, back.play(wrong), null, 4, ownSlide = true))
+    }
+
+    @Test
+    fun `only a take-back slides home, not another Attempt at the same Puzzle (PD1)`() {
+        val wrong = play.position.legalMoves.first { it != puzzle.solution[0] && !play.position.play(it).isCheckmate }
+        val tried = play.play(wrong)
+        val slideIn = Motion(wrong, 2)
+        // A Missed replay of this Puzzle ended while its wrong Move stood: the rated Attempt comes back.
+        assertNull(slideAfter(tried, afterReply, slideIn, 3), "a piece that never moved doesn't slide")
+        assertNull(slideAfter(tried, hold, slideIn, 3))
     }
 
     @Test
