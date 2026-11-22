@@ -5,9 +5,11 @@ import com.yarosz.chess.engine.EngineHost
 import com.yarosz.chess.puzzles.AttemptState
 import com.yarosz.chess.puzzles.MissedEntry
 import com.yarosz.chess.puzzles.PuzzleData
+import com.yarosz.chess.puzzles.PuzzleDifficulty
 import com.yarosz.chess.puzzles.PuzzleStore
 import com.yarosz.chess.puzzles.Stage
 import com.yarosz.chess.puzzles.TestPacks
+import com.yarosz.chess.rules.Move
 import java.io.File
 import java.nio.file.Files
 import java.util.Collections
@@ -75,6 +77,43 @@ class PuzzleOwnerMissedTest {
             .also { game = it }
         waitFor("games.json read") { game.state.value != null }
         return MenuViewModel(owner, game, modes, page, overGame = false)
+    }
+
+    @Test
+    fun `a wrong Move shows, then the clock takes it back and it slides home (PD1)`() {
+        val owner = owner()
+        waitFor("the user's Move") { owner.session.value?.attempt?.stage == Stage.PLAY }
+        val ready = owner.session.value!!.attempt!!
+        val wrong = ready.position.legalMoves.first { it != ready.puzzle.solution[0] && !ready.position.play(it).isCheckmate }
+        owner.play(wrong, slide = true)
+        val shown = owner.session.value!!
+        assertEquals(Stage.WRONG, shown.attempt!!.stage)
+        assertEquals(wrong, owner.motion.value?.move, "it slides in")
+        assertTrue(shown.data.rating < 1500, "scored at once")
+        waitFor("the take-back") { owner.session.value?.attempt?.stage == Stage.PLAY }
+        val back = owner.session.value!!
+        assertEquals(ready.positions, back.attempt!!.positions)
+        assertEquals(Move(wrong.to, wrong.from), owner.motion.value?.move, "it slides home")
+        assertEquals(shown.data, back.data, "the take-back changes nothing kept")
+
+        owner.play(wrong, slide = true)
+        assertEquals(Stage.WRONG, owner.session.value!!.attempt!!.stage, "a second wrong Move shows again")
+        assertEquals(2, owner.session.value!!.attempt!!.wrongMoves)
+        assertEquals(shown.data.rating, owner.session.value!!.data.rating, "and isn't scored")
+        waitFor("the second take-back") { owner.session.value?.attempt?.stage == Stage.PLAY }
+    }
+
+    @Test
+    fun `a new Puzzle Difficulty reads its window ahead off the main thread, and leaves the Puzzle on screen (PD2, N23)`() {
+        val owner = owner()
+        val before = owner.session.value!!.attempt
+        val tapper = Thread.currentThread()
+        repeat(3) { owner.nextDifficulty() }
+        assertEquals(PuzzleDifficulty.HARDEST, owner.session.value!!.data.difficulty)
+        assertEquals(before?.puzzle, owner.session.value!!.attempt?.puzzle)
+        // Hardest at 1500 looks around 2100: the window widens until it reaches the 1700 Band.
+        waitFor("the read ahead") { reads.any { it.first.endsWith("1700.txt") } }
+        assertTrue(reads.filter { it.first.endsWith("1700.txt") }.none { it.second == tapper })
     }
 
     @Test

@@ -157,6 +157,8 @@ class MenuViewModel(
         owner.nextPieceSet()
     }
 
+    fun nextDifficulty() = owner.nextDifficulty()
+
     fun choose(next: GameChoices) {
         game.touched()
         game.cancelConfirm()
@@ -274,7 +276,12 @@ class MenuScreen(
                     when (page) {
                         MenuPage.MENU -> gameState?.takeIf { it.record != null }?.let { GameMenuRows(it, pieceSet) }
                         // The Puzzle on screen, a Missed replay's own (N18).
-                        MenuPage.PUZZLE_MENU -> MenuItems(PuzzleMenu.of(session?.attempt, pieceSet)) { vm.nextPieceSet() }
+                        MenuPage.PUZZLE_MENU -> MenuItems(PuzzleMenu.of(session?.attempt, pieceSet, data?.difficulty)) { entry ->
+                            when (entry) {
+                                PuzzleMenuEntry.DIFFICULTY -> vm.nextDifficulty()
+                                PuzzleMenuEntry.PIECES -> vm.nextPieceSet()
+                            }
+                        }
                         MenuPage.GAME_REVIEW_MENU -> MenuItems(GameReviewMenu.of(pieceSet)) { vm.nextPieceSet() }
                         MenuPage.PUZZLES -> for (row in PuzzlesRows.of(session, gone)) {
                             if (row.tappable) MenuRow(row.text) { tapPuzzles(row.entry) } else MenuLine(row.text, lighten = true)

@@ -172,6 +172,9 @@ class PuzzleOwner(
         if (sessions.value == null) pieceSets.value = pieceSets.value?.next else act(flow::nextPieceSet)
     }
 
+    /** A tap on the Puzzle Menu's Difficulty row (PD2). */
+    fun nextDifficulty() = act(flow::nextDifficulty)
+
     /** The last [prefetchMissed], while it runs. */
     private var missedCheck: Job? = null
 
@@ -303,7 +306,10 @@ class PuzzleOwner(
                 }
             }
         }
-        if (next.current?.puzzle != before?.current?.puzzle || next.data.rating != before?.data?.rating) {
+        // A new Difficulty moves the window Next chooses from: read it ahead too (PD2, N23).
+        if (next.current?.puzzle != before?.current?.puzzle || next.data.rating != before?.data?.rating ||
+            next.data.difficulty != before?.data?.difficulty
+        ) {
             scope.launch(Dispatchers.Default) { prefetch { flow.prefetchNext(next) } }
         }
         if (next.upNext != null && next.upNext != before?.upNext) {
@@ -358,14 +364,16 @@ internal fun withPieceSet(opened: PuzzleState, chosen: PieceSet?): PuzzleState =
     if (chosen == null || chosen == opened.data.pieceSet) opened else opened.copy(data = opened.data.copy(pieceSet = chosen))
 
 /** A stage whose Moves play themselves, so the board animates them. */
-private val Stage.auto: Boolean get() = this != Stage.PLAY && this != Stage.DONE
+private val Stage.auto: Boolean get() = this != Stage.PLAY && this != Stage.WRONG && this != Stage.DONE
 
 /**
  * The slide the board shows once [now] replaces [was] (A5, Z1), given the slide [current] shown so
  * far: a Move that played itself (setup, reply, Solution) slides in as [id], and so does the
- * user's own Move when [ownSlide] says it was made by tap-tap. Otherwise [current] stays only while
- * its Move is still the latest, so a dropped Move onto that square never slides in from the
- * opponent's origin, and a new Puzzle starts with none.
+ * user's own Move when [ownSlide] says it was made by tap-tap, a wrong one included. A wrong Move
+ * taken back slides home: the piece now on its origin comes in from its destination (PD1), and a
+ * piece it took simply reappears. Otherwise [current] stays only while its Move is still the
+ * latest, so a dropped Move onto that square never slides in from the opponent's origin, and a new
+ * Puzzle starts with none.
  */
 internal fun slideAfter(
     was: Attempt?,
@@ -378,6 +386,8 @@ internal fun slideAfter(
         now.moves.size == was.moves.size + 1 &&
         (was.stage.auto || ownSlide && was.stage == Stage.PLAY) ->
         Motion(now.moves.last(), id)
+    now != null && was?.wrong != null && now.wrong == null && now.puzzle == was.puzzle ->
+        Motion(Move(was.wrong.to, was.wrong.from), id)
     now?.puzzle != was?.puzzle -> null
     current != null && now?.moves?.lastOrNull() != current.move -> null
     else -> current

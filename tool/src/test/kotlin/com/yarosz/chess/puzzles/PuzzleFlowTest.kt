@@ -40,8 +40,8 @@ class PuzzleFlowTest {
     }
 
     @Test
-    fun `a first launch asks for the seed, then serves a Puzzle within 100`() {
-        val first = flow.open(null)
+    fun `a first launch asks for the seed, then serves a Puzzle within 100 at Normal`() {
+        val first = flow.open(PuzzleData(difficulty = PuzzleDifficulty.NORMAL))
         assertTrue(first.needsSeed)
         assertNull(first.attempt)
         assertTrue(first.firstPuzzle)
@@ -58,7 +58,7 @@ class PuzzleFlowTest {
     @Test
     fun `selection widens by 100 while the window is empty`() {
         val sparse = PuzzleFlow(TestPacks.of("S", listOf(TestPacks.line("low", 1000), TestPacks.line("high", 1750))), Random(1))
-        val s = sparse.seed(sparse.open(null), 1500.0)
+        val s = sparse.seed(sparse.open(PuzzleData(difficulty = PuzzleDifficulty.NORMAL)), 1500.0)
         assertEquals("high", s.current!!.puzzle.id, "1750 is 250 away, 1000 is 500 away")
     }
 
@@ -107,7 +107,9 @@ class PuzzleFlowTest {
         assertNotNull(failed.upNext, "the next Puzzle preloads once the fail is scored")
         assertEquals(1, failed.data.history.size)
         assertEquals(AttemptState.FAILED, failed.data.missed.single().state)
-        val again = wrong(failed)
+        val again = wrong(flow.advance(failed))
+        assertEquals(2, again.current!!.wrongMoves)
+        assertEquals(afterFail, again.data.rating, "a second wrong Move isn't scored")
         val finished = solve(flow, flow.hint(again))
         assertEquals(afterFail, finished.data.rating)
         assertEquals(1, finished.data.history.size)
@@ -184,6 +186,20 @@ class PuzzleFlowTest {
     }
 
     @Test
+    fun `a wrong Move in a Missed replay is shown and taken back the same, unrated (PD1)`() {
+        val failed = solve(flow, wrong(ready(seeded())))
+        val replay = ready(flow.replayMissed(failed, failed.current!!.puzzle.id))
+        val shown = wrong(replay)
+        assertEquals(Stage.WRONG, shown.replay!!.stage)
+        assertEquals(replay.replay!!.positions.size + 1, shown.replay!!.positions.size, "the board draws it")
+        assertEquals(failed.data, shown.data, "unrated: nothing scored")
+        val back = flow.advance(shown)
+        assertEquals(Stage.PLAY, back.replay!!.stage)
+        assertEquals(replay.replay!!.positions, back.replay!!.positions)
+        assertEquals(failed.toData(), back.toData(), "the file never keeps a replay")
+    }
+
+    @Test
     fun `Reset rating resets only the Player Rating and asks the seed again`() {
         val played = flow.next(solve(flow, wrong(ready(seeded(1600.0)))))
         val reset = flow.resetRating(played)
@@ -203,6 +219,84 @@ class PuzzleFlowTest {
     }
 
     @Test
+    fun `each Puzzle Difficulty chooses around the Player Rating plus its offset (PD2)`() {
+        val ratings = listOf(900, 1200, 1500, 1800, 2100)
+        val pack = TestPacks.of("D", ratings.map { TestPacks.line("r$it", it) })
+        val expected = mapOf(
+            PuzzleDifficulty.EASIEST to "r900",
+            PuzzleDifficulty.EASIER to "r1200",
+            PuzzleDifficulty.NORMAL to "r1500",
+            PuzzleDifficulty.HARDER to "r1800",
+            PuzzleDifficulty.HARDEST to "r2100",
+        )
+        for ((difficulty, id) in expected) for (seed in 1..5) {
+            val f = PuzzleFlow(pack, Random(seed))
+            val s = f.seed(f.open(PuzzleData(difficulty = difficulty)), 1500.0)
+            assertEquals(id, s.current!!.puzzle.id, "$difficulty")
+            assertEquals(1500.0, s.data.rating, "the Player Rating is untouched")
+        }
+        assertEquals(PuzzleDifficulty.EASIER, flow.open(null).data.difficulty, "the default is Easier")
+    }
+
+    @Test
+    fun `Easiest at the bottom of the Pack and Hardest at its top still find a Puzzle (PD2)`() {
+        val pack = TestPacks.of("E", listOf(TestPacks.line("bottom", 400), TestPacks.line("middle", 1600), TestPacks.line("top", 2900)))
+        val easiest = PuzzleFlow(pack, Random(1)).let { it.seed(it.open(PuzzleData(difficulty = PuzzleDifficulty.EASIEST)), 400.0) }
+        assertEquals("bottom", easiest.current!!.puzzle.id)
+        val hardest = PuzzleFlow(pack, Random(1)).let { it.seed(it.open(PuzzleData(difficulty = PuzzleDifficulty.HARDEST)), 2800.0) }
+        assertEquals("top", hardest.current!!.puzzle.id)
+    }
+
+    @Test
+    fun `the Difficulty row cycles, keeps the Puzzle on screen, and Next chooses for the new one (PD2)`() {
+        val reads = mutableListOf<String>()
+        val lines = (800..2400 step 50).flatMap { r -> listOf(TestPacks.line("a$r", r), TestPacks.line("b$r", r)) }
+        val f = PuzzleFlow(TestPacks.of("D", lines, reads), Random(3))
+        val start = f.seed(f.open(null), 1500.0)
+        assertEquals(PuzzleDifficulty.EASIER, start.data.difficulty)
+        val cycle = generateSequence(PuzzleDifficulty.EASIER) { it.next }.take(6).toList()
+        assertEquals(
+            listOf(PuzzleDifficulty.EASIER, PuzzleDifficulty.NORMAL, PuzzleDifficulty.HARDER, PuzzleDifficulty.HARDEST,
+                PuzzleDifficulty.EASIEST, PuzzleDifficulty.EASIER),
+            cycle,
+        )
+
+        // Under way: the Attempt stays as it was, the change is saved at once.
+        val playing = f.advance(f.advance(start))
+        val normal = f.nextDifficulty(playing)
+        assertEquals(PuzzleDifficulty.NORMAL, normal.data.difficulty)
+        assertEquals(playing.current, normal.current)
+        assertNotEquals(playing.kept, normal.kept, "the change reaches the file at once")
+
+        // At the result: the Puzzle chosen for Next was chosen at Easier; the change drops it.
+        val done = solve(f, playing)
+        val rating = done.data.rating.roundToInt()
+        assertTrue(abs(done.upNext!!.rating - (rating - 300)) <= 100, "chosen at Easier: ${done.upNext!!.rating} for $rating")
+        val changed = f.nextDifficulty(done)
+        assertNull(changed.upNext)
+        assertEquals(done.current, changed.current, "the result stays on screen")
+        assertEquals(done.data.player, changed.data.player, "the Player Rating is untouched")
+        // Read ahead for the new window, as the owner does, Next reads no Band file.
+        f.prefetchNext(changed)
+        reads.clear()
+        val next = f.next(changed)
+        assertTrue(abs(next.current!!.puzzle.rating - rating) <= 100, "chosen at Normal: ${next.current!!.puzzle.rating} for $rating")
+        assertEquals(emptyList(), reads)
+
+        assertEquals(PuzzleDifficulty.NORMAL, f.resetRating(changed).data.difficulty, "Reset rating keeps it")
+    }
+
+    @Test
+    fun `Puzzle Difficulty is saved, and a file without it or with an unknown value reads Easier (PD2)`() {
+        val harder = PuzzleData(difficulty = PuzzleDifficulty.HARDER)
+        assertEquals(PuzzleDifficulty.HARDER, PuzzleData.decode(harder.encode())!!.difficulty)
+        assertTrue("\"difficulty\":\"Harder\"" in harder.encode(), "written by Lichess's name")
+        assertEquals(PuzzleDifficulty.EASIER, PuzzleData.decode("""{"schemaVersion":1,"rating":1600.0}""")!!.difficulty)
+        assertEquals(PuzzleDifficulty.EASIER, PuzzleData.decode("""{"schemaVersion":1,"difficulty":"Brutal"}""")!!.difficulty)
+        assertEquals(1, harder.schemaVersion)
+    }
+
+    @Test
     fun `the Pieces row cycles the Piece Set, saves it at once, and Reset rating keeps it (P2)`() {
         val start = ready(seeded())
         assertEquals(PieceSet.GEOMETRIC, start.data.pieceSet)
@@ -218,7 +312,7 @@ class PuzzleFlowTest {
 
     @Test
     fun `the save file round trip resumes the same Puzzle where it was`() {
-        val mid = flow.advance(flow.play(wrong(ready(seeded())), seededMove()))
+        val mid = flow.advance(flow.play(flow.advance(wrong(ready(seeded()))), seededMove()))
         val text = mid.toData().encode()
         val back = flow.open(PuzzleData.decode(text))
         val a = mid.current!!
@@ -293,6 +387,7 @@ class PuzzleFlowTest {
         // A wrong Move after a correct one: the file holds the correct Moves and the wrong one's state.
         val disk = Disk(flow, seeded()).settle().rightMove().settle().wrongMove()
         val scored = disk.state
+        assertEquals(Stage.WRONG, scored.current!!.stage, "killed while the wrong Move stands (PD1)")
         val back = disk.kill()
         val a = back.current!!
         assertEquals(AttemptState.FAILED, a.state)
@@ -430,7 +525,7 @@ class PuzzleFlowTest {
     fun `a new Pack carries finished, Missed and the Player Rating, and restarts the Attempt on its new line`() {
         val a = TestPacks.of("A", listOf(TestPacks.line("stays", 1500), TestPacks.line("leaves", 1510), TestPacks.line("other", 1490)))
         val fa = PuzzleFlow(a, Random(1))
-        var s = fa.open(PuzzleData(seeded = true, packSha256 = "A", finished = listOf("leaves"), rating = 1700.0,
+        var s = fa.open(PuzzleData(seeded = true, packSha256 = "A", finished = listOf("leaves"), rating = 1700.0, difficulty = PuzzleDifficulty.NORMAL,
             missed = listOf(MissedEntry("leaves", 1510, AttemptState.FAILED), MissedEntry("stays", 1500, AttemptState.HINTED))))
         s = s.copy(current = Attempt(a.puzzle("stays")!!, AttemptState.FAILED).advance().advance(), currentDelta = -9)
         s = fa.play(s, s.current!!.puzzle.solution[0])

@@ -77,17 +77,33 @@ class AttemptTest {
     }
 
     @Test
-    fun `a wrong Move is taken back, fails the Attempt, and Try Mode goes on`() {
+    fun `a wrong Move is shown, then taken back, fails the Attempt, and Try Mode goes on (PD1)`() {
         val attempt = ready(Lines.MATE_IN_2)
-        val wrong = attempt.playUci("h7h6")
+        val h6 = attempt.uci("h7h6")
+        val wrong = attempt.play(h6)
         assertEquals(AttemptState.FAILED, wrong.state)
-        assertEquals(Stage.PLAY, wrong.stage, "Try Mode: still the user's Move")
-        assertEquals(attempt.position, wrong.position, "the wrong Move is taken back")
+        assertEquals(1, wrong.wrongMoves)
+        assertEquals(Stage.WRONG, wrong.stage, "the wrong Move stands, input locked")
+        assertFalse(wrong.userToMove)
+        assertEquals(attempt.position.play(h6), wrong.position, "the board draws the wrong Move")
+        assertEquals(attempt.moves + h6, wrong.moves, "and its last-move marks")
+        assertEquals(emptyList(), wrong.played, "it is never part of the line")
+        assertEquals(550L, wrong.delayMs, "250 ms slide, then 300 ms at rest")
+        assertEquals(wrong, wrong.play(wrong.position.legalMoves.first()), "no Move while it stands")
         assertTrue(wrong.justWrong)
-        val again = wrong.playUci("h7h5")
+
+        val back = wrong.advance()
+        assertEquals(Stage.PLAY, back.stage, "Try Mode: the user's Move again")
+        assertEquals(attempt.positions, back.positions, "taken back: the board as before")
+        assertEquals(attempt.moves, back.moves)
+        assertTrue(back.justWrong, "the strip still reads Try again")
+
+        val again = back.playUci("h7h5")
+        assertEquals(Stage.WRONG, again.stage, "a second wrong Move shows too")
         assertEquals(2, again.wrongMoves)
         assertEquals(AttemptState.FAILED, again.state)
-        val finished = again.playUci("f3f2").advance().playUci("f2f1")
+        assertEquals(attempt.positions, again.advance().positions)
+        val finished = again.advance().playUci("f3f2").advance().playUci("f2f1")
         assertEquals(Stage.DONE, finished.stage)
         assertEquals(AttemptState.FAILED, finished.state, "finishing in Try Mode doesn't undo the fail")
         assertFalse(finished.clean)
@@ -102,17 +118,32 @@ class AttemptTest {
         assertNull(moved.hintSquare, "the ring goes with the next Move")
         val wrongAfter = moved.advance().playUci("h7h6")
         assertEquals(AttemptState.HINTED, wrongAfter.state, "a Hinted Attempt stays unrated after a mistake")
-        val done = wrongAfter.playUci("f2f1")
+        val done = wrongAfter.advance().playUci("f2f1")
         assertEquals(AttemptState.HINTED, done.state)
         assertEquals(Stage.DONE, done.stage)
     }
 
     @Test
-    fun `a Puzzle Hint after a fail is free`() {
-        val failed = ready(Lines.MATE_IN_2).playUci("h7h6")
+    fun `a Puzzle Hint after a fail is free, and tapped while the wrong Move stands takes it back first`() {
+        val ready = ready(Lines.MATE_IN_2)
+        val failed = ready.playUci("h7h6")
+        assertEquals(Stage.WRONG, failed.stage)
         val hinted = failed.hint()
         assertEquals(AttemptState.FAILED, hinted.state)
         assertEquals(Square.parse("f3"), hinted.hintSquare)
+        assertEquals(Stage.PLAY, hinted.stage)
+        assertEquals(ready.positions, hinted.positions, "the wrong Move is gone")
+        assertEquals(hinted, failed.advance().hint(), "as a Hint after the take-back")
+    }
+
+    @Test
+    fun `Solution tapped while the wrong Move stands takes it back, then plays the line (PD1)`() {
+        val ready = ready(Lines.MATE_IN_2)
+        val shown = ready.playUci("h7h6").showSolution()
+        assertEquals(Stage.SOLUTION, shown.stage)
+        assertEquals(ready.positions, shown.positions, "the wrong Move is gone")
+        assertEquals(listOf("f3f2", "e1d1", "f2f1"), shown.advance().advance().advance().played.map { it.uci })
+        assertEquals(1, shown.wrongMoves)
     }
 
     @Test
@@ -195,5 +226,19 @@ class AttemptTest {
         assertEquals(Stage.SOLUTION, Attempt.resume(puzzle, AttemptState.FAILED, listOf("f3f2"), true, false)!!.stage)
         assertEquals(Stage.DONE, Attempt.resume(puzzle, AttemptState.SOLVED, listOf("f3f2", "e1d1", "f2f1"), false, true)!!.stage)
         assertNull(Attempt.resume(puzzle, AttemptState.OPEN, listOf("h7h6"), false, false), "Moves off the line")
+    }
+
+    @Test
+    fun `a wrong Move doesn't survive a save, the Attempt resumes in Try Mode (PD1)`() {
+        val puzzle = Puzzle.parse(Lines.MATE_IN_2)
+        val standing = ready(Lines.MATE_IN_2).playUci("f3f2").advance().playUci("h7h6")
+        assertEquals(Stage.WRONG, standing.stage)
+        val resumed = assertNotNull(
+            Attempt.resume(puzzle, standing.state, standing.played.map { it.uci }, standing.solutionShown, done = false, justWrong = standing.justWrong),
+        )
+        assertEquals(Stage.PLAY, resumed.stage)
+        assertNull(resumed.wrong)
+        assertTrue(resumed.justWrong)
+        assertEquals(standing.advance().positions, resumed.positions)
     }
 }

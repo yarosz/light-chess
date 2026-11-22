@@ -122,6 +122,14 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
     fun nextPieceSet(session: PuzzleState): PuzzleState =
         session.copy(data = session.data.copy(pieceSet = session.data.pieceSet.next))
 
+    /**
+     * The Menu's Difficulty row (PD2): the next Puzzle Difficulty, saved with the rest. The Puzzle on
+     * screen stays, whatever its stage; the one chosen for Next is dropped, so Next chooses for the new
+     * Difficulty. The Player Rating is untouched.
+     */
+    fun nextDifficulty(session: PuzzleState): PuzzleState =
+        session.copy(data = session.data.copy(difficulty = session.data.difficulty.next), upNext = null)
+
     fun play(session: PuzzleState, move: Move): PuzzleState = step(session) { it.play(move) }
 
     fun hint(session: PuzzleState): PuzzleState = step(session) { it.hint() }
@@ -173,21 +181,23 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
     }
 
     /**
-     * A Puzzle for the Player Rating (A7): a random one within ±100, the window widening by 100
-     * while it is empty, never one already finished or on screen. Null when the Pack is used up.
+     * A Puzzle for the Player Rating (A7) at the Puzzle Difficulty (PD2): a random one within ±100 of
+     * [target], the window widening by 100 while it is empty, never one already finished or on screen.
+     * Null when the Pack is used up.
      */
     fun pick(session: PuzzleState): Puzzle? {
         val exclude = session.data.finished.toHashSet()
         session.current?.let { exclude += it.puzzle.id }
-        val candidates = pack.candidates(session.data.rating.roundToInt(), exclude)
+        val candidates = pack.candidates(session.data.target(session.data.rating), exclude)
         return if (candidates.isEmpty()) null else candidates[random.nextInt(candidates.size)]
     }
 
     /**
      * Reads ahead the Band files [pick] will need for the Puzzle after the rated one on screen, so
      * that choosing it at the result (D1) reads no file on the caller's thread. The window is around
-     * the Player Rating as the result leaves it: after a win or a loss while the Attempt is Open, and
-     * unchanged for a Hinted end or a Next after a relaunch. For a background thread; changes nothing.
+     * the Player Rating as the result leaves it, offset by the Puzzle Difficulty: after a win or a
+     * loss while the Attempt is Open, and unchanged for a Hinted end or a Next after a relaunch. For a
+     * background thread; changes nothing.
      */
     fun prefetchNext(session: PuzzleState) {
         val attempt = session.current ?: return
@@ -199,8 +209,11 @@ class PuzzleFlow(private val pack: Pack, private val random: Random = Random.Def
             }
         }
         val exclude = session.data.finished.toHashSet().apply { add(attempt.puzzle.id) }
-        for (rating in ratings) pack.candidates(rating.roundToInt(), exclude)
+        for (rating in ratings) pack.candidates(session.data.target(rating), exclude)
     }
+
+    /** Where [pick] looks for a Player Rating of [rating]: offset by the Puzzle Difficulty (PD2). */
+    private fun PuzzleData.target(rating: Double): Int = rating.roundToInt() + difficulty.offset
 
     /**
      * Reads ahead the Missed Puzzles, so that [replayMissed] reads no file (D2), and returns those the

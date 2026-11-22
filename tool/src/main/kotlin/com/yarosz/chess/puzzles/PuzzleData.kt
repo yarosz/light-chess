@@ -34,6 +34,11 @@ data class PuzzleData(
      * field, and an older build that drops it loses a look, never a meaning.
      */
     val pieceSet: PieceSet = PieceSet.DEFAULT,
+    /**
+     * Puzzle Difficulty (PD2). Added without a schemaVersion bump, as [pieceSet]: a file without it,
+     * or with a value this build doesn't know, reads as the default; Reset rating leaves it alone.
+     */
+    val difficulty: PuzzleDifficulty = PuzzleDifficulty.DEFAULT,
 ) {
     val player: Glicko get() = Glicko(rating, deviation, volatility)
 
