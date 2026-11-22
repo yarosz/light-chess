@@ -402,8 +402,8 @@ process-wide owner that runs the computer on `EngineHost.shared`, the clock and 
 - The new-game page: "Level" with 1 to 8 on one line, "Play as" with "White", "Black" and "Random",
   and "Think Time" with "3 s", "10 s" and "30 s" at Level 8 only. The chosen option is in the content
   colour, the others lightened. "START GAME", in the bottom bar (LD2), starts; with a Game in
-  progress it reads "TAP AGAIN TO REPLACE" first, and the page says "The Game in progress is saved as
-  unfinished." The choices are remembered
+  progress the first tap turns it into "START NEW GAME" (LD4), the second starts it, and the page
+  says "Your current Game will be saved to Games as unfinished." The choices are remembered
   (Level 1, White, 3 s the first time).
 - The computer's Move lands no sooner than 300 ms after the user's (A5's reply delay), so a book Move
   or a quick Level doesn't land with the user's own, and slides in over 200 ms (F11). The user's

@@ -376,3 +376,4 @@ ActionBarLayout
 Join game
 Join a friend's game with their code
 Start game
+Start new game

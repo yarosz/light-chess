@@ -1940,8 +1940,8 @@ LightOS, each with a mock-up. The owner asked for both.
 - LD2 Text buttons in LightOS's bottom bar, all caps. AMENDS W6/N7 (the Play a friend list's strip)
   and F7 (the new-game page's Start row). RULING: the Play a friend list's buttons are "NEW GAME" and
   "JOIN GAME" (which opens Enter code, unchanged) in the bottom bar, one at each end; the new-game
-  page's Start row becomes "START GAME" alone in the bar, centred, and its second tap's prompt "TAP
-  AGAIN TO REPLACE" (F7) takes its place. "Join game" replaces "Enter code" everywhere, as Light's
+  page's Start row becomes "START GAME" alone in the bar, centred, and its second tap's prompt (F7; "START NEW GAME" since LD4)
+  takes its place. "Join game" replaces "Enter code" everywhere, as Light's
   mock-up has it (owner, 2026-11-21): the list's button, the page's title (then "Sending" and the
   answers, unchanged), and the empty list's "Create a code for a friend, or join theirs." "Code"
   stays for the thing typed. `ActionBar` copies light-sdk
@@ -1979,3 +1979,13 @@ LightOS, each with a mock-up. The owner asked for both.
     (every combination still fits within the board's edges), the new baselines (33.53 dp on a Game's
     board, 25.58 on the Puzzle board) and each invite status in the page's 312 dp line;
     `ActionBarFitTest` adds Create code, Sending, Cancel, Retry and Join.
+- LD4 New game's second-tap prompt says what it does. AMENDS F7's copy (two taps, unchanged). RULING
+  (owner, 2026-11-21): with a Game in progress, START GAME's first tap turns it into "START NEW GAME"
+  (was "Tap again to replace"), and the page's note reads "Your current Game will be saved to Games
+  as unfinished." (was "The Game in progress is saved as unfinished."). The label changing, with the
+  note, is the confirmation: no separate Confirm step.
+  - Why: alone in the bottom bar, "TAP AGAIN TO REPLACE" read as a command, and "replace" suggested
+    the old Game is overwritten. It isn't: `GameData.startNew` files it at the top of Games, marked
+    Unfinished, to replay but not to continue (the list keeps the last 50).
+  - The Menu rows' "Tap again to resign / reset / forget" and the invite page's "Tap again to cancel"
+    status are list rows and a status line, not buttons, and keep their copy.

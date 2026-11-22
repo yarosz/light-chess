@@ -33,7 +33,7 @@ class ActionBarFitTest {
         assertEquals("START GAME", ActionBarLayout.label(UiCopy.START_GAME))
         assertEquals("NEW GAME", ActionBarLayout.label(UiCopy.NEW_GAME))
         assertEquals("JOIN GAME", ActionBarLayout.label(UiCopy.JOIN_GAME))
-        assertEquals("TAP AGAIN TO REPLACE", ActionBarLayout.label(UiCopy.REPLACE_CONFIRM))
+        assertEquals("START NEW GAME", ActionBarLayout.label(UiCopy.REPLACE_CONFIRM))
         assertEquals("CREATE CODE", ActionBarLayout.label(UiCopy.CREATE_CODE))
         assertEquals("SENDING", ActionBarLayout.label(UiCopy.SENDING))
         assertEquals("CANCEL", ActionBarLayout.label(UiCopy.CANCEL))
