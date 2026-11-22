@@ -78,21 +78,22 @@ to bottom (decision log "Layout E"):
     tall (`BarLayout.PIECES_LINE`), across the board's full width. The bottom Side's end files in
     from the board's right edge, the top Side's from its left edge (J1). It depends on nothing but
     the captures and the Ply shown, so it moves only when a piece is taken or Review steps.
-  - The buttons' line (E13), under it: this moment's buttons (the tables below), in `Copy`, centred
-    as a group on the screen, each target the row's full height (the pieces take no touches). The
-    labels' ink, 0.964 em (19.45 dp `Copy`: its tallest letter 0.75 em above the baseline, a
-    descender 0.214 em below, measured on Roboto), is centred between the drawings' own ink, which
-    stops 2.1 dp above their box (every piece at 38.7 of its 45 units, `CapturedRowLayout.INK_BOTTOM`),
-    and the app area's bottom edge (`BarLayout.buttonLine`): about 1.34 dp clear of each. Akkurat
-    touches only with an ascent past 0.819 em or a descent past 0.283 em.
+  - The buttons' line (E13, LD3), under it: this moment's buttons (the tables below), in LightOS
+    `Button` text, all caps ("HINT", "TAKEBACK", "SEND"), centred as a group on the screen, each
+    target the row's full height (the pieces take no touches). The labels' ink, 0.711 em (19.45 dp
+    `Button`: the capitals' height on Roboto Medium, and no descenders), is centred between the
+    drawings' own ink, which stops 2.1 dp above their box (every piece at 38.7 of its 45 units,
+    `CapturedRowLayout.INK_BOTTOM`), and the app area's bottom edge (`BarLayout.buttonLine`): about
+    3.8 dp clear of each. Akkurat touches only with capitals past 0.906 em or an overshoot past
+    0.195 em below the baseline.
   On the Puzzle board, which has no Captured Pieces, the buttons' line is the whole row: the same
   centred group, the ink in the row's middle, each target the row's height (E14).
 - When every Puzzle is finished: the top bar alone.
 
 `StripFitTest` measures every board state in the bar and the row, and the two lines' vertical budget
 (E5, E15). The emulator's window runs to 1240 px under its gesture area, so its action row is 61 dp,
-not the LP3's 37.33: the vertical budget is checked on the LP3 or by the test, not on the emulator. The invite page and the Play
-a friend list keep LightOS's top bar and the strip at their foot ("The strip" below).
+not the LP3's 37.33: the vertical budget is checked on the LP3 or by the test, not on the emulator. The pages
+without a board have LightOS's top bar and, for their text buttons, LightOS's bottom bar (LD2, LD3).
 
 The Side at the bottom is a parameter of the board view (`PositionView(bottom = ...)`). The puzzle
 flow puts the side to move after the setup Move at the bottom (A5). The game screen puts the user's
@@ -210,39 +211,43 @@ maps touches to squares. Every legality question goes to the rules core.
 ## Buttons, the title and the strip (R1.8, F11, contradiction 2, E1-E3)
 
 A board's status is its top bar's title and its buttons sit in the action row (Layout, above). Up to
-three text buttons by context, in LightOS `Copy` and the content colour, with LightOS's press
-without a ripple, 8 dp padding either side of each label, edge to edge, as in Reader's footer. Every
+three text buttons by context, in LightOS `Button` text, all caps, and the content colour (LD3), with
+LightOS's press without a ripple, 8 dp padding either side of each label, edge to edge. The row has no
+room for LightOS's 53 dp bottom bar (40 + 312 dp leave 37.33), so it keeps layout E's place and
+geometry and takes the bar's text only. The copy stays in sentence case in `UiCopy`
+(`ActionBarLayout.label` puts it in caps) and the accessibility labels read it so. Every
 button carries a semantics label and the Button role (F11). The back arrow ("Back") and the Menu
 mark ("Open the Menu") carry their labels too; on the boards they are the SDK's `LightBarButton`s in
 `LightTopBar`, which set no role, the same as on every LightOS page (we keep SDK parity and don't
 change the SDK). The buttons are centred as a group, on their own line under the Captured Pieces on a
 Game's board and in the middle of the row on the Puzzle board (E13, E14).
 
-The Play a friend list and the new-game page put their text buttons in LightOS's bottom bar
-(`ActionBar`, LD2): light-sdk `LightBottomBar`'s geometry (4 grid units tall, one button centred,
-two at its ends inside 2 units of padding) and its `Button` text, all caps ("NEW GAME", "JOIN GAME",
-"START GAME"); a button that can't act now is lightened, which the SDK's bar can't show.
+The pages without a board put their text buttons in LightOS's bottom bar (`ActionBar`, LD2, LD3):
+light-sdk `LightBottomBar`'s geometry (4 grid units tall, one button centred, two at its ends inside
+2 units of padding) and its `Button` text, all caps: the Play a friend list's "NEW GAME" and "JOIN
+GAME", the computer's new-game page's "START GAME", the friend New game page's "CREATE CODE"
+("SENDING" while it is sent), and the invite page's "CANCEL" or "RETRY". A button that can't act now
+is lightened, which the SDK's bar can't show. Join game's "JOIN" is the SDK text editor's own bar,
+given the caps label. Menu rows (Resign, Offer draw, Reset rating, ...) are list items and stay
+`Copy`.
 
-The invite page keeps the strip at its foot (`Strip`, `StripLayout`),
-under LightOS's top bar, which holds their back arrow: a status in `Copy` and the secondary content
-colour from the board's edge (24 dp), up to three text buttons 4 dp after it, and on the invite page
-the Menu mark at the right (N4): three solid squares, 8 by 7 px, 28 px apart centre to centre, drawn
-as shapes (a full stop differs between Roboto and Akkurat), ink ending 16 dp (48 px) from the right
-edge, centred on the x-height of the `Copy` text in the font in use (the label's baseline less half
-an "x"'s ink, `Paint.getTextBounds`), with a 48 dp target the strip's full height. The last text
-button ends at the target, its right padding under it. The strip's status wraps to a second line
-instead of being cut short, and the strip is always two lines tall.
+The invite page (LD3) has the Menu mark at its top bar's right, the boards' painter (E1, N4): three
+solid squares, 8 by 7 px, 28 px apart centre to centre, ink ending 16 dp (48 px) from the right edge.
+Its status ("Expires in 48h", "Tap again to cancel", "Not sent", a notice) is a lightened `Copy` line
+in the page, centred under the code's note, and wraps rather than being cut short.
 
-Superseded (D's strip, N3 and N4 on the boards, before layout E): the boards had this strip under
-the board, with the back arrow at its left (ink at pixels 48 to 82, a 48 dp target, the status from
-112 px) and the Captured Pieces in its top band. E1 and E2 replaced it; the arrow is the top bar's.
+Superseded: D's strip (N3 and N4 on the boards, before layout E) had the back arrow at its left (ink
+at pixels 48 to 82, a 48 dp target, the status from 112 px) and the Captured Pieces in its top band;
+E1 and E2 replaced it. The invite page and the Play a friend list kept it at their foot, a status
+beside up to three `Copy` buttons and the mark, until LD2 and LD3 moved their buttons into the bottom
+bar; no strip is drawn now.
 
 `StripFitTest` checks every state the boards and pages can show, from their own strip functions
 (`PuzzleStrip`, `GameStrip`, `FriendStrip`), with the widest numbers ("Failed −999", "Review · 99 of
 99", "Review · 9999 of 9999"): each board status in the top bar's 240 dp `Fine` title in at most two
 lines (E3), each board's buttons centred on their line of the action row, under the Captured Pieces
-(E13), and each
-page strip's status in the room its buttons and the mark leave at the LP3's 360 dp. Akkurat can't
+(E13) in `Button` caps with its 0.15 em letter spacing (LD3), and each invite page status in the page's
+312 dp line; `ActionBarFitTest` fits the bottom bars' labels. Akkurat can't
 ship with the repo, so the test measures with a stand-in: Helvetica's advance widths with the narrow
 letters widened (i and j to 280/1000 em, t to 325), scaled by 1.14, at `Copy` size for a 389 dp tall
 screen (19.45 sp), and at `Fine` size with its 0.03 em letter spacing for a title. It is calibrated
@@ -523,15 +528,16 @@ set (`RelayConfig`, W8).
   to the nearest above (from 47h 30m), the last hour in minutes rounded up. A fresh 1-day Game reads
   "24h" and a fresh 3-day Game "3d" on both phones, a fresh invite "Expires in 48h", and "0m" comes
   with "Time is up" (W12).
-- New game: "Play as" (White, Black, Random), "Days per move" (1, 3, 7), "Create code". The invite
-  page shows the code in LightOS Subtitle, alone on its line, then "Tell your friend this code. It
-  works once, for 48 hours." Once the code is made the invite replaces New game, so back from it goes
-  to the list (N6). Its top bar has the back arrow; its strip: "Expires in 48h" with Cancel and the
-  Menu mark; the first Cancel shows "Tap again to cancel" next to Cancel alone; an unconfirmed cancel
-  shows "Not sent" with Retry and the mark. The invite's Menu: the halt line, "Rename", "Forget game"
-  when stopped.
-- Join game (opened by JOIN GAME, LD2): LightOS's text editor with the LP3 keyboard, "Join" to
-  submit; the title reads "Join game", then "Sending", then the answer: "Not a code", "No such code", "Code already used", "Try
+- New game: "Play as" (White, Black, Random), "Days per move" (1, 3, 7), and "CREATE CODE" alone in
+  the bottom bar (LD3), "SENDING" and lightened while it is sent, lightened at the cap of five. The
+  invite page shows the code in LightOS Subtitle, alone on its line, then "Tell your friend this
+  code. It works once, for 48 hours." and its status, lightened (LD3). Once the code is made the
+  invite replaces New game, so back from it goes to the list (N6). Its top bar has the back arrow
+  and the Menu mark; "Expires in 48h" with "CANCEL" in the bottom bar; the first Cancel shows "Tap
+  again to cancel", the mark gone; an unconfirmed cancel shows "Not sent" with "RETRY" and the mark;
+  a notice shows no button. The invite's Menu: the halt line, "Rename", "Forget game" when stopped.
+- Join game (opened by JOIN GAME, LD2): LightOS's text editor with the LP3 keyboard, "JOIN" in its
+  bottom bar to submit (LD3); the title reads "Join game", then "Sending", then the answer: "Not a code", "No such code", "Code already used", "Try
   again in a minute", "No connection".
 - The board: the user's Side at the bottom, no flip. The top bar's title and the action row's
   buttons (E1, E2); "the mark" is the Menu mark at the top bar's right (N4):
@@ -567,7 +573,8 @@ set (`RelayConfig`, W8).
 - Button labels: "Send" ("Send this Move"), "Undo" ("Take this Move back before it is sent"),
   "Retry" ("Send it again"), "Accept" ("Accept the draw", "Accept the rematch"), "Decline" ("Decline
   the draw", "Decline the rematch"), "Rematch" ("Offer a rematch, Sides swapped"), "Cancel" ("Cancel
-  this invite"), "Create code", "Save".
+  this invite"), "Create code", "Save". On the boards and in the bottom bar they show in caps (LD2,
+  LD3); Rename's "Save" is the SDK text editor's, unchanged.
 - Games lists finished Correspondence Games with the others: "2026.09.28 · ABCD · Won".
 - About, once the Relay URL is set: "Chess uses the network only for Games with a friend: it sends
   their Moves to its Relay, with no name or account, and the Relay deletes each Game within 30 days of

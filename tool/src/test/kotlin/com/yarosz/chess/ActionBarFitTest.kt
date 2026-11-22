@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * Light's design note (LD1, LD2): Home's rows at LightOS `Heading` size, and the pages' text buttons in
+ * Light's design note (LD1-LD3): Home's rows at LightOS `Heading` size, and the pages' text buttons in
  * LightOS's bottom bar, all caps. Measured with [AkkuratProxy] at the LP3's 360 dp, as `StripFitTest`
  * measures the strips.
  */
@@ -34,15 +34,22 @@ class ActionBarFitTest {
         assertEquals("NEW GAME", ActionBarLayout.label(UiCopy.NEW_GAME))
         assertEquals("JOIN GAME", ActionBarLayout.label(UiCopy.JOIN_GAME))
         assertEquals("TAP AGAIN TO REPLACE", ActionBarLayout.label(UiCopy.REPLACE_CONFIRM))
+        assertEquals("CREATE CODE", ActionBarLayout.label(UiCopy.CREATE_CODE))
+        assertEquals("SENDING", ActionBarLayout.label(UiCopy.SENDING))
+        assertEquals("CANCEL", ActionBarLayout.label(UiCopy.CANCEL))
+        assertEquals("RETRY", ActionBarLayout.label(UiCopy.RETRY))
+        assertEquals("JOIN", ActionBarLayout.label(UiCopy.JOIN))
     }
 
     /**
-     * One button is centred across the whole bar (the SDK pads it by 0): New game's Start game and its
-     * second tap's prompt, kept 16 dp clear of each edge, the back arrow's inset.
+     * One button is centred across the whole bar (the SDK pads it by 0), kept 16 dp clear of each edge,
+     * the back arrow's inset: New game's Start game and its second tap's prompt (LD2); the friend New
+     * game's Create code and Sending, the invite page's Cancel and Retry, and Join game's Join (LD3).
      */
     @Test
     fun aLoneButtonFitsTheBar() {
-        for (label in listOf(UiCopy.START_GAME, UiCopy.REPLACE_CONFIRM)) {
+        val lone = listOf(UiCopy.START_GAME, UiCopy.REPLACE_CONFIRM, UiCopy.CREATE_CODE, UiCopy.SENDING, UiCopy.CANCEL, UiCopy.RETRY, UiCopy.JOIN)
+        for (label in lone) {
             val w = buttonWidth(ActionBarLayout.label(label))
             assertTrue(w <= width - 2 * EDGE, "\"$label\" is $w dp")
         }

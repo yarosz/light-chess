@@ -1948,8 +1948,34 @@ LightOS, each with a mock-up. The owner asked for both.
   `LightBottomBar`'s geometry and `Button` text and adds the lightened, inert state at the cap of
   five (W6), which the SDK's bar can't show. The copy stays in sentence case in `UiCopy`;
   `ActionBarLayout.label` puts it in caps.
-  - Scope: the two screens Light's note showed. The boards' action row (layout E, measured around
-    the Captured Pieces, E12-E14) and the invite page's strip, which carries a status beside its
-    buttons, are unchanged; they would be a separate ruling.
+  - Scope: the two screens Light's note showed. The boards' action row and the invite page's strip
+    followed in LD3.
   - Tests: `ActionBarFitTest` (the bar's units match the SDK's source; caps; each label fits);
     `StripFitTest` no longer carries the list's strip.
+- LD3 Every text button in caps, in the bottom bar where there is one (owner, 2026-11-21: "every text
+  button, in this release"). AMENDS E13/E14 (the action row's text style), R1.8/N4/W6 (the invite
+  page's strip) and W6 (the friend New game page's Create code row). RULING:
+  - The boards' action row (Puzzle, computer, friend, Games Review): there is no room for LightOS's
+    53 dp bottom bar under the board (the top bar's 40 dp and the board's 312 leave 37.33 dp), so the
+    row keeps its place and layout E's geometry (centred group, 8 dp padding, each target the row's
+    full height) and takes the bar's text: `LightTextVariant.Button`, all caps through
+    `ActionBarLayout.label` ("HINT", "MOVE NOW", "CLAIM WIN"). TalkBack keeps the sentence-case
+    descriptions. E13's ink is now the capitals': `BarLayout.BUTTON_INK_ASCENT` 0.711 em (Roboto
+    Medium's cap height), no descent, centred as before between the Captured Pieces' ink and the
+    row's bottom (about 3.8 dp clear of each on the LP3; on the emulator the ink measured 50 px above
+    and 49 below, centred). The 15 dp drawings, sized for `Copy`'s taller ink, keep their size.
+  - The invite page: no strip. The status ("Expires in 48h", "Tap again to cancel", "Not sent", a
+    notice) is a lightened `Copy` line in the page under the code's note; the Menu mark moves to the
+    top bar's right, the boards' painter (E1); "CANCEL" or "RETRY" sits alone in `ActionBar`,
+    centred; a notice shows no button. `Strip` and the strip-only `StripLayout` measures are deleted.
+  - The friend New game page: "CREATE CODE" alone in `ActionBar`, as the computer's New game page's
+    "START GAME" (LD2); "SENDING" while it is sent; lightened and inert while sending or at the cap
+    of five (W6). The cap's line stays in the page.
+  - Join game: the SDK text editor's own bottom bar gets `ActionBarLayout.label(UiCopy.JOIN)`,
+    "JOIN" (the SDK shows the label as given; it is not edited).
+  - Menu rows (Resign, Offer draw, Reset rating, ...) are list items and stay `Copy`. Rename's "Save"
+    (the same SDK editor as Join) was outside this ruling's named scope and is unchanged.
+  - Tests: `StripFitTest` measures the action row's labels as `Button` caps with 0.15 em tracking
+    (every combination still fits within the board's edges), the new baselines (33.53 dp on a Game's
+    board, 25.58 on the Puzzle board) and each invite status in the page's 312 dp line;
+    `ActionBarFitTest` adds Create code, Sending, Cancel, Retry and Join.
