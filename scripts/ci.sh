@@ -87,8 +87,14 @@ roundtrip() {  # apk -> prints one evidence line, returns 1 on failure
     sleep 1
   done
   grep -q "$pkg" <<<"$focus" || { echo "focus is not the Tool: ${focus##* }"; return 1; }
-  mise run ui wait "Chess" >/dev/null 2>&1 || { echo "the Tool never showed its screen"; return 1; }
-  echo "installed, launched, window focus is $pkg, screen shows \"Chess\""
+  # Chess reopens on the place last used (N2): Home and the boards show "Chess" (the title, the board's
+  # label); the Play a friend list doesn't, so it is accepted by its own title.
+  local seen=""
+  for want in "Chess" "Play a friend"; do
+    mise run ui wait "$want" >/dev/null 2>&1 && { seen=$want; break; }
+  done
+  [ -n "$seen" ] || { echo "the Tool never showed its screen"; return 1; }
+  echo "installed, launched, window focus is $pkg, screen shows \"$seen\""
 }
 
 # --- signoff/emulator
