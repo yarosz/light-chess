@@ -5,7 +5,9 @@
 #
 #   scripts/emulator-build.sh ./gradlew :tool:assembleDebug
 #
-# Wrap assemble tasks only: installing and launching need no swap.
+# Wrap assemble tasks only: installing and launching need no swap. Since light-sdk v0.2.10 (PR #234)
+# the plugin refuses any other serverPackage unless the build opts in, so the Gradle command gets
+# -DlightSdk.allowAltServerPackage=true appended.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 toml=tool/lighttool.toml
@@ -15,4 +17,4 @@ trap 'cp "$backup" "$toml"; rm -f "$backup"' EXIT
 sed 's/^serverPackage = .*/serverPackage = "com.thelightphone.sdk.emulator"/' "$backup" > "$toml"
 grep -qx 'serverPackage = "com.thelightphone.sdk.emulator"' "$toml" \
   || { echo "emulator-build: tool/lighttool.toml needs the exact line serverPackage = \"com.lightos\"" >&2; exit 1; }
-"$@"
+"$@" -DlightSdk.allowAltServerPackage=true

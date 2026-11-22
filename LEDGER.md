@@ -53,9 +53,6 @@ FOLLOW-UPS (low, from code review; none blocking):
   LightOS service token ("Rejected GetToken from unverified caller"). Chess's emulator still runs
   the LightOS app from before v0.2.0; if it is ever upgraded to v0.2.0's, set Settings > Allowed
   Tools > Built with SDK (or All Tools, for a dev-signed build).
-- When an SDK tag includes light-sdk PR #234 (a build fails unless `serverPackage` is `com.lightos`,
-  or `-DlightSdk.allowAltServerPackage=true` is passed), emulator builds must pass that flag: the
-  `scripts/emulator-build.sh` path (`mise run tool`, `mise run ci`), never `light-build.sh`.
 - Later: Light's backups (discussion #255), once its SDK side ships.
 - Games with a friend don't slide Moves yet (Z1 left `FriendOwner` out; slides come when that code
   is rewritten).

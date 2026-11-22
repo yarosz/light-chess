@@ -132,7 +132,7 @@ check_upgrade() {  # ref
   echo "sdk.dir=$android" >"$work/local.properties"
   # The emulator talks to the LightOS emulator app: the same swap as scripts/emulator-build.sh, on a throwaway copy.
   sed -i.bak 's/^serverPackage = .*/serverPackage = "com.thelightphone.sdk.emulator"/' "$work/tool/lighttool.toml"
-  (cd "$work" && ./gradlew -q --console=plain :tool:assembleDebug)
+  (cd "$work" && ./gradlew -q --console=plain :tool:assembleDebug -DlightSdk.allowAltServerPackage=true)
   fresh_launch "$work/tool/build/outputs/apk/debug/tool-debug.apk"
   drive skip
   drive solve >/dev/null
