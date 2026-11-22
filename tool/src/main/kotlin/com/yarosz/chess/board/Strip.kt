@@ -39,7 +39,8 @@ import com.thelightphone.sdk.ui.lightClickable
  * The strip's measures. `StripFitTest` reads the same values to check that every status fits in
  * [STATUS_MAX_LINES] lines next to its buttons, at the LP3's size, in a stand-in for the LightOS font.
  * Since layout E (E1, E2) the boards have a top bar and an action row (`BoardBars.kt`); the strip is
- * the invite page's and the Play a friend list's, under LightOS top bars that hold the back arrow.
+ * the invite page's, under LightOS's top bar that holds the back arrow (the Play a friend list's
+ * buttons are in `ActionBar` since LD2).
  */
 object StripLayout {
     /** The strip is never shorter than this (R1.8). */
@@ -89,14 +90,14 @@ object StripLayout {
 
 /**
  * One text button in the strip or a board's action row. [description] is its accessibility label
- * (F11). A button that can't act now ([enabled] false) shows lightened and ignores taps (W6: New game
- * and Enter code at the cap). The back arrow and the Menu mark are described the same way, their
+ * (F11). A button that can't act now ([enabled] false) shows lightened and ignores taps (W6: at the
+ * cap of five). The back arrow and the Menu mark are described the same way, their
  * [label] unused.
  */
 data class StripButton(val label: String, val description: String = label, val enabled: Boolean = true, val onClick: () -> Unit)
 
 /**
- * The strip at the foot of the invite page and the Play a friend list: a status, up to three text
+ * The strip at the foot of the invite page: a status, up to three text
  * buttons chosen by context (R1.8, contradiction 2), and the Menu mark on the right ([menu], N4).
  * Styled like Reader's footer (DESIGN.md): LightOS `Copy` text, the status in the secondary content
  * colour, buttons in the content colour with LightOS's press-without-ripple. It spans the screen and

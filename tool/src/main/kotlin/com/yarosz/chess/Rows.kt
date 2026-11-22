@@ -21,6 +21,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.thelightphone.sdk.ui.LightText
 import com.thelightphone.sdk.ui.LightTextVariant
@@ -41,6 +43,9 @@ object Rows {
 
     /** Home's space above its first row (LD1), from Light's mock-up: its list sits lower than a page's. */
     val HOME_TOP = 16.dp
+
+    /** Home's `Heading` rows' padding above and below (LD1): Light's mock-up spaces them closer than 12 dp would. */
+    val HOME_ROW_PADDING = 10.dp
 
     /** The Menu's section spacing: what sets the Pieces row apart from a board's actions (N17). */
     val GAP = 16.dp
@@ -98,7 +103,7 @@ fun PiecesRow(label: String, set: PieceSet, onClick: () -> Unit) {
  * `Copy` on pages, `Heading` on Home (LD1), the size of LightOS's own top-level lists.
  */
 @Composable
-fun MenuRow(label: String, lighten: Boolean = false, variant: LightTextVariant = LightTextVariant.Copy, onClick: () -> Unit) {
+fun MenuRow(label: String, lighten: Boolean = false, variant: LightTextVariant = LightTextVariant.Copy, vertical: Dp = 12.dp, description: String = label, onClick: () -> Unit) {
     LightText(
         text = label,
         variant = variant,
@@ -106,9 +111,9 @@ fun MenuRow(label: String, lighten: Boolean = false, variant: LightTextVariant =
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = Rows.HEIGHT)
-            .lightClickable(onClickLabel = label, role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = label }
-            .padding(horizontal = 24.dp, vertical = 12.dp),
+            .lightClickable(onClickLabel = description, role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = description }
+            .padding(horizontal = 24.dp, vertical = vertical),
     )
 }
 
@@ -116,7 +121,7 @@ fun MenuRow(label: String, lighten: Boolean = false, variant: LightTextVariant =
  * A page's text buttons in LightOS's bottom bar (LD2): light-sdk `LightBottomBar`'s geometry (4 grid
  * units tall; one button centred, two at its ends with 2 units of padding), its `Button` text, all
  * caps. Unlike the SDK's bar, a button that can't act now ([StripButton.enabled] false) shows
- * lightened and ignores taps (W6).
+ * lightened, ignores taps and is disabled for TalkBack (W6).
  */
 @Composable
 fun ActionBar(buttons: List<StripButton>) {
@@ -138,9 +143,10 @@ fun ActionBar(buttons: List<StripButton>) {
                     variant = LightTextVariant.Button,
                     lighten = !button.enabled,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxHeight()
-                        .lightClickable(onClickLabel = button.description, role = Role.Button) { if (button.enabled) button.onClick() }
+                        .lightClickable(enabled = button.enabled, onClickLabel = button.description, role = Role.Button, onClick = button.onClick)
                         .semantics { contentDescription = button.description }
                         .wrapContentHeight(Alignment.CenterVertically),
                 )

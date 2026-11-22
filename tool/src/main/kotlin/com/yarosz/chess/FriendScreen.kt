@@ -59,7 +59,7 @@ import kotlinx.coroutines.flow.SharedFlow
 enum class FriendPage(val title: String, val scrolls: Boolean) {
     NEW(UiCopy.NEW_GAME, true),
     INVITE(UiCopy.INVITE, false),
-    ENTER_CODE(UiCopy.ENTER_CODE, false),
+    ENTER_CODE(UiCopy.JOIN_GAME, false),
     MENU(UiCopy.MENU_TITLE, true),
     MOVES(UiCopy.MOVES, true),
     RENAME(UiCopy.RENAME, false),
@@ -301,7 +301,7 @@ class FriendScreen(
         val vm = viewModel
         val text = rememberTextFieldState()
         LightTextInputEditor(
-            title = if (vm.busy) UiCopy.SENDING else vm.error ?: UiCopy.ENTER_CODE,
+            title = if (vm.busy) UiCopy.SENDING else vm.error ?: UiCopy.JOIN_GAME,
             state = text,
             onSubmit = { typed -> vm.redeem(typed.toString()) { id -> goBack(FriendExit(id)) } },
             onBack = { goBack() },

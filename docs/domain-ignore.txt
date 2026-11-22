@@ -288,8 +288,6 @@ You lost on time
 # Play a friend (v3 PR 2): UI vocabulary and implementation types, not domain terms (decision log W6)
 Play a friend
 Enter code
-Join game
-Start game
 Forget game
 FriendOwner
 FriendState
@@ -373,5 +371,8 @@ LiveStep
 LiveStop
 LiveView
 OkHttpLiveConnector
+# Light's design note (LD2): the bottom bar and its copy
 ActionBarLayout
+Join game
 Join a friend's game with their code
+Start game

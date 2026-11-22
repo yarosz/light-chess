@@ -40,7 +40,7 @@ import kotlin.test.assertTrue
  * Every status and button the boards and pages can show fits the LP3. On a board (layout E, decision
  * log "Layout E"), each status fits the top bar's title and each moment's buttons their line in the
  * action row under the board, below the Captured Pieces: the tests from [theTopBarIsLightOsTopBar] on. On the invite
- * page and the Play a friend list, which keep the strip under their LightOS top bars, each button's
+ * page, which keeps the strip under its LightOS top bar, each button's
  * label holds one line and the status fits in the room the buttons leave, in at most
  * [StripLayout.STATUS_MAX_LINES] lines. The cases follow DESIGN.md's "Buttons by context" tables; a
  * new state or string belongs here.
@@ -78,7 +78,7 @@ class StripFitTest {
         for (strip in inviteStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, board = false, menu = strip.menu))
     }
 
-    /** The states shown in a strip: the invite page's and the Play a friend list's. */
+    /** The states shown in a strip: the invite page's. */
     private val pageStrips: List<Case> by lazy { strips.filter { !it.board } }
 
     /**
@@ -337,7 +337,7 @@ class StripFitTest {
         return lines + line
     }
 
-    /** N4: every strip (the invite page's, the Play a friend list's) fits beside the Menu mark where it has it, at the LP3's 360 dp. */
+    /** N4: every strip (the invite page's) fits beside the Menu mark where it has it, at the LP3's 360 dp. */
     @Test
     fun everyStatusFitsNextToItsButtons() {
         assertTrue(pageStrips.isNotEmpty() && pageStrips.any { it.menu })
@@ -793,7 +793,7 @@ object AkkuratProxy {
         }
         for (d in '0'..'9') put(d, 556)
         put(' ', 278); put(',', 278); put('.', 278); put(':', 278); put('\'', 191); put('’', 222); put('?', 556)
-        put('·', 278); put('+', 584); put('−', 584); put('-', 333); put('…', 1000); put('=', 584); put('#', 556)
+        put('·', 278); put('+', 584); put('−', 584); put('-', 333); put('…', 1000); put('=', 584); put('#', 556); put('*', 389)
         put('/', 278); put('(', 333); put(')', 333)
         putAll(NARROW)
     }

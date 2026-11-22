@@ -1926,16 +1926,25 @@ LightOS, each with a mock-up. The owner asked for both.
 - LD1 Home's rows at LightOS `Heading` size. AMENDS N11 (its five rows, order and wheel rule are
   unchanged). RULING: Home's rows use `LightTextVariant.Heading` (38 design px) instead of `Copy`
   (30), "the size of other lists in LightOS", with 16 dp more space above the first row, as the
-  mock-up has it (`Rows.HOME_TOP`). The Menu pages keep `Copy`.
-  - "Play a friend · Your move: 5" no longer fits one line at this size and wraps to a second; the
-    copy stays, since it says what the number counts. Every other row holds one line.
-  - `MenuRow(variant)`, `HomeScreen`. Test: `ActionBarFitTest.homeRowsHoldOneHeadingLine`.
+  mock-up has it (`Rows.HOME_TOP`), and 10 dp above and below each row instead of 12
+  (`Rows.HOME_ROW_PADDING`), for the mock-up's spacing. The Menu pages keep `Copy`.
+  - Home's friend row: "Play a friend*" while a Game waits on the user's Move, LightOS's notification
+    asterisk (its Home screen marks a Tool with a notification this way; the community Tools copy
+    it), instead of "Play a friend · Your move: 2" (SUPERSEDES W6's and N11's Home copy). At
+    `Heading` size the old copy wrapped to two lines, and the owner asked what the number meant.
+    TalkBack still reads "Play a friend · Your move: 2" (`UiCopy.playFriendDescription`). The
+    Play a friend list's rows keep their "Your move" status.
+  - `MenuRow(variant, description)`, `HomeScreen`, `HomeRow.description`. Tests:
+    `ActionBarFitTest.homeRowsHoldOneHeadingLine` (every row holds one line), `HomeTest`,
+    `FriendPagesTest`.
 - LD2 Text buttons in LightOS's bottom bar, all caps. AMENDS W6/N7 (the Play a friend list's strip)
   and F7 (the new-game page's Start row). RULING: the Play a friend list's buttons are "NEW GAME" and
   "JOIN GAME" (which opens Enter code, unchanged) in the bottom bar, one at each end; the new-game
   page's Start row becomes "START GAME" alone in the bar, centred, and its second tap's prompt "TAP
-  AGAIN TO REPLACE" (F7) takes its place. "Join game" replaces "Enter code" as the list's button, as
-  Light's mock-up has it; Enter code's page and title keep their name. `ActionBar` copies light-sdk
+  AGAIN TO REPLACE" (F7) takes its place. "Join game" replaces "Enter code" everywhere, as Light's
+  mock-up has it (owner, 2026-11-21): the list's button, the page's title (then "Sending" and the
+  answers, unchanged), and the empty list's "Create a code for a friend, or join theirs." "Code"
+  stays for the thing typed. `ActionBar` copies light-sdk
   `LightBottomBar`'s geometry and `Button` text and adds the lightened, inert state at the cap of
   five (W6), which the SDK's bar can't show. The copy stays in sentence case in `UiCopy`;
   `ActionBarLayout.label` puts it in caps.

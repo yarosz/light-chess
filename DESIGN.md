@@ -11,7 +11,7 @@ places. No gestures. Rulings: decision log "Navigation D" and "Puzzles page and 
 
 - Home (`HomeScreen`, the `@InitialScreen`): LightOS's top bar titled "Chess" with no back arrow, then
   the five rows `HomeRows` gives (N11): "Puzzles", "Play the computer", "Play a friend" or
-  "Play a friend · Your move: 2" (only with the Relay URL set), "Games", "About". Home shows no
+  "Play a friend" ("Play a friend*" while a Game waits on your Move, LD1; only with the Relay URL set), "Games", "About". Home shows no
   Player Rating (Q1): the Puzzles page does. System back from Home closes Chess.
 - The Puzzles page (`MenuPage.PUZZLES`, rows from `PuzzlesRows`, N12): the top bar with the back
   arrow and the title "Puzzles", then a first row that says what it does, "Missed · 3", "Past
@@ -51,7 +51,7 @@ places. No gestures. Rulings: decision log "Navigation D" and "Puzzles page and 
   over a board (`overGame` false), so nothing they open lets the computer think.
 - Every Menu page is its own screen (S3, N6): the computer's Moves and New game, a Correspondence
   Game's Moves and Rename. A second tap ("Tap again to resign") changes its row in place.
-- The wheel (N10, N20): Home's five rows fit the LP3 (40 dp top bar plus five 53 dp rows in 389 dp),
+- The wheel (N10, N20): Home's five rows fit the LP3 (40 dp top bar, 16 dp, then five 53 dp `Heading` rows in 389 dp: LD1),
   so it leaves the wheel with LightOS; it still measures, and would take the wheel if a row ever
   overflowed. So do the Puzzles page, the Player Rating page and the Puzzle board's and Games
   Review's Menus, which always fit. Missed, Past Puzzles and the Game Menus may scroll and take it
@@ -342,7 +342,8 @@ copy for the object on screen, while code names the chess state a Position.
   then" (1200), "I play often and study the game" (1600), "I play in a club or in tournaments" (2000),
   and "Skip" (1500).
 - Home (N11, Q1): the title "Chess", then "Puzzles", "Play the computer", "Play a friend · Your
-  move: 2", "Games", "About". `HomeTest` checks that each row fits one line. Each page is its own
+  move: 2", "Games", "About". The rows are LightOS `Heading` size (LD1), each on one line (`ActionBarFitTest`); "Play a
+  friend*" carries LightOS's notification asterisk while a Game waits on your Move. Each page is its own
   screen, so Back, the arrow or the system's, goes from a page one level down (N16); Reset rating
   and a Missed replay go straight to the Puzzle board, over the Puzzles page.
 - The Puzzles page (N12): the title "Puzzles", then "Continue Puzzle", "Next Puzzle", "Back to the
@@ -490,7 +491,8 @@ The Menu while a Game shows, top to bottom (`GameMenu`; only this board's action
   before the first.
 - "Think Time · 3 s" at Level 8: each tap goes to the next of 3, 10 and 30 s, for the computer's next
   Move and the next Games.
-- "New game": the new-game page, its own screen over the Menu; Start returns to the board. The page
+- "New game": the new-game page, its own screen over the Menu; "START GAME" in its bottom bar (LD2)
+  returns to the board. The page
   scrolls by the wheel, one row per detent; it takes every wheel event there, a click included,
   which does nothing (F3).
 
@@ -506,13 +508,14 @@ and `FinishedGames` (the Games page's merge), each checked by StripFitTest or Fr
 `FriendOwner` is the process-wide owner over the sync engine; it exists only once the Relay URL is
 set (`RelayConfig`, W8).
 
-- Home's row: "Play a friend", or "Play a friend · Your move: 2". It sets the friend mode: the Tool
+- Home's row: "Play a friend", or "Play a friend*" while a Game waits on your Move (LD1; TalkBack
+  reads "Play a friend · Your move: 2"). It sets the friend mode: the Tool
   then opens on the Play a friend page, over Home (mode.txt `FRIEND`, N2).
 - The Play a friend page (`FriendListScreen`, N7): LightOS's top bar with the back arrow (to Home) and
   the title "Play a friend", and no Menu (Home has everything it offered); the rows in E7's order ("ABCD · Your
   move · 2d", "ABCD · Their move · 2d", "ABCD-EFGH · Expires in 47h", "ABCD · Rematch sent", "ABCD ·
   Won", "ABCD · Out of sync", a Seat being taken as "ABCD-EFGH · Not sent"), and "No games yet.
-  Create a code for a friend, or enter theirs." when empty. At the cap both buttons are lightened
+  Create a code for a friend, or join theirs." when empty. At the cap both buttons are lightened
   above "Finish a game first". A row opens the Game's board, or its invite; an "ABCD · Game deleted"
   row opens the Game's Menu, which starts "This game was deleted. Forget it to free its place." and
   has "Forget game" (W13).
@@ -527,8 +530,8 @@ set (`RelayConfig`, W8).
   Menu mark; the first Cancel shows "Tap again to cancel" next to Cancel alone; an unconfirmed cancel
   shows "Not sent" with Retry and the mark. The invite's Menu: the halt line, "Rename", "Forget game"
   when stopped.
-- Enter code: LightOS's text editor with the LP3 keyboard, "Join" to submit; the title reads "Enter
-  code", then "Sending", then the answer: "Not a code", "No such code", "Code already used", "Try
+- Join game (opened by JOIN GAME, LD2): LightOS's text editor with the LP3 keyboard, "Join" to
+  submit; the title reads "Join game", then "Sending", then the answer: "Not a code", "No such code", "Code already used", "Try
   again in a minute", "No connection".
 - The board: the user's Side at the bottom, no flip. The top bar's title and the action row's
   buttons (E1, E2); "the mark" is the Menu mark at the top bar's right (N4):

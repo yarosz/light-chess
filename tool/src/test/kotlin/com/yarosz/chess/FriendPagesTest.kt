@@ -63,7 +63,8 @@ class FriendPagesTest {
     @Test
     fun `the Menu entry counts the user's Move (W6)`() {
         assertEquals("Play a friend", UiCopy.playFriend(0))
-        assertEquals("Play a friend · Your move: 2", UiCopy.playFriend(2))
+        assertEquals("Play a friend*", UiCopy.playFriend(2))
+        assertEquals("Play a friend · Your move: 2", UiCopy.playFriendDescription(2))
     }
 
     @Test

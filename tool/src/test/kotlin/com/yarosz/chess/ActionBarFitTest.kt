@@ -23,8 +23,8 @@ class ActionBarFitTest {
     fun theBarIsLightOsBottomBar() {
         val bar = File("../light-sdk/sdk/ui/src/main/kotlin/com/thelightphone/sdk/ui/LightBottomBar.kt").readText()
         fun constant(name: String) = Regex("""const val $name = ([0-9.]+)f""").find(bar)?.groupValues?.get(1)?.toFloat()
-        assertEquals(constant("BOTTOMBAR_HEIGHT_UNITS"), ActionBarLayout.HEIGHT_UNITS)
-        assertEquals(constant("HORIZONTAL_PADDING_MULTI_UNITS"), ActionBarLayout.PADDING_UNITS)
+        assertEquals(ActionBarLayout.HEIGHT_UNITS, constant("BOTTOMBAR_HEIGHT_UNITS"))
+        assertEquals(ActionBarLayout.PADDING_UNITS, constant("HORIZONTAL_PADDING_MULTI_UNITS"))
         assertTrue("LightTextVariant.Button" in bar, "the SDK's bar text is no longer Button")
     }
 
@@ -36,12 +36,15 @@ class ActionBarFitTest {
         assertEquals("TAP AGAIN TO REPLACE", ActionBarLayout.label(UiCopy.REPLACE_CONFIRM))
     }
 
-    /** One button is centred across the whole bar: New game's Start game and its second tap's prompt. */
+    /**
+     * One button is centred across the whole bar (the SDK pads it by 0): New game's Start game and its
+     * second tap's prompt, kept 16 dp clear of each edge, the back arrow's inset.
+     */
     @Test
     fun aLoneButtonFitsTheBar() {
         for (label in listOf(UiCopy.START_GAME, UiCopy.REPLACE_CONFIRM)) {
             val w = buttonWidth(ActionBarLayout.label(label))
-            assertTrue(w <= width - 2 * 16f, "\"$label\" is $w dp")
+            assertTrue(w <= width - 2 * EDGE, "\"$label\" is $w dp")
         }
     }
 
@@ -55,23 +58,19 @@ class ActionBarFitTest {
         }
     }
 
-    /**
-     * LD1: every Home row holds one `Heading` line, but Play a friend's with "Your move: 5", which
-     * wraps to a second.
-     */
+    /** LD1: at `Heading` size every Home row holds one line, "Play a friend*" included. */
     @Test
     fun homeRowsHoldOneHeadingLine() {
         val room = width - 2 * 24f
         for (row in HomeRows.of(yourMove = 5)) {
             val w = AkkuratProxy.width(row.text, HEADING_PX)
-            val lines = if (row.entry == HomeEntry.PLAY_FRIEND) 2 else 1
-            assertTrue(w <= room * lines, "\"${row.text}\" is $w dp of $room × $lines")
+            assertTrue(w <= room, "\"${row.text}\" is $w dp of $room")
         }
-        assertTrue(AkkuratProxy.width(UiCopy.PLAY_FRIEND, HEADING_PX) <= room)
     }
 
     private companion object {
         const val BUTTON_PX = 30f
         const val HEADING_PX = 38f
+        const val EDGE = 16f
     }
 }

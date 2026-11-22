@@ -154,7 +154,7 @@ class HomeScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, HomeVi
                 }
                 LightScrollView(Modifier.weight(1f).fillMaxWidth(), scrollState = scrollState) {
                     Spacer(Modifier.height(Rows.HOME_TOP))
-                    for (row in rows) MenuRow(row.text, variant = LightTextVariant.Heading) { tap(row.entry) }
+                    for (row in rows) MenuRow(row.text, variant = LightTextVariant.Heading, vertical = Rows.HOME_ROW_PADDING, description = row.description) { tap(row.entry) }
                 }
             }
         }

@@ -62,7 +62,7 @@ data class FriendState(
     /** The Menu's "Your move: N" (W10): the user's Move and not Stopped. */
     val yourMove: Int get() = games.count { it.yourMove }
 
-    /** The cap of five is reached (E7, F9, V13): New game and Enter code show lightened. */
+    /** The cap of five is reached (E7, F9, V13): the list's New game and Join game show lightened (LD2). */
     val full: Boolean get() = games.count { it.takesASlot } + seats.size >= Correspondence.MAX_GAMES
 }
 
