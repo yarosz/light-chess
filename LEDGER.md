@@ -27,11 +27,14 @@ renamed the text editor's `initialCaps` to `autoCapitalize`; `gradle.properties`
 selects Light's builder image. The SDK also offers notifications and push (since v0.2.1; push is
 undocumented) and backups (v0.2.3); scheduled alerts are on its `main`, in no tag yet:
 FOLLOW-UPS below.
-SUBMITTED: 0.5.0 went to Light's Tool Library on 2026-10-09 (RELEASING.md "After merge and tag");
-Light accepted it, and its Tool Library team sent the design note 0.5.1 answers (2026-11-11).
-Light's build (Version 7, from a9fd300) succeeded, and Light's signed APK matches our unsigned build
-entry for entry, plus Light's signing files (`stamp-cert-sha256`, the META-INF v1 signature files,
-`light-trust.json`). Light accepted it (2026-11-11).
+SUBMITTED: 0.5.1 went to Light's Tool Library on 2026-11-21: build ff88d0a7 from d49ad52 (tag
+v0.5.1) succeeded in 6 min 28 s as Version 8 (SDK 0.2.10, pending Light's approval). Light's signed
+APK matches our unsigned build entry for entry (706 shared files identical; Light drops the
+non-arm64 libraries and adds its signing files and `light-trust.json`, whose gitCommit, buildId and
+sdkGitRef match). The listing images are now the README's three LP3 shots (Home, a Puzzle with its
+Hint, a live Game with a friend). The changelog went in shortened to 227 characters (RELEASING.md).
+0.5.0 (Version 7, from a9fd300, 2026-10-09): Light accepted it, and its Tool Library team sent the
+design note that 0.5.1 answers (2026-11-11).
 FOR THE OWNER (none blocks development): Light's build can't install over a dev-signed build (the
 signatures differ), and uninstalling deletes the Player Rating, Missed and the Games, so switching
 the owner's LP3 to Light's build needs a plan first (carry the files over, or accept the loss).
