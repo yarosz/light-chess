@@ -185,15 +185,11 @@ class GameOwner(
 
     fun setThinkTime(seconds: Int) = act { GameFlow.setThinkTime(it, seconds) }
 
-    /** Starts a Game from [choices]; returns true when it started (false: the second tap is needed). */
+    /** Starts a Game from [choices], one tap (LD4); false only when no state is loaded yet. */
     fun start(choices: GameChoices): Boolean {
         touched()
         val before = states.value ?: return false
         val next = GameFlow.start(before, choices, Random.nextLong(), LocalDate.now().format(DATE))
-        if (next.record === before.record) {
-            set(next)
-            return false
-        }
         stopThinking()
         stopHint()
         clearSlide()

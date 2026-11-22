@@ -3,8 +3,10 @@ package com.yarosz.chess
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,6 +20,7 @@ import com.thelightphone.sdk.LightScreen
 import com.thelightphone.sdk.SealedLightActivity
 import com.thelightphone.sdk.SimpleLightScreen
 import com.thelightphone.sdk.ui.LightScrollView
+import com.thelightphone.sdk.ui.LightTextVariant
 import com.thelightphone.sdk.ui.LightTheme
 import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
@@ -150,7 +153,8 @@ class HomeScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, HomeVi
                     vm.scroll.collect { scrollState.animateScrollBy(it * rowPx) }
                 }
                 LightScrollView(Modifier.weight(1f).fillMaxWidth(), scrollState = scrollState) {
-                    for (row in rows) MenuRow(row.text) { tap(row.entry) }
+                    Spacer(Modifier.height(Rows.HOME_TOP))
+                    for (row in rows) MenuRow(row.text, variant = LightTextVariant.Heading, vertical = Rows.HOME_ROW_PADDING, description = row.description) { tap(row.entry) }
                 }
             }
         }

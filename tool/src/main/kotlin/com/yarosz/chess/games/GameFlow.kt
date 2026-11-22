@@ -45,8 +45,8 @@ enum class Phase { USER, COMPUTER, OVER }
 /** The computer's answer to the user's draw offer (G1), shown until the next Move. */
 enum class DrawResponse { AGREED, DECLINED }
 
-/** An action waiting for its second tap: Resign (B5) and replacing the Game in progress (F7, B5). */
-enum class Confirm { RESIGN, REPLACE }
+/** An action waiting for its second tap: Resign (B5). Replacing the Game in progress takes one tap (LD4). */
+enum class Confirm { RESIGN }
 
 /**
  * Everything the game mode shows and saves, as one immutable value. [data] is `games.json`; [record]
@@ -70,7 +70,7 @@ data class GameState(
             }
         }
 
-    /** A Game is in progress (B5: one at a time): starting another needs a second tap. */
+    /** A Game is in progress (B5: one at a time): starting another files it as unfinished (LD4). */
     val inProgress: Boolean get() = data.current != null
 
     /** The Side drawn at the bottom: the user's, unless the board is flipped (D10, v2). */
@@ -182,11 +182,9 @@ object GameFlow {
 
     /**
      * A new Game from [choices], its seed [seed] (Random resolves to a Side from it) and [date] (PGN
-     * form). While a Game is in progress the first call only asks for the second tap ("Tap again to
-     * replace"); the second saves the old Game as unfinished (*) and starts the new one (F7, B5).
+     * form). A Game in progress is saved as unfinished (*) first: one tap, no second (LD4, B5).
      */
     fun start(state: GameState, choices: GameChoices, seed: Long, date: String): GameState {
-        if (state.inProgress && state.confirming != Confirm.REPLACE) return state.copy(confirming = Confirm.REPLACE)
         val side = when (choices.side) {
             SideChoice.WHITE -> Side.WHITE
             SideChoice.BLACK -> Side.BLACK

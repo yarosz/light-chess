@@ -505,14 +505,10 @@ class GameFlowTest {
     }
 
     @Test
-    fun `one Game at a time, replacing it needs a second tap and saves it unfinished`() {
+    fun `one Game at a time, Start replaces it at once and saves it unfinished (LD4)`() {
         val playing = started().user("e2e4").computer("e7e5")
         assertTrue(playing.inProgress)
-        val asked = GameFlow.start(playing, GameChoices(level = 5), seed = 2L, date = "2026.09.29")
-        assertEquals(Confirm.REPLACE, asked.confirming)
-        assertEquals(playing.record, asked.record, "nothing replaced yet")
-        assertEquals(playing.data, asked.data)
-        val replaced = GameFlow.start(asked, GameChoices(level = 5), seed = 2L, date = "2026.09.29")
+        val replaced = GameFlow.start(playing, GameChoices(level = 5), seed = 2L, date = "2026.09.29")
         assertNull(replaced.confirming)
         assertEquals(5, replaced.record!!.level)
         assertEquals(emptyList(), replaced.record!!.game.events)

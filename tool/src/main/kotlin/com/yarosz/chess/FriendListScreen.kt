@@ -20,7 +20,6 @@ import com.thelightphone.sdk.ui.LightThemeController
 import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
-import com.yarosz.chess.board.Strip
 import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.correspondence.Refusal
@@ -40,7 +39,7 @@ class FriendListViewModel(private val friends: FriendOwner) : WheelViewModel<Uni
 /**
  * The Play a friend list (W6, N7): a place one step from Home, with LightOS's top bar (the back arrow
  * to Home and the title) and no Menu. A row opens its Game's board or invite, or for a Game the Relay
- * deleted its Menu (W13); the strip has New game and Enter code.
+ * deleted its Menu (W13); LightOS's bottom bar has New game and Join game, which opens Enter code (LD2).
  */
 class FriendListScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, FriendListViewModel>(sealedActivity) {
 
@@ -101,8 +100,8 @@ class FriendListScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, 
 }
 
 /**
- * The Play a friend list's content (W6, N7): the top bar, the Games in E7's order, then New game and
- * Enter code, lightened with "Finish a game first" at the cap of five.
+ * The Play a friend list's content (W6, N7, LD2): the top bar, the Games in E7's order, then the bar's
+ * New game and Join game, lightened with "Finish a game first" at the cap of five.
  */
 @Composable
 fun FriendList(state: FriendState, now: Long, onBack: () -> Unit, onRow: (FriendRow) -> Unit, onNew: () -> Unit, onEnterCode: () -> Unit) {
@@ -117,11 +116,10 @@ fun FriendList(state: FriendState, now: Long, onBack: () -> Unit, onRow: (Friend
             for (row in rows) MenuRow(row.text) { onRow(row) }
         }
         if (state.full) MenuLine(UiCopy.refusal(Refusal.CAP_REACHED), lighten = true)
-        Strip(
-            "",
+        ActionBar(
             listOf(
                 StripButton(UiCopy.NEW_GAME, UiCopy.NEW_GAME_DESCRIPTION, enabled = !state.full, onClick = onNew),
-                StripButton(UiCopy.ENTER_CODE, UiCopy.ENTER_CODE, enabled = !state.full, onClick = onEnterCode),
+                StripButton(UiCopy.JOIN_GAME, UiCopy.JOIN_GAME_DESCRIPTION, enabled = !state.full, onClick = onEnterCode),
             ),
         )
     }

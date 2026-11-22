@@ -108,8 +108,10 @@ object UiCopy {
     const val BLACK = "Black"
     const val RANDOM = "Random"
     const val START = "Start"
-    const val REPLACE_CONFIRM = "Tap again to replace"
-    const val REPLACE_NOTE = "The Game in progress is saved as unfinished."
+
+    /** New game's bar button (LD2). */
+    const val START_GAME = "Start game"
+    const val REPLACE_NOTE = "Your current Game will be saved to Games as unfinished."
 
     /** The Tool's version; `ToolMetadataTest` holds it equal to `versionName` in `tool/lighttool.toml`. */
     const val VERSION = "0.5.0"
@@ -162,12 +164,14 @@ object UiCopy {
         "The Relay keeps no record of when either phone had a Game open. " +
         "Puzzles and Games against the computer never leave this phone."
     const val PLAY_FRIEND = "Play a friend"
-    const val ENTER_CODE = "Enter code"
+    /** The Play a friend list's bar button and the page it opens, where a friend's code is typed (LD2). */
+    const val JOIN_GAME = "Join game"
+    const val JOIN_GAME_DESCRIPTION = "Join a friend's game with their code"
     const val DAYS_PER_MOVE = "Days per move"
     const val CREATE_CODE = "Create code"
     const val CODE_NOTE = "Tell your friend this code. It works once, for 48 hours."
     const val JOIN = "Join"
-    const val NO_FRIEND_GAMES = "No games yet. Create a code for a friend, or enter theirs."
+    const val NO_FRIEND_GAMES = "No games yet. Create a code for a friend, or join theirs."
     const val SEND = "Send"
     const val SEND_DESCRIPTION = "Send this Move"
     const val UNDO = "Undo"
@@ -252,8 +256,14 @@ object UiCopy {
         return "${wholeDays}d"
     }
 
-    /** The Menu entry (W6): "Play a friend", or "Play a friend · Your move: 2" when that count is above 0. */
-    fun playFriend(yourMove: Int) = if (yourMove > 0) "$PLAY_FRIEND · Your move: $yourMove" else PLAY_FRIEND
+    /**
+     * Home's entry (W6, LD1): "Play a friend", with LightOS's notification asterisk, "Play a friend*",
+     * while a Game waits on the user's Move.
+     */
+    fun playFriend(yourMove: Int) = if (yourMove > 0) "$PLAY_FRIEND*" else PLAY_FRIEND
+
+    /** [playFriend]'s spoken label: the asterisk read as the count. */
+    fun playFriendDescription(yourMove: Int) = if (yourMove > 0) "$PLAY_FRIEND · Your move: $yourMove" else PLAY_FRIEND
 
     /** A Play a friend row (W6): "ABCD · Your move · 2d". */
     fun friendRow(label: String, state: String) = "$label · $state"

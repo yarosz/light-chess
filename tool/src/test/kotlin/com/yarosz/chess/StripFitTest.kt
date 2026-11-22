@@ -39,11 +39,10 @@ import kotlin.test.assertTrue
 /**
  * Every status and button the boards and pages can show fits the LP3. On a board (layout E, decision
  * log "Layout E"), each status fits the top bar's title and each moment's buttons their line in the
- * action row under the board, below the Captured Pieces: the tests from [theTopBarIsLightOsTopBar] on. On the invite
- * page and the Play a friend list, which keep the strip under their LightOS top bars, each button's
- * label holds one line and the status fits in the room the buttons leave, in at most
- * [StripLayout.STATUS_MAX_LINES] lines. The cases follow DESIGN.md's "Buttons by context" tables; a
- * new state or string belongs here.
+ * action row under the board, below the Captured Pieces, in LightOS `Button` caps (LD3): the tests from
+ * [theTopBarIsLightOsTopBar] on. On the invite page (LD3) the status is a line in the page body, in at
+ * most [StripLayout.STATUS_MAX_LINES] lines, and its button is in LightOS's bottom bar (`ActionBarFitTest`).
+ * The cases follow DESIGN.md's "Buttons by context" tables; a new state or string belongs here.
  *
  * The LightOS font (Akkurat) can't ship with the repo, so text is measured with [AkkuratProxy]:
  * Helvetica's advance widths with the narrow letters widened, scaled up until no string is narrower
@@ -53,9 +52,9 @@ import kotlin.test.assertTrue
 class StripFitTest {
 
     /**
-     * A state to check: its status, its buttons' labels, the lines the status may take in a strip,
-     * whether it is a board's (a top bar and an action row, E1, E2) or a strip's, and whether the
-     * strip has the Menu mark (N4).
+     * A state to check: its status, its buttons' labels, the lines the status may take, whether it is
+     * a board's (a top bar and an action row, E1, E2) or the invite page's (LD3), and whether it has
+     * the Menu mark (N4).
      */
     private data class Case(
         val status: String,
@@ -74,13 +73,11 @@ class StripFitTest {
         add(Case(PuzzleStrip.FINISHED.status, PuzzleStrip.FINISHED.buttons.map { it.label }, menu = PuzzleStrip.FINISHED.menu))
         for (strip in gameStrips()) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, menu = strip.menu))
         for (strip in friendStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, menu = strip.menu))
-        // The invite page: LightOS's top bar, with its back arrow, then the strip.
+        // The invite page (LD3): LightOS's top bar, with its back arrow and the Menu mark, the status in the page, the bottom bar.
         for (strip in inviteStrips) add(Case(strip.status, strip.buttons.map { it.label }, strip.statusLines, board = false, menu = strip.menu))
-        // The Play a friend list's buttons (W6, N7): no status, no Menu.
-        add(Case("", listOf(UiCopy.NEW_GAME, UiCopy.ENTER_CODE), 1, board = false))
     }
 
-    /** The states shown in a strip: the invite page's and the Play a friend list's. */
+    /** The invite page's states (LD3). */
     private val pageStrips: List<Case> by lazy { strips.filter { !it.board } }
 
     /**
@@ -308,13 +305,19 @@ class StripFitTest {
     }
 
     /**
-     * The room left for a strip's status, in dp, on the LP3's 360 dp: from the board's edge to the
-     * first of [buttons], which end at the Menu mark's target (N4) or 16 dp from the screen's edge.
+     * A label's width in a board's action row (LD3): LightOS `Button` (30 design px, 0.15 em between
+     * letters) in caps, as `ActionBarFitTest` measures the bottom bar's.
      */
-    private fun statusRoom(buttons: List<String>, menu: Boolean): Float =
-        LP3_WIDTH_DP - StripLayout.SIDE.value - StripLayout.buttonsEnd(menu).value -
-            StripLayout.STATUS_GAP.value - buttonsWidth(buttons)
+    private fun rowLabelWidth(label: String): Float {
+        val caps = ActionBarLayout.label(label)
+        return AkkuratProxy.width(caps, StripLayout.COPY_DESIGN_PX) + caps.length * AkkuratProxy.size(StripLayout.COPY_DESIGN_PX) * 0.15f
+    }
 
+    /** A board's action row's buttons, each with its padding (E13, LD3). */
+    private fun rowButtonsWidth(buttons: List<String>): Float =
+        buttons.sumOf { (rowLabelWidth(it) + 2 * StripLayout.BUTTON_PADDING.value).toDouble() }.toFloat()
+
+    /** The calibration screencaps' strip buttons: `Copy`, sentence case, each with its padding. */
     private fun buttonsWidth(buttons: List<String>): Float =
         buttons.sumOf { (AkkuratProxy.width(it) + 2 * StripLayout.BUTTON_PADDING.value).toDouble() }.toFloat()
 
@@ -339,18 +342,20 @@ class StripFitTest {
         return lines + line
     }
 
-    /** N4: every strip (the invite page's, the Play a friend list's) fits beside the Menu mark where it has it, at the LP3's 360 dp. */
+    /**
+     * LD3: the invite page's status is a line in its body, under the code's note, the LP3's 360 dp
+     * less 24 dp either side: every status fits in [StripLayout.STATUS_MAX_LINES] lines. The page has
+     * the Menu mark in its top bar, but for the second tap's prompt.
+     */
     @Test
-    fun everyStatusFitsNextToItsButtons() {
-        assertTrue(pageStrips.isNotEmpty() && pageStrips.any { it.menu })
-        for ((status, buttons, maxLines, _, menu) in pageStrips) {
-            val room = statusRoom(buttons, menu)
+    fun everyInviteStatusFitsThePage() {
+        assertTrue(pageStrips.isNotEmpty() && pageStrips.any { it.menu } && pageStrips.any { !it.menu })
+        val room = MENU_WIDTH_DP - 2 * MENU_PADDING_DP
+        for ((status, buttons, maxLines) in pageStrips) {
+            assertTrue(buttons.size <= 1, "$buttons: the bar holds one, centred")
             val lines = wrap(status, room)
-            val beside = "$buttons${if (menu) " and the Menu mark" else ""}"
-            assertTrue(lines.size <= maxLines, "\"$status\" next to $beside needs ${lines.size} lines, $maxLines allowed")
-            for (line in lines) {
-                assertTrue(AkkuratProxy.width(line) <= room, "\"$line\" (${AkkuratProxy.width(line)} dp) in $room dp next to $beside")
-            }
+            assertTrue(lines.size <= maxLines, "\"$status\" needs ${lines.size} lines, $maxLines allowed")
+            for (line in lines) assertTrue(AkkuratProxy.width(line) <= room, "\"$line\" (${AkkuratProxy.width(line)} dp) in $room dp")
         }
     }
 
@@ -371,19 +376,16 @@ class StripFitTest {
 
     /**
      * N4, kept by E1: the mark's squares are 8 by 7 px, 28 px apart, their ink ending 48 px from the
-     * right edge; in the strip its target is 48 dp wide.
+     * right edge, in the top bar on the boards and the invite page (LD3).
      */
     @Test
     fun theMarkSitsWhereLightOsDrawsIt() {
-        assertEquals(24f, StripLayout.SIDE.value)
         assertEquals(8f, 3 * StripLayout.DOT_WIDTH.value, 0.01f)
         assertEquals(7f, 3 * StripLayout.DOT_HEIGHT.value, 0.01f)
         assertEquals(28f, 3 * StripLayout.DOT_PITCH.value, 0.01f)
         assertEquals(48f, 3 * StripLayout.MENU_INK_END.value)
-        assertTrue(StripLayout.MENU_TARGET.value >= 48f)
-        // The mark's ink lies inside its target, in the strip and in the top bar's 40 dp box (E1).
+        // The mark's ink lies inside the top bar's 40 dp box (E1).
         val markInk = 2 * StripLayout.DOT_PITCH.value + StripLayout.DOT_WIDTH.value
-        assertTrue(StripLayout.MENU_INK_END.value + markInk <= StripLayout.MENU_TARGET.value)
         val unit = BarLayout.unit(LP3_WIDTH_DP.dp).value
         assertTrue(StripLayout.MENU_INK_END.value + markInk <= unit * (BarLayout.TOP_BAR_PADDING_UNITS + BarLayout.MARK_TARGET_UNITS))
     }
@@ -397,7 +399,7 @@ class StripFitTest {
             UiCopy.UNRATED_SOLVED, UiCopy.UNRATED_HINTED, UiCopy.UNRATED_FAILED, UiCopy.PACK_FINISHED,
             UiCopy.YOUR_MOVE, UiCopy.THINKING, UiCopy.FINDING_HINT, UiCopy.MOVE_NOW,
             UiCopy.DRAW_AGREED, UiCopy.UNFINISHED, UiCopy.NEW_GAME,
-            UiCopy.ENTER_CODE, UiCopy.SEND, UiCopy.UNDO, UiCopy.SENDING, UiCopy.NOT_SENT, UiCopy.RETRY, UiCopy.DRAW_QUESTION,
+            UiCopy.SEND, UiCopy.UNDO, UiCopy.SENDING, UiCopy.NOT_SENT, UiCopy.RETRY, UiCopy.DRAW_QUESTION,
             UiCopy.ACCEPT, UiCopy.DECLINE, UiCopy.TIME_IS_UP, UiCopy.CLAIM_WIN, UiCopy.OUT_OF_SYNC, UiCopy.UPDATE_CHESS,
             UiCopy.GAME_DELETED, UiCopy.SEAT_LOST, UiCopy.CANCEL, UiCopy.CANCEL_CONFIRM, UiCopy.REMATCH, UiCopy.REMATCH_SENT,
             UiCopy.REMATCH_OFFERED, UiCopy.NOT_YET, UiCopy.OFFER_NOT_SENT, UiCopy.LIVE_YOUR_MOVE, UiCopy.LIVE_THEIR_MOVE,
@@ -618,16 +620,16 @@ class StripFitTest {
     private val actionRowHeight: Float
         get() = AkkuratProxy.LP3_APP_HEIGHT_PX / LP3_PX_PER_DP - BarLayout.topBarHeight(LP3_WIDTH_DP.dp).value - POSITION_VIEW_SIZE.value
 
-    /** LightOS `Copy`'s font size on the LP3, in dp: 30 design px. */
-    private val copyEm: Float get() = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX)
+    /** LightOS `Button`'s font size on the LP3, in dp: 30 design px, as `Copy`'s (LD3). */
+    private val buttonEm: Float get() = AkkuratProxy.size(StripLayout.COPY_DESIGN_PX)
 
     /** A label's baseline in the LP3's action row, from the row's top, as `ActionRow` places it (E13, E14). */
-    private fun labelBaseline(captured: Boolean): Float = BarLayout.buttonLine(actionRowHeight.dp, copyEm.dp, captured).value
+    private fun labelBaseline(captured: Boolean): Float = BarLayout.buttonLine(actionRowHeight.dp, buttonEm.dp, captured).value
 
     /** A label's ink as `ActionRow` places it on a Game's board ([captured]) or the Puzzle board: its top and bottom, from the row's top. */
     private fun labelInk(captured: Boolean): Pair<Float, Float> {
         val baseline = labelBaseline(captured)
-        return baseline - BarLayout.COPY_INK_ASCENT * copyEm to baseline + BarLayout.COPY_INK_DESCENT * copyEm
+        return baseline - BarLayout.BUTTON_INK_ASCENT * buttonEm to baseline + BarLayout.BUTTON_INK_DESCENT * buttonEm
     }
 
     /** Fifteen pieces taken, every kind among them: the widest end (P3's `CapturedRowTest`). */
@@ -635,7 +637,7 @@ class StripFitTest {
         List(2) { PieceType.ROOK } + PieceType.QUEEN
 
     /**
-     * E13: every board's buttons fit the row, at most three, and centred as a group on the screen
+     * E13, LD3: every board's buttons fit the row in `Button` caps, at most three, and centred as a group on the screen
      * (`ActionRow` aligns them to its centre) they stay within the board's edges.
      */
     @Test
@@ -643,7 +645,7 @@ class StripFitTest {
         val side = BarLayout.boardSide(LP3_WIDTH_DP.dp).value
         for (case in boardCases) {
             assertTrue(case.buttons.size <= 3)
-            val width = buttonsWidth(case.buttons)
+            val width = rowButtonsWidth(case.buttons)
             assertTrue((LP3_WIDTH_DP - width) / 2 >= side, "${case.buttons} ($width dp) start at ${(LP3_WIDTH_DP - width) / 2} dp, the board at $side dp")
         }
         // The widest sets, Accept and Decline and the Result's Takeback and Next (X1), keep inside the board.
@@ -652,29 +654,29 @@ class StripFitTest {
     }
 
     /**
-     * E13, E14: the labels' baselines in the LP3's 37.33 dp row, from its top: 31.83 dp on a Game's
-     * board, 23.88 dp on the Puzzle board. (Each button's target, the row's full height, is by
+     * E13, E14, LD3: the labels' baselines in the LP3's 37.33 dp row, from its top: 33.53 dp on a Game's
+     * board, 25.58 dp on the Puzzle board. (Each button's target, the row's full height, is by
      * construction, `fillMaxHeight` on its Box in `ActionRow`: no unit test sees it; it is checked on
      * the emulator and the LP3.)
      */
     @Test
     fun theLabelsBaselinesSitWhereTheirInkIsCentred() {
-        assertEquals(31.83f, labelBaseline(captured = true), 0.01f)
-        assertEquals(23.88f, labelBaseline(captured = false), 0.01f)
+        assertEquals(33.53f, labelBaseline(captured = true), 0.01f)
+        assertEquals(25.58f, labelBaseline(captured = false), 0.01f)
     }
 
     /**
      * E13's vertical budget: on a Game's board the Captured Pieces (3 dp, then the 15 dp drawings, whose
      * ink stops at 15.9 dp) and the labels below them share the 37.33 dp row with no overlap: a label's
-     * ink, `Copy` from its tallest letter to its descender, is centred between the drawings' ink and the
-     * app area's bottom edge, about 1.34 dp clear of each; the Material Lead's whole text box ends above
-     * it. The drawings' size is set by their box: 15 dp is the largest whole size whose box leaves room
-     * for the ink. On the Puzzle board (E14) the ink is centred in the whole row.
+     * ink, `Button` caps from the baseline to the cap height (LD3), is centred between the drawings' ink
+     * and the app area's bottom edge, about 3.8 dp clear of each; the Material Lead's whole text box ends
+     * above it. The 15 dp drawings were sized for `Copy`'s taller ink (E13) and keep their size. On the
+     * Puzzle board (E14) the ink is centred in the whole row.
      */
     @Test
     fun thePiecesAndTheButtonsEachHaveTheirLine() {
         assertEquals(37.33f, actionRowHeight, 0.01f)
-        assertEquals(19.45f, copyEm, 0.01f)
+        assertEquals(19.45f, buttonEm, 0.01f)
         assertEquals(CapturedRowLayout.TOP + CapturedRowLayout.SIZE, BarLayout.PIECES_LINE.value)
         assertEquals(18f, BarLayout.PIECES_LINE.value)
         val roomTop = BarLayout.labelRoomTop(captured = true).value
@@ -682,20 +684,18 @@ class StripFitTest {
         val (top, bottom) = labelInk(captured = true)
         assertTrue(top >= CapturedRowLayout.INK_BOTTOM, "the labels' ink starts at $top dp, the drawings' ink ends at ${CapturedRowLayout.INK_BOTTOM} dp")
         assertTrue(bottom <= actionRowHeight, "the labels' ink ends at $bottom dp in a $actionRowHeight dp row")
-        // Centred: the same room above the ink and below it, about 1.34 dp each.
+        // Centred: the same room above the ink and below it, about 3.8 dp each.
         assertEquals(top - roomTop, actionRowHeight - bottom, 0.01f)
-        assertEquals(1.34f, top - roomTop, 0.01f)
-        // Akkurat's ink may run past Roboto's by this much before it touches: ascent to 0.819 em, descent to 0.283 em.
+        assertEquals(3.80f, top - roomTop, 0.01f)
+        // Akkurat's ink may run past Roboto's by this much before it touches: caps to 0.906 em, overshoot to 0.195 em.
         val baseline = labelBaseline(captured = true)
-        assertEquals(0.819f, (baseline - CapturedRowLayout.INK_BOTTOM) / copyEm, 0.001f)
-        assertEquals(0.283f, (actionRowHeight - baseline) / copyEm, 0.001f)
+        assertEquals(0.906f, (baseline - CapturedRowLayout.INK_BOTTOM) / buttonEm, 0.001f)
+        assertEquals(0.195f, (actionRowHeight - baseline) / buttonEm, 0.001f)
         // The Material Lead, Superfine (16 design px, a 1.2 line height) centred on the drawings: its box ends above the labels' ink.
         val leadBoxBottom = CapturedRowLayout.TOP + CapturedRowLayout.SIZE / 2 + AkkuratProxy.size(16f * 1.2f) / 2
         assertTrue(leadBoxBottom < top, "the lead's box ends at $leadBoxBottom dp, the labels' ink starts at $top dp")
-        // One dp more of drawing box, and a label's ink no longer fits under the box.
-        val ink = (BarLayout.COPY_INK_ASCENT + BarLayout.COPY_INK_DESCENT) * copyEm
+        val ink = (BarLayout.BUTTON_INK_ASCENT + BarLayout.BUTTON_INK_DESCENT) * buttonEm
         assertTrue(CapturedRowLayout.BOTTOM + ink <= actionRowHeight, "the ink fits under the 15 dp box")
-        assertTrue(CapturedRowLayout.BOTTOM + 1f + ink > actionRowHeight, "a 16 dp box would leave room for the ink")
         // The Puzzle board: the whole row, the ink in its middle.
         assertEquals(0f, BarLayout.labelRoomTop(captured = false).value)
         val (puzzleTop, puzzleBottom) = labelInk(captured = false)
@@ -795,7 +795,7 @@ object AkkuratProxy {
         }
         for (d in '0'..'9') put(d, 556)
         put(' ', 278); put(',', 278); put('.', 278); put(':', 278); put('\'', 191); put('’', 222); put('?', 556)
-        put('·', 278); put('+', 584); put('−', 584); put('-', 333); put('…', 1000); put('=', 584); put('#', 556)
+        put('·', 278); put('+', 584); put('−', 584); put('-', 333); put('…', 1000); put('=', 584); put('#', 556); put('*', 389)
         put('/', 278); put('(', 333); put(')', 333)
         putAll(NARROW)
     }

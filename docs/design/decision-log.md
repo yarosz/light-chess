@@ -1919,3 +1919,77 @@ consistent with the log.
   - `Glicko.text`, `HomeRows.of(yourMove)`, `UiCopy.PROVISIONAL_NOTE`. Tests: `Glicko2Test`,
     `HomeTest` (no Home row shows the rating), `PuzzlesPageTest` ("Player Rating · (2999)" fits one
     line; the page's provisional line).
+
+## Light's design note (Light, 2026-11-11; owner, 2026-11-21)
+Light's Tool Library team reviewed the 0.5.0 submission (accepted as it was) and sent two notes on matching
+LightOS, each with a mock-up. The owner asked for both.
+- LD1 Home's rows at LightOS `Heading` size. AMENDS N11 (its five rows, order and wheel rule are
+  unchanged). RULING: Home's rows use `LightTextVariant.Heading` (38 design px) instead of `Copy`
+  (30), "the size of other lists in LightOS", with 16 dp more space above the first row, as the
+  mock-up has it (`Rows.HOME_TOP`), and 10 dp above and below each row instead of 12
+  (`Rows.HOME_ROW_PADDING`), for the mock-up's spacing. The Menu pages keep `Copy`.
+  - Home's friend row: "Play a friend*" while a Game waits on the user's Move, LightOS's notification
+    asterisk (its Home screen marks a Tool with a notification this way; the community Tools copy
+    it), instead of "Play a friend · Your move: 2" (SUPERSEDES W6's and N11's Home copy). At
+    `Heading` size the old copy wrapped to two lines, and the owner asked what the number meant.
+    TalkBack still reads "Play a friend · Your move: 2" (`UiCopy.playFriendDescription`). The
+    Play a friend list's rows keep their "Your move" status.
+  - `MenuRow(variant, description)`, `HomeScreen`, `HomeRow.description`. Tests:
+    `ActionBarFitTest.homeRowsHoldOneHeadingLine` (every row holds one line), `HomeTest`,
+    `FriendPagesTest`.
+- LD2 Text buttons in LightOS's bottom bar, all caps. AMENDS W6/N7 (the Play a friend list's strip)
+  and F7 (the new-game page's Start row). RULING: the Play a friend list's buttons are "NEW GAME" and
+  "JOIN GAME" (which opens Enter code, unchanged) in the bottom bar, one at each end; the new-game
+  page's Start row becomes "START GAME" alone in the bar, centred (F7's second tap went in LD4). "Join game" replaces "Enter code" everywhere, as Light's
+  mock-up has it (owner, 2026-11-21): the list's button, the page's title (then "Sending" and the
+  answers, unchanged), and the empty list's "Create a code for a friend, or join theirs." "Code"
+  stays for the thing typed. `ActionBar` copies light-sdk
+  `LightBottomBar`'s geometry and `Button` text and adds the lightened, inert state at the cap of
+  five (W6), which the SDK's bar can't show. The copy stays in sentence case in `UiCopy`;
+  `ActionBarLayout.label` puts it in caps.
+  - Scope: the two screens Light's note showed. The boards' action row and the invite page's strip
+    followed in LD3.
+  - Tests: `ActionBarFitTest` (the bar's units match the SDK's source; caps; each label fits);
+    `StripFitTest` no longer carries the list's strip.
+- LD3 Every text button in caps, in the bottom bar where there is one (owner, 2026-11-21: "every text
+  button, in this release"). AMENDS E13/E14 (the action row's text style), R1.8/N4/W6 (the invite
+  page's strip) and W6 (the friend New game page's Create code row). RULING:
+  - The boards' action row (Puzzle, computer, friend, Games Review): there is no room for LightOS's
+    53 dp bottom bar under the board (the top bar's 40 dp and the board's 312 leave 37.33 dp), so the
+    row keeps its place and layout E's geometry (centred group, 8 dp padding, each target the row's
+    full height) and takes the bar's text: `LightTextVariant.Button`, all caps through
+    `ActionBarLayout.label` ("HINT", "MOVE NOW", "CLAIM WIN"). TalkBack keeps the sentence-case
+    descriptions. E13's ink is now the capitals': `BarLayout.BUTTON_INK_ASCENT` 0.711 em (Roboto
+    Medium's cap height), no descent, centred as before between the Captured Pieces' ink and the
+    row's bottom (about 3.8 dp clear of each on the LP3; on the emulator the ink measured 50 px above
+    and 49 below, centred). The 15 dp drawings, sized for `Copy`'s taller ink, keep their size.
+  - The invite page: no strip. The status ("Expires in 48h", "Tap again to cancel", "Not sent", a
+    notice) is a lightened `Copy` line in the page under the code's note; the Menu mark moves to the
+    top bar's right, the boards' painter (E1); "CANCEL" or "RETRY" sits alone in `ActionBar`,
+    centred; a notice shows no button. `Strip` and the strip-only `StripLayout` measures are deleted.
+  - The friend New game page: "CREATE CODE" alone in `ActionBar`, as the computer's New game page's
+    "START GAME" (LD2); "SENDING" while it is sent; lightened and inert while sending or at the cap
+    of five (W6). The cap's line stays in the page.
+  - Join game: the SDK text editor's own bottom bar gets `ActionBarLayout.label(UiCopy.JOIN)`,
+    "JOIN" (the SDK shows the label as given; it is not edited).
+  - Menu rows (Resign, Offer draw, Reset rating, ...) are list items and stay `Copy`. Rename's "Save"
+    (the same SDK editor as Join) shows "SAVE" (owner: every text button).
+  - Tests: `StripFitTest` measures the action row's labels as `Button` caps with 0.15 em tracking
+    (every combination still fits within the board's edges), the new baselines (33.53 dp on a Game's
+    board, 25.58 on the Puzzle board) and each invite status in the page's 312 dp line;
+    `ActionBarFitTest` adds Create code, Sending, Cancel, Retry and Join.
+- LD4 One tap starts a new Game. AMENDS F7 for the new-game page (F7's second tap stays for the
+  unbuilt "Play from here", where one stray tap in a Puzzle's Menu would end the Game against the
+  computer). RULING (owner, 2026-11-21): START GAME starts the new Game at once, also while a Game is
+  in progress; there is no second tap and no "Tap again to replace". The page's note, shown whenever
+  a Game is in progress, now reads "Your current Game will be saved to Games as unfinished." (was
+  "The Game in progress is saved as unfinished.").
+  - Why: with a Game in progress the page is reached only deliberately (Home's Play the computer
+    opens the board; the page is board, Menu, New game, then the choices), the note says what happens
+    before the tap, and nothing is lost: `GameData.startNew` files the old Game at the top of Games,
+    Unfinished, to replay (the list keeps the last 50). A first pass relabelled the second tap "START
+    NEW GAME"; the owner asked why two taps at all.
+  - The Menu rows' "Tap again to resign / reset / forget" and the invite page's "Tap again to cancel"
+    status are list rows and a status line, not buttons, and keep their second tap and copy.
+  - `Confirm.REPLACE` and `UiCopy.REPLACE_CONFIRM` are gone. Test: `GameFlowTest` "one Game at a
+    time, Start replaces it at once and saves it unfinished (LD4)".

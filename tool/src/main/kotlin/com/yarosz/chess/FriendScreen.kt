@@ -35,9 +35,9 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.yarosz.chess.board.PieceSet
-import com.yarosz.chess.board.Strip
 import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Wheel
+import com.yarosz.chess.board.menuMark
 import com.yarosz.chess.correspondence.CorrespondenceGame
 import com.yarosz.chess.correspondence.Delivery
 import com.yarosz.chess.correspondence.Refusal
@@ -59,7 +59,7 @@ import kotlinx.coroutines.flow.SharedFlow
 enum class FriendPage(val title: String, val scrolls: Boolean) {
     NEW(UiCopy.NEW_GAME, true),
     INVITE(UiCopy.INVITE, false),
-    ENTER_CODE(UiCopy.ENTER_CODE, false),
+    ENTER_CODE(UiCopy.JOIN_GAME, false),
     MENU(UiCopy.MENU_TITLE, true),
     MOVES(UiCopy.MOVES, true),
     RENAME(UiCopy.RENAME, false),
@@ -205,13 +205,10 @@ class FriendScreen(
                 FriendPage.ENTER_CODE -> EnterCode()
                 FriendPage.RENAME -> if (game != null) Rename(game) else LaunchedEffect(Unit) { goBack() }
                 else -> Column(Modifier.fillMaxSize().background(LightThemeTokens.colors.background)) {
-                    LightTopBar(
-                        leftButton = LightBarButton.LightIcon(icon = LightIcons.BACK, onClick = { goBack() }, contentDescription = UiCopy.BACK_DESCRIPTION),
-                        center = LightTopBarCenter.Text(page.title),
-                    )
                     when (page) {
                         FriendPage.INVITE -> if (game != null) Invite(game, state) else LaunchedEffect(Unit) { goBack(FriendExit()) }
                         else -> {
+                            PageTopBar(page)
                             val scrollState = rememberScrollState()
                             val rowPx = with(LocalDensity.current) { Rows.HEIGHT.toPx() }
                             LaunchedEffect(page) {
@@ -226,6 +223,7 @@ class FriendScreen(
                                     else -> {}
                                 }
                             }
+                            if (page == FriendPage.NEW) NewGameBar(state)
                         }
                     }
                 }
@@ -233,7 +231,17 @@ class FriendScreen(
         }
     }
 
-    /** New game (W6): Play as, Days per move (1 / 3 / 7, default 3, C2), then Create code. */
+    /** A page's LightOS top bar: the back arrow, its title, and the Menu mark where it has one ([menu], E1, LD3). */
+    @Composable
+    private fun PageTopBar(page: FriendPage, menu: StripButton? = null) {
+        LightTopBar(
+            leftButton = LightBarButton.LightIcon(icon = LightIcons.BACK, onClick = { goBack() }, contentDescription = UiCopy.BACK_DESCRIPTION),
+            center = LightTopBarCenter.Text(page.title),
+            rightButton = menu?.let { menuMark(it) },
+        )
+    }
+
+    /** New game (W6): Play as, Days per move (1 / 3 / 7, default 3, C2); Create code is in its bar (LD3). */
     @Composable
     private fun NewGame(state: FriendState) {
         val vm = viewModel
@@ -241,18 +249,23 @@ class FriendScreen(
         MenuChoices(listOf(UiCopy.WHITE, UiCopy.BLACK, UiCopy.RANDOM), vm.side.ordinal) { vm.side = SideChoice.entries[it] }
         MenuLine(UiCopy.DAYS_PER_MOVE)
         MenuChoices(Protocol.DAYS_PER_MOVE.map { "$it" }, Protocol.DAYS_PER_MOVE.indexOf(vm.days)) { vm.days = Protocol.DAYS_PER_MOVE[it] }
-        MenuRow(if (vm.busy) UiCopy.SENDING else UiCopy.CREATE_CODE, lighten = vm.busy || state.full) {
-            if (state.full) return@MenuRow
-            vm.create()
-        }
         val error = vm.error ?: UiCopy.refusal(Refusal.CAP_REACHED).takeIf { state.full }
         if (error != null) MenuLine(error, lighten = true)
+    }
+
+    /** New game's bar (LD3): Create code, "Sending" and lightened while it is sent or at the cap of five (W6). */
+    @Composable
+    private fun NewGameBar(state: FriendState) {
+        val vm = viewModel
+        val label = if (vm.busy) UiCopy.SENDING else UiCopy.CREATE_CODE
+        ActionBar(listOf(StripButton(label, label, enabled = !vm.busy && !state.full) { vm.create() }))
     }
 
     /**
      * The invite (W6, G2): the code as ABCD-EFGH, the largest text on the page and alone on its line (in
      * LightOS Subtitle: Title is too wide for nine characters on the LP3),
-     * the note below it, and the strip with the Menu mark (N4). Once the friend takes the Seat, the board opens.
+     * the note below it, then the status, lightened (LD3); the Menu mark in the top bar (N4, E1) and
+     * Cancel or Retry in LightOS's bottom bar (LD3). Once the friend takes the Seat, the board opens.
      */
     @Composable
     private fun Invite(game: CorrespondenceGame, state: FriendState) {
@@ -265,7 +278,9 @@ class FriendScreen(
         }
         LaunchedEffect(game.stage) { if (game.stage != Stage.WAITING) goBack(FriendExit(game.gameId)) }
         val code = game.invite?.code
+        val strip = FriendStrip.invite(game, now, vm.confirming == FriendConfirm.CANCEL, state.notices[game.gameId]?.text)
         Column(Modifier.fillMaxSize()) {
+            PageTopBar(FriendPage.INVITE, StripButton(UiCopy.MENU_DESCRIPTION) { open(FriendPage.MENU) }.takeIf { strip.menu })
             Column(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 24.dp).padding(top = 24.dp)) {
                 if (code != null) {
                     LightText(
@@ -279,8 +294,14 @@ class FriendScreen(
                 } else {
                     LightText(text = UiCopy.friendRow(game.label, UiCopy.REMATCH_SENT), variant = LightTextVariant.Copy, modifier = Modifier.fillMaxWidth())
                 }
+                LightText(
+                    text = strip.status,
+                    variant = LightTextVariant.Copy,
+                    lighten = true,
+                    align = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                )
             }
-            val strip = FriendStrip.invite(game, now, vm.confirming == FriendConfirm.CANCEL, state.notices[game.gameId]?.text)
             val buttons = strip.buttons.map { button ->
                 StripButton(button.label, button.description) {
                     when (button) {
@@ -290,24 +311,23 @@ class FriendScreen(
                     }
                 }
             }
-            val menu = StripButton(UiCopy.MENU_DESCRIPTION) { open(FriendPage.MENU) }
-            Strip(strip.status, buttons, Modifier.padding(bottom = 8.dp), menu = menu.takeIf { strip.menu })
+            if (buttons.isNotEmpty()) ActionBar(buttons)
         }
     }
 
-    /** Enter code (W6): one field on the LP3 keyboard, then Join; the title carries the answer. */
+    /** Enter code (W6): one field on the LP3 keyboard, then JOIN in the SDK's bottom bar (LD3); the title carries the answer. */
     @Composable
     private fun EnterCode() {
         val vm = viewModel
         val text = rememberTextFieldState()
         LightTextInputEditor(
-            title = if (vm.busy) UiCopy.SENDING else vm.error ?: UiCopy.ENTER_CODE,
+            title = if (vm.busy) UiCopy.SENDING else vm.error ?: UiCopy.JOIN_GAME,
             state = text,
             onSubmit = { typed -> vm.redeem(typed.toString()) { id -> goBack(FriendExit(id)) } },
             onBack = { goBack() },
             keyboardOptionsFlow = rememberKeyboardOptions(),
             modifier = Modifier.background(LightThemeTokens.colors.background),
-            submitLabel = UiCopy.JOIN,
+            submitLabel = ActionBarLayout.label(UiCopy.JOIN),
             singleLine = true,
             initialCaps = true,
         )
@@ -327,7 +347,7 @@ class FriendScreen(
             onBack = { goBack() },
             keyboardOptionsFlow = rememberKeyboardOptions(),
             modifier = Modifier.background(LightThemeTokens.colors.background),
-            submitLabel = UiCopy.SAVE,
+            submitLabel = ActionBarLayout.label(UiCopy.SAVE),
             singleLine = true,
         )
     }

@@ -18,8 +18,8 @@ import com.yarosz.chess.relay.EntryKind
 /** Home's rows (N1, N11), in their order. */
 enum class HomeEntry { PUZZLES, PLAY_COMPUTER, PLAY_FRIEND, GAMES, ABOUT }
 
-/** One row of Home: its text, with its status ("Play a friend · Your move: 2"), and what it is. */
-data class HomeRow(val text: String, val entry: HomeEntry)
+/** One row of Home: its text ("Play a friend*" while a Game waits on the user, LD1), its spoken label, and what it is. */
+data class HomeRow(val text: String, val entry: HomeEntry, val description: String = text)
 
 /**
  * Home's rows (N11), as pure data so `HomeTest` checks their text and order: Puzzles, Play the
@@ -30,7 +30,7 @@ object HomeRows {
     fun of(yourMove: Int?): List<HomeRow> = buildList {
         add(HomeRow(UiCopy.PUZZLES, HomeEntry.PUZZLES))
         add(HomeRow(UiCopy.PLAY_COMPUTER, HomeEntry.PLAY_COMPUTER))
-        if (yourMove != null) add(HomeRow(UiCopy.playFriend(yourMove), HomeEntry.PLAY_FRIEND))
+        if (yourMove != null) add(HomeRow(UiCopy.playFriend(yourMove), HomeEntry.PLAY_FRIEND, UiCopy.playFriendDescription(yourMove)))
         add(HomeRow(UiCopy.GAMES, HomeEntry.GAMES))
         add(HomeRow(UiCopy.ABOUT, HomeEntry.ABOUT))
     }

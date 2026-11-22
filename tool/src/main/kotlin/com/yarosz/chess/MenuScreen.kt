@@ -30,9 +30,9 @@ import com.thelightphone.sdk.ui.LightThemeTokens
 import com.thelightphone.sdk.ui.LightTopBar
 import com.thelightphone.sdk.ui.LightTopBarCenter
 import com.yarosz.chess.board.PieceSet
+import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.engine.ThinkTime
-import com.yarosz.chess.games.Confirm
 import com.yarosz.chess.games.GameChoices
 import com.yarosz.chess.games.GameState
 import com.yarosz.chess.games.Phase
@@ -163,9 +163,13 @@ class MenuViewModel(
         choices = next
     }
 
-    /** Start (or its second tap while a Game is in progress, F7); true when the Game started. */
+    private var started = false
+
+    /** Start game: one tap, a Game in progress saved as unfinished (LD4); true when the Game started. */
     fun start(): Boolean {
-        val started = game.start(choices)
+        // A second tap before the page leaves would file the Game just started as unfinished.
+        if (started) return false
+        started = game.start(choices)
         if (started) modes.set(Mode.GAME)
         return started
     }
@@ -304,6 +308,7 @@ class MenuScreen(
                         MenuPage.MOVES -> gameState?.record?.let { MoveList(it.game) }
                     }
                 }
+                if (page == MenuPage.NEW_GAME) NewGameBar()
             }
         }
     }
@@ -345,7 +350,7 @@ class MenuScreen(
         }
     }
 
-    /** The new-game page: Level 1-8, the Side to play, Think Time at Level 8, and Start (F7, F11). */
+    /** The new-game page: Level 1-8, the Side to play, Think Time at Level 8 (F7, F11); Start game is in its bar (LD2). */
     @Composable
     private fun NewGame(state: GameState?) {
         val vm = viewModel
@@ -363,10 +368,12 @@ class MenuScreen(
                 vm.choose(choices.copy(thinkTimeSeconds = all[it]))
             }
         }
-        val replacing = state?.confirming == Confirm.REPLACE
-        MenuRow(if (replacing) UiCopy.REPLACE_CONFIRM else UiCopy.START) {
-            if (vm.start()) done()
-        }
         if (state?.inProgress == true) MenuLine(UiCopy.REPLACE_NOTE, lighten = true)
+    }
+
+    /** New game's bar (LD2): Start game, one tap even over a Game in progress (LD4). */
+    @Composable
+    private fun NewGameBar() {
+        ActionBar(listOf(StripButton(UiCopy.START_GAME) { if (viewModel.start()) done() }))
     }
 }

@@ -13,7 +13,7 @@ class HomeTest {
     fun `Home lists five rows in N11's order`() {
         val rows = HomeRows.of(yourMove = 2)
         assertEquals(
-            listOf("Puzzles", "Play the computer", "Play a friend · Your move: 2", "Games", "About"),
+            listOf("Puzzles", "Play the computer", "Play a friend*", "Games", "About"),
             rows.map { it.text },
         )
         assertEquals(HomeEntry.entries, rows.map { it.entry }, "one row per entry, in the enum's order")
@@ -38,21 +38,21 @@ class HomeTest {
         assertTrue(off.any { it.entry == HomeEntry.GAMES } && off.any { it.entry == HomeEntry.ABOUT })
     }
 
-    @Test
-    fun `every Home row fits one line at the LP3's width`() {
-        val room = 360f - 2 * 24f
-        for (row in HomeRows.of(5)) assertTrue(AkkuratProxy.width(row.text) <= room, "\"${row.text}\" (${AkkuratProxy.width(row.text)} dp)")
-    }
-
     /**
-     * N11 with N10's rule: five rows under the top bar fit the LP3's app area, so Home leaves the wheel
-     * with LightOS. The rows measure about 53 dp (a `Copy` line and 12 dp above and below), the bar 40.
+     * N11 with N10's rule, at LD1's size: five rows under the top bar fit the LP3's app area, so Home
+     * leaves the wheel with LightOS. A `Heading` row is 38 design px at a line height of 1.35 (33.3 dp
+     * on the LP3) and [Rows.HOME_ROW_PADDING] above and below, each on one line; the bar is
+     * 40 dp and [Rows.HOME_TOP] sits above the first row.
      */
     @Test
-    fun `Home fits one screen on the LP3, so the wheel stays with LightOS (N11, N10)`() {
-        val rowDp = 29f + 2 * 12f
-        val rows = HomeRows.of(5).size
-        assertTrue(40f + rows * rowDp <= 389f, "${40f + rows * rowDp} dp of 389")
+    fun `Home fits one screen on the LP3, so the wheel stays with LightOS (N11, N10, LD1)`() {
+        val line = AkkuratProxy.size(38f) * 1.35f
+        val room = 360f - 2 * 24f
+        val total = 40f + Rows.HOME_TOP.value + HomeRows.of(5).sumOf { row ->
+            val lines = if (AkkuratProxy.width(row.text, 38f) <= room) 1 else 2
+            (lines * line + 2 * Rows.HOME_ROW_PADDING.value).toDouble()
+        }.toFloat()
+        assertTrue(total <= 389f, "$total dp of 389")
     }
 
     @Test

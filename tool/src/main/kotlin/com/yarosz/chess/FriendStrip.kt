@@ -30,8 +30,8 @@ enum class FriendButton(val label: String, val description: String) {
 
 /**
  * What a Correspondence Game's strip shows (W4), as pure data so `StripFitTest` checks every case:
- * one line each but for a Result (R4.16). The invite page's strip is [invite]. A board's strip has the
- * back arrow at its left (N3); [menu] is whether the Menu mark sits at its right (N4).
+ * one line each but for a Result (R4.16). The invite page's is [invite]. A board's top bar has the
+ * back arrow at its left (N3); [menu] is whether the Menu mark sits at its right (N4, E1).
  */
 data class FriendStrip(val status: String, val buttons: List<FriendButton>, val statusLines: Int = 1, val menu: Boolean = true) {
     companion object {
@@ -93,10 +93,10 @@ data class FriendStrip(val status: String, val buttons: List<FriendButton>, val 
         }
 
         /**
-         * The invite page's strip (W4, G2): "Expires in 48h" with Cancel and the Menu mark; after one
-         * tap on Cancel ([confirming]), "Tap again to cancel" next to Cancel alone; a cancel the Relay
-         * hasn't confirmed, "Not sent" with Retry. The page's top bar has the back arrow, so its strip
-         * has none.
+         * The invite page's status and buttons (W4, G2, LD3): "Expires in 48h" with Cancel and the Menu
+         * mark; after one tap on Cancel ([confirming]), "Tap again to cancel" with Cancel and no mark; a
+         * cancel the Relay hasn't confirmed, "Not sent" with Retry. The status is a line in the page,
+         * the mark in its top bar and the button in LightOS's bottom bar.
          */
         fun invite(game: CorrespondenceGame, now: Long, confirming: Boolean = false, notice: String? = null): FriendStrip {
             val invite = game.invite
