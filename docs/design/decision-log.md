@@ -1940,8 +1940,8 @@ LightOS, each with a mock-up. The owner asked for both.
 - LD2 Text buttons in LightOS's bottom bar, all caps. AMENDS W6/N7 (the Play a friend list's strip)
   and F7 (the new-game page's Start row). RULING: the Play a friend list's buttons are "NEW GAME" and
   "JOIN GAME" (which opens Enter code, unchanged) in the bottom bar, one at each end; the new-game
-  page's Start row becomes "START GAME" alone in the bar, centred, and its second tap's prompt (F7; "START NEW GAME" since LD4)
-  takes its place. "Join game" replaces "Enter code" everywhere, as Light's
+  page's Start row becomes "START GAME" alone in the bar, centred, and its second tap's prompt (F7; gone since LD4, one tap
+  starts) took its place. "Join game" replaces "Enter code" everywhere, as Light's
   mock-up has it (owner, 2026-11-21): the list's button, the page's title (then "Sending" and the
   answers, unchanged), and the empty list's "Create a code for a friend, or join theirs." "Code"
   stays for the thing typed. `ActionBar` copies light-sdk
@@ -1979,13 +1979,18 @@ LightOS, each with a mock-up. The owner asked for both.
     (every combination still fits within the board's edges), the new baselines (33.53 dp on a Game's
     board, 25.58 on the Puzzle board) and each invite status in the page's 312 dp line;
     `ActionBarFitTest` adds Create code, Sending, Cancel, Retry and Join.
-- LD4 New game's second-tap prompt says what it does. AMENDS F7's copy (two taps, unchanged). RULING
-  (owner, 2026-11-21): with a Game in progress, START GAME's first tap turns it into "START NEW GAME"
-  (was "Tap again to replace"), and the page's note reads "Your current Game will be saved to Games
-  as unfinished." (was "The Game in progress is saved as unfinished."). The label changing, with the
-  note, is the confirmation: no separate Confirm step.
-  - Why: alone in the bottom bar, "TAP AGAIN TO REPLACE" read as a command, and "replace" suggested
-    the old Game is overwritten. It isn't: `GameData.startNew` files it at the top of Games, marked
-    Unfinished, to replay but not to continue (the list keeps the last 50).
+- LD4 One tap starts a new Game. AMENDS F7 for the new-game page (F7's second tap stays for the
+  unbuilt "Play from here", where one stray tap in a Puzzle's Menu would end the Game against the
+  computer). RULING (owner, 2026-11-21): START GAME starts the new Game at once, also while a Game is
+  in progress; there is no second tap and no "Tap again to replace". The page's note, shown whenever
+  a Game is in progress, now reads "Your current Game will be saved to Games as unfinished." (was
+  "The Game in progress is saved as unfinished.").
+  - Why: with a Game in progress the page is reached only deliberately (Home's Play the computer
+    opens the board; the page is board, Menu, New game, then the choices), the note says what happens
+    before the tap, and nothing is lost: `GameData.startNew` files the old Game at the top of Games,
+    Unfinished, to replay (the list keeps the last 50). A first pass relabelled the second tap "START
+    NEW GAME"; the owner asked why two taps at all.
   - The Menu rows' "Tap again to resign / reset / forget" and the invite page's "Tap again to cancel"
-    status are list rows and a status line, not buttons, and keep their copy.
+    status are list rows and a status line, not buttons, and keep their second tap and copy.
+  - `Confirm.REPLACE` and `UiCopy.REPLACE_CONFIRM` are gone. Test: `GameFlowTest` "one Game at a
+    time, Start replaces it at once and saves it unfinished (LD4)".

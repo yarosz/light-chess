@@ -33,7 +33,6 @@ class ActionBarFitTest {
         assertEquals("START GAME", ActionBarLayout.label(UiCopy.START_GAME))
         assertEquals("NEW GAME", ActionBarLayout.label(UiCopy.NEW_GAME))
         assertEquals("JOIN GAME", ActionBarLayout.label(UiCopy.JOIN_GAME))
-        assertEquals("START NEW GAME", ActionBarLayout.label(UiCopy.REPLACE_CONFIRM))
         assertEquals("CREATE CODE", ActionBarLayout.label(UiCopy.CREATE_CODE))
         assertEquals("SENDING", ActionBarLayout.label(UiCopy.SENDING))
         assertEquals("CANCEL", ActionBarLayout.label(UiCopy.CANCEL))
@@ -48,7 +47,7 @@ class ActionBarFitTest {
      */
     @Test
     fun aLoneButtonFitsTheBar() {
-        val lone = listOf(UiCopy.START_GAME, UiCopy.REPLACE_CONFIRM, UiCopy.CREATE_CODE, UiCopy.SENDING, UiCopy.CANCEL, UiCopy.RETRY, UiCopy.JOIN)
+        val lone = listOf(UiCopy.START_GAME, UiCopy.CREATE_CODE, UiCopy.SENDING, UiCopy.CANCEL, UiCopy.RETRY, UiCopy.JOIN)
         for (label in lone) {
             val w = buttonWidth(ActionBarLayout.label(label))
             assertTrue(w <= width - 2 * EDGE, "\"$label\" is $w dp")

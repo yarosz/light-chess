@@ -33,7 +33,6 @@ import com.yarosz.chess.board.PieceSet
 import com.yarosz.chess.board.StripButton
 import com.yarosz.chess.board.Wheel
 import com.yarosz.chess.engine.ThinkTime
-import com.yarosz.chess.games.Confirm
 import com.yarosz.chess.games.GameChoices
 import com.yarosz.chess.games.GameState
 import com.yarosz.chess.games.Phase
@@ -164,7 +163,7 @@ class MenuViewModel(
         choices = next
     }
 
-    /** Start (or its second tap while a Game is in progress, F7); true when the Game started. */
+    /** Start game: one tap, a Game in progress saved as unfinished (LD4); true when the Game started. */
     fun start(): Boolean {
         val started = game.start(choices)
         if (started) modes.set(Mode.GAME)
@@ -305,7 +304,7 @@ class MenuScreen(
                         MenuPage.MOVES -> gameState?.record?.let { MoveList(it.game) }
                     }
                 }
-                if (page == MenuPage.NEW_GAME) NewGameBar(gameState)
+                if (page == MenuPage.NEW_GAME) NewGameBar()
             }
         }
     }
@@ -368,10 +367,9 @@ class MenuScreen(
         if (state?.inProgress == true) MenuLine(UiCopy.REPLACE_NOTE, lighten = true)
     }
 
-    /** New game's bar (LD2): Start game, or its second tap's prompt while a Game is in progress (F7). */
+    /** New game's bar (LD2): Start game, one tap even over a Game in progress (LD4). */
     @Composable
-    private fun NewGameBar(state: GameState?) {
-        val label = if (state?.confirming == Confirm.REPLACE) UiCopy.REPLACE_CONFIRM else UiCopy.START_GAME
-        ActionBar(listOf(StripButton(label, label) { if (viewModel.start()) done() }))
+    private fun NewGameBar() {
+        ActionBar(listOf(StripButton(UiCopy.START_GAME) { if (viewModel.start()) done() }))
     }
 }

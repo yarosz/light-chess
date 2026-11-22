@@ -111,7 +111,6 @@ object UiCopy {
 
     /** New game's bar button (LD2). */
     const val START_GAME = "Start game"
-    const val REPLACE_CONFIRM = "Start new game"
     const val REPLACE_NOTE = "Your current Game will be saved to Games as unfinished."
 
     /** The Tool's version; `ToolMetadataTest` holds it equal to `versionName` in `tool/lighttool.toml`. */
