@@ -76,7 +76,8 @@ out of type names.
 - `serverPackage` in `tool/lighttool.toml` stays `"com.lightos"` (LightOS on the phone): Light builds
   releases from the committed file. Emulator builds swap it at build time via `scripts/emulator-build.sh`
   (`mise run tool` and `mise run ci` already do), which also passes
-  `-DlightSdk.allowAltServerPackage=true`: since light-sdk v0.2.10 the plugin refuses another value without it. A unit test and `light-build.sh` enforce this.
+  `-DlightSdk.allowAltServerPackage=true`: since light-sdk v0.2.10 the plugin refuses another value
+  without it. A unit test and `light-build.sh` enforce this.
 - Assets under `tool/src/main/assets/` must use Light's allowlisted extensions and stay under 5 MB per
   file (the Pack is one `.txt` per Band for this reason, ADR 0003).
 

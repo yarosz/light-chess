@@ -24,13 +24,14 @@ Game waits on the user; every text button in caps, in LightOS's bottom bar where
 GAME, NEW GAME / JOIN GAME, CANCEL, CREATE CODE) and in place under the boards; "Join game" replaces
 "Enter code"; one tap starts a new Game against the computer. The SDK bump from v0.2.0 to v0.2.10
 renamed the text editor's `initialCaps` to `autoCapitalize`; `gradle.properties` `sdkVersion`
-selects Light's builder image. v0.2.6+ adds notifications, alerts, push (undocumented) and backups:
+selects Light's builder image. The SDK also offers notifications and push (since v0.2.1; push is
+undocumented) and backups (v0.2.3); scheduled alerts are on its `main`, in no tag yet:
 FOLLOW-UPS below.
 SUBMITTED: 0.5.0 went to Light's Tool Library on 2026-10-09 (RELEASING.md "After merge and tag");
 Light accepted it, and its Tool Library team sent the design note 0.5.1 answers (2026-11-11).
 Light's build (Version 7, from a9fd300) succeeded, and Light's signed APK matches our unsigned build
 entry for entry, plus Light's signing files (`stamp-cert-sha256`, the META-INF v1 signature files,
-`light-trust.json`). Awaiting Light's approval.
+`light-trust.json`). Light accepted it (2026-11-11).
 FOR THE OWNER (none blocks development): Light's build can't install over a dev-signed build (the
 signatures differ), and uninstalling deletes the Player Rating, Missed and the Games, so switching
 the owner's LP3 to Light's build needs a plan first (carry the files over, or accept the loss).
@@ -45,7 +46,7 @@ screenshots) were taken on the LP3: for 0.5.0 a Puzzle with its Hint, a live Gam
 Game; the README's since 0.5.1: Home, a Puzzle with its Hint, a live Game with a friend.
 Optional: Always Use HTTPS/HSTS on the Relay's zone (the Worker already refuses plain HTTP, L3).
 NEXT MILESTONE (owner, 2026-11-21): notifications ("Your move" in a friend Game while Chess is
-closed: a periodic sync job or Relay push, `POST_NOTIFICATIONS`; light-sdk v0.2.6+ `notifications`)
+closed: a periodic sync job or Relay push, `POST_NOTIFICATIONS`; light-sdk `notifications`, since v0.2.1)
 and backups (light-sdk docs/backups: Tool Manager `canBeBackedUp` for the save files).
 FOLLOW-UPS (low, from code review; none blocking):
 - LightOS's "Allowed Tools" setting has four values: Default Only, Community Tools (Light-approved),
@@ -70,7 +71,11 @@ FOLLOW-UPS (low, from code review; none blocking):
   config; a cold-started `friend-send` job REPLACEs itself once (FriendOwner init).
 - Navigation D: `Rows.HEIGHT` (48 dp) is the wheel step while Home's and the pages' rows measure
   about 53 dp, so a detent scrolls slightly under a row (predates Navigation D).
-LP3 CHECKS. Done on the LP3 on 2026-10-03, in Akkurat: the arrow's ink at pixels 48-82, with the
+LP3 CHECKS. Done for 0.5.1 on 2026-11-21, in Akkurat on LightOS 592: Home at Heading size and
+"Play a friend*"; the caps action rows and bottom bars against Light's mock-ups; About "Chess
+0.5.1"; on SDK v0.2.10's text editor (no external keyboard app on 592, so the built-in keyboard),
+Join game answers "No such code" in its title and keeps the field, and Rename's SAVE stores the label.
+Done on the LP3 on 2026-10-03, in Akkurat: the arrow's ink at pixels 48-82, with the
 Menu mark level with it; Home's first view (five rows fit); the Pieces preview in a board's Menu; a
 fast scrub back past a Review's start leaves the brightness alone (N20); each button's target is the
 whole row (#22: Hint and Solution span 1056-1240 px). Still open, to confirm or drop: the widest

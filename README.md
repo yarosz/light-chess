@@ -8,8 +8,8 @@ Or play the computer at one of eight Levels, on the phone itself, or a friend by
 few days per Move. No account and nothing tracked; only Games with a friend use the network.
 
 > **Status: 0.5.1. Puzzles (v1), playing the computer (v2) and playing a friend by correspondence
-> (v3) are done. Light has accepted Chess for its Tool Library, which is not open yet.** A Light Phone III Tool built on
-> [Light's SDK](https://github.com/lightphone/light-sdk).
+> (v3) are done. Light has reviewed and accepted Chess. It is not listed by Light yet.** A Light
+> Phone III Tool built on [Light's SDK](https://github.com/lightphone/light-sdk).
 
 Questions or bugs: https://github.com/yarosz/light-chess/issues
 
@@ -42,9 +42,9 @@ _Home, a Puzzle with its Hint, and a live Game with a friend. Taken on a Light P
   GAME replaces a Game in progress at once, and the old one goes to Games, unfinished. A Game
   in progress is kept when you leave, and Games lists your last 50 finished ones to look back
   through.
-- **Play a friend.** NEW GAME creates an Invite Code to tell your friend. It works once, for 48
-  hours. JOIN GAME takes your friend's code. Choose 1, 3 or 7 days per Move. Each Move waits for SEND,
-  with UNDO until then. The Menu has
+- **Play a friend.** NEW GAME opens a page where you choose your Side and 1, 3 or 7 days per Move.
+  CREATE CODE then makes an Invite Code to tell your friend. It works once, for 48 hours. JOIN GAME
+  takes your friend's code. Each Move waits for SEND, with UNDO until then. The Menu has
   Offer draw and Resign; a finished Game offers a rematch. Moves pass through Chess's Relay, with no
   name or account. While both phones have the Game open, Moves arrive at once and the board shows
   "Live · Your move" or "Live · Their move".
