@@ -573,8 +573,8 @@ set (`RelayConfig`, W8).
 - Button labels: "Send" ("Send this Move"), "Undo" ("Take this Move back before it is sent"),
   "Retry" ("Send it again"), "Accept" ("Accept the draw", "Accept the rematch"), "Decline" ("Decline
   the draw", "Decline the rematch"), "Rematch" ("Offer a rematch, Sides swapped"), "Cancel" ("Cancel
-  this invite"), "Create code", "Save". On the boards and in the bottom bar they show in caps (LD2,
-  LD3); Rename's "Save" is the SDK text editor's, unchanged.
+  this invite"), "Create code", "Save". On the boards, in the bottom bar and as the text editor's
+  submit ("JOIN", "SAVE") they show in caps (LD2, LD3).
 - Games lists finished Correspondence Games with the others: "2026.09.28 · ABCD · Won".
 - About, once the Relay URL is set: "Chess uses the network only for Games with a friend: it sends
   their Moves to its Relay, with no name or account, and the Relay deletes each Game within 30 days of

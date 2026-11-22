@@ -347,7 +347,7 @@ class FriendScreen(
             onBack = { goBack() },
             keyboardOptionsFlow = rememberKeyboardOptions(),
             modifier = Modifier.background(LightThemeTokens.colors.background),
-            submitLabel = UiCopy.SAVE,
+            submitLabel = ActionBarLayout.label(UiCopy.SAVE),
             singleLine = true,
         )
     }

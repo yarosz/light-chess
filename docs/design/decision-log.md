@@ -1974,7 +1974,7 @@ LightOS, each with a mock-up. The owner asked for both.
   - Join game: the SDK text editor's own bottom bar gets `ActionBarLayout.label(UiCopy.JOIN)`,
     "JOIN" (the SDK shows the label as given; it is not edited).
   - Menu rows (Resign, Offer draw, Reset rating, ...) are list items and stay `Copy`. Rename's "Save"
-    (the same SDK editor as Join) was outside this ruling's named scope and is unchanged.
+    (the same SDK editor as Join) shows "SAVE" (owner: every text button).
   - Tests: `StripFitTest` measures the action row's labels as `Button` caps with 0.15 em tracking
     (every combination still fits within the board's edges), the new baselines (33.53 dp on a Game's
     board, 25.58 on the Puzzle board) and each invite status in the page's 312 dp line;
