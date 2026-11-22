@@ -41,7 +41,8 @@ What remains for Light is whether it signs a GPLv3 Tool; the owner decides what 
 The listing text should answer TOOL_GUIDELINES.md: Puzzles and the computer are fully offline;
 Games with a friend send Moves through the Relay, whose code is in this repo and runs on Cloudflare;
 the privacy disclosure is UiCopy.PRIVACY_FRIENDS. The listing images (and the README's
-screenshots) were taken on the LP3: a Puzzle with its Hint, a live Game with a friend, a won Game.
+screenshots) were taken on the LP3: for 0.5.0 a Puzzle with its Hint, a live Game with a friend, a won
+Game; the README's since 0.5.1: Home, a Puzzle with its Hint, a live Game with a friend.
 Optional: Always Use HTTPS/HSTS on the Relay's zone (the Worker already refuses plain HTTP, L3).
 NEXT MILESTONE (owner, 2026-11-21): notifications ("Your move" in a friend Game while Chess is
 closed: a periodic sync job or Relay push, `POST_NOTIFICATIONS`; light-sdk v0.2.6+ `notifications`)
