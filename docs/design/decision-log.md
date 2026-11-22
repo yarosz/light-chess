@@ -1921,7 +1921,7 @@ consistent with the log.
     line; the page's provisional line).
 
 ## Light's design note (Light, 2026-11-11; owner, 2026-11-21)
-Light's co-founder reviewed the 0.5.0 submission (accepted as it was) and sent two notes on matching
+Light's Tool Library team reviewed the 0.5.0 submission (accepted as it was) and sent two notes on matching
 LightOS, each with a mock-up. The owner asked for both.
 - LD1 Home's rows at LightOS `Heading` size. AMENDS N11 (its five rows, order and wheel rule are
   unchanged). RULING: Home's rows use `LightTextVariant.Heading` (38 design px) instead of `Copy`
