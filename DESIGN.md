@@ -346,8 +346,8 @@ copy for the object on screen, while code names the chess state a Position.
 - The seed screen (D4): "How well do you play chess?", then "I'm new to chess" (800), "I play now and
   then" (1200), "I play often and study the game" (1600), "I play in a club or in tournaments" (2000),
   and "Skip" (1500).
-- Home (N11, Q1): the title "Chess", then "Puzzles", "Play the computer", "Play a friend · Your
-  move: 2", "Games", "About". The rows are LightOS `Heading` size (LD1), each on one line (`ActionBarFitTest`); "Play a
+- Home (N11, Q1): the title "Chess", then "Puzzles", "Play the computer", "Play a friend" (or
+  "Play a friend*"), "Games", "About". The rows are LightOS `Heading` size (LD1), each on one line (`ActionBarFitTest`); "Play a
   friend*" carries LightOS's notification asterisk while a Game waits on your Move. Each page is its own
   screen, so Back, the arrow or the system's, goes from a page one level down (N16); Reset rating
   and a Missed replay go straight to the Puzzle board, over the Puzzles page.

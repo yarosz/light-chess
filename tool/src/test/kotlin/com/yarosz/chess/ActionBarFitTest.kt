@@ -42,7 +42,7 @@ class ActionBarFitTest {
 
     /**
      * One button is centred across the whole bar (the SDK pads it by 0), kept 16 dp clear of each edge,
-     * the back arrow's inset: New game's Start game and its second tap's prompt (LD2); the friend New
+     * the back arrow's inset: New game's Start game (LD2); the friend New
      * game's Create code and Sending, the invite page's Cancel and Retry, and Join game's Join (LD3).
      */
     @Test

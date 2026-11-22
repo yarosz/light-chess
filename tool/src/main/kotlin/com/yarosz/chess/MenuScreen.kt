@@ -163,9 +163,13 @@ class MenuViewModel(
         choices = next
     }
 
+    private var started = false
+
     /** Start game: one tap, a Game in progress saved as unfinished (LD4); true when the Game started. */
     fun start(): Boolean {
-        val started = game.start(choices)
+        // A second tap before the page leaves would file the Game just started as unfinished.
+        if (started) return false
+        started = game.start(choices)
         if (started) modes.set(Mode.GAME)
         return started
     }

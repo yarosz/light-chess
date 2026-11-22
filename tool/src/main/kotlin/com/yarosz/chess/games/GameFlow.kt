@@ -45,7 +45,7 @@ enum class Phase { USER, COMPUTER, OVER }
 /** The computer's answer to the user's draw offer (G1), shown until the next Move. */
 enum class DrawResponse { AGREED, DECLINED }
 
-/** An action waiting for its second tap: Resign (B5) and replacing the Game in progress (F7, B5). */
+/** An action waiting for its second tap: Resign (B5). Replacing the Game in progress takes one tap (LD4). */
 enum class Confirm { RESIGN }
 
 /**
@@ -70,7 +70,7 @@ data class GameState(
             }
         }
 
-    /** A Game is in progress (B5: one at a time): starting another needs a second tap. */
+    /** A Game is in progress (B5: one at a time): starting another files it as unfinished (LD4). */
     val inProgress: Boolean get() = data.current != null
 
     /** The Side drawn at the bottom: the user's, unless the board is flipped (D10, v2). */

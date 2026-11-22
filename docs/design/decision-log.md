@@ -1940,8 +1940,7 @@ LightOS, each with a mock-up. The owner asked for both.
 - LD2 Text buttons in LightOS's bottom bar, all caps. AMENDS W6/N7 (the Play a friend list's strip)
   and F7 (the new-game page's Start row). RULING: the Play a friend list's buttons are "NEW GAME" and
   "JOIN GAME" (which opens Enter code, unchanged) in the bottom bar, one at each end; the new-game
-  page's Start row becomes "START GAME" alone in the bar, centred, and its second tap's prompt (F7; gone since LD4, one tap
-  starts) took its place. "Join game" replaces "Enter code" everywhere, as Light's
+  page's Start row becomes "START GAME" alone in the bar, centred (F7's second tap went in LD4). "Join game" replaces "Enter code" everywhere, as Light's
   mock-up has it (owner, 2026-11-21): the list's button, the page's title (then "Sending" and the
   answers, unchanged), and the empty list's "Create a code for a friend, or join theirs." "Code"
   stays for the thing typed. `ActionBar` copies light-sdk
