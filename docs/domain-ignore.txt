@@ -36,6 +36,7 @@ PuzzlesStart
 PuzzlesPages
 PuzzleMenu
 PiecesMenuEntry
+PuzzleMenuEntry
 GameReviewMenu
 PlayerRatingEntry
 Past Puzzles
@@ -106,6 +107,9 @@ $MISSED · $count
 $PLAYER_RATING · $text
 # The Menu's Pieces row (decision log P2): "Pieces · Geometric", the Piece Set by its UI name
 $PIECES · ${pieceSetName(set)}
+# The Puzzle Menu's Difficulty row (decision log PD2): "Difficulty · Easier", Puzzle Difficulty by
+# its UI name; the short label is the row's, as Lichess's
+$DIFFICULTY · ${difficultyName(difficulty)}
 Failed ${delta(delta ?: 0)}
 Solved ${delta(delta ?: 0)}
 # The Menu's Puzzle row (decision log S1): the Lichess id and its lichess.org address, two lines

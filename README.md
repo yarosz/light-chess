@@ -7,7 +7,7 @@ Your Player Rating moves with every rated Puzzle, and the ones you missed wait f
 Or play the computer at one of eight Levels, on the phone itself, or a friend by correspondence, a
 few days per Move. No account and nothing tracked; only Games with a friend use the network.
 
-> **Status: 0.5.1. Puzzles (v1), playing the computer (v2) and playing a friend by correspondence
+> **Status: 0.6.0. Puzzles (v1), playing the computer (v2) and playing a friend by correspondence
 > (v3) are done. Light has reviewed and accepted Chess. It is not listed by Light yet.** A Light
 > Phone III Tool built on [Light's SDK](https://github.com/lightphone/light-sdk).
 
@@ -29,8 +29,10 @@ _Home, a Puzzle with its Hint, and a live Game with a friend. Taken on a Light P
   says what is happening: its arrow goes back, as the phone's back does, and the three squares at
   its right open the board's Menu, with Pieces. The buttons for the moment sit under the board, and a
   page's buttons sit in the bottom bar, in capitals as in LightOS.
-- **Puzzles.** Tap a piece, then a square, or drag it. A wrong Move is taken back and you can try again.
-  HINT marks the piece to move. SOLUTION plays the line for you.
+- **Puzzles.** Tap a piece, then a square, or drag it. A wrong Move shows for a moment, then is
+  taken back, and you can try again. HINT marks the piece to move. SOLUTION plays the line for you.
+  The board's Menu sets the Difficulty, as on Lichess: Easiest, Easier (the default), Normal, Harder
+  or Hardest chooses Puzzles below or above your Player Rating, which it never changes.
 - **Player Rating.** A Glicko-2 rating, like Lichess's own, picks each Puzzle near your level. Answer
   one question on first launch, or skip it.
 - **Missed.** The last 100 Puzzles you failed or needed a Hint for, to replay unrated.

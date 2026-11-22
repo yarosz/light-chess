@@ -140,7 +140,7 @@ silhouette in white over a wider black outline, so it keeps an edge on the light
 as the dark one. Each piece is drawn in its square with a small inset.
 
 The player's Piece Set is geometric until changed. Every board's Menu has a "Pieces · Geometric"
-row (N17): first on the Puzzle board's Menu, alone on Games Review's, and last on the computer's
+row (N17): second on the Puzzle board's Menu, under Difficulty (PD2), alone on Games Review's, and last on the computer's
 and a Correspondence Game's, 16 dp below their actions (`Rows.GAP`), so a wheel over-scroll to the
 end lands on Pieces and never on an action. The invite page and the list pages draw no board and
 have none. A tap moves to the next set ("Pieces · Rounded", then back) and stays on the Menu, and
@@ -262,8 +262,8 @@ is in the layout those screencaps show (the strip as wide as the board, "Menu" a
 string or state goes into the test.
 
 The Puzzle board's buttons by context (`PuzzleStrip`), in the action row, and the Menu mark in the
-top bar in every state but the end of the Pack, which draws no board (N17, E1). Its Menu: "Pieces ·
-Geometric", then "Puzzle 00sHx" over "lichess.org/training/00sHx" in grey, for the Puzzle on screen,
+top bar in every state but the end of the Pack, which draws no board (N17, E1). Its Menu:
+"Difficulty · Easier" (PD2; a tap moves to the next value), "Pieces · Geometric", then "Puzzle 00sHx" over "lichess.org/training/00sHx" in grey, for the Puzzle on screen,
 a Missed replay's own (N18). Games Review's top bar has the mark, in Review too, and its Menu is
 Pieces alone (N21). A Missed replay started before the seed shows first; the seed screen follows it
 (N22).
@@ -289,8 +289,15 @@ and writes the file; the two screens' view models are views onto it.
   (setup, reply, Solution) slides in over 250 ms, and so does the user's own Move made by tap-tap; a
   dropped Move lands at once where the finger left it (Z1). "Lands" is the moment the Move is
   played, so the reply starts 50 ms after the user's slide ends.
-- A wrong Move is never drawn: it is taken back at once and the status reads "Try again" until the
-  next correct Move.
+- A wrong Move is shown, then taken back (PD1): it stands on the board for 550 ms from the moment it
+  is played (`Attempt.WRONG_MS`: a tap-tap slide's 250 ms, then 300 ms at rest, as Lichess's
+  `revertUserMove`), input locked, then slides home. The status reads "Try again" from the wrong
+  Move until the next correct Move, with Hint and Solution as usual; either, tapped while the Move
+  stands, takes it back first. The save file never holds it: a kill meanwhile relaunches in Try
+  Mode, reading "Try again".
+- Selection (A7, PD2) looks around the Player Rating plus the Puzzle Difficulty's offset (Easiest
+  −600, Easier −300, the default, Normal 0, Harder +300, Hardest +600). Changing it keeps the Puzzle
+  on screen and drops the one chosen for Next.
 - Scoring: a Failed Attempt is scored at the wrong Move or at Solution, once; a Solved one when its
   last Move lands; a Hinted one ends unrated. Each scored Attempt adds a history row, marks the Puzzle
   finished, and (Failed or Hinted) puts it at the top of Missed. The next Puzzle is chosen and parsed
@@ -320,7 +327,7 @@ and writes the file; the two screens' view models are views onto it.
   that outruns the read ahead reads the file itself, as before.
 - The stage clock (A5) starts again only when the Attempt on screen changed, so a tap that changes
   nothing (Hint while the reply is pending) doesn't delay the reply. A slide (setup, reply,
-  Solution, the user's tap-tap Move) is cleared once it has played, and whenever its Move is no
+  Solution, the user's tap-tap Move, a wrong Move going home) is cleared once it has played, and whenever its Move is no
   longer the latest, so a return to the Puzzle board from Home doesn't play it again.
 - The owner reads assets through the latest screen that asked for it (`PuzzleOwner.of`): the SDK
   reads them only through a screen's activity, so keeping the first screen's reader kept the first
@@ -358,10 +365,11 @@ copy for the object on screen, while code names the chess state a Position.
   rows "1523 · Solved +12", "1541 · Failed −9"; "No rated Puzzles yet" when empty. Missed: rows
   "1541 · Failed" or "1541 · Hinted", lightened for a Puzzle the Pack lost; "Nothing missed yet".
 - A board's Menu (N17-N19): "Pieces · Geometric" or "Pieces · Rounded" with the set drawn beside it
-  (P2, M1; a tap moves to the next set and stays on the Menu); on the Puzzle board, "Puzzle 00sHx"
-  over "lichess.org/training/00sHx".
+  (P2, M1; a tap moves to the next set and stays on the Menu); on the Puzzle board, first
+  "Difficulty · Easier" (PD2: Easiest, Easier, Normal, Harder, Hardest, a tap moves to the next and
+  stays on the Menu), and last "Puzzle 00sHx" over "lichess.org/training/00sHx".
 - About (D7): plain text, one paragraph per line below, that scrolls by touch and by the wheel (F3).
-  - "Chess $VERSION" (0.5.1, equal to `versionName`)
+  - "Chess $VERSION" (0.6.0, equal to `versionName`)
   - "Copyright 2026 Nicolas Yarosz."
   - "Free software under the GNU General Public License, version 3 or later, with no warranty."
   - "Source: $SOURCE" (github.com/yarosz/light-chess, as text: the phone has no browser)

@@ -1993,3 +1993,52 @@ LightOS, each with a mock-up. The owner asked for both.
     status are list rows and a status line, not buttons, and keep their second tap and copy.
   - `Confirm.REPLACE` and `UiCopy.REPLACE_CONFIRM` are gone. Test: `GameFlowTest` "one Game at a
     time, Start replaces it at once and saves it unfinished (LD4)".
+
+## Puzzle feedback and Difficulty (owner, 2026-11-22)
+Two Lichess parities for Puzzles, in 0.6.0. A3's scoring and the result copy are unchanged.
+- PD1 The wrong Move is shown, then taken back. AMENDS A3's "take it back" (when it goes back, not
+  what it scores) and Z1's "a wrong Move in a Puzzle is never drawn, so it never slides". RULING
+  (owner, 2026-11-22): a wrong Move lands on the board like any of the user's Moves (by tap-tap it
+  slides in, dropped it lands at once), with its last-move marks and input locked, and is taken back
+  550 ms after it is played (`Attempt.WRONG_MS`: Z1's 250 ms slide, then 300 ms at rest); the piece
+  slides home over 250 ms, and a piece it took reappears. Lichess does the same (lila
+  `ui/puzzle/src/ctrl.ts`: `applyProgress('fail')` calls `revertUserMove`, 300 ms).
+  - Why: before, the piece just didn't move. After the first miss "Try again" didn't change, so a
+    second wrong Move read as a missed tap.
+  - Scoring as A3: the first wrong Move while Open fails the Attempt and is scored once, at that
+    moment; later ones only count. The status reads "Try again" from the wrong Move on, with Hint and
+    Solution as usual, so the strip doesn't flicker; either, tapped while the Move stands, takes it
+    back first and then acts. A Missed replay behaves the same, unrated. Games are untouched.
+  - The shape: `Stage.WRONG` in the Attempt's state machine, with `Attempt.wrong` set exactly in it
+    (an init check); `positions` and `moves` include it, `played` never does. The stage clock takes
+    it back (`advance`). `slideAfter` slides it home as the reversed Move, since `Motion` animates the
+    piece on the Move's destination: after the take-back that is the wrong Move's origin.
+  - Save: WRONG is transient. The file keeps `played` and "Try again" (`justWrong`), so a kill while
+    the Move stands relaunches in Try Mode reading "Try again"; `Attempt.resume` never yields WRONG.
+  - Tests: `AttemptTest`, `PuzzleOwnerTest` (the slide in and home, the clock), `PuzzleOwnerMissedTest`
+    (the owner's clock takes it back), `MenuTest` (the strip during WRONG), `PuzzleFlowTest` (the
+    kill, the replay).
+- PD2 Puzzle Difficulty. AMENDS A7's window (it is now around the Player Rating plus an offset) and
+  N17/N18's Puzzle board Menu. RULING (owner, 2026-11-22): Lichess's five steps (lila
+  `modules/puzzle/src/main/PuzzleDifficulty.scala`): Easiest −600, Easier −300, Normal 0, Harder
+  +300, Hardest +600, added to the Player Rating where `PuzzleFlow.pick` and `prefetchNext` look
+  (`Pack.candidates` still widens by 100 while the window is empty, so the Pack's ends are covered).
+  The default is Easier, for new and existing save files (`PuzzleData.difficulty`, no schemaVersion
+  bump: it only adds a field, as P2's `pieceSet`; an unknown value reads as Easier).
+  - The Puzzle board's Menu gains "Difficulty · Easier" first, above Pieces; each tap moves to the
+    next value in place (Hardest wraps to Easiest), as the Pieces row does.
+  - A change keeps the Puzzle on screen, whatever its stage, and clears the Puzzle chosen for Next
+    (`upNext`), so Next chooses for the new Difficulty; the owner reads the new window ahead off the
+    main thread (N23). Reset rating leaves it alone.
+  - It never changes the Player Rating or the scoring: Glicko already weighs each result by the
+    Puzzle Rating.
+  - `PuzzleDifficulty`, `PuzzleFlow.nextDifficulty`, `PuzzleOwner.nextDifficulty`,
+    `PuzzleMenu.of`, `UiCopy.difficultyRow`. Tests: `PuzzleFlowTest` (each step's target, the Pack's
+    ends, the cycle, the save file), `MenuTest` (the row, first, and its fit), `PuzzleOwnerMissedTest`
+    (the read ahead).
+- PD3 Considered and left out (owner, 2026-11-22):
+  - Softening the rating change by theme (lila `PuzzleFinisher` `ponder`): A7's Glicko-2 stays as it
+    is.
+  - Vibration on a wrong Move: no.
+  - "Completed" in place of "Failed" (Lichess's wording after a fail): "Failed" stays (D1).
+  - Backups (light-sdk docs/backups): deferred to the next milestone (LEDGER.md).

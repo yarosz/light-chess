@@ -27,6 +27,12 @@ renamed the text editor's `initialCaps` to `autoCapitalize`; `gradle.properties`
 selects Light's builder image. The SDK also offers notifications and push (since v0.2.1; push is
 undocumented) and backups (v0.2.3); scheduled alerts are on its `main`, in no tag yet:
 FOLLOW-UPS below.
+0.6.0 (versionCode 9, on light-sdk v0.2.10; branch feat/puzzle-difficulty, not submitted yet):
+decision log PD1-PD3. A wrong Move in a Puzzle shows for 550 ms (its tap-tap slide, then 300 ms at
+rest), then slides home, as on Lichess; scoring unchanged (A3). Puzzle Difficulty, Lichess's five
+steps (Easiest −600 to Hardest +600, default Easier), offsets the Player Rating where the next
+Puzzle is chosen: "Difficulty · Easier" first on the Puzzle board's Menu, kept in `puzzles.json`
+with no schemaVersion bump. Left out: rating softening by theme, vibration, "Completed", backups.
 SUBMITTED: 0.5.1 went to Light's Tool Library on 2026-11-21: build ff88d0a7 from d49ad52 (tag
 v0.5.1) succeeded in 6 min 28 s as Version 8 (SDK 0.2.10, pending Light's approval). Light's signed
 APK matches our unsigned build entry for entry (706 shared files identical; Light drops the
@@ -95,7 +101,7 @@ parentheses, Home's row plain "Puzzles", About "Chess 0.5.0".
 DONE (details in the PRs and the decision log): the v1 stack and 0.1.0 (LP3-checked 2026-09-29),
 the v2 forward merge (M1-M7) and 0.2.0, the Relay deploy and v3 (#3, #10 P3) and 0.3.0, 0.3.1, then
 #16-#26 above.
-LAST SESSION: 2026-11-21 (Light's design note, #38; the 0.5.1 release PR on light-sdk v0.2.10)
+LAST SESSION: 2026-11-22 (0.6.0: the wrong Move shown then taken back, Puzzle Difficulty, PD1-PD3)
 
 ## HANDOFF (read first when resuming)
 - Every feature branch (the v1 stack, v2's engine, Levels, record, Book and game screen, v3's

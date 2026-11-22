@@ -86,9 +86,15 @@ Rating does not change.
 _Avoid_: assisted, skipped
 
 **Try Mode**:
-What an Attempt becomes after a wrong Move: the Move is taken back and the user may keep trying.
+What an Attempt becomes after a wrong Move: the Move shows for a moment, is taken back, and the
+user may keep trying.
 Nothing done in Try Mode changes the Player Rating.
 _Avoid_: retry, practice
+
+**Puzzle Difficulty**:
+How far below or above the Player Rating the next Puzzles are chosen: Easiest, Easier, Normal,
+Harder or Hardest, as on Lichess. It never changes the Player Rating.
+_Avoid_: difficulty (alone), level, Puzzle Rating
 
 **Puzzle Hint**:
 A mark on the piece that should move next in a Puzzle.
