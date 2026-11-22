@@ -108,6 +108,10 @@ statement is `docs/privacy.md`; see also `SECURITY.md`.
   The drawings are in `art/pieces/`.
 - Built on Light's SDK (MIT) and the libraries it brings, listed in `NOTICE` and on the About screen.
 
+## Support
+
+Chess is free. If you enjoy it, you can [buy me a coffee](https://buymeacoffee.com/yarosz).
+
 ## Licence
 
 Copyright 2026 Nicolas Yarosz. Chess is free software under the GNU General Public License, version 3
